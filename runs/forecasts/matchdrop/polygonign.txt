@@ -1,0 +1,26 @@
+#!/bin/bash
+
+cd $ELMFIRE_BASE_DIR/runs/forecasts
+
+STRING='{
+"fireName": "dummy_firename",
+"initializationType": "active_fire_polygon",
+"activeFireTimestamp": "dummy_active_fire_timestamp",
+"alreadyBurnedTimestamp": "dummy_already_burned_timestamp",
+"ignitionTime": "dummy_ignition_time",
+"westBuffer": dummy_west_buffer,
+"southBuffer": dummy_south_buffer,
+"eastBuffer": dummy_east_buffer,
+"northBuffer": dummy_north_buffer,
+"numEnsembleMembers": dummy_num_ensemble_members,
+"addToActiveFires": "dummy_add_to_active_fires",
+"runHours": dummy_run_hours,
+"fuelSource": "dummy_fuel_source",
+"fuelVersion": "dummy_fuel_version",
+"scpInputDeck": "elmfire",
+"runTemplate": "default"
+}'
+
+./01-crs.sh "$STRING"
+
+exit 0

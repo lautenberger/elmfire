@@ -1,0 +1,147 @@
+&INPUTS
+FUELS_AND_TOPOGRAPHY_DIRECTORY = './'
+ASP_FILENAME                   = 'asp'
+CBD_FILENAME                   = 'cbd'
+CBH_FILENAME                   = 'cbh'
+CC_FILENAME                    = 'cc'
+CH_FILENAME                    = 'ch'
+DEM_FILENAME                   = 'dem'
+FBFM_FILENAME                  = 'fbfm40'
+SLP_FILENAME                   = 'slp'
+ADJ_FILENAME                   = 'adj'
+PHI_FILENAME                   = 'phi'
+IGNITION_MASK_FILENAME         = 'ignition_mask'
+USE_POPULATION_DENSITY         = .TRUE.
+POPULATION_DENSITY_FILENAME    = 'structure_density_per_acre'
+USE_LAND_VALUE                 = .FALSE.
+USE_REAL_ESTATE_VALUE          = .FALSE.
+WEATHER_DIRECTORY              = './'
+DT_METEOROLOGY                 = 3600.
+WS_FILENAME                    = 'ws'
+WD_FILENAME                    = 'wd'
+M1_FILENAME                    = 'm1'
+M10_FILENAME                   = 'm10'
+M100_FILENAME                  = 'm100'
+ERC_FILENAME                   = 'erc'
+DEAD_MC_IN_PERCENT             = .TRUE.
+LIVE_MC_IN_PERCENT             = .TRUE.
+USE_CONSTANT_LH                = .FALSE.
+MLH_FILENAME                   = 'lh'
+USE_CONSTANT_LW                = .FALSE.
+MLW_FILENAME                   = 'lw'
+USE_CONSTANT_FMC               = .TRUE.
+FOLIAR_MOISTURE_CONTENT        = 110.0
+USE_TILED_IO                   = .TRUE.
+GRID_DECLINATION               = 0.0
+/
+
+&OUTPUTS
+OUTPUTS_DIRECTORY                = './'
+CONVERT_TO_GEOTIFF               = .FALSE.
+DTDUMP                           = 3600.
+DUMP_TIMINGS                     = .TRUE.
+DUMP_INTERMEDIATE_TIMINGS        = .FALSE.
+DUMP_HOURLY_RASTERS              = .TRUE.
+DUMP_HOURLY_RASTERS_ASAP         = .TRUE.
+CALCULATE_BURN_PROBABILITY       = .FALSE.
+CALCULATE_TIMES_BURNED           = .TRUE.
+DUMP_BINARY_OUTPUTS              = .FALSE.
+DUMP_SURFACE_FIRE_AREA           = .FALSE.
+DUMP_CROWN_FIRE_AREA             = .FALSE.
+DUMP_FIRE_VOLUME                 = .FALSE.
+DUMP_AFFECTED_POPULATION         = .FALSE.
+DUMP_AFFECTED_REAL_ESTATE_VALUE  = .FALSE.
+DUMP_AFFECTED_LAND_VALUE         = .FALSE.
+/
+
+&COMPUTATIONAL_DOMAIN
+A_SRS                          = 'EPSG:5070'
+COMPUTATIONAL_DOMAIN_CELLSIZE  = 30.0
+COMPUTATIONAL_DOMAIN_XLLCORNER = 
+COMPUTATIONAL_DOMAIN_YLLCORNER = 
+/
+
+&TIME_CONTROL
+RANDOMIZE_SIMULATION_TSTOP = .FALSE.
+SIMULATION_TSTART          = 0.0
+SIMULATION_TSTOP           = 21600.0
+SIMULATION_DT              = 1.0
+SIMULATION_DTMAX           = 600.0
+TARGET_CFL                 = 0.90
+/
+
+&SIMULATOR
+CROWN_FIRE_MODEL                     = 2
+CROWN_RATIO                          = 0.3
+ALLOW_NONBURNABLE_PIXEL_IGNITION     = .FALSE.
+MAX_RUNTIME                          = 5.0
+BANDTHICKNESS                        = 2
+WIND_FLUCTUATIONS                    = .TRUE.
+DT_WIND_FLUCTUATIONS                 = 300.0
+WIND_SPEED_FLUCTUATION_INTENSITY     = 0.1
+WIND_DIRECTION_FLUCTUATION_INTENSITY = 0.1
+DEBUG_LEVEL                          = 1
+RANDOMIZE_RANDOM_SEED                = .TRUE.
+UNTAG_CELLS_TIMESTEP_INTERVAL        = 10
+UNTAG_TYPE_2                         = .TRUE.
+UNTAG_TYPE_3                         = .TRUE. 
+NUM_NODES_OMP_THRESHOLD              = 9999999
+/
+
+&MONTE_CARLO
+METEOROLOGY_BAND_START                   = 7
+METEOROLOGY_BAND_STOP                    = 114
+METEOROLOGY_BAND_SKIP_INTERVAL           = 1
+NUM_METEOROLOGY_TIMES                    = 7
+NUM_ENSEMBLE_MEMBERS                     = -1
+ALLOW_MULTIPLE_IGNITIONS_AT_A_PIXEL      = .TRUE.
+EDGEBUFFER                               = 48000.
+USE_ERC                                  = .FALSE.
+USE_IGNITION_MASK                        = .TRUE.
+IGNITION_MASK_SCALE_FACTOR               = 1.0
+RANDOM_IGNITIONS                         = .TRUE.
+RANDOM_IGNITIONS_TYPE                    = 2
+PERCENT_OF_PIXELS_TO_IGNITE              = 15.0
+SEED                                     = 2023
+/
+IGNITION_MASK_SCALE_FACTOR               = 0.002
+
+&SPOTTING
+ENABLE_SPOTTING                          = .TRUE.
+ENABLE_SURFACE_FIRE_SPOTTING             = .TRUE.
+SURFACE_FIRE_SPOTTING_PERCENT(:)         = 1.0
+CRITICAL_SPOTTING_FIRELINE_INTENSITY     = 1000.0
+STOCHASTIC_SPOTTING                      = .TRUE.
+SPOTTING_DISTRIBUTION_TYPE               = 'LOGNORMAL'
+MEAN_SPOTTING_DIST_MIN                   = 5.0
+MEAN_SPOTTING_DIST_MAX                   = 10.0
+NORMALIZED_SPOTTING_DIST_VARIANCE_MIN    = 250.0 
+NORMALIZED_SPOTTING_DIST_VARIANCE_MAX    = 600.0
+SPOT_WS_EXP_LO                           = 0.4
+SPOT_WS_EXP_HI                           = 0.7
+SPOT_FLIN_EXP_LO                         = 0.2
+SPOT_FLIN_EXP_HI                         = 0.4
+NEMBERS_MIN                              = 1
+NEMBERS_MAX_LO                           = 1
+NEMBERS_MAX_HI                           = 1
+GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MIN = 0.2
+GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MAX = 0.8
+CROWN_FIRE_SPOTTING_PERCENT_MIN          = 0.2
+CROWN_FIRE_SPOTTING_PERCENT_MAX          = 0.8
+PIGN_MIN                                 = 100.0
+PIGN_MAX                                 = 100.0
+/
+
+&CALIBRATION
+CALIBRATE                    = .FALSE.
+/
+
+&SUPPRESSION
+ENABLE_INITIAL_ATTACK = .FALSE. /
+
+&MISCELLANEOUS
+MISCELLANEOUS_INPUTS_DIRECTORY = './'
+FUEL_MODEL_FILE                = 'fuel_models.csv'
+PATH_TO_GDAL                   = '/usr/bin'
+SCRATCH                        = './'
+/

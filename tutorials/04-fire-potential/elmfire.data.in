@@ -1,0 +1,55 @@
+&INPUTS
+FUELS_AND_TOPOGRAPHY_DIRECTORY = './inputs'
+ASP_FILENAME                   = 'asp'
+CBD_FILENAME                   = 'cbd'
+CBH_FILENAME                   = 'cbh'
+CC_FILENAME                    = 'cc'
+CH_FILENAME                    = 'ch'
+DEM_FILENAME                   = 'dem'
+FBFM_FILENAME                  = 'fbfm40'
+SLP_FILENAME                   = 'slp'
+ADJ_FILENAME                   = 'adj'
+PHI_FILENAME                   = 'phi'
+DT_METEOROLOGY                 = 3600.0
+WEATHER_DIRECTORY              = './inputs'
+WS_FILENAME                    = 'ws'
+WD_FILENAME                    = 'wd'
+M1_FILENAME                    = 'm1'
+M10_FILENAME                   = 'm10'
+M100_FILENAME                  = 'm100'
+USE_CONSTANT_LH                = .FALSE.
+MLH_FILENAME                   = 'lh'
+USE_CONSTANT_LW                = .FALSE.
+MLW_FILENAME                   = 'lw'
+/
+
+&OUTPUTS
+OUTPUTS_DIRECTORY    = './outputs'
+DUMP_SPREAD_RATE     = .TRUE.
+DUMP_FLAME_LENGTH    = .TRUE.
+CONVERT_TO_GEOTIFF   = .FALSE.
+/
+
+&COMPUTATIONAL_DOMAIN
+A_SRS = 
+COMPUTATIONAL_DOMAIN_CELLSIZE = 
+COMPUTATIONAL_DOMAIN_XLLCORNER = 
+COMPUTATIONAL_DOMAIN_YLLCORNER = 
+/
+
+&MONTE_CARLO
+METEOROLOGY_BAND_START                   = 1
+METEOROLOGY_BAND_SKIP_INTERVAL           = 1
+METEOROLOGY_BAND_STOP                    = 6
+/
+
+&SIMULATOR
+MODE = 2
+/
+
+&MISCELLANEOUS
+MISCELLANEOUS_INPUTS_DIRECTORY = './misc'
+FUEL_MODEL_FILE                = 'fuel_models.csv'
+PATH_TO_GDAL                   = '/usr/bin'
+SCRATCH                        = './scratch'
+/

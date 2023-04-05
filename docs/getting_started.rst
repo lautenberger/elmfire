@@ -1,0 +1,91 @@
+.. _getting_started:
+
+Getting Started
+===============
+
+The steps below will install and configure ELMFIRE. This has been tested 
+on a clean install of `Ubuntu Server 22.04.2 LTS 
+<https://ubuntu.com/download/server>`_. Modifications to run on other 
+Linux distributions may be required.
+
+.. _install-prerequisites:
+
+Install prerequisites
+---------------------
+
+The following commands will install packages needed to build and run ELMFIRE:
+
+.. code-block:: console
+
+   sudo apt-get update && sudo apt-get upgrade -y
+   sudo apt-get install -y bc csvkit gdal-bin gfortran jq libopenmpi-dev \
+                           openmpi-bin pigz python3 python3-pip unzip wget zip
+   sudo pip3 install google-api-python-client python-dateutil
+   sudo python3 -m pip install grpcio grpcio-tools
+
+.. _clone-repo:
+
+Clone ELMFIRE Github repository
+-------------------------------
+
+The current ELMFIRE repository can be cloned as follows:
+
+.. code-block:: console
+
+   git clone https://github.com/lautenberger/elmfire.git
+
+Since this will clone the current repository, including all recent 
+commits, for use in production environments a user may wnat to clone the 
+latest stable release / branch instead.
+
+.. _set-env-vars:
+
+Set environment variables
+-------------------------
+
+ELMFIRE uses four environment variables:
+
+1. ``ELMFIRE_SCRATCH_BASE``: Full path to a scratch directory where the 
+   user has read/write access.
+2. ``ELMFIRE_BASE_DIR``: Full path to the directory to which the ELMFIRE 
+   Git repository was cloned (i.e., the directory containing 
+   ``README.md``).
+3. ``ELMFIRE_INSTALL_DIR``: Full path to the directory where the 
+   ELMFIRE executable files will be installed (default: 
+   ``$ELMFIRE_BASE_DIR/build/linux/bin``).
+4. ``CLOUDFIRE_SERVER``: IP address of Cloudfire microservices server 
+   (this should be set to ``172.92.17.198``, more on this later).
+
+The easiest way to specify these variables is by exporting them from 
+your ``~/.bashrc`` file. For example, one could ``pico ~/.bashrc`` and 
+then add the following lines (replacing ``/scratch/clauten``, 
+``/home/clauten/elmfire``, etc.):
+
+.. code-block:: console
+
+   export ELMFIRE_SCRATCH_BASE=/scratch/clauten
+   export ELMFIRE_BASE_DIR=/home/clauten/elmfire
+   export ELMFIRE_INSTALL_DIR=$ELMFIRE_BASE_DIR/build/linux/bin
+   export CLOUDFIRE_SERVER=172.92.17.198
+   export PATH=$PATH:$ELMFIRE_INSTALL_DIR:$ELMFIRE_BASE_DIR/cloudfire
+
+These environment variables will be set on the next login or after 
+sourcing the newly-edited file (``. ~/.bashrc``).
+
+.. _build-executables:
+
+Build ELMFIRE executables
+-------------------------
+
+ELMFIRE and its postprocessing tool can be built as follows:
+
+.. code-block:: console
+
+   cd $ELMFIRE_BASE_DIR/build/linux
+   ./make_gnu.sh
+
+Unless an error occurs, this will build the executables 
+``elmfire_VERSION`` and ``elmfire_post_VERSION`` (where version is, for 
+example, 2023.03) and copy them to ``$ELMFIRE_INSTALL_DIR``. If 
+this directory is not in the user's ``$PATH`` it should be added at this 
+time. Note that two debug executables are also built.

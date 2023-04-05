@@ -1,0 +1,22 @@
+&IDG_INPUTS
+USE_KERNEL_DENSITY = .TRUE.
+STRAIGHT_AVERAGE   = .TRUE.
+SEARCH_RADIUS      = 200.0
+SCALE_FACTOR       = 1.0
+INPUT_DIRECTORY    = './'
+OUTPUT_DIRECTORY   = './'
+OUTPUT_FILENAME    = 'dummy_out'
+A_SRS              = 'EPSG:5070'
+CELLSIZE           = 150.0
+XLLCORNER          = XLLCORNER_DUMMY
+YLLCORNER          = YLLCORNER_DUMMY
+NCOLS              = 960
+NROWS              = 960
+IGNITIONS_FILE_CSV = 'dummy_in.csv'
+CONVERT_TO_GEOTIFF = .FALSE.
+COMPRESS           = .FALSE.
+SCRATCH            = './scratch/'
+PATH_TO_GDAL       = '/usr/bin/'
+READ_ZVAL          = .TRUE.
+USE_ZMAX           = .TRUE.
+/

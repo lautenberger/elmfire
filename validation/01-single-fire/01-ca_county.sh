@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Specify inputs below:
+
+YEAR=2018
+FIRENAME=ca-county
+ACTIVE_FIRE_TIMESTAMP_NUM=1
+ALREADY_BURNED_TIMESTAMP_NUM=null
+WEST_BUFFER=30
+SOUTH_BUFFER=30
+EAST_BUFFER=30
+NORTH_BUFFER=30
+NUM_ENSEMBLE_MEMBERS=100
+RUN_HOURS=48
+FUEL_SOURCE=landfire
+FUEL_VERSION=1.4.0
+RUN_TEMPLATE=hindcast
+
+export USE_SLURM=no
+export CALC_FITNESS=yes
+
+# No need to modify from here down:
+
+cp -f ../template.sh ./run.sh
+rm -f -r ./ca-county_20180701_062200
+
+./run.sh $YEAR $FIRENAME $ACTIVE_FIRE_TIMESTAMP_NUM \
+         $ALREADY_BURNED_TIMESTAMP_NUM \
+         $WEST_BUFFER $SOUTH_BUFFER $EAST_BUFFER $NORTH_BUFFER \
+         $NUM_ENSEMBLE_MEMBERS $RUN_HOURS $FUEL_SOURCE $FUEL_VERSION \
+         $RUN_TEMPLATE
+
+rm -f ./run.sh
+
+exit 0
