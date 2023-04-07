@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: elmfire
+  namespace: wifire-pyregence
+spec:
+  containers:
+  - name: elmfire
+    image: clauten/elmfire:latest
+#    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
+    command: ["sh", "-c", "sleep 600"]
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch
+    - mountPath: /dev/shm
+      name: dshm
+    resources:
+      limits:
+        cpu: "16"
+        memory: "32Gi"
+  volumes:
+    - name: scratch
+      emptyDir:
+        sizeLimit: 10Gi
+    - name: dshm
+      emptyDir:
+        medium: Memory

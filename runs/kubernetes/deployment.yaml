@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elmfire-deployment
+  labels:
+     k8s-app: elmfirek8s
+  namespace: wifire-pyregence
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      k8s-app: elmfirek8s
+  template:
+    metadata:
+      labels:
+        k8s-app: elmfirek8s
+    spec:
+      containers:
+      - name: elmfire
+        image: clauten/elmfire:latest
+        imagePullPolicy: Always
+        command: ["sh", "-c", "sleep infinity"]
+        volumeMounts:
+        - mountPath: /scratch
+          name: scratch
+        - mountPath: /dev/shm
+          name: dshm
+        resources:
+          limits:
+            cpu: "64"
+            memory: "256Gi"
+          requests:
+            cpu: "32"
+            memory: "128Gi"
+      volumes:
+        - name: scratch
+          emptyDir: {}
+        - name: dshm
+          emptyDir:
+            medium: Memory
