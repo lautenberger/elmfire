@@ -52,7 +52,8 @@ INTEGER, INTENT(IN) :: IX0, IY0, ICASE
 INTEGER :: N_SPOT_FIRES, IX_SPOT_FIRE(:), IY_SPOT_FIRE(:)
 REAL, INTENT(IN) :: WS20_NOW, FLIN, F_WIND, DT, TIME_NOW, TAU, IGNMULT
 REAL, INTENT(IN), DIMENSION(:,:)  ::  WS20_LO, WS20_HI, WD20_LO, WD20_HI
-REAL :: R0, X0(1:3), MSD, SIGMA_DIST, MU_DIST, NEMBERS_REAL, P, EMISSION_DT
+REAL :: R0, X0(1:3), MSD, SIGMA_DIST, MU_DIST, MU_SPANWISE, SIGMA_SPANWISE, &
+         NEMBERS_REAL, P, EMISSION_DT, SARDOY_PARAMETERS(1:4)
 REAL, PARAMETER :: TSTOP_SPOT= 1200.
 
 X0(1) = (REAL(IX0)-0.5) * CC%CELLSIZE 
@@ -81,6 +82,13 @@ ENDIF
 IF (NEMBERS .EQ. 0) RETURN
 
 IF (USE_UMD_SPOTTING_MODEL) THEN
+   ! CALCULATE DISTRIBUTION PARAMETERS FROM LOCAL WIND SPEED & FIRELINE INTENSITY FROM SARDOY'S MODEL
+   SARDOY_PARAMETERS= SARDOY_PDF_PARAMETERS(WS20_NOW, FLIN)
+   MU_DIST          = SARDOY_PARAMETERS(1)
+   SIGMA_DIST       = SARDOY_PARAMETERS(2)
+   MU_SPANWISE      = SARDOY_PARAMETERS(3)
+   SIGMA_SPANWISE   = SARDOY_PARAMETERS(4)
+
    CALL FAST_SPOTTING(  &
       CC%NCOLS                  , &
       CC%NROWS                  , &
@@ -121,6 +129,49 @@ ELSE
       TIME_NOW                  , &
       IGNMULT )
 ENDIF
+
+CONTAINS
+! *****************************************************************************
+FUNCTION SARDOY_PDF_PARAMETERS(WS, FI)
+! *****************************************************************************
+! FUNCTION CALCULATES THE SPOTTING DISTANCE DISTRIBUTION BASED ON THE SARDOY'S MODEL
+! TAKE THE INPUTS LOCAL WIND SPEED AND FIRELINE INTENSITY, RETURE MU AND SIGMA
+REAL, INTENT(IN) :: WS, FI
+REAL, PARAMETER :: RHO_INF = 1.1 ! Air density, kg/m^2
+REAL, PARAMETER :: C_PG    = 1.0 ! Air heat capacity, kJ/kg-K
+REAL, PARAMETER :: T_INF   = 300.0 ! Ambient temperature, K
+REAL, PARAMETER :: G       = 9.81! Gravitional acceleration, m^2/s
+REAL :: I, U_WIND, LC, FR, MU_DIST, SIGMA_DIST, MU_SPANWISE, SIGMA_SPANWISE
+REAL, DIMENSION(4) :: SARDOY_PDF_PARAMETERS
+U_WIND = 0.447 * WS ! WIND SPEED IN M/S
+I  = MAX(FI,1E-6) / 1000.0                                          ! FIRELINE INTENSITY IN MW/M
+! WRITE(*,*) 'WIND_SPEED',U_WIND,'FLIN',I
+LC = (I*1000.0 / (RHO_INF * C_PG * T_INF * SQRT(G))) ** 0.67  ! Character length scale
+FR = U_WIND / SQRT(G * LC)                                ! FROUDE NUMBER
+
+IF (FR .LE. 1.0) THEN
+   MU_DIST    = (I ** 0.54) / MAX(U_WIND ** 0.55,1.0E-5)
+   MU_DIST    = 1.47 * MU_DIST + 1.14
+   SIGMA_DIST = (U_WIND ** 0.44) / MAX(I ** 0.21,1.0E-5) 
+   SIGMA_DIST = 0.86 * SIGMA_DIST + 0.19
+ELSE
+   MU_DIST    = I ** 0.26 * U_WIND ** 0.11
+   MU_DIST    = 1.32 * MU_DIST - 0.02
+   SIGMA_DIST = 1.0 / MAX(I ** 0.01,1.0E-5) / MAX(U_WIND ** 0.02,1.0E-5)
+   SIGMA_DIST = 4.95 * SIGMA_DIST - 3.48
+ENDIF
+! MU_DIST    = 0.1
+! SIGMA_DIST  = 0.1
+MU_SPANWISE = 0.0
+SIGMA_SPANWISE = 0.92 * LC
+SARDOY_PDF_PARAMETERS(1) = MU_DIST
+SARDOY_PDF_PARAMETERS(2) = SIGMA_DIST
+SARDOY_PDF_PARAMETERS(3) = MU_SPANWISE
+SARDOY_PDF_PARAMETERS(4) = SIGMA_SPANWISE
+
+! *****************************************************************************
+END FUNCTION SARDOY_PDF_PARAMETERS
+! *****************************************************************************
 
 ! *****************************************************************************
 END SUBROUTINE SPOTTING
