@@ -35,7 +35,7 @@ The current ELMFIRE repository can be cloned as follows:
    git clone https://github.com/lautenberger/elmfire.git
 
 Since this will clone the current repository, including all recent 
-commits, for use in production environments a user may wnat to clone the 
+commits, for use in production environments a user may want to clone the 
 latest stable release / branch instead.
 
 .. _set-env-vars:

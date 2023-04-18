@@ -48,7 +48,7 @@ Equation YY, is >= 1.
 where R0 is the spread rate (m/min) from Van Wagner (1977) that is associated 
 with the crown fire "lower flammability limit" - essentially a minimum mass 
 flux of vegetation through a coordinate system attached to the flame front 
-that permits continous flaming: 
+that permits continuous flaming: 
 
 .. math::
 
@@ -62,7 +62,7 @@ rate CROSP:
 
    \text{CROSP} = \text{CROSA} \times exp (-\text{CAC})
 
-With the theoretical bases for crown fire spread rate mdeling summarized 
+With the theoretical bases for crown fire spread rate modeling summarized 
 above, idealized exact solution elliptical perimeters (see Validation 01) are 
 compared to modeled perimeters for an active crown fire test case for the 
 following inputs:
@@ -109,5 +109,5 @@ This test case verifies that:
       and
 
    2. The linkage between crown fire and surface fire (which, as described in 
-      the Technical Refrence, is executed through the Rothermel model's phi_w 
+      the Technical Reference, is executed through the Rothermel model's phi_w 
       coefficient ) is correctly implemented
