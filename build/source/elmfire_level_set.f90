@@ -42,7 +42,7 @@ REAL, POINTER, DIMENSION(:,:), SAVE :: M1_LO, M1_HI, M10_LO, M10_HI, M100_LO, M1
                                        WD20_LO, WD20_HI, MLH_LO, MLH_HI, MLW_LO, MLW_HI, FMC_LO, FMC_HI
 REAL, POINTER, SAVE, DIMENSION(:,:,:) :: A_TIMES_BURNED
 
-LOGICAL :: IA_HAS_OCCURRED, LOPEN, DUMPEDYET, GO, CALL_SPOTTING, JUST_INTERPOLATED, DUMP_SMOKE_OUTPUTS
+LOGICAL :: IA_HAS_OCCURRED, LOPEN, DUMPEDYET, GO, CALL_SPOTTING, JUST_INTERPOLATED, DUMP_SMOKE_OUTPUTS, EMBER_TRAJECTORY_FILE_EXIST
 LOGICAL, SAVE :: FIRSTCALL
 LOGICAL, DIMENSION(1:100) :: ALREADY_IGNITED
 
@@ -79,8 +79,13 @@ IF (FIRSTCALL) THEN
    ALLOCATE(Y(1:NY))
    ALLOCATE(IX_TO_TAG   (1:100000))
    ALLOCATE(IY_TO_TAG   (1:100000))
-   ALLOCATE(IX_SPOT_FIRE(1:100000))
-   ALLOCATE(IY_SPOT_FIRE(1:100000))
+   IF (USE_UMD_SPOTTING_MODEL) THEN
+      ALLOCATE(IX_SPOT_FIRE(1:NX*NY))
+      ALLOCATE(IY_SPOT_FIRE(1:NX*NY))
+   ELSE
+      ALLOCATE(IX_SPOT_FIRE(1:100000))
+      ALLOCATE(IY_SPOT_FIRE(1:100000))
+   ENDIF
    
    X(1) = ANALYSIS_XLLCORNER + 0.5 * ANALYSIS_CELLSIZE
    DO IX = 2, NX
@@ -105,6 +110,7 @@ IF (FIRSTCALL) THEN
    NDUMPS = IDUMPCOUNT
 
    ALLOCATE(TIME_OF_ARRIVAL(1:NX,1:NY)); TIME_OF_ARRIVAL(:,:) = -1.
+   ALLOCATE(TIME_TO_IGNITE (1:NX,1:NY)); TIME_TO_IGNITE(:,:) = -1. ! Added by Yiren, initialize ignition time by ember
    ALLOCATE(TAGGED         (1:NX,1:NY)); TAGGED(:,:) = .FALSE.
    ALLOCATE(PHIP           (1:NX,1:NY)); PHIP(:,:) = 1
    ALLOCATE(EVERTAGGED     (1:NX,1:NY)); EVERTAGGED(:,:) = .FALSE.
@@ -304,6 +310,40 @@ IDUMPCOUNT = 1
 
 CALL ACCUMULATE_CPU_USAGE(35, IT1, IT2)
 
+! N_SPOT_FIRES in UMD model counts for all the spot fires (embers causing ignition) 
+! Therefore the maximum value of N_SPOT_FIRES is NX * NY for a simulation
+IF (USE_UMD_SPOTTING_MODEL) THEN
+   N_SPOT_FIRES = 0
+   INQUIRE(FILE="EMBER_TARGET_IX.bin", EXIST=EMBER_TRAJECTORY_FILE_EXIST)
+   IF (.NOT. EMBER_TRAJECTORY_FILE_EXIST) THEN
+      CALL BUILD_EMBER_TRAJECTORY_TABLE( &
+            CC%NCOLS                     , & 
+            CC%NROWS                     , &
+            CC%CELLSIZE                  , &
+            DT                           , &
+            MAX_SPOTTING_DISTANCE        , & 
+            TSTOP)
+   ELSE
+      ! Read the look-up table from file, saving time on building a new one
+      ! OPEN(UNIT=10, FILE='EMBER_TARGET_IX.bin', FORM='BINARY')
+      ! READ(10) EMBER_TARGET_IX
+      ! CLOSE(10)
+
+      ! OPEN(UNIT=10, FILE='EMBER_TARGET_IY.bin', FORM='BINARY')
+      ! READ(10) EMBER_TARGET_IY
+      ! CLOSE(10)
+
+      ! OPEN(UNIT=10, FILE='EMBER_TOA.bin', FORM='BINARY')
+      ! READ(10) EMBER_TOA
+      ! CLOSE(10)
+
+      ! OPEN(UNIT=10, FILE='TIME_LIST.bin', FORM='BINARY')
+      ! READ(10) TIME_LIST
+      ! CLOSE(10)
+   ENDIF
+ENDIF
+
+
 DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
    CALL SYSTEM_CLOCK(IT1)
    T = T + DT
@@ -476,7 +516,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
 
 ! Find newly-burned cells and call spotting:
    N_TO_TAG = 0
-   N_SPOT_FIRES = 0
+   IF (.NOT. USE_UMD_SPOTTING_MODEL) N_SPOT_FIRES = 0
    
    C => LIST_TAGGED%HEAD
    DO I = 1, LIST_TAGGED%NUM_NODES
@@ -599,25 +639,35 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
    ENDDO
 
    IF (USE_UMD_SPOTTING_MODEL) THEN
-      DO I = 1, NUM_TRACKED_EMBERS
-         CONTINUE
-         IF (.NOT. SPOTTING_STATS(I)%POSITIVE_IGNITION ) CYCLE
-         IF (SPOTTING_STATS(I)%ALREADY_IGNITED         ) CYCLE
-         IF (SPOTTING_STATS(I)%TIGN .GT. T             ) CYCLE
-
-         SPOTTING_STATS(I)%ALREADY_IGNITED = .TRUE.
-
-         IX = SPOTTING_STATS(I)%IX_TO
-         IY = SPOTTING_STATS(I)%IY_TO
-
-         CONTINUE
-
+      DO I = 1, N_SPOT_FIRES
+         IX = IX_SPOT_FIRE(I)
+         IY = IY_SPOT_FIRE(I)
+         IF (TIME_TO_IGNITE(IX,IY) .GT. T+DT) CYCLE
          IF (SURFACE_FIRE(IX,IY) .LE. 0 .AND. ADJ%R4(IX,IY,1) .GT. 0. .AND. (.NOT. ISNONBURNABLE(IX,IY) ) ) THEN
             CALL TAG_BAND(NX, NY, IX, IY, T)
             TIME_OF_ARRIVAL(IX,IY) = T
             PHIP           (IX,IY) = -1.0
          ENDIF
       ENDDO
+      ! DO I = 1, NUM_TRACKED_EMBERS
+      !    CONTINUE
+      !    IF (.NOT. SPOTTING_STATS(I)%POSITIVE_IGNITION ) CYCLE
+      !    IF (SPOTTING_STATS(I)%ALREADY_IGNITED         ) CYCLE
+      !    IF (SPOTTING_STATS(I)%TIGN .GT. T             ) CYCLE
+
+      !    SPOTTING_STATS(I)%ALREADY_IGNITED = .TRUE.
+
+      !    IX = SPOTTING_STATS(I)%IX_TO
+      !    IY = SPOTTING_STATS(I)%IY_TO
+
+      !    CONTINUE
+
+      !    IF (SURFACE_FIRE(IX,IY) .LE. 0 .AND. ADJ%R4(IX,IY,1) .GT. 0. .AND. (.NOT. ISNONBURNABLE(IX,IY) ) ) THEN
+      !       CALL TAG_BAND(NX, NY, IX, IY, T)
+      !       TIME_OF_ARRIVAL(IX,IY) = T
+      !       PHIP           (IX,IY) = -1.0
+      !    ENDIF
+      ! ENDDO
    ELSE
       DO I = 1, N_SPOT_FIRES
          IX = IX_SPOT_FIRE(I)
