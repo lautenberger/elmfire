@@ -127,7 +127,7 @@ and, for fire hindcasts, as calibration coefficients. Setting the
 parameter ``STOCHASTIC_SPOTTING = .TRUE.`` directs ELMFIRE to treat the 
 parameters that control spotting stochastically and, when ``CALIBRATION 
 = .TRUE.``, automatically adjust these spotting parameters are 
-automatically adjusted to optimixe agreement between modeled and 
+automatically adjusted to optimize agreement between modeled and 
 observed fire perimeters. When ``STOCHASTIC_SPOTTING = .TRUE.``, the 
 following eight parameters are randomly generated within a 
 user-specified range as will be described later:

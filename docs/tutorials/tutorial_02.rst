@@ -17,7 +17,7 @@ As with Tutorial 01, to run Tutorial 02, do the following:
    ./01-run.sh
 
 This will run a nominally 6-hr simulation with wind out of the north for 
-the first 2 hours, shifing to the northeast between hour 2 and 4, and 
+the first 2 hours, shifting to the northeast between hour 2 and 4, and 
 remaining out of the northeast for hours 4-6. The outputs, when 
 visualized with a GIS package, should look similar to the image below 
 which shows hourly isochrones overlaid on the time of arrival raster. 
@@ -71,7 +71,7 @@ bands is 3600 s or 1 hour. This is a typical meteorology timestep when
 working with gridded forecast data or historical reanalysis data.
 
 Since multiband input rasters may contain more bands that are necessary 
-for the sumulation, the number of weather bands to use in the simulation 
+for the simulation, the number of weather bands to use in the simulation 
 is specified in the ``&MONTE_CARLO`` namelist group via the 
 ``NUM_METEOROLOGY_BANDS``. The ``inputs/elmfire.data`` file contains the 
 following namelist group to specify that 8 bands from the weather / fuel 
@@ -114,7 +114,7 @@ Now is a good time to experiment with specifying various temporal
 variations in weather and fuel moisture fields and assessing the impact 
 that these have on modeled fire behavior. This can be done by directly 
 editing ``wx.csv`` and ``01-run.sh``. You may also want to change the 
-igniton location, or specify multiple ignitions. This can be done by 
+ignition location, or specify multiple ignitions. This can be done by 
 revising the ``&SIMULATOR`` namelist group in ``elmfire.data.in``:
 
 .. code-block:: console
@@ -129,7 +129,7 @@ revising the ``&SIMULATOR`` namelist group in ``elmfire.data.in``:
 Here, ``X_IGN`` and ``Y_IGN`` specify the x and y coordinates of the 
 ignition, and ``T_IGN`` specifies the time of ignition. The index (1) 
 specifies the ignition number. Multiple ignitions can be modeled by 
-doing somethign similar to this:
+doing something similar to this:
 
 .. code-block:: console
 

@@ -14,7 +14,7 @@ this simple model configuration, do the following:
    ./01-run.sh
 
 Several output messages will scroll across the screen for a few seconds, 
-and when the scrolling stops the run is complete. What just happend? 
+and when the scrolling stops the run is complete. What just happened? 
 Well, in short the BASH script ``01-run.sh`` created the geospatial 
 inputs needed by ELMFIRE, ran ELMFIRE, and conducted basic 
 post-processing on ELMFIRE's outputs. Let's examine this more closely by 
@@ -60,7 +60,7 @@ values of seven Float32 inputs:
 The meaning of the first five inputs is self-explanatory; the final two 
 inputs are ``adj`` - spread rate adjustment factor, and ``phi`` - the 
 initial value of the level set function :math:`{\phi}`. Both of these 
-sould be left at 1.0.
+should be left at 1.0.
 
 The value of an input parameter can be modified by changing its 
 corresponding ``FLOAT_VAL``. For example, setting ``FLOAT_VAL[1]=10.0`` 
@@ -114,7 +114,7 @@ domain is ``(-DOMAINSIZE/2, -DOMAINSIZE/2)``.
 
 Next, the file ``elmfire.data.in`` is copied to 
 ``./inputs/elmfire.data``, and values of various input parameters (e.g., 
-``A_SRS``) are set accordingly. Then, ELMFIRE is run and ouputs are 
+``A_SRS``) are set accordingly. Then, ELMFIRE is run and outputs are 
 created in the ``./outputs`` directory. These outputs include:
 
  1. Time of arrival (s):  ``time_of_arrival_XXXXXX_YYYYYYY.tif``
@@ -143,7 +143,7 @@ These outputs can be visualized with standard GIS software. We are
 particularly fond of `Quantum GIS (QGIS) <https://qgis.org/en/site/>`_, 
 and will be using QGIS throughout for visualization purposes. The figure 
 below shows a sample visualization of ELMFIRE outputs from this tutorial 
-- fireline intensity with a spectral color ramp and hourly isocrhones in 
+- fireline intensity with a spectral color ramp and hourly isochrones in 
 front:
 
 .. image:: ../images/tutorial_01.png

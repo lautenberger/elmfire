@@ -51,12 +51,12 @@ is:
 
 * ``YEAR=2018`` and ``FIRENAME=ca-county``: The script 
   ``get_polygons.py`` needs the year and fire name to retrieve fire 
-  periemter GIS data.
+  perimeter GIS data.
 
 * ``ACTIVE_FIRE_TIMESTAMP_NUM`` and ``ALREADY_BURNED_TIMETAMP_NUM``: 
   Rather than explicitly specifying fire perimeter timestamps to use in 
   fire initialization, the timestamp number (of sequentially sorted 
-  available timetamps) is used to initialize the actively burning fire 
+  available timestamps) is used to initialize the actively burning fire 
   perimeter (``ACTIVE_FIRE_TIMESTAMP_NUM``) and the already burned / 
   black area (``ALREADY_BURNED_TIMESTAMP_NUM``). The latter can be set 
   to ``null`` as in this case if the entire fireline is active.
@@ -72,7 +72,7 @@ is:
 * ``NUM_ENSEMBLE_MEMBERS``: For this particular validation case, ELMFIRE 
   is run in ensemble mode where specific inputs are perturbed from their 
   baseline values to address model uncertainty (see the User Guide for 
-  details on how ensembles are constructred). By default the ensemble 
+  details on how ensembles are constructed). By default the ensemble 
   consists of 100 members, but this can be increased or decreased as 
   desired.
 
@@ -103,7 +103,7 @@ is:
   remote nodes.
 
 * ``export CALC_FITNESS=yes``: By default, a fitness metric that 
-  quantifies how well modeled fire periemters match observed perimeters 
+  quantifies how well modeled fire perimeters match observed perimeters 
   will be calculated for each ensemble member. This causes a large 
   number of intermediate files to be generated and adds considerably to 
   the required postprocessing time. Setting ``export CALC_FITNESS=no`` 
@@ -130,14 +130,14 @@ this direcory include:
   member.
 
 * ``targ`` directory:  This directory contains "target" fire perimeter 
-  rasters against which modeled fire perimters are compared when 
+  rasters against which modeled fire perimeters are compared when 
   calculating goodness of fit. Naming convention is 
   ``target_SECONDS.tif`` where SECONDS is the number of elapsed seconds 
   from the simulation start time.
 
 * ``model`` directory: This directory contains modeled fire perimeter 
   rasters for each ensemble member at each of the times for which target 
-  fire periemter data are available. These are used for calculating the 
+  fire perimeter data are available. These are used for calculating the 
   correlation between modeled and observed perimeters (next bullet).
 
 * ``corr`` directory:  Correlation rasters. Naming convention is 

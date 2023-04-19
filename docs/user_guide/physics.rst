@@ -17,7 +17,7 @@ fire direction, the assumed elliptical fire shape is used to calculate
 spread rates in other directions. A key parameter is the ellipse's 
 length to width ratio, which is estimated as a function of wind speed 
 from an empirical correlation. The maximum allowable value of the length 
-to widht ratio is specified with the keyword ``MAX_LOW`` (default value 
+to width ratio is specified with the keyword ``MAX_LOW`` (default value 
 of 8). Setting this to a lower value can prevent cigar shaped fires 
 under high winds.
 
@@ -31,7 +31,7 @@ fire initiation and spread. By default, ``CROWN_FIRE_MODEL=1`` and crown
 fire spread rate is calculated from `Cruz et al. 2005. 
 <https://cdnsciencepub.com/doi/abs/10.1139/x05-085>`_ Crown fire can be 
 disabled by setting ``CROWN_FIRE_MODEL=0``. In certain cases, crown fire 
-spread rates may be overpredicted, so an upper limit on spread rate can 
+spread rates may be over-predicted, so an upper limit on spread rate can 
 be specified via ``CROWN_FIRE_SPREAD_RATE_LIMIT``, which has a default 
 value of 250 ft/min. Since crown fire may not always propagate in 
 discontinuous canopies, the keyword ``CRITICAL_CANOPY_COVER`` is used to 
