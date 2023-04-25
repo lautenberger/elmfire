@@ -36,11 +36,11 @@ landscape is controlled by the parameter ``RANDOM_IGNITIONS_TYPE``:
      ignition mask raster is greater than zero. This is useful for 
      modeling ignitions originating from powerlines or roads, for 
      example.
-   * ``RANDOM_IGNITIONS_TYPE=2`` (default): Ignitions are spatially 
-     distributed across the landscape at a density that is proportional 
-     to the ignition mask raster. This is useful for burn probability 
-     modeling where some locations across the landscape have higher 
-     ignition probabilities than other locations.
+   * ``RANDOM_IGNITIONS_TYPE=2``: Ignitions are spatially distributed 
+     across the landscape at a density that is proportional to the 
+     ignition mask raster. This is useful for burn probability modeling 
+     where some locations across the landscape have higher ignition 
+     probabilities than other locations.
 
 The number of randomly-generated ignition points can be specified in two ways:
 

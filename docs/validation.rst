@@ -86,7 +86,7 @@ with the ``--year`` flag. For example:
    ...
 
 In this example a list of 60 fires for which perimeter data are 
-available is written tos stdout, but the list of available fires was 
+available is written to stdout, but the list of available fires was 
 truncated at the first six (sorted alphabetically). Available timestamps 
 can be obtained by specifying the ``--firename`` argument to correspond 
 to one of the available fire names along with ``--list='timestamps'``. 
