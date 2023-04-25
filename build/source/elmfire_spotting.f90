@@ -43,14 +43,17 @@ END SUBROUTINE SET_SPOTTING_PARAMETERS
 
 ! *****************************************************************************
 SUBROUTINE SPOTTING(IX0,IY0,WS20_NOW,FLIN,F_WIND,WS20_LO, WS20_HI, WD20_LO, WD20_HI, &
-                    N_SPOT_FIRES, IX_SPOT_FIRE, IY_SPOT_FIRE, ICASE, DT, TIME_NOW, TAU, IGNMULT)
+                    N_SPOT_FIRES, IX_SPOT_FIRE, IY_SPOT_FIRE, ICASE, DT, TIME_NOW, TAU, IGNMULT, &
+                    FOOTPRINT_PERCENTAGE_LOCAL, FMC, IFBFM, WN_FUEL)
 ! *****************************************************************************
 
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: IX0, IY0, ICASE
+INTEGER*2, INTENT(IN) :: IFBFM
 INTEGER :: N_SPOT_FIRES, IX_SPOT_FIRE(:), IY_SPOT_FIRE(:)
-REAL, INTENT(IN) :: WS20_NOW, FLIN, F_WIND, DT, TIME_NOW, TAU, IGNMULT
+REAL, INTENT(IN) :: WS20_NOW, FLIN, F_WIND, DT, TIME_NOW, TAU, IGNMULT, &
+                    FOOTPRINT_PERCENTAGE_LOCAL, FMC, WN_FUEL
 REAL, INTENT(IN), DIMENSION(:,:)  ::  WS20_LO, WS20_HI, WD20_LO, WD20_HI
 REAL :: R0, X0(1:3), MSD, SIGMA_DIST, MU_DIST, MU_SPANWISE, SIGMA_SPANWISE, &
          NEMBERS_REAL, P, EMISSION_DT, SARDOY_PARAMETERS(1:4)
@@ -67,8 +70,23 @@ SIGMA_DIST = SQRT(LOG(1. + MSD * NORMALIZED_SPOTTING_DIST_VARIANCE / (MSD*MSD)))
 CONTINUE
 
 IF (USE_UMD_SPOTTING_MODEL) THEN
-   EMISSION_DT = MAX(MIN(DT, TAU_EMISSION - TAU),0.)
-   NEMBERS_REAL = EMBER_GR * CC%CELLSIZE * CC%CELLSIZE * EMISSION_DT
+
+   ! CALCULATE DISTRIBUTION PARAMETERS FROM LOCAL WIND SPEED & FIRELINE INTENSITY FROM SARDOY'S MODEL
+   SARDOY_PARAMETERS= SARDOY_PDF_PARAMETERS(WS20_NOW, FLIN)
+   MU_DIST          = SARDOY_PARAMETERS(1)
+   SIGMA_DIST       = SARDOY_PARAMETERS(2)
+   MU_SPANWISE      = SARDOY_PARAMETERS(3)
+   SIGMA_SPANWISE   = SARDOY_PARAMETERS(4)
+
+   ! Calculate number of embers to emit
+   IF (USE_PHYSICAL_EMBER_NUMBER) THEN
+      NEMBERS_REAL = EMBER_TO_EMIT_PER_CELL(WS20_NOW, N_PHYSIC_EMBER_PER_NUMER, CC%CELLSIZE, &
+                                 FOOTPRINT_PERCENTAGE_LOCAL, FMC, WN_FUEL, IFBFM, TAU_EMISSION)
+   ELSE
+      EMISSION_DT = MAX(MIN(DT, TAU_EMISSION - TAU),0.)
+      NEMBERS_REAL = EMBER_GR * CC%CELLSIZE * CC%CELLSIZE * EMISSION_DT
+   ENDIF
+
    NEMBERS = FLOOR(NEMBERS_REAL)
    P = MOD(NEMBERS_REAL,1.0)
    CALL RANDOM_NUMBER(R0)
@@ -81,13 +99,7 @@ ENDIF
 
 IF (NEMBERS .EQ. 0) RETURN
 
-IF (USE_UMD_SPOTTING_MODEL) THEN
-   ! CALCULATE DISTRIBUTION PARAMETERS FROM LOCAL WIND SPEED & FIRELINE INTENSITY FROM SARDOY'S MODEL
-   SARDOY_PARAMETERS= SARDOY_PDF_PARAMETERS(WS20_NOW, FLIN)
-   MU_DIST          = SARDOY_PARAMETERS(1)
-   SIGMA_DIST       = SARDOY_PARAMETERS(2)
-   MU_SPANWISE      = SARDOY_PARAMETERS(3)
-   SIGMA_SPANWISE   = SARDOY_PARAMETERS(4)
+IF (USE_SPOTTIN_LOOKUP_TABLE) THEN
 
    CALL FAST_SPOTTING(  &
       CC%NCOLS                  , &
@@ -116,6 +128,8 @@ ELSE
       MAX_SPOTTING_DISTANCE     , &
       SIGMA_DIST                , &
       MU_DIST                   , &
+      SIGMA_SPANWISE             , &
+      MU_SPANWISE                , &
       SPOTTING_DISTRIBUTION_TYPE, &
       WS20_LO                   , &
       WS20_HI                   , &
@@ -174,6 +188,37 @@ END FUNCTION SARDOY_PDF_PARAMETERS
 ! *****************************************************************************
 
 ! *****************************************************************************
+FUNCTION EMBER_TO_EMIT_PER_CELL(WS, N0, CELLSIZE_ELM, AF, FMC, WN_FUEL, IFBFM, TAU_EMISSION)
+! *****************************************************************************
+! FUNCTION CALCULATES THE SPOTTING DISTANCE DISTRIBUTION BASED ON THE SARDOY'S MODEL
+! TAKE THE INPUTS LOCAL WIND SPEED AND FIRELINE INTENSITY, RETURE MU AND SIGMA
+REAL, INTENT(IN) :: WS, N0, CELLSIZE_ELM, AF, FMC, WN_FUEL, TAU_EMISSION
+INTEGER*2, INTENT(IN) :: IFBFM
+REAL, PARAMETER :: D_TRUNK        = 0.2 ! Trunk diameter, m
+REAL, PARAMETER :: M_FIREBRAND    = 2.0e-4 ! firebrand mass, kg
+REAL, PARAMETER :: G       = 9.81! Gravitional acceleration, m^2/s
+REAL :: M_FUEL, U_WIND, N_EMBER, Y_FIREBRAND
+REAL :: EMBER_TO_EMIT_PER_CELL
+
+M_FUEL = CELLSIZE_ELM*CELLSIZE_ELM*WN_FUEL ! Available vegetation fuel mass in a cell, kg
+U_WIND = WS*0.447 ! wind speed, m/s
+
+IF (IFBFM .EQ. 91) THEN
+    ! Lee and Davidson, 2010, ember from structure
+    N_EMBER = 206.66*EXP(0.1876*U_WIND)*(CELLSIZE_ELM*CELLSIZE_ELM*AF)
+ELSE
+    ! Ju et al, 2023, ember from vegetation
+    Y_FIREBRAND = 1.70*MAX(FMC,1E-6)**(-0.14)*(U_WIND/SQRT(G*D_TRUNK))**0.63+0.15
+    N_EMBER = Y_FIREBRAND*M_FUEL/M_FIREBRAND
+ENDIF
+
+EMBER_TO_EMIT_PER_CELL = N_EMBER/MAX(N0*TAU_EMISSION,1E-6)
+
+! *****************************************************************************
+END FUNCTION EMBER_TO_EMIT_PER_CELL
+! *****************************************************************************
+
+! *****************************************************************************
 END SUBROUTINE SPOTTING
 ! *****************************************************************************
 
@@ -192,6 +237,8 @@ MIN_SPOTTING_DISTANCE      , &
 MAX_SPOTTING_DISTANCE      , &
 SIGMA_DIST                 , &
 MU_DIST                    , &
+SIGMA_SPANWISE             , &
+MU_SPANWISE                , &
 SPOTTING_DISTRIBUTION_TYPE , &
 WS20_LO                    , &
 WS20_HI                    , &
@@ -203,26 +250,27 @@ IX_SPOT_FIRE               , &
 IY_SPOT_FIRE               , &
 ICASE                      , &
 TIME_NOW                   , &
-IGNMULT )
+IGNMULT)
 ! *****************************************************************************
 
 INTEGER, INTENT(IN) :: NX_ELM, NY_ELM, NUM_EMBERS, IRANK_WORLD, ICASE
 INTEGER :: N_SPOT_FIRES, IX_SPOT_FIRE(:), IY_SPOT_FIRE(:)
 REAL, INTENT(IN) :: CELLSIZE_ELM, PIGN_ELM, MIN_SPOTTING_DISTANCE, MAX_SPOTTING_DISTANCE, &
-                    SIGMA_DIST, MU_DIST, F_WIND, TIME_NOW, IGNMULT
+                    SIGMA_DIST, MU_DIST, SIGMA_SPANWISE, MU_SPANWISE, F_WIND, TIME_NOW, IGNMULT
 REAL, INTENT(IN) :: PHIP(:,:), WS20_LO(:,:), WS20_HI(:,:), WD20_LO(:,:), WD20_HI(:,:)
 
 CHARACTER(60), INTENT(IN) :: SPOTTING_DISTRIBUTION_TYPE
-REAL :: SPOTTING_DISTANCE, DIST, EPS
+REAL :: SPOTTING_DISTANCE, DIST, EPS, PDF_K, SPANWISE_DEVIATION, UWIND_ABS, INV_UWIND_TIMES_SPANWISE_DEVIATION 
 
 !These also come from elmfire but have local analogs:
 REAL, INTENT(IN) :: X0_ELM(:), TSTOP_ELM
 CHARACTER(3) :: THREE
 CHARACTER(400) :: FNOUT
-REAL :: R0, IGNPROB, WD1TO, WD2TO, WDTO, WS20, WS20_0, T, TSTOP, DT
+REAL :: R0, IGNPROB, WD1TO, WD2TO, WDTO, WS20, WS20_0, T, TSTOP, DT, X_HIGH, X_LOW, HIGH, LOW, X_MAX
 REAL, DIMENSION(3) :: X, X0, UWIND, UWIND0, OFFSET
-INTEGER :: IEMBER, I, J, I1, I2, J1, J2, IX, IY, IXLAST, IYLAST, ICOL, IROW, ICOUNT
+INTEGER :: IEMBER, I, J, I1, I2, J1, J2, IX, IY, IXLAST, IYLAST, ICOL, IROW, ICOUNT, K_MAX
 LOGICAL :: GO
+REAL, PARAMETER :: SQRT_2 = 1.4142135623731
 
 X0   (:) = X0_ELM(:)               ! Initial position vector
 TSTOP    = TSTOP_ELM               ! Stop time 
@@ -233,6 +281,20 @@ FNOUT = 'ignitions_' // THREE // '.csv'
 UWIND (3) = 0. 
 OFFSET(3) = 0.
 
+! Find the maximum spotting distance accoring to criterion P_EPS (P_EPS=0.001 by default)
+IF (USE_UMD_SPOTTING_MODEL) THEN
+   K_MAX = 0;
+   PDF_K = 1;
+   DO WHILE(PDF_K .GT. P_EPS)
+      K_MAX = K_MAX+1;
+      X_HIGH = (K_MAX+0.5)*CELLSIZE_ELM
+      X_LOW  = (K_MAX-0.5)*CELLSIZE_ELM
+      PDF_K = 0.5 * (ERF((LOG(X_HIGH)-MU_DIST) / SQRT_2 / SIGMA_DIST) - &
+                     ERF((LOG(X_LOW) -MU_DIST) / SQRT_2 / SIGMA_DIST))/CELLSIZE_ELM
+   END DO
+   X_MAX = K_MAX*CELLSIZE_ELM
+ENDIF
+
 DO IEMBER = 1, NUM_EMBERS
 
    CALL RANDOM_NUMBER(R0); EPS = 8.*(R0 - 0.5)
@@ -241,6 +303,12 @@ DO IEMBER = 1, NUM_EMBERS
    CALL RANDOM_NUMBER(R0)
    IF (TRIM(SPOTTING_DISTRIBUTION_TYPE) .EQ. 'UNIFORM') THEN   
       SPOTTING_DISTANCE = MIN_SPOTTING_DISTANCE + R0 * (MAX_SPOTTING_DISTANCE - MIN_SPOTTING_DISTANCE)
+   ELSE IF (USE_UMD_SPOTTING_MODEL) THEN
+      LOW  = SARDOY_PDFINV(0.0, MU_DIST, SIGMA_DIST)
+      HIGH = SARDOY_PDFINV(X_MAX+CELLSIZE_ELM*0.5, MU_DIST, SIGMA_DIST)
+      R0   = R0 * (HIGH - LOW) + LOW
+      SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV(2.*R0-1.) + MU_DIST)
+      SPOTTING_DISTANCE = NINT(SPOTTING_DISTANCE/CELLSIZE_ELM)*CELLSIZE_ELM
    ELSE !Lognormal
       IF (R0 .GT. 0.5) THEN
          SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV(2.*R0-1.) + MU_DIST)
@@ -349,6 +417,18 @@ DO IEMBER = 1, NUM_EMBERS
    ENDDO
 
    IF (T .LT. 1E9) THEN
+      ! Add spanwise distribution
+      IF (USE_UMD_SPOTTING_MODEL) THEN
+         CALL RANDOM_NUMBER(R0)
+         SPANWISE_DEVIATION = SQRT_2 * ERFINV(2.0*R0-1.0) * SIGMA_SPANWISE + MU_SPANWISE
+
+         UWIND_ABS = NORM2(UWIND(1:2))
+         INV_UWIND_TIMES_SPANWISE_DEVIATION = SPANWISE_DEVIATION/MAX(1E-6,UWIND_ABS)
+         X(1)=X(1)+(COS(90*PI/180.)*UWIND(1)-SIN(90*PI/180.)*UWIND(2))*INV_UWIND_TIMES_SPANWISE_DEVIATION
+         X(2)=X(2)+(SIN(90*PI/180.)*UWIND(1)+COS(90*PI/180.)*UWIND(2))*INV_UWIND_TIMES_SPANWISE_DEVIATION
+         
+      ENDIF
+
       IX = CEILING ((X(1) + OFFSET(1)) / CELLSIZE_ELM) ; IX = MAX(IX,1) ; IX = MIN (IX,NX_ELM)
       IY = CEILING ((X(2) + OFFSET(2)) / CELLSIZE_ELM) ; IY = MAX(IY,1) ; IY = MIN (IY,NY_ELM)
       IF (DUMP_EMBER_FLUX) EMBER_FLUX%I2(IX,IY,1) = EMBER_FLUX%I2(IX,IY,1) + 1
@@ -361,33 +441,39 @@ DO IEMBER = 1, NUM_EMBERS
          SPOTTING_STATS(NUM_TRACKED_EMBERS)%IX_TO   = IX
          SPOTTING_STATS(NUM_TRACKED_EMBERS)%IY_TO   = IY
          SPOTTING_STATS(NUM_TRACKED_EMBERS)%DIST    = DIST
-         SPOTTING_STATS(NUM_TRACKED_EMBERS)%TTRAVEL = DIST / WS20
-         SPOTTING_STATS(NUM_TRACKED_EMBERS)%TIGN    = TIME_NOW + DIST / WS20
+         SPOTTING_STATS(NUM_TRACKED_EMBERS)%TTRAVEL = T
+         SPOTTING_STATS(NUM_TRACKED_EMBERS)%TIGN    = T+TIME_NOW
       ENDIF
 
       IGNPROB=0.01*PIGN_ELM*IGNMULT
 
       CALL RANDOM_NUMBER(R0)
 
-      IF (IGNPROB .GT. R0 .AND. DIST .GT. 1.5*CELLSIZE_ELM) THEN
+      ! IF (IGNPROB .GT. R0 .AND. DIST .GT. 1.5*CELLSIZE_ELM) THEN
+      IF (IGNPROB .GT. R0 .AND. DIST .GT. 0.5*CELLSIZE_ELM) THEN ! SET TO 0.5*CELLSIZE TO ALLOW ADJCENT CELL IGNITION
          
          GO = .TRUE. 
-         I1 = MAX(IX-3,1     )
-         I2 = MIN(IX+3,NX_ELM)
-         J1 = MAX(IY-3,1     )
-         J2 = MIN(IY+3,NY_ELM)
+         IF (.NOT. USE_UMD_SPOTTING_MODEL) THEN
+            I1 = MAX(IX-3,1     )
+            I2 = MIN(IX+3,NX_ELM)
+            J1 = MAX(IY-3,1     )
+            J2 = MIN(IY+3,NY_ELM)
             
-         DO J = J1, J2
-         DO I = I1, I2
-            IF (PHIP(I,J) .LT. 0.) GO = .FALSE.
-         ENDDO
-         ENDDO
+            DO J = J1, J2
+            DO I = I1, I2
+               IF (PHIP(I,J) .LT. 0.) GO = .FALSE.
+            ENDDO
+            ENDDO
+         ENDIF
 
          IF (GO) THEN
-            N_SPOT_FIRES = N_SPOT_FIRES + 1
-            IX_SPOT_FIRE(N_SPOT_FIRES) = IX
-            IY_SPOT_FIRE(N_SPOT_FIRES) = IY
-            IF (USE_UMD_SPOTTING_MODEL) SPOTTING_STATS(NUM_TRACKED_EMBERS)%POSITIVE_IGNITION = .TRUE.
+            IF (USE_UMD_SPOTTING_MODEL) THEN
+               SPOTTING_STATS(NUM_TRACKED_EMBERS)%POSITIVE_IGNITION = .TRUE.
+            ELSE
+               N_SPOT_FIRES = N_SPOT_FIRES + 1
+               IX_SPOT_FIRE(N_SPOT_FIRES) = IX
+               IY_SPOT_FIRE(N_SPOT_FIRES) = IY
+            ENDIF
          ENDIF
       ENDIF
 
@@ -426,6 +512,20 @@ ERFINV = HALFSQRTPI * X * (C1 + C2*X2 + C3*X4 + C4*X6 + C5*X8)
 ! *****************************************************************************
 END FUNCTION ERFINV
 ! *****************************************************************************
+
+! *****************************************************************************
+REAL FUNCTION SARDOY_PDFINV(X, MU_DIST, SIGMA_DIST)
+! *****************************************************************************
+
+REAL, INTENT(IN) :: X, MU_DIST, SIGMA_DIST
+REAL, PARAMETER :: SQRT_2 = 1.4142135623731
+
+SARDOY_PDFINV = 0.5*(1+ERF((LOG(MAX(X,1E-6))-MU_DIST)/SQRT_2/SIGMA_DIST))
+
+! *****************************************************************************
+END FUNCTION SARDOY_PDFINV
+! *****************************************************************************
+
 
 ! *****************************************************************************
 END SUBROUTINE EMBER_TRAJECTORY
@@ -785,22 +885,90 @@ ELSE
    ENDDO
 ENDIF
 
-! ! *****************************************************************************
-! REAL FUNCTION SARDOY_PDF_INTEGRAL(X_LOW, X_HIGH, MU_DIST_LOCAL, SIGMA_DIST_LOCAL)
-! ! *****************************************************************************
-
-! REAL, INTENT(IN) :: X_LOW, X_HIGH, MU_DIST_LOCAL, SIGMA_DIST_LOCAL
-! REAL, PARAMETER :: SQRT_2 = 1.4142135623731
-
-! SARDOY_PDF_INTEGRAL = 0.5 * (ERF((LOG(X_HIGH)-MU_DIST) / SQRT_2 / SIGMA_DIST) - &
-!                              ERF((LOG(X_LOW) -MU_DIST) / SQRT_2 / SIGMA_DIST))
-
-! ! *****************************************************************************
-! END FUNCTION SARDOY_PDF_INTEGRAL
-! ! *****************************************************************************
-
 ! *****************************************************************************
 END SUBROUTINE FAST_SPOTTING
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE(C, STRUCTURE_AREA, T_ELMFIRE)
+! *****************************************************************************
+! This is to calculate the fireline intensity of a structural pixel since its iginition
+! The fireline intensity will be used to determine the ember emitting duration
+USE ELMFIRE_VARS
+
+TYPE(NODE), POINTER, INTENT(INOUT) :: C
+
+REAL, INTENT(IN) :: STRUCTURE_AREA, T_ELMFIRE
+
+REAL, PARAMETER :: T_ALPHA = 300.0, Q_F = 1000000.0
+
+REAL :: TIME_SINCE_IGNITION, T_MAX, T_DECAY, T_TOTAL, HRR_MAX, HRR, &
+        T_EMISSION_START, T_EMISSION_END
+
+TIME_SINCE_IGNITION = T_ELMFIRE-C%TIME_OF_ARRIVAL
+
+! Use Q_dot = Q_dot0*t^2 for growth
+HRR_MAX = 400.0*STRUCTURE_AREA ! kW
+T_MAX   = SQRT(HRR_MAX*T_ALPHA**2.0/1000.0)
+T_DECAY = T_MAX+(0.7*Q_F*STRUCTURE_AREA - 1000.0/3.0/T_ALPHA/T_ALPHA*T_MAX**3.0)/HRR_MAX
+T_TOTAL = T_DECAY+2*0.3*Q_F*STRUCTURE_AREA/HRR_MAX
+
+T_EMISSION_START = SQRT(CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/1000.0)*T_ALPHA
+T_EMISSION_START = MIN(T_EMISSION_START,T_MAX)
+T_EMISSION_START = MAX(T_EMISSION_START,0.0)
+
+T_EMISSION_END = T_TOTAL-CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/HRR_MAX*(T_TOTAL-T_DECAY);
+T_EMISSION_END = MAX(T_EMISSION_END,T_DECAY)
+T_EMISSION_END = MIN(T_EMISSION_END,T_TOTAL)
+
+C%LOCAL_EMISSION_DURATION   = T_EMISSION_END-T_EMISSION_START
+
+IF (C%TIME_OF_ARRIVAL .LT. 0.0) THEN
+    C%FLIN_SURFACE = 0.0
+ELSE
+    IF (TIME_SINCE_IGNITION .LT. T_MAX .AND. TIME_SINCE_IGNITION .GE. 0.0) THEN
+        HRR = 1000.0*(TIME_SINCE_IGNITION/T_ALPHA)**2.0
+        C%FLIN_SURFACE = HRR/CC%CELLSIZE
+    ELSEIF (TIME_SINCE_IGNITION .GE. T_MAX .AND. TIME_SINCE_IGNITION .LT. T_DECAY) THEN
+        HRR = HRR_MAX
+        C%FLIN_SURFACE = HRR/CC%CELLSIZE
+    ELSE
+        HRR = HRR_MAX*(T_TOTAL-TIME_SINCE_IGNITION)/(T_TOTAL-T_DECAY)
+        IF (HRR .LE. 0) HRR = 0.0
+        C%FLIN_SURFACE = HRR/CC%CELLSIZE
+    ENDIF
+ENDIF
+
+! *****************************************************************************
+END SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE CLEAR_USED_EMBER(T_ELMFIRE)
+! *****************************************************************************
+! Subroutine to delete used particles, save space
+USE ELMFIRE_VARS
+
+REAL, INTENT(IN) :: T_ELMFIRE
+
+INTEGER :: I, NUM_UNUSED_EMBERS
+TYPE(SPOTTING_TRACKER), ALLOCATABLE, DIMENSION(:) :: SPOTTING_STATS_TEMP
+
+ALLOCATE(SPOTTING_STATS_TEMP(SIZE(SPOTTING_STATS)))
+SPOTTING_STATS_TEMP = SPOTTING_STATS
+
+NUM_UNUSED_EMBERS=0
+
+DO I=1,NUM_TRACKED_EMBERS
+   IF (SPOTTING_STATS(I)%TIGN .GE. T_ELMFIRE) THEN
+      NUM_UNUSED_EMBERS=NUM_UNUSED_EMBERS+1
+      SPOTTING_STATS_TEMP(NUM_UNUSED_EMBERS) = SPOTTING_STATS(I)
+   ENDIF
+ENDDO
+NUM_TRACKED_EMBERS =  NUM_UNUSED_EMBERS
+SPOTTING_STATS = SPOTTING_STATS_TEMP
+! *****************************************************************************
+END SUBROUTINE CLEAR_USED_EMBER
 ! *****************************************************************************
 
 ! *****************************************************************************
