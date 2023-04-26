@@ -7,7 +7,7 @@ STARTSEC=`date +%s`
 progress_message "Start"
 
 LOCAL_SCRATCH=$(pwd)
-ELMFIRE_VER=${ELMFIRE_VER:-2023.03}
+ELMFIRE_VER=${ELMFIRE_VER:-2023.04}
 ELMFIRE=/usr/local/bin/elmfire_$ELMFIRE_VER
 FIRE_NAME=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f1`
 DATE_START=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f2`
