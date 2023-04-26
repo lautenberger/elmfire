@@ -53,7 +53,8 @@ for PERC in $PERCS; do
    done < $SCRATCH/smoke.csv
 done
 
-if [ "$UPLOAD_TO_REMOTE_HOSTS" = "yes" ]; then
+UPLOAD_TO_PYRECAST=no
+if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
    for f in ./hysplit*.csv ; do
       ISBAD=`cat $f | egrep '[*]' | wc -l`
       if [ "$ISBAD" = "0" ]; then
