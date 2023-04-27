@@ -53,6 +53,7 @@
 		<File RelativePath="..\..\source\elmfire_level_set.f90"/>
 		<File RelativePath="..\..\source\elmfire_namelists.f90"/>
 		<File RelativePath="..\..\source\elmfire_spotting.f90"/>
+		<File RelativePath="..\..\source\elmfire_spotting_superseded.f90"/>
 		<File RelativePath="..\..\source\elmfire_spread_rate.f90"/>
 		<File RelativePath="..\..\source\elmfire_subs.f90"/>
 		<File RelativePath="..\..\source\elmfire_suppression.f90"/>
