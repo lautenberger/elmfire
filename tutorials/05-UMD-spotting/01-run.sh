@@ -5,7 +5,7 @@
 CELLSIZE=30.0 # Grid size in meters
 
 # End inputs specification
-
+ELMFIRE_VER=2023.0427
 ELMFIRE_VER=${ELMFIRE_VER:-2023.0427}
 
 SCRATCH=./scratch
@@ -23,7 +23,7 @@ A_SRS="EPSG: 32610" # Spatial reference system - UTM Zone 10
 
 # Execute ELMFIRE
 elmfire_$ELMFIRE_VER ./inputs/elmfire.data
-
+exit 0
 # Postprocess
 for f in ./outputs/*.bil; do
    gdal_translate -a_srs "$A_SRS" -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" $f ./outputs/`basename $f | cut -d. -f1`.tif
