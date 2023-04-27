@@ -346,21 +346,21 @@ IF (USE_UMD_SPOTTING_MODEL .AND. USE_SPOTTING_LOOKUP_TABLE) THEN
             TSTOP)
    ELSE
 ! Read the look-up table from file, saving time on building a new one
-      OPEN(UNIT=10, FILE='EMBER_TARGET_IX.bin', FORM='BINARY')
-      READ(10) EMBER_TARGET_IX
-      CLOSE(10)
-
-      OPEN(UNIT=10, FILE='EMBER_TARGET_IY.bin', FORM='BINARY')
-      READ(10) EMBER_TARGET_IY
-      CLOSE(10)
-
-      OPEN(UNIT=10, FILE='EMBER_TOA.bin', FORM='BINARY')
-      READ(10) EMBER_TOA
-      CLOSE(10)
-
-      OPEN(UNIT=10, FILE='TIME_LIST.bin', FORM='BINARY')
-      READ(10) TIME_LIST
-      CLOSE(10)
+!      OPEN(UNIT=10, FILE='EMBER_TARGET_IX.bin', FORM='BINARY')
+!      READ(10) EMBER_TARGET_IX
+!      CLOSE(10)
+!
+!      OPEN(UNIT=10, FILE='EMBER_TARGET_IY.bin', FORM='BINARY')
+!      READ(10) EMBER_TARGET_IY
+!      CLOSE(10)
+!
+!      OPEN(UNIT=10, FILE='EMBER_TOA.bin', FORM='BINARY')
+!      READ(10) EMBER_TOA
+!      CLOSE(10)
+!
+!      OPEN(UNIT=10, FILE='TIME_LIST.bin', FORM='BINARY')
+!      READ(10) TIME_LIST
+!      CLOSE(10)
    ENDIF
 ENDIF
 
