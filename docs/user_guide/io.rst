@@ -6,14 +6,14 @@ ELMFIRE requires two primary types of inputs:
    1. Configuration parameters specified in a plain text input file 
    (often, ``elmfire.data``) consisting of several Fortran namelists. 
    This file format and its associated syntax is not specific to ELMFIRE 
-   and is used by other Fortran-based scientific models such as
+   and is used by other Fortran-based scientific models such as the
    `Fire Dynamics Simulator <https://pages.nist.gov/fds-smv>`_ and 
    `Weather Research and Forecasting 
-   <https://www.mmm.ucar.edu/models/wrf>`_
+   <https://www.mmm.ucar.edu/models/wrf>`_ model.
 
    2. Geospatial inputs such as fuel, weather, topography, and structure 
    density. ELMFIRE reads only raster (e.g., GeoTiff) inputs. Vector 
-   inputs such as a polygon corrsponding to the perimeter of an actively 
+   inputs such as a polygon corresponding to the perimeter of an actively 
    burning fire must be burned into a raster.
 
 .. _inputs:
@@ -250,7 +250,7 @@ ELMFIRE's computational timestep is usually on the order of a few to at
 most tens of seconds, ELMFIRE uses linear interpolation to determine 
 wind/weather/fuel moisture conditions at intermediate times. This 
 interpolation can be computationally expensive, so the user is provided 
-with some cotnrol over the interpolation frequency. The keywords 
+with some control over the interpolation frequency. The keywords 
 ``DT_INTERPOLATE_M1``, ``DT_INTERPOLATE_M10``, and 
 ``DT_INTERPOLATE_M100`` control the time between interpolations for 
 1-hour, 10-hour, and 100-hour fuel moistures. Wind speed and wind 
@@ -307,12 +307,12 @@ tracked by solving a conservation equation for the level set variable
 burned areas correspond to :math:`{\phi}` < 0, and the fire front 
 position is the level set corresponding to :math:`{\phi}` = 0. At the 
 start of a simulation ELMFIRE reads the initial :math:`{\phi}` field 
-froma 32-bit floating point raster with filename ``PHI_FILENAME`` as 
+from a 32-bit floating point raster with filename ``PHI_FILENAME`` as 
 specified in the ``&INPUTS`` namelist group.
 
 If there is no active fire at the start of a simulation, then all pixels 
 in the ``PHI_FILENAME`` raster should be initialized with a single 
-constart value greater than 0 (usually 1.0). An initial fire front 
+start value greater than 0 (usually 1.0). An initial fire front 
 position can be specified by burning a value less than 0 (usually -1.0) 
 into the ``PHI_FILENAME`` raster. All pixels with an initial 
 :math:`{\phi}` value less than 0 will be marked as burned and fire 
@@ -363,11 +363,11 @@ they are written to disk:
 
 Output filenames are hardcoded but should be readily discernable, *e.g.* 
 fireline intensity outputs begin with ``flin_``, time of arrival outputs 
-begin with ``toa_``, *etc*. Since ELMFIRE is somethines used to run 
+begin with ``toa_``, *etc*. Since ELMFIRE is sometimes used to run 
 multiple cases as part of a Monte Carlo analysis or sensitivity 
 analysis, a six-digit sequential identifier is prepended to the name of 
 each output raster, and the time at which the raster was dumped is 
-appended to the filejame.
+appended to the filename.
 
 In addition to raster-based outputs, ESRI Shapefiles with fire front 
 isochrones can be written to disk. To enable this, set 

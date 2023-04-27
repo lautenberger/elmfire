@@ -60,7 +60,7 @@ is then calculated as:
 
    V_{\text{flank}} = \frac{1}{2}\frac{V_{\text{head}} + V_{\text{back}}}{L/W\ }
 
-The ellipse length to width ratio (*L/W*) is usually estimated from emprical 
+The ellipse length to width ratio (*L/W*) is usually estimated from empirical 
 observations. Following Anderson (1983), ensuring that *L*/*W* = 1 at zero 
 wind speed, and limiting the length to width ratio to 8, *L*/*W* can be 
 estimated from mid-flame wind speed (:math:`U_{mf}`) in mph as:
@@ -150,5 +150,5 @@ demonstrates two additional aspects of model verification:
       speed is correctly implemented in ELMFIRE.
 
 Since the above statements are limited to the combinations of inputs used in 
-this verfication exercise, these important aspects of model verification are 
+this verification exercise, these important aspects of model verification are 
 explored in greater detail later.

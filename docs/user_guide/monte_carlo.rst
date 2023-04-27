@@ -36,11 +36,11 @@ landscape is controlled by the parameter ``RANDOM_IGNITIONS_TYPE``:
      ignition mask raster is greater than zero. This is useful for 
      modeling ignitions originating from powerlines or roads, for 
      example.
-   * ``RANDOM_IGNITIONS_TYPE=2`` (default): Ignitions are spatially 
-     distributed across the landscape at a density that is proportional 
-     to the ignition mask raster. This is useful for burn probability 
-     modeling where some locations across the landscape have higher 
-     ignition probabilities than other locations.
+   * ``RANDOM_IGNITIONS_TYPE=2``: Ignitions are spatially distributed 
+     across the landscape at a density that is proportional to the 
+     ignition mask raster. This is useful for burn probability modeling 
+     where some locations across the landscape have higher ignition 
+     probabilities than other locations.
 
 The number of randomly-generated ignition points can be specified in two ways:
 
@@ -74,11 +74,11 @@ The manner in which these rasters are used is controlled by the
 parameters ``NUM_METEOROLOGY_TIMES``, ``METEOROLOGY_BAND_START``, 
 ``METEOROLOGY_BAND_STOP``, and ``METEOROLOGY_BAND_SKIP_INTERVAL``. This 
 is perhaps best illustrated by an example. Assume that numerical weather 
-prediciton has been used to generate 100 24-hour "blocks" of historical 
+prediction has been used to generate 100 24-hour "blocks" of historical 
 wind/weather data at hourly intervals that will be provided as input to 
 a Monte Carlo analysis. The goal is to simulate 24-hours of fire spread, 
 for each of these 24-hour blocks. However, these 24-hour blocks are not 
-temporally continguous, meaning the first 24-hour block could be from 
+temporally contiguous, meaning the first 24-hour block could be from 
 August 1983 and the next 24-hour block could be from October 2012, and 
 so on.
 
@@ -96,7 +96,7 @@ final 24-hour block is reached at meteorology band 2476.
 If, instead, the 100 24-hour blocks were temporally contiguous (for 
 example, a continuous hindcast from mid-July through the end of October) 
 and the purpose of the Monte Carlo analysis is to ignite fires every 3 
-hours and model thir spread, we would set 
+hours and model their spread, we would set 
 ``METEOROLOGY_BAND_SKIP_INTERVAL=4``.
 
 .. spatemp:
@@ -116,7 +116,7 @@ rasters may be perturbed:
    * ``CH``: Canopy height (m)
    * ``FMC``: Foliar moisture content (-)
    * ``M1``: 1-hour fuel moisture (-)
-   * ``M10``: 10-hour fule moisture (-)
+   * ``M10``: 10-hour fuel moisture (-)
    * ``M100``: 100-hour fuel moisture (-)
    * ``MLH``: Live herbaceous fuel moisture (-)
    * ``MLW``: Live woody fuel moisture (-)
@@ -147,7 +147,7 @@ lines:
    PDF_LOWER_LIMIT(1)       = -0.10
    PDF_UPPER_LIMIT(1)       = 0.10 
 
-These lines specify that a randomly selected value betweeon -0.1 and 0.1 
+These lines specify that a randomly selected value between -0.1 and 0.1 
 should be added to the spread rate adjustment factor(``ADJ``). This 
 perturbation will be applied globally to all pixels 
 (``SPATIAL_PERTURBATION = 'GLOBAL'``) and is temporally invariant for 
@@ -180,7 +180,7 @@ The keywords that control these fluctuations are
 by setting the following four parameters (in the ``&MONTE_CARLO`` 
 namelist group):
 
-   * ``WIND_RECTION_FLUCTUATION_INTENSITY_MIN``: Minimum wind direction fluctuation intensity value
+   * ``WIND_DIRECTION_FLUCTUATION_INTENSITY_MIN``: Minimum wind direction fluctuation intensity value
    * ``WIND_DIRECTION_FLUCTUATION_INTENSITY_MAX``: Maximum wind direction fluctuation intensity value
    * ``WIND_SPEED_FLUCTUATION_INTENSITY_MIN``: Minimum wind speed fluctuation intensity value
    * ``WIND_SPEED_FLUCTUATION_INTENSITY_MAX``: Maximum wind speed fluctuation intensity value

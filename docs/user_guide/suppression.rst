@@ -1,7 +1,7 @@
 Suppression
 ===========
 
-ELMFIRE inclues experimental initial attack and extended attack 
+ELMFIRE includes experimental initial attack and extended attack 
 suppression models. These models, both disabled by default, can be 
 configured from the ``&SUPPRESSION`` namelist group.
 
@@ -71,7 +71,7 @@ Change in containment (:math:`{\Delta C}`) during time interval
 
 where :math:`{Chi}` is suppression effectiveness coefficient (-), 
 :math:`{A_d}` is areal growth on a daily basis (acres/day), and 
-:math:`{A_{d0}}` is areal growth on a daily basis at which containmnet 
+:math:`{A_{d0}}` is areal growth on a daily basis at which containment 
 change becomes negative (acres/day).
 
 The function :math:`{f(SDI_{\Delta t})}` is calculated from the mean 

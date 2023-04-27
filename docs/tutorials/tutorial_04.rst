@@ -5,7 +5,7 @@ Tutorial 04:  Landscape-scale fire potential
 
 Tutorials 01 - 03 involved modeling transient fire spread from a point 
 ignition. ELMFIRE can also quantify landscape-scale fire 
-potential (i.e., spread rate, flame length, etc.) asuming each pixel 
+potential (i.e., spread rate, flame length, etc.) assuming each pixel 
 burns as a head fire in a manner similar to `FlamMap 
 <https://www.fs.usda.gov/rmrs/tools/FlamMap>`_. In Tutorial 04, we 
 assess how wind speed affects landscape-scale fire potential in part of 
@@ -49,7 +49,7 @@ multiband meteorological input rasters from the inputs specified in
 ``wx.csv``. Recall that ELMFIRE does not directly read the ``wx.csv`` 
 file - instead it reads the rasters that are created by ``01-run.sh``. 
 Comparing ``input/elmfire.data`` from :ref:`Tutorial 03 
-<tutorial_real_fuels_idealized_wind>` and Tutoral 04 shows some 
+<tutorial_real_fuels_idealized_wind>` and Tutorial 04 shows some 
 differences in the ``&SIMULATOR`` namelist group. :ref:`Tutorial 03 
 <tutorial_real_fuels_idealized_wind>` had this`` &SIMULATOR`` namelist 
 group:
@@ -77,7 +77,7 @@ spread across a landscape as in the first three tutorials. Setting
 ``MODE=2`` as above directs ELMFIRE to burn every pixel on the landscape 
 as a head fire similar to FlamMap.
 
-Other differenes between :ref:`Tutorial 03 
+Other differences between :ref:`Tutorial 03 
 <tutorial_real_fuels_idealized_wind>` and 04 include elimination of the 
 ``&TIME_CONTROL`` namelist group (since time step, CFL number, and 
 simulation stop time are not relevant) as well as modifications to the 
@@ -113,7 +113,7 @@ A couple notes:
    direction affects potential fire behavior. Running fire potential 
    calculations for the same landscape varying only wind direction will 
    give different results, with the highest spread rate and flame length 
-   occurring when wind and slope are aligned, and the lowest occurreing 
+   occurring when wind and slope are aligned, and the lowest occurring 
    when they are opposed.
 
    2. By default, modeled spread rate and flame length include the 

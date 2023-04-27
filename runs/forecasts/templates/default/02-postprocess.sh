@@ -4,7 +4,7 @@
 
 progress_message "Starting 02-postprocess.sh"
 
-UPLOAD_TO_REMOTE_HOSTS="${UPLOAD_TO_REMOTE_HOSTS:-no}"
+UPLOAD_TO_PYRECAST="${UPLOAD_TO_PYRECAST:-no}"
 GEOSERVER_HOSTNAME="${GEOSERVER_HOSTNAME:-trinity}"
 GEOSERVER_USERNAME="${GEOSERVER_USERNAME:-elmfire}"
 GEOSERVER_BASEDIR="${GEOSERVER_BASEDIR:-/srv/gis}"
@@ -12,7 +12,7 @@ GEOSERVER_INCOMINGDIR="${GEOSERVER_INCOMINGDIR:-/incoming}"
 OWNERSHIP="${OWNERSHIP:-'elmfire:domain users'}"
 BUFFER_SCRIPT=$ELMFIRE_BASE_DIR/etc/buffer.py
 ELMFIRE_INSTALL_DIR=${ELMFIRE_INSTALL_DIR:-$ELMFIRE_BASE_DIR/build/linux/bin}
-ELMFIRE_VER=${ELMFIRE_VER:-2023.03}
+ELMFIRE_VER=${ELMFIRE_VER:-2023.04}
 
 HRS_IN_FORECAST[7]=168  # 7-day forecast
 HRS_IN_FORECAST[14]=336 #14-day forecast
@@ -278,8 +278,8 @@ progress_message "Creating tarball for GeoServer - old format"
 TARBALL=$FIRE_NAME-${START_DATE}_$START_TIME
 tar -cvf $TARBALL.tar * >& /dev/null
 
-progress_message "Uploading original geoserver directory"
-if [ "$UPLOAD_TO_REMOTE_HOSTS" = "yes" ]; then
+if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
+   progress_message "Uploading original geoserver directory"
    progress_message "Uploading tarball to $GEOSERVER_HOSTNAME"
    scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
 
@@ -295,7 +295,7 @@ cd ../geoserver_new
 progress_message "Creating tarball for GeoServer - new format"
 tar -cf $TARBALL.tar * >& /dev/null
 
-if [ "$UPLOAD_TO_REMOTE_HOSTS" = "yes" ]; then
+if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
    progress_message "Uploading tarball to $GEOSERVER_HOSTNAME"
    scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
 
