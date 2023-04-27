@@ -62,11 +62,13 @@ USE_PHYSICAL_EMBER_NUMBER                 = .FALSE.
 EMBER_SAMPLING_FACTOR                     = 50.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MAX  = 100.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MIN  = 100.0
+USE_SUPERSEDED_SPOTTING                   = .FALSE.
 /
 
 &MISCELLANEOUS
 MISCELLANEOUS_INPUTS_DIRECTORY = './misc'
 FUEL_MODEL_FILE                = 'fuel_models.csv'
-PATH_TO_GDAL                   = '/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin'
+PATH_TO_GDAL                   = '/usr/bin'
 SCRATCH                        = './scratch'
 /
+PATH_TO_GDAL                   = '/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin'
