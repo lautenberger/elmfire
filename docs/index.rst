@@ -63,7 +63,7 @@ ELMFIRE's source code, build scripts/makefiles, documentation,
 tutorials, and verification & validation (V+V) cases are in `ELMFIRE's
 GitHub repository <https://github.com/lautenberger/elmfire>`_. Please
 see the :ref:`Getting Started <getting_started>` page for instructions
-on how to obtain the soruce code, install prerequisites, set necessary
+on how to obtain the source code, install prerequisites, set necessary
 environment variables, etc.
 
 .. toctree::
