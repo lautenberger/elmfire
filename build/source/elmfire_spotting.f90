@@ -751,7 +751,7 @@ SUBROUTINE FAST_SPOTTING(  NX_ELM                     , &
 
 ! Variables: TIME_LIST_AVAIL, EMBER_TARGET_IX, EMBER_TARGET_IY, EMBER_TOA are look-up tables, 
 !            and should be globally accessible
-! Variable: TIME_TO_IGNITE is an array to memory and update the ignition time, also globally accessible
+! Variable: EMBER_TIGN is an array to track and update the ignition time, also globally accessible
 ! Variable: P_EPS is an arbitrary small number controlling the maximum spotting distance. Global. 
 
 INTEGER, INTENT(INOUT) :: N_SPOT_FIRES, IX_SPOT_FIRE(:), IY_SPOT_FIRE(:)
@@ -876,10 +876,10 @@ ELSE
    DO I=1,UNIGNITED_CELLS_AVAIL_LENGTH
       IX_SPOT_FIRE(RECORD_INDEX) = IX_TARGET(I)
       IY_SPOT_FIRE(RECORD_INDEX) = IY_TARGET(I)
-      IF(TIME_TO_IGNITE(IX_TARGET(I),IY_TARGET(I)) .LT. 0) THEN
-         TIME_TO_IGNITE(IX_TARGET(I),IY_TARGET(I)) = T_EMBER(I)
+      IF(EMBER_TIGN(IX_TARGET(I),IY_TARGET(I)) .LT. 0) THEN
+         EMBER_TIGN(IX_TARGET(I),IY_TARGET(I)) = T_EMBER(I)
       ELSE
-         TIME_TO_IGNITE(IX_TARGET(I),IY_TARGET(I)) = MIN(T_EMBER(I), TIME_TO_IGNITE(IX_TARGET(I),IY_TARGET(I)));
+         EMBER_TIGN(IX_TARGET(I),IY_TARGET(I)) = MIN(T_EMBER(I), EMBER_TIGN(IX_TARGET(I),IY_TARGET(I)));
       ENDIF
       RECORD_INDEX = RECORD_INDEX + 1
    ENDDO

@@ -112,7 +112,7 @@ IF (FIRSTCALL) THEN
    NDUMPS = IDUMPCOUNT
 
    ALLOCATE(TIME_OF_ARRIVAL(1:NX,1:NY)); TIME_OF_ARRIVAL(:,:) = -1.
-   ALLOCATE(TIME_TO_IGNITE (1:NX,1:NY)); TIME_TO_IGNITE(:,:) = -1. ! Added by Yiren, initialize ignition time by ember
+   ALLOCATE(EMBER_TIGN     (1:NX,1:NY)); EMBER_TIGN(:,:) = -1.
    ALLOCATE(TAGGED         (1:NX,1:NY)); TAGGED(:,:) = .FALSE.
    ALLOCATE(PHIP           (1:NX,1:NY)); PHIP(:,:) = 1
    ALLOCATE(EVERTAGGED     (1:NX,1:NY)); EVERTAGGED(:,:) = .FALSE.
@@ -684,7 +684,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          DO I = 1, N_SPOT_FIRES
             IX = IX_SPOT_FIRE(I)
             IY = IY_SPOT_FIRE(I)
-            IF (TIME_TO_IGNITE(IX,IY) .GT. T+DT) CYCLE
+            IF (EMBER_TIGN(IX,IY) .GT. T+DT) CYCLE
             IF (SURFACE_FIRE(IX,IY) .LE. 0 .AND. ADJ%R4(IX,IY,1) .GT. 0. .AND. (.NOT. ISNONBURNABLE(IX,IY) ) ) THEN
                CALL TAG_BAND(NX, NY, IX, IY, T)
                TIME_OF_ARRIVAL(IX,IY) = T
