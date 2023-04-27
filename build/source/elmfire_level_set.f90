@@ -4,6 +4,7 @@ MODULE ELMFIRE_LEVEL_SET
 
 USE ELMFIRE_CALIBRATION
 USE ELMFIRE_SPOTTING
+USE ELMFIRE_SPOTTING_SUPERSEDED
 USE ELMFIRE_IO
 USE ELMFIRE_SUBS
 USE ELMFIRE_SUPPRESSION
@@ -632,10 +633,17 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                ILH = MAX(MIN(NINT(100.*C%MLH),120),30)
                FMT = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)
                WN_FUEL = FMT%WN_DEAD+FMT%WN_LIVE
-               CALL SPOTTING ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
-                               N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
-                               SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                               BLDG_FOOTPRINT_FRAC, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+
+               IF (USE_SUPERSEDED_SPOTTING) THEN
+                  CALL SPOTTING_SUPERSEDED ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
+                                  N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
+                                  SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)) )
+               ELSE
+                  CALL SPOTTING ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
+                                  N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
+                                  SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
+                                  BLDG_FOOTPRINT_FRAC, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+               ENDIF
             ENDIF
          ENDIF ! ENABLE_SPOTTING
 
@@ -659,10 +667,16 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                ILH = MAX(MIN(NINT(100.*C%MLH),120),30)
                FMT = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)
                WN_FUEL = FMT%WN_DEAD+FMT%WN_LIVE
-               CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI,WD20_LO, &
-                               WD20_HI,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT,T, C%TAU_EMBERGEN,&
-                               SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                               BLDG_FOOTPRINT_FRAC, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+               IF (USE_SUPERSEDED_SPOTTING) THEN
+                  CALL SPOTTING_SUPERSEDED ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
+                                  N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
+                                  SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)) )
+               ELSE
+                  CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI,WD20_LO, &
+                                  WD20_HI,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT,T, C%TAU_EMBERGEN,&
+                                  SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
+                                  BLDG_FOOTPRINT_FRAC, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+               ENDIF
             ENDIF
             ! CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY, WS20_LO,WS20_HI,WD20_LO, &
             ! WD20_HI,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT,T,C%TAU_EMBERGEN,1.0 )
