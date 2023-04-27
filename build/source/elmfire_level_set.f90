@@ -635,7 +635,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                CALL SPOTTING ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
                                N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
                                SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                               FOOTPRINT_PERCENTAGE, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+                               BLDG_FOOTPRINT_FRAC, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
             ENDIF
          ENDIF ! ENABLE_SPOTTING
 
@@ -662,7 +662,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI,WD20_LO, &
                                WD20_HI,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT,T, C%TAU_EMBERGEN,&
                                SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                               FOOTPRINT_PERCENTAGE, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+                               BLDG_FOOTPRINT_FRAC, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
             ENDIF
             ! CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY, WS20_LO,WS20_HI,WD20_LO, &
             ! WD20_HI,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT,T,C%TAU_EMBERGEN,1.0 )
@@ -1557,7 +1557,7 @@ ELSE !ISTEP .EQ. 2
       IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) THEN
          IF (C%IFBFM .EQ. 91) THEN
             ! This is to account the emitting duration of structures
-            STRUCTURE_AREA = CC%CELLSIZE * CC%CELLSIZE * FOOTPRINT_PERCENTAGE
+            STRUCTURE_AREA = CC%CELLSIZE * CC%CELLSIZE * BLDG_FOOTPRINT_FRAC
             ! This subroutine locates in module "elmfire_spotting"
             CALL STRUCTURE_DESIGN_FIRE_CURVE(C, STRUCTURE_AREA, T_ELMFIRE)
          ENDIF
