@@ -269,7 +269,6 @@ IF (.NOT. RANDOM_IGNITIONS) THEN
          LIST_BURNED%TAIL%BURNED                 = .TRUE.
          LIST_BURNED%TAIL%TAU_EMBERGEN           = 0.
 
-
          IF (ENABLE_SMOKE_OUTPUTS) THEN
             LIST_BURNED%TAIL%TIME_IGNITED = T
             IF (C%VELOCITY .GT. 0.) THEN
@@ -345,22 +344,22 @@ IF (USE_UMD_SPOTTING_MODEL .AND. USE_SPOTTING_LOOKUP_TABLE) THEN
             MAX_SPOTTING_DISTANCE        , & 
             TSTOP)
    ELSE
-      ! Read the look-up table from file, saving time on building a new one
-      ! OPEN(UNIT=10, FILE='EMBER_TARGET_IX.bin', FORM='BINARY')
-      ! READ(10) EMBER_TARGET_IX
-      ! CLOSE(10)
+! Read the look-up table from file, saving time on building a new one
+      OPEN(UNIT=10, FILE='EMBER_TARGET_IX.bin', FORM='BINARY')
+      READ(10) EMBER_TARGET_IX
+      CLOSE(10)
 
-      ! OPEN(UNIT=10, FILE='EMBER_TARGET_IY.bin', FORM='BINARY')
-      ! READ(10) EMBER_TARGET_IY
-      ! CLOSE(10)
+      OPEN(UNIT=10, FILE='EMBER_TARGET_IY.bin', FORM='BINARY')
+      READ(10) EMBER_TARGET_IY
+      CLOSE(10)
 
-      ! OPEN(UNIT=10, FILE='EMBER_TOA.bin', FORM='BINARY')
-      ! READ(10) EMBER_TOA
-      ! CLOSE(10)
+      OPEN(UNIT=10, FILE='EMBER_TOA.bin', FORM='BINARY')
+      READ(10) EMBER_TOA
+      CLOSE(10)
 
-      ! OPEN(UNIT=10, FILE='TIME_LIST.bin', FORM='BINARY')
-      ! READ(10) TIME_LIST
-      ! CLOSE(10)
+      OPEN(UNIT=10, FILE='TIME_LIST.bin', FORM='BINARY')
+      READ(10) TIME_LIST
+      CLOSE(10)
    ENDIF
 ENDIF
 
@@ -693,7 +692,6 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          ENDDO
       ELSE
          DO I = 1, NUM_TRACKED_EMBERS
-            CONTINUE
             IF (.NOT. SPOTTING_STATS(I)%POSITIVE_IGNITION ) CYCLE
             IF (SPOTTING_STATS(I)%ALREADY_IGNITED         ) CYCLE
             IF (SPOTTING_STATS(I)%TIGN .GT. T+DT          ) CYCLE ! the criterion should be T+DT instead of T
@@ -702,8 +700,6 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
 
             IX = SPOTTING_STATS(I)%IX_TO
             IY = SPOTTING_STATS(I)%IY_TO
-
-            CONTINUE
 
             IF (SURFACE_FIRE(IX,IY) .LE. 0 .AND. ADJ%R4(IX,IY,1) .GT. 0. .AND. (.NOT. ISNONBURNABLE(IX,IY) ) ) THEN
                CALL TAG_BAND(NX, NY, IX, IY, T)

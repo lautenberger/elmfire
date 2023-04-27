@@ -107,11 +107,11 @@ IF (USE_SPOTTING_LOOKUP_TABLE) THEN
       CC%CELLSIZE               , &
       TIME_NOW                  , &
       X0                        , &
-      MU_DIST                    , &
-      SIGMA_DIST                 , &
-      PHIP                       , &
-      N_SPOT_FIRES               , &
-      IX_SPOT_FIRE               , &
+      MU_DIST                   , &
+      SIGMA_DIST                , &
+      PHIP                      , &
+      N_SPOT_FIRES              , &
+      IX_SPOT_FIRE              , &
       IY_SPOT_FIRE)
 ELSE
    CALL EMBER_TRAJECTORY ( &
@@ -128,8 +128,8 @@ ELSE
       MAX_SPOTTING_DISTANCE     , &
       SIGMA_DIST                , &
       MU_DIST                   , &
-      SIGMA_SPANWISE             , &
-      MU_SPANWISE                , &
+      SIGMA_SPANWISE            , &
+      MU_SPANWISE               , &
       SPOTTING_DISTRIBUTION_TYPE, &
       WS20_LO                   , &
       WS20_HI                   , &
