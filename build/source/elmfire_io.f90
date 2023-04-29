@@ -2729,59 +2729,16 @@ END SUBROUTINE WRITE_PROGRESS_MESSAGE
 ! *****************************************************************************
 
 ! *****************************************************************************
-SUBROUTINE WRITE_INTERMEDIATE_FIRE_STATS(I)
-! *****************************************************************************
-
-INTEGER, INTENT(IN) :: I
-INTEGER :: IX,IY,IOS, LUSTATS, IPYROME
-LOGICAL :: LOPEN
-CHARACTER(400) :: FN
-
-LUSTATS = LUOUTPUT - 2
-INQUIRE(UNIT=LUSTATS,OPENED=LOPEN)
-IF (.NOT. LOPEN) THEN
-   FN = TRIM(OUTPUTS_DIRECTORY) // 'fire_size_stats_intermediate.csv' 
-   OPEN(LUSTATS,FILE=TRIM(FN),FORM='FORMATTED',STATUS='REPLACE',IOSTAT=IOS)
-   WRITE(LUSTATS,'(A)') 'icase,meteorology band,x,y,tstop (h),wall clock time,surface fire area,crown fire area,fire volume,population affected,real estate value,land value,nembers,pyrome'
-ENDIF
-
-IPYROME=1
-IF (RANDOM_IGNITIONS) THEN
-   IF (USE_PYROMES) THEN
-      IX = ICOL_FROM_X(STATS_X(I),ANALYSIS_XLLCORNER,ANALYSIS_CELLSIZE)
-      IY = IROW_FROM_Y(STATS_Y(I),ANALYSIS_YLLCORNER,ANALYSIS_CELLSIZE)
-      IPYROME = MIN(MAX(PYROMES%I2(IX,IY,1),1),128)
-   ENDIF
-
-   WRITE(LUSTATS,9999) I, STATS_IWX_BAND_START(I), STATS_X(I), STATS_Y(I), STATS_SIMULATION_TSTOP_HOURS(I), STATS_WALL_CLOCK_TIME(I), &
-                       STATS_SURFACE_FIRE_AREA(I), STATS_CROWN_FIRE_AREA(I), STATS_FIRE_VOLUME(I), STATS_AFFECTED_POPULATION(I), &
-                       STATS_AFFECTED_REAL_ESTATE_VALUE(I), STATS_AFFECTED_LAND_VALUE(I), INT(STATS_NEMBERS(I)), IPYROME, STATS_FINAL_CONTAINMENT_FRAC(I)
-ELSE
-   IF (USE_PYROMES) THEN
-      IX = ICOL_FROM_X(STATS_X(I),ANALYSIS_XLLCORNER,ANALYSIS_CELLSIZE)
-      IY = IROW_FROM_Y(STATS_Y(I),ANALYSIS_YLLCORNER,ANALYSIS_CELLSIZE)
-      IPYROME = PYROMES%I2(IX,IY,1)
-   ENDIF
-   WRITE(LUSTATS,9999) I, STATS_IWX_BAND_START(I), 0., 0., STATS_SIMULATION_TSTOP_HOURS(I), STATS_WALL_CLOCK_TIME(I), &
-                       STATS_SURFACE_FIRE_AREA(I), STATS_CROWN_FIRE_AREA(I), STATS_FIRE_VOLUME(I), &
-                       STATS_AFFECTED_POPULATION(I), STATS_AFFECTED_REAL_ESTATE_VALUE(I), STATS_AFFECTED_LAND_VALUE(I), INT(STATS_NEMBERS(I)),IPYROME, &
-                       STATS_FINAL_CONTAINMENT_FRAC(I)
-ENDIF
-
-9999 FORMAT(I6, ',', I5, ',', 2(F11.2, ','), 2(E11.4, ','), 6(F11.2, ','), I7,',',I3)
-
-! *****************************************************************************
-END SUBROUTINE WRITE_INTERMEDIATE_FIRE_STATS
-! *****************************************************************************
-
-! *****************************************************************************
 SUBROUTINE POSTPROCESS
 ! *****************************************************************************
 
 INTEGER :: I, IX, IY, IOS, IBAND, IWX_BAND, J, LUSTATS, IERR=0, IPYROME
 LOGICAL :: LOPEN
 CHARACTER(4) :: SUFFIX
-CHARACTER(60) :: PREFIX
+CHARACTER(7) :: CID
+CHARACTER(16) :: TIMESTAMP
+CHARACTER(81) :: PREFIX
+CHARACTER(88) :: FIRE_ID
 CHARACTER(400) :: FN, HEADER
 TYPE(RASTER_TYPE) :: INTERMEDIATE
 TYPE(RASTER_TYPE), POINTER :: R
@@ -2794,36 +2751,44 @@ IF (IRANK_WORLD .EQ. 0 .AND. DUMP_FIRE_SIZE_STATS) THEN
 
    FN = TRIM(OUTPUTS_DIRECTORY) // 'fire_size_stats.csv'
    OPEN(LUSTATS,FILE=TRIM(FN),FORM='FORMATTED',STATUS='REPLACE',IOSTAT=IOS)
-   WRITE(LUSTATS,'(A)') 'icase,meteorology band,x,y,tstop (h),wall clock time,surface fire area,crown fire area,fire volume,population affected,real estate value,land value,nembers,pyrome,containfrac'
+   WRITE(LUSTATS,'(A)') 'icase,meteorology band,x,y,tstop (h),wall clock time,surface fire area,crown fire area,&
+                         fire volume,population affected,real estate value,land value,nembers,pyrome,containfrac,&
+                         pm 2.5 release (ug), HRR peak (W), start timestamp, fire id'
 
    IPYROME=1
-   IF (RANDOM_IGNITIONS) THEN
-      DO I = 1, NUM_CASES_TOTAL
-         IF (USE_PYROMES) THEN
-            IX = ICOL_FROM_X(STATS_X(I),ANALYSIS_XLLCORNER,ANALYSIS_CELLSIZE)
-            IY = IROW_FROM_Y(STATS_Y(I),ANALYSIS_YLLCORNER,ANALYSIS_CELLSIZE)
-            IPYROME = PYROMES%I2(IX,IY,1)
-         ENDIF
-         WRITE(LUSTATS,9999) I, STATS_IWX_BAND_START(I), STATS_X(I), STATS_Y(I), STATS_SIMULATION_TSTOP_HOURS(I), &
-                             STATS_WALL_CLOCK_TIME(I), STATS_SURFACE_FIRE_AREA(I), STATS_CROWN_FIRE_AREA(I), & 
-                             STATS_FIRE_VOLUME(I), STATS_AFFECTED_POPULATION(I), &
-                             STATS_AFFECTED_REAL_ESTATE_VALUE(I), STATS_AFFECTED_LAND_VALUE(I), &
-                             INT(STATS_NEMBERS(I)),IPYROME, STATS_FINAL_CONTAINMENT_FRAC(I)
-      ENDDO
+
+   IF (TRIM(RUN_ID) .EQ. '') THEN
+      PREFIX = ''
    ELSE
-      DO I = 1, NUM_CASES_TOTAL
+      PREFIX = TRIM(RUN_ID) // '_'
+   ENDIF
+
+   DO I = 1, NUM_CASES_TOTAL
+      IF (RANDOM_IGNITIONS) THEN
          IF (USE_PYROMES) THEN
             IX = ICOL_FROM_X(STATS_X(I),ANALYSIS_XLLCORNER,ANALYSIS_CELLSIZE)
             IY = IROW_FROM_Y(STATS_Y(I),ANALYSIS_YLLCORNER,ANALYSIS_CELLSIZE)
             IPYROME = PYROMES%I2(IX,IY,1)
          ENDIF
-         WRITE(LUSTATS,9999) I, STATS_IWX_BAND_START(I), 0., 0., STATS_SIMULATION_TSTOP_HOURS(I), &
-                             STATS_WALL_CLOCK_TIME(I), STATS_SURFACE_FIRE_AREA(I), STATS_CROWN_FIRE_AREA(I), &
-                             STATS_FIRE_VOLUME(I), STATS_AFFECTED_POPULATION(I), STATS_AFFECTED_REAL_ESTATE_VALUE(I), &
-                             STATS_AFFECTED_LAND_VALUE(I), INT(STATS_NEMBERS(I)),IPYROME, STATS_FINAL_CONTAINMENT_FRAC(I)
-      ENDDO
-   ENDIF
+      ELSE
+         STATS_X(I) = 0.
+         STATS_Y(I) = 0.
+      ENDIF
+      TIMESTAMP = HOUR_OF_YEAR_TO_TIMESTAMP (CURRENT_YEAR, BAND_ONE_HOUR_OF_YEAR + STATS_IWX_BAND_START(I) - 1)
+      WRITE(CID, '(I7.7)') I
+      FIRE_ID = TRIM(PREFIX) // CID
+      WRITE(LUSTATS,9999) I, STATS_IWX_BAND_START(I), STATS_X(I), STATS_Y(I), STATS_SIMULATION_TSTOP_HOURS(I), &
+                          STATS_WALL_CLOCK_TIME(I), STATS_SURFACE_FIRE_AREA(I), STATS_CROWN_FIRE_AREA(I), & 
+                          STATS_FIRE_VOLUME(I), STATS_AFFECTED_POPULATION(I), &
+                          STATS_AFFECTED_REAL_ESTATE_VALUE(I), STATS_AFFECTED_LAND_VALUE(I), &
+                          INT(STATS_NEMBERS(I)),IPYROME, STATS_FINAL_CONTAINMENT_FRAC(I), STATS_PM2P5_RELEASE(I), &
+                          STATS_HRR_PEAK(I), TRIM(TIMESTAMP), TRIM(FIRE_ID)
+   ENDDO
    CLOSE(LUSTATS)
+!           I      BAND       X,Y            TSTOP      CLOCK 
+9999 FORMAT(I7, ',', I5, ',', 2(F11.2, ','), F8.2, ',', F8.4, ',', 6(F13.1, ','), I7,',',I3, ',', F9.3, ',', 2(E9.3, ','), A, ',', A)
+
+
 ENDIF
 
 IF (IRANK_WORLD .EQ. 0 .AND. NUM_MONTE_CARLO_VARIABLES .GT. 0) THEN
@@ -2973,8 +2938,6 @@ IF (DUMP_EMBER_FLUX .AND. ACCUMULATE_EMBER_FLUX) THEN
       CALL WRITE_BIL_RASTER_ONEBAND(INTERMEDIATE, OUTPUTS_DIRECTORY, FN, CONVERT_TO_GEOTIFF, .TRUE.)
    ENDIF
 ENDIF
-
-9999 FORMAT(I6, ',', I5, ',', 2(F11.2, ','), 2(E11.4, ','), 6(F13.1, ','), I7,',',I3, ',', F9.3)
 
 ! *****************************************************************************
 END SUBROUTINE POSTPROCESS

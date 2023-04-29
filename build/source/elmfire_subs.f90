@@ -974,5 +974,47 @@ END FUNCTION ERFINV
 ! *****************************************************************************
 
 ! *****************************************************************************
+CHARACTER(16) FUNCTION HOUR_OF_YEAR_TO_TIMESTAMP(YEAR, HOUR_OF_YEAR)
+! *****************************************************************************
+
+INTEGER, INTENT(IN) :: YEAR
+INTEGER, INTENT(IN) :: HOUR_OF_YEAR
+INTEGER :: I, HOUR_OF_MONTH, DAY_OF_MONTH, HOUR_OF_DAY, MONTH
+INTEGER, DIMENSION(12) :: DAYS_PER_MONTH=(/ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 /), &
+                          MONTH_BEGIN_HOUR, MONTH_END_HOUR
+LOGICAL :: FOUND
+CHARACTER(16) :: TIMESTAMP
+
+IF ( (MODULO(YEAR,4) .EQ. 0 .AND. MODULO(YEAR,100) .NE. 0) .OR. MODULO(YEAR,400) .EQ. 0 ) DAYS_PER_MONTH(2)=29
+
+MONTH_BEGIN_HOUR(1) = 0
+MONTH_END_HOUR  (1) = DAYS_PER_MONTH(1) * 24
+DO I = 2, 12
+   MONTH_BEGIN_HOUR(I) = MONTH_END_HOUR  (I-1)
+   MONTH_END_HOUR  (I) = MONTH_BEGIN_HOUR(I)   + DAYS_PER_MONTH(I) * 24
+ENDDO
+
+FOUND = .FALSE.
+DO I = 1, 12
+   IF (FOUND) CYCLE
+   IF (HOUR_OF_YEAR .GE. MONTH_BEGIN_HOUR(I) .AND. HOUR_OF_YEAR .LT. MONTH_END_HOUR(I) ) THEN
+      FOUND = .TRUE.
+      MONTH = I
+   ENDIF
+ENDDO
+
+HOUR_OF_MONTH = HOUR_OF_YEAR - MONTH_BEGIN_HOUR(MONTH)
+DAY_OF_MONTH  = 1 + HOUR_OF_MONTH / 24
+HOUR_OF_DAY   = MODULO( HOUR_OF_MONTH,24)
+
+WRITE( TIMESTAMP,  '(I4.4,"-",I2.2,"-",I2.2," ",I2.2,":00")') YEAR, MONTH, DAY_OF_MONTH, HOUR_OF_DAY
+
+HOUR_OF_YEAR_TO_TIMESTAMP = TIMESTAMP
+
+! *****************************************************************************
+END FUNCTION HOUR_OF_YEAR_TO_TIMESTAMP
+! *****************************************************************************
+
+! *****************************************************************************
 END MODULE ELMFIRE_SUBS
 ! *****************************************************************************
