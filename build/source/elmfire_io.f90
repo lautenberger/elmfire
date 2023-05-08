@@ -2751,9 +2751,10 @@ IF (IRANK_WORLD .EQ. 0 .AND. DUMP_FIRE_SIZE_STATS) THEN
 
    FN = TRIM(OUTPUTS_DIRECTORY) // 'fire_size_stats.csv'
    OPEN(LUSTATS,FILE=TRIM(FN),FORM='FORMATTED',STATUS='REPLACE',IOSTAT=IOS)
-   WRITE(LUSTATS,'(A)') 'icase,meteorology band,x,y,tstop (h),wall clock time,surface fire area,crown fire area,&
-                         fire volume,population affected,real estate value,land value,nembers,pyrome,containfrac,&
-                         pm 2.5 release (ug), HRR peak (W), start timestamp, fire id'
+   WRITE(LUSTATS,'(A)') 'icase,Meteorology band,x,y,tstop (h),Wall clock time (s),Total fire area (ac),&
+                         Crown fire area (ac),Fire volume (ac-ft),Population affected,Real estate value,&
+                         Land value,Nembers,Pyrome,Containfrac,PM 2.5 release (ug),HRR peak (MW),&
+                         Start timestamp,Fire id'
 
    IPYROME=1
 
@@ -2779,15 +2780,13 @@ IF (IRANK_WORLD .EQ. 0 .AND. DUMP_FIRE_SIZE_STATS) THEN
       FIRE_ID = TRIM(PREFIX) // CID
       WRITE(LUSTATS,9999) I, STATS_IWX_BAND_START(I), STATS_X(I), STATS_Y(I), STATS_SIMULATION_TSTOP_HOURS(I), &
                           STATS_WALL_CLOCK_TIME(I), STATS_SURFACE_FIRE_AREA(I), STATS_CROWN_FIRE_AREA(I), & 
-                          STATS_FIRE_VOLUME(I), STATS_AFFECTED_POPULATION(I), &
-                          STATS_AFFECTED_REAL_ESTATE_VALUE(I), STATS_AFFECTED_LAND_VALUE(I), &
-                          INT(STATS_NEMBERS(I)),IPYROME, STATS_FINAL_CONTAINMENT_FRAC(I), STATS_PM2P5_RELEASE(I), &
-                          STATS_HRR_PEAK(I), TRIM(TIMESTAMP), TRIM(FIRE_ID)
+                          STATS_FIRE_VOLUME(I), STATS_AFFECTED_POPULATION(I), STATS_AFFECTED_REAL_ESTATE_VALUE(I), &
+                          STATS_AFFECTED_LAND_VALUE(I), INT(STATS_NEMBERS(I)),IPYROME, STATS_FINAL_CONTAINMENT_FRAC(I), &
+                          STATS_PM2P5_RELEASE(I), STATS_HRR_PEAK(I), TRIM(TIMESTAMP), TRIM(FIRE_ID)
    ENDDO
    CLOSE(LUSTATS)
-!           I      BAND       X,Y            TSTOP      CLOCK 
-9999 FORMAT(I7, ',', I5, ',', 2(F11.2, ','), F8.2, ',', F8.4, ',', 6(F13.1, ','), I7,',',I3, ',', F9.3, ',', 2(E9.3, ','), A, ',', A)
-
+!         ICASE      BAND       X,Y          TSTOP      CLOCK      Fire           Emb   Pyrm   Containfrac     PM,HRR     TS      ID 
+9999 FORMAT(I7, ',', I5, ',', 2(F11.2, ','), F8.2, ',', F9.4, ',', 6(F13.1, ','), I7,',',I3, ',', F9.3, ',', 2(E9.3, ','), A, ',', A)
 
 ENDIF
 
