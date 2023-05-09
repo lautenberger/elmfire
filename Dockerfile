@@ -1,9 +1,10 @@
 FROM ubuntu:22.04 as intermediate
+LABEL org.opencontainers.image.authors="Chris Lautenberger <chris@cloudfire.ai>"
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN mkdir -p /elmfire/elmfire && \
-    apt-get update && \
-    apt-get upgrade && \
+    apt-get update -y && \
+    apt-get upgrade -y && \
     apt-get install --no-install-recommends -y \
         bc \
         build-essential \
@@ -22,16 +23,17 @@ RUN mkdir -p /elmfire/elmfire && \
         wget && \
     pip3 install --no-cache-dir google-api-python-client python-dateutil && \
     python3 -m pip install grpcio grpcio-tools && \
-    locale-gen en_US.UTF-8 && export LANG=en_US.UTF-8
+    locale-gen en_US.UTF-8 && export LANG=en_US.UTF-8 && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY ./temp/ /elmfire/elmfire/
+COPY ./ /elmfire/elmfire/
 
 WORKDIR /elmfire/elmfire/build/linux
+
 RUN ./make_gnu.sh && \
     apt-get purge -y build-essential && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get autoremove -y
 
 WORKDIR /
 
