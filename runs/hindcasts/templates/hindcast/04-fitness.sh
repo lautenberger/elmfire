@@ -28,23 +28,23 @@ function calc_fitness {
    local COUNT=0
    local FITNESS
 
-   SIX=`printf %06d $i`
-   f=`ls $DATADIR/time_of_arrival_${SIX}_*.tif`
-   cp $f $SCRATCH/toa_$SIX.tif
-   gdal_edit.py -unsetnodata $SCRATCH/toa_$SIX.tif
+   SEVEN=`printf %07d $i`
+   f=`ls $DATADIR/time_of_arrival_${SEVEN}_*.tif`
+   cp $f $SCRATCH/toa_$SEVEN.tif
+   gdal_edit.py -unsetnodata $SCRATCH/toa_$SEVEN.tif
 
    for TIMESTAMP in $CALIBRATION_TIMESTAMPS; do
       echo "$i, $TIMESTAMP"
       TIMESTAMP_SEC=`sec_from_timestamp $TIMESTAMP`
       let "ELAPSED = TIMESTAMP_SEC - FORECAST_START_SEC_FLOOR"
-      gdal_calc.py -A $SCRATCH/toa_$SIX.tif -B $SCRATCH/burning.tif --NoDataValue=-9999 \
+      gdal_calc.py -A $SCRATCH/toa_$SEVEN.tif -B $SCRATCH/burning.tif --NoDataValue=-9999 \
                    --co="COMPRESS=DEFLATE" --co="ZLEVEL=9" \
-                   --calc="0.0 + B + 1.0*(A>0)*(A<$ELAPSED)" --outfile=$SCRATCH/model_${SIX}_$ELAPSED.tif 1>& /dev/null
-      gdal_calc.py -A $SCRATCH/target_$ELAPSED.tif -B $SCRATCH/model_${SIX}_$ELAPSED.tif -C $SCRATCH/burning.tif \
+                   --calc="0.0 + B + 1.0*(A>0)*(A<$ELAPSED)" --outfile=$SCRATCH/model_${SEVEN}_$ELAPSED.tif 1>& /dev/null
+      gdal_calc.py -A $SCRATCH/target_$ELAPSED.tif -B $SCRATCH/model_${SEVEN}_$ELAPSED.tif -C $SCRATCH/burning.tif \
                    --co="COMPRESS=DEFLATE" --co="ZLEVEL=9" \
-                   --NoDataValue=-9999 --outfile=$SCRATCH/corr_${SIX}_$ELAPSED.tif \
+                   --NoDataValue=-9999 --outfile=$SCRATCH/corr_${SEVEN}_$ELAPSED.tif \
                    --calc="0.0 + 1.0*(C!=1)*( 1.0*(A==1)*(B==1) - 1.0*(A==0)*(B==1) - 1.0*(A==1)*(B==0))" 1>& /dev/null
-      CORR_AVG=`gdalinfo -stats $SCRATCH/corr_${SIX}_$ELAPSED.tif | grep STATISTICS_MEAN | cut -d= -f2`
+      CORR_AVG=`gdalinfo -stats $SCRATCH/corr_${SEVEN}_$ELAPSED.tif | grep STATISTICS_MEAN | cut -d= -f2`
       TARG_AVG=`gdalinfo -stats $SCRATCH/target_$ELAPSED.tif | grep STATISTICS_MEAN | cut -d= -f2`
       let "COUNT = COUNT + 1"
       FITNESS[COUNT]=`echo "$CORR_AVG / $TARG_AVG" | bc -l`
@@ -98,7 +98,7 @@ for TIMESTAMP in $POSSIBLE_CALIBRATION_TIMESTAMPS; do
    fi
 done
 
-f=`ls $DATADIR/time_of_arrival_000001_*.tif`
+f=`ls $DATADIR/time_of_arrival_0000001_*.tif`
 SRS=`gdalsrsinfo $f | grep PROJ.4 | cut -d: -f2 | xargs`
 cp -f $f $SCRATCH/dummy.tif
 cp -f $DATADIR/burning.tif $SCRATCH/

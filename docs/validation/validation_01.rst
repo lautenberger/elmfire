@@ -143,7 +143,7 @@ this direcory include:
 * ``corr`` directory:  Correlation rasters. Naming convention is 
   similar to the time of arrival rasers, except the time field in the 
   filename corresponds to a target time. For example, 
-  ``corr_000031_44220.tif`` is the correlation raster for ensemble 
+  ``corr_0000031_44220.tif`` is the correlation raster for ensemble 
   member 31 at 44,220 seconds after ignition. Pixels are coded as 0 (not 
   burned in target, not burned in model), +1 (burned in model and burned 
   in target), or -1 (burned in model and not burned in target or `vice 
