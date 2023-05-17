@@ -29,9 +29,9 @@ COUNT=0
 for PERC in $PERCS; do
    let "COUNT = COUNT + 1"
    ICASE=`echo $ICASES | cut -d' ' -f$COUNT`
-   SIX=`printf %06d $ICASE`
+   SEVEN=`printf %07d $ICASE`
 
-   FNIN=./smoke_$SIX.csv
+   FNIN=./smoke_$SEVEN.csv
    FNOUT=./hysplit_${FIRE_NAME}_${DATE_START}_${TIME_START}_$PERC.csv
 
    echo 'timestamp (UTC),lon,lat,area (m2),HRR (W),mdotsmoke (ug/h)' > $FNOUT

@@ -365,7 +365,7 @@ Output filenames are hardcoded but should be readily discernable, *e.g.*
 fireline intensity outputs begin with ``flin_``, time of arrival outputs 
 begin with ``toa_``, *etc*. Since ELMFIRE is sometimes used to run 
 multiple cases as part of a Monte Carlo analysis or sensitivity 
-analysis, a six-digit sequential identifier is prepended to the name of 
+analysis, a seven-digit sequential identifier is prepended to the name of 
 each output raster, and the time at which the raster was dumped is 
 appended to the filename.
 

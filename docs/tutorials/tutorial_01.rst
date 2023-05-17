@@ -117,15 +117,15 @@ Next, the file ``elmfire.data.in`` is copied to
 ``A_SRS``) are set accordingly. Then, ELMFIRE is run and outputs are 
 created in the ``./outputs`` directory. These outputs include:
 
- 1. Time of arrival (s):  ``time_of_arrival_XXXXXX_YYYYYYY.tif``
- 2. Spread rate (ft/min):  ``vs_XXXXXX_YYYYYYY.tif``
- 3. Fireline intensity (kW/m):  ``flin_XXXXXX_YYYYYYY.tif``
+ 1. Time of arrival (s):  ``time_of_arrival_XXXXXXX_YYYYYYY.tif``
+ 2. Spread rate (ft/min):  ``vs_XXXXXXX_YYYYYYY.tif``
+ 3. Fireline intensity (kW/m):  ``flin_XXXXXXX_YYYYYYY.tif``
  4. Hourly isochrones:  ``hourly_isochrones.shp``
 
 In the above naming convention:
 
-* ``XXXXXX`` is the ensemble member number. In this tutorial there is a 
-  single ensemble member so ``XXXXXX`` = 000001, but ELMFIRE can be run 
+* ``XXXXXXX`` is the ensemble member number. In this tutorial there is a 
+  single ensemble member so ``XXXXXXX`` = 0000001, but ELMFIRE can be run 
   in ensemble mode with thousands of ensemble members. In such cases, 
   this ID is necessary to provide separate outputs for each ensemble 
   member.
