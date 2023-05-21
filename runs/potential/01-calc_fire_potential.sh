@@ -34,7 +34,7 @@ ELMFIRE_INSTALL_DIR=${ELMFIRE_INSTALL_DIR:-$ELMFIRE_BASE_DIR/build/linux/bin}
 ELMFIRE=$ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER
 
 NP=`cat /proc/cpuinfo | grep "cpu cores" | cut -d: -f2 | tail -n 1 | xargs`
-let "NP = NP / 2"
+let "NP = NP / 3"
 
 # Set TILELIST
 . ./config/aoi_and_tile.sh
