@@ -44,8 +44,7 @@ PATTERN=${PATTERN:-$1}
 FUELS_INPUTS=${FUELS_INPUTS:-$1}
 
 TODAY=`echo $FORECAST_CYCLE | cut -d_ -f1`
-#LFMDATE=`date -u -d "$TODAY - 1 day" +%Y%m%d`
-LFMDATE=20230401
+LFMDATE=`date -u -d "$TODAY - 1 day" +%Y%m%d`
 CWD=$(pwd)
 
 # Check that we have 0 or 3 command line arguments:
