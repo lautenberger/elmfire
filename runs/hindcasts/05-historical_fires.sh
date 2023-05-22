@@ -13,6 +13,7 @@ RUN_HOURS=96
 FUEL_SOURCE=landfire
 FUEL_VERSION=1.4.0
 RUN_FIRES_NEWER_THAN=999999
+RUN_TEMPLATE=hindcast
 
 function sec_from_timestamp {
    local TIMESTAMP=$1
@@ -137,7 +138,8 @@ for HISTORICAL_FIRE in $HISTORICAL_FIRES; do
       "fuelSource": "'$FUEL_SOURCE'",
       "fuelVersion": "'$FUEL_VERSION'",
       "scpInputDeck": "'elmfire'",
-      "returnAfterQueue": "'yes'"
+      "returnAfterQueue": "'yes'",
+      "runTemplate": "'$RUN_TEMPLATE'"
       }'
 
       echo $STRING
