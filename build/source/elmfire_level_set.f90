@@ -646,7 +646,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                   CALL SPOTTING ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
                                   N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
                                   SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                                  BLDG_FOOTPRINT_FRAC, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
                ENDIF
             ENDIF
          ENDIF ! ENABLE_SPOTTING
@@ -679,7 +679,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                   CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI,WD20_LO, &
                                   WD20_HI,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT,T, C%TAU_EMBERGEN,&
                                   SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                                  BLDG_FOOTPRINT_FRAC, C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
                ENDIF
             ENDIF
             ! CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY, WS20_LO,WS20_HI,WD20_LO, &
@@ -1459,7 +1459,7 @@ IF (ISTEP .EQ. 1) THEN
                APHIW = PHIW_ADJ * ACCELERATION_FACTOR * C%PHIW_SURFACE
             ENDIF
 
-            IF (USE_HAMADA .AND. C%IFBFM .EQ. 91) THEN
+            IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 91) THEN
                APHIW   = 1.0
                C%PHISX = 0.0
                C%PHISY = 0.0
@@ -1496,9 +1496,10 @@ IF (ISTEP .EQ. 1) THEN
             ENDIF
             C%VBACK = BOH * C%VELOCITY_DMS
 
-            IF (USE_HAMADA .AND. C%IFBFM .EQ. 91) THEN
+            IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 91) THEN
                CONTINUE
-               CALL HAMADA(C) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
+               IF (BLDG_SPREAD_MODEL_TYPE .EQ. 1) CALL HAMADA(C) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
+!               IF (BLDG_SPREAD_MODEL_TYPE .EQ. 2) CALL UMD_UCB_BLDG_SPREAD(C)
                CONTINUE
             ENDIF
 
@@ -1583,7 +1584,7 @@ ELSE !ISTEP .EQ. 2
       IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) THEN
          IF (C%IFBFM .EQ. 91) THEN
             ! This is to account the emitting duration of structures
-            STRUCTURE_AREA = CC%CELLSIZE * CC%CELLSIZE * BLDG_FOOTPRINT_FRAC
+            STRUCTURE_AREA = CC%CELLSIZE * CC%CELLSIZE * C%BLDG_FOOTPRINT_FRAC
             ! This subroutine locates in module "elmfire_spotting"
             CALL STRUCTURE_DESIGN_FIRE_CURVE(C, STRUCTURE_AREA, T_ELMFIRE)
          ENDIF
