@@ -591,6 +591,10 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          LIST_BURNED%TAIL%WS20_NOW               = C%WS20_NOW
          LIST_BURNED%TAIL%BURNED                 = .TRUE.
          LIST_BURNED%TAIL%TAU_EMBERGEN           = 0.
+         
+         LIST_BURNED%TAIL%IFBFM                  = C%IFBFM  !DEBUG_DWI_PARAM
+         LIST_BURNED%TAIL%WS20_NOW               = C%WS20_NOW   !DEBUG_DWI_PARAM
+         LIST_BURNED%TAIL%WD20_NOW               = C%WD20_NOW   !DEBUG_DWI_PARAM
 
 
          IF (ENABLE_SMOKE_OUTPUTS) THEN
