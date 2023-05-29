@@ -458,6 +458,7 @@ END TYPE UCB_ELLIPSE
 TYPE NODE
    TYPE(NODE), POINTER :: NEXT => NULL()
    TYPE(NODE), POINTER :: PREV => NULL()
+   TYPE(UCB_ELLIPSE) :: ELLIPSE_PARAMETERS
 
    INTEGER   :: BLDG_FUEL_MODEL = 0
    INTEGER*1 :: CROWN_FIRE =  0
@@ -534,6 +535,23 @@ TYPE NODE
    REAL :: HRRPUA            = 0.
    REAL :: SMOKE_TFRAC       = 0.
    REAL :: QDOT_AVG          = 0.
+   
+! UCB parameters
+   REAL    :: HRR_PEAK         = 700.  !Default value
+   REAL    :: FTP_PA           = 10500.
+   REAL    :: DFC_COEFF        = 0.4
+   REAL    :: RAD_COEFF        = 0.89
+   REAL    :: RAD_DIST         = 100.
+   REAL    :: BUILDING_HEIGHT  = 5.
+   INTEGER :: EARLY_TIME       = 300
+   INTEGER :: DEVELOPED_TIME   = 18300
+   INTEGER :: DECAY_TIME       = 36300
+   INTEGER :: SIGN_X           = 1
+   INTEGER :: SIGN_Y           = 1
+   REAL    :: WIND_PROP        = 1.
+   REAL    :: HEAT_VALUE       = 0.
+   REAL    :: HRR_TRANSIENT    = 0.
+   REAL    :: ABSOLUTE_U       = 0.
 
 END TYPE NODE
  
