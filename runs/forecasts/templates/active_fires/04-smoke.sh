@@ -29,9 +29,9 @@ COUNT=0
 for PERC in $PERCS; do
    let "COUNT = COUNT + 1"
    ICASE=`echo $ICASES | cut -d' ' -f$COUNT`
-   SIX=`printf %06d $ICASE`
+   SEVEN=`printf %07d $ICASE`
 
-   FNIN=./smoke_$SIX.csv
+   FNIN=./smoke_$SEVEN.csv
    FNOUT=./hysplit_${FIRE_NAME}_${DATE_START}_${TIME_START}_$PERC.csv
 
    echo 'timestamp (UTC),lon,lat,area (m2),HRR (W),mdotsmoke (ug/h)' > $FNOUT
@@ -53,7 +53,8 @@ for PERC in $PERCS; do
    done < $SCRATCH/smoke.csv
 done
 
-if [ "$UPLOAD_TO_REMOTE_HOSTS" = "yes" ]; then
+UPLOAD_TO_PYRECAST=no
+if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
    for f in ./hysplit*.csv ; do
       ISBAD=`cat $f | egrep '[*]' | wc -l`
       if [ "$ISBAD" = "0" ]; then

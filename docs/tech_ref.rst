@@ -235,7 +235,7 @@ maximum spread. ELMFIRE includes an option to determine backing spread
 rate from elliptical dimensions but by default the backing spread rate 
 is taken as the no-wind/no-slope spread rate.
 
-Since the velocity components calculated above are reltaive to a 
+Since the velocity components calculated above are relative to a 
 coordinate system with the :math:`{+y}` axis aligned with the direction 
 of maximum spread, we have to rotate these velocity components to our 
 map coordinate system as follows:
@@ -284,7 +284,7 @@ Here :math:`{\gamma}` is the topographical slope.
 Variation in fireline intensity along the fire perimeter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sinc the Rothermel model only give fireline intensity (and flame length) 
+Since the Rothermel model only give fireline intensity (and flame length) 
 in the head fire direction, how do we calculate these quantities in 
 backing and flanking directions? Fireline intensity (*I*) is calculated 
 as:
@@ -296,7 +296,7 @@ as:
 where :math:`{I_R}` is reaction intensity, :math:`{R}` is spread rate 
 (we will define which spread rate momentarily), and :math:`{\tau}` is 
 residence time. Neither :math:`{I_R}` nor :math:`{\tau}` depend on 
-spread rate; therefore fireline intesity is only influenced by spread 
+spread rate; therefore fireline intensity is only influenced by spread 
 rate through :math:`{R}`. For the purposes of calculating fireline 
 intensity (and subsequently flame length using Byram's equation) the 
 correct definition of :math:`{R}` is:
@@ -333,7 +333,7 @@ follows:
    V_C = f(U_{10},M_1,CBD)
 
 where :math:`{V_C}` is the Cruz crown fire spread rate in the downwind 
-direction, :math:`{U_{10}}` is the 10 meter wind speed,
+direction, :math:`{U_{10}}` is the 10-meter wind speed,
 :math:`{M_1}` is the 1-hour fine fuel moisture content, and 
 ::math:`{CBD}` is canopy bulk density. We link
 the crown fire model to the Rothermel surface spread formulation through 

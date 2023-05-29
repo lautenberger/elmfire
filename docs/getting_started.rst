@@ -35,7 +35,7 @@ The current ELMFIRE repository can be cloned as follows:
    git clone https://github.com/lautenberger/elmfire.git
 
 Since this will clone the current repository, including all recent 
-commits, for use in production environments a user may wnat to clone the 
+commits, for use in production environments a user may want to clone the 
 latest stable release / branch instead.
 
 .. _set-env-vars:
@@ -86,6 +86,6 @@ ELMFIRE and its postprocessing tool can be built as follows:
 
 Unless an error occurs, this will build the executables 
 ``elmfire_VERSION`` and ``elmfire_post_VERSION`` (where version is, for 
-example, 2023.03) and copy them to ``$ELMFIRE_INSTALL_DIR``. If 
+example, 2023.0515) and copy them to ``$ELMFIRE_INSTALL_DIR``. If 
 this directory is not in the user's ``$PATH`` it should be added at this 
 time. Note that two debug executables are also built.

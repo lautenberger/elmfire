@@ -4,15 +4,16 @@
 
 progress_message "Starting 02-postprocess.sh"
 
-UPLOAD_TO_REMOTE_HOSTS="${UPLOAD_TO_REMOTE_HOSTS:-no}"
+UPLOAD_TO_PYRECAST="${UPLOAD_TO_PYRECAST:-no}"
 GEOSERVER_HOSTNAME="${GEOSERVER_HOSTNAME:-trinity}"
 GEOSERVER_USERNAME="${GEOSERVER_USERNAME:-elmfire}"
 GEOSERVER_BASEDIR="${GEOSERVER_BASEDIR:-/srv/gis}"
+GEOSERVER_BASEDIR_DEV="${GEOSERVER_BASEDIR_DEV:-/srv/gis-dev}"
 GEOSERVER_INCOMINGDIR="${GEOSERVER_INCOMINGDIR:-/incoming}"
 OWNERSHIP="${OWNERSHIP:-'elmfire:domain users'}"
 BUFFER_SCRIPT=$ELMFIRE_BASE_DIR/etc/buffer.py
 ELMFIRE_INSTALL_DIR=${ELMFIRE_INSTALL_DIR:-$ELMFIRE_BASE_DIR/build/linux/bin}
-ELMFIRE_VER=${ELMFIRE_VER:-2023.03}
+ELMFIRE_VER=${ELMFIRE_VER:-2023.0515}
 
 HRS_IN_FORECAST[7]=168  # 7-day forecast
 HRS_IN_FORECAST[14]=336 #14-day forecast
@@ -278,8 +279,8 @@ progress_message "Creating tarball for GeoServer - old format"
 TARBALL=$FIRE_NAME-${START_DATE}_$START_TIME
 tar -cvf $TARBALL.tar * >& /dev/null
 
-progress_message "Uploading original geoserver directory"
-if [ "$UPLOAD_TO_REMOTE_HOSTS" = "yes" ]; then
+if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
+   progress_message "Uploading original geoserver directory"
    progress_message "Uploading tarball to $GEOSERVER_HOSTNAME"
    scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
 
@@ -295,12 +296,12 @@ cd ../geoserver_new
 progress_message "Creating tarball for GeoServer - new format"
 tar -cf $TARBALL.tar * >& /dev/null
 
-if [ "$UPLOAD_TO_REMOTE_HOSTS" = "yes" ]; then
+if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
    progress_message "Uploading tarball to $GEOSERVER_HOSTNAME"
    scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
 
    progress_message "Extracting tarball on $GEOSERVER_HOSTNAME"
-   ssh $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME "cd $GEOSERVER_INCOMINGDIR; tar -xf elmfire-$TARBALL.tar -C $GEOSERVER_BASEDIR/fire_spread_forecast_dev/; sudo chown -R $OWNERSHIP $GEOSERVER_BASEDIR/fire_spread_forecast_dev/$FIRE_NAME/; rm elmfire-$TARBALL.tar"
+   ssh $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME "cd $GEOSERVER_INCOMINGDIR; tar -xf elmfire-$TARBALL.tar -C $GEOSERVER_BASEDIR_DEV/fire_spread_forecast/; sudo chown -R $OWNERSHIP $GEOSERVER_BASEDIR_DEV/fire_spread_forecast/$FIRE_NAME/; rm elmfire-$TARBALL.tar"
 fi
 mv $TARBALL.tar ..
 

@@ -3,7 +3,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN mkdir -p /elmfire/elmfire && \
     apt-get update && \
-    apt-get upgrade && \
+    apt-get upgrade -y && \
     apt-get install --no-install-recommends -y \
         bc \
         build-essential \

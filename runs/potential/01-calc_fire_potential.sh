@@ -29,12 +29,12 @@ COMPLETE_LOG_PART1=$CWD/log/complete_part1.txt
 COMPLETE_LOG_PART2=$CWD/log/complete_part2.txt
 COMPLETE_LOG=$CWD/log/complete_part$PART.txt
 
-ELMFIRE_VER=${ELMFIRE_VER:-2023.03}
+ELMFIRE_VER=${ELMFIRE_VER:-2023.0515}
 ELMFIRE_INSTALL_DIR=${ELMFIRE_INSTALL_DIR:-$ELMFIRE_BASE_DIR/build/linux/bin}
 ELMFIRE=$ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER
 
 NP=`cat /proc/cpuinfo | grep "cpu cores" | cut -d: -f2 | tail -n 1 | xargs`
-let "NP = NP / 2"
+let "NP = NP / 3"
 
 # Set TILELIST
 . ./config/aoi_and_tile.sh

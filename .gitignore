@@ -24,7 +24,6 @@ input_decks
 misc
 outputs
 runs/forecasts/runs
-runs/forecasts/templates
 runs/hindcasts/log
 runs/potential/part*
 runs/potential/timeseries*

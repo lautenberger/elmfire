@@ -7,9 +7,8 @@ STARTSEC=`date +%s`
 progress_message "Start"
 
 LOCAL_SCRATCH=$(pwd)
-ELMFIRE_VER=${ELMFIRE_VER:-2023.03}
-ELMFIRE_INSTALL_DIR=${ELMFIRE_INSTALL_DIR:-$ELMFIRE_BASE_DIR/build/linux/bin}
-ELMFIRE=$ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER
+ELMFIRE_VER=${ELMFIRE_VER:-2023.0515}
+ELMFIRE=/usr/local/bin/elmfire_$ELMFIRE_VER
 FIRE_NAME=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f1`
 DATE_START=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f2`
 TIME_START=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f3`
@@ -20,14 +19,13 @@ mkdir -p $FORECAST_DIR 2> /dev/null
 SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
 CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
 let "NP = SOCKETS * CORES_PER_SOCKET"
+NP=32
 
 progress_message "Launching ELMFIRE"
-mpirun --mca btl tcp,self --map-by core --bind-to core --oversubscribe -np $NP $ELMFIRE elmfire.data >& elmfire.out
+mpirun --mca btl tcp,self  --allow-run-as-root --map-by core --bind-to core --oversubscribe -np $NP $ELMFIRE elmfire.data >& elmfire.out
 
 progress_message "ELMFIRE complete, starting postprocess routines"
 ./02-postprocess.sh >& log_postprocess.txt
-
-#./04-smoke.sh >& log_smoke.txt
 
 progress_message "Postprocessing complete, cleaning up"
 
@@ -35,7 +33,7 @@ rm -f *.bsq *.hdr *.aux.xml crown-fire*.tif flame-length*.tif hours-since-burned
 
 cp -f -r * $FORECAST_DIR
 cd $FORECAST_DIR
-tar -cf ${FIRE_NAME}_$TIMESTAMP_START.tar ./* && mv ${FIRE_NAME}_$TIMESTAMP_START.tar $CLOUDFIRE_BASE_DIR/microservices/elmfire/srv/
+tar -cf ${FIRE_NAME}_$TIMESTAMP_START.tar ./*
 
 rm -f -r $LOCAL_SCRATCH
 

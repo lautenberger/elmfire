@@ -51,7 +51,7 @@ the tile center and its respective west, east, south, and north edges.
 To simplify running of Tutorial 03, the command in the code block above 
 is added to the script 
 $ELMFIRE_BASE_DIR/tutorials/03-real-fuels/01-run.sh. This script sets up 
-and runs a point ignition (corresonding to ``--center_lon`` and 
+and runs a point ignition (corresponding to ``--center_lon`` and 
 ``--center_lat`` identified above) under the same transient wind and 
 fuel moisture conditions from :ref:`Tutorial 02 
 <tutorial_flat_terrain_with_wind>`.

@@ -14,7 +14,7 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="Debug|x64">
+		<Configuration Name="Debug|x64" UseCompiler="ifxCompiler">
 				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files (x86)\IntelSWTools\mpi\2019.9.311\intel64\include" OpenMP="OpenMPParallelCode" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" Traceback="true" RuntimeChecks="rtChecksAll" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebugDLL"/>
 				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\Program Files (x86)\IntelSWTools\mpi\2019.9.311\intel64\lib\debug" GenerateDebugInformation="true" SubSystem="subSystemConsole" HeapReserveSize="32768000" HeapCommitSize="32768000" StackReserveSize="32768000" StackCommitSize="32768000" LargeAddressAware="addrAwareLarge" AdditionalDependencies="impi.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
