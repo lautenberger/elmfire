@@ -1437,7 +1437,8 @@ LOGICAL :: DONE, CROWN_FIRE_AT_START, CROWN_FIRE_AT_END
 C => L%HEAD
 
 ! DWI ADD 1 ------------------------------------------------
-IF (USE_UCB) THEN
+
+IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2)) THEN
    LB_P => LB%HEAD
 
    DO I = 1, LB%NUM_NODES
@@ -1605,7 +1606,8 @@ ELSE !ISTEP .EQ. 2
          
          
 ! DWI ADD 2 ----------------------------------------------------         
-         IF (USE_UCB .AND. (C%IFBFM .EQ. 91)) THEN
+         IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2) .AND. (C%IFBFM .EQ. 91)) THEN
+         
             C%FLIN_SURFACE = 0.0 ! kW/m
 
 !            OPEN(777, FILE="UCBflineNB_DIAGNOSTIC.csv")
@@ -1615,7 +1617,7 @@ ELSE !ISTEP .EQ. 2
          ENDIF
 
       ELSE
-         IF (USE_UCB .AND. (C%IFBFM .EQ. 91)) THEN
+         IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2) .AND. (C%IFBFM .EQ. 91)) THEN
             CALL HRR_TRANSIENT(C, T)
             C%FLIN_SURFACE = C%HRR_TRANSIENT*ANALYSIS_CELLSIZE ! kW/m
 
