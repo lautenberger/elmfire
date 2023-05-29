@@ -437,6 +437,23 @@ TYPE(RASTER_TYPE), TARGET :: BLDG_NONBURNABLE_FRAC ! Previously HAMADA_FB
 TYPE(RASTER_TYPE), TARGET :: BLDG_FOOTPRINT_FRAC
 TYPE(RASTER_TYPE), TARGET :: BLDG_FUEL_MODEL
 
+
+! UCB declares variables
+TYPE :: UCB_ELLIPSE
+   REAL     :: DIST_DOWNWIND ! Downwind distance (a) [m]
+   REAL     :: DIST_UPWIND ! Upwind distance (b) [m]
+   REAL     :: DIST_SIDEWIND ! Sidewind distance (c) [m]
+
+   INTEGER  :: FOREST_FACTOR ! urban = 1; forest = 3
+   REAL     :: WIND_POWER = 2 ! Default 1
+
+   REAL     :: ELLIPSE_MINOR ! Semiminor (A) [m]
+   REAL     :: ELLIPSE_MAJOR ! Semimajor (B) [m]
+   REAL     :: ELLIPSE_ECCENTRICITY ! Eccentricity (E) [m]
+
+END TYPE UCB_ELLIPSE
+
+
 ! Doubly linked list variables
 TYPE NODE
    TYPE(NODE), POINTER :: NEXT => NULL()
