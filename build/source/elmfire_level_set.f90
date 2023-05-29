@@ -519,7 +519,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
       CALL ACCUMULATE_CPU_USAGE(41, IT1, IT2)
 
 ! Calculate x and y components of velocity from elliptical spread dimensions
-      CALL UX_AND_UY_ELLIPTICAL(LIST_TAGGED, SURFACE_ACCELERATION_FACTOR, ISTEP, T)
+      CALL UX_AND_UY_ELLIPTICAL(LIST_TAGGED, LIST_BURNED, SURFACE_ACCELERATION_FACTOR, ISTEP, T)
       CALL ACCUMULATE_CPU_USAGE(42, IT1, IT2)
 
 ! Check CFL criterion and adjust timestep
@@ -1417,14 +1417,13 @@ END SUBROUTINE CALC_NORMAL_VECTORS
 ! *****************************************************************************
 
 ! *****************************************************************************
-SUBROUTINE UX_AND_UY_ELLIPTICAL(L, ACCELERATION_FACTOR, ISTEP, T_ELMFIRE)
+SUBROUTINE UX_AND_UY_ELLIPTICAL(L, LIST_BURNED, ACCELERATION_FACTOR, ISTEP, T_ELMFIRE)
 ! *****************************************************************************
 ! Parameter T_ELMFIRE added to update fireline intensity of structures over time
 REAL, INTENT(IN) :: ACCELERATION_FACTOR, T_ELMFIRE
 TYPE(DLL), INTENT(IN) :: L, LB
 INTEGER, INTENT(IN) :: ISTEP
 TYPE(NODE), POINTER :: C, LB_P
-REAL, INTENT(IN) :: T
 
 
 REAL :: PHIMAG, PHIWX, PHIWY, PHIX, PHIY, WSMFEFF, A, B, COSANG, SINANG, BOH, DXDT, DYDT, DENOM, &
@@ -1523,7 +1522,7 @@ IF (ISTEP .EQ. 1) THEN
             IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 91) THEN
                CONTINUE
                IF (BLDG_SPREAD_MODEL_TYPE .EQ. 1) CALL HAMADA(C) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
-               IF (BLDG_SPREAD_MODEL_TYPE .EQ. 2) CALL UMD_UCB_BLDG_SPREAD(C, LB, T) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
+               IF (BLDG_SPREAD_MODEL_TYPE .EQ. 2) CALL UMD_UCB_BLDG_SPREAD(C, LB, T_ELMFIRE) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
                CONTINUE
             ENDIF
 
@@ -1618,7 +1617,7 @@ ELSE !ISTEP .EQ. 2
 
       ELSE
          IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2) .AND. (C%IFBFM .EQ. 91)) THEN
-            CALL HRR_TRANSIENT(C, T)
+            CALL HRR_TRANSIENT(C, T_ELMFIRE)
             C%FLIN_SURFACE = C%HRR_TRANSIENT*ANALYSIS_CELLSIZE ! kW/m
 
 !            OPEN(555, FILE="UCBfline_DIAGNOSTIC.csv")
