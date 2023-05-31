@@ -1417,7 +1417,7 @@ END SUBROUTINE CALC_NORMAL_VECTORS
 ! *****************************************************************************
 
 ! *****************************************************************************
-SUBROUTINE UX_AND_UY_ELLIPTICAL(L, LIST_BURNED, ACCELERATION_FACTOR, ISTEP, T_ELMFIRE)
+SUBROUTINE UX_AND_UY_ELLIPTICAL(L, LB, ACCELERATION_FACTOR, ISTEP, T_ELMFIRE)
 ! *****************************************************************************
 ! Parameter T_ELMFIRE added to update fireline intensity of structures over time
 REAL, INTENT(IN) :: ACCELERATION_FACTOR, T_ELMFIRE
