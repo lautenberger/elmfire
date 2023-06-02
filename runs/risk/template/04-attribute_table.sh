@@ -131,7 +131,10 @@ function do_attribute_table {
    cp $SCRATCH/header.csv $SCRATCH/$fh.csv
 
    for FID in $(eval echo "{0..$NFM1}"); do
-      ZONE=`ogrinfo -al -so -fid $FID $POLYGONS | grep 'PDZ_CKT (String)' | cut -d= -f2 | xargs`
+      ZONE=`ogrinfo -al -so -fid $FID $POLYGONS | grep 'NAME (String)' | cut -d= -f2 | xargs`
+      if [ -z "$ZONE" ]; then
+         ZONE=`ogrinfo -al -so -fid $FID $POLYGONS | grep 'PDZ_CKT (String)' | cut -d= -f2 | xargs`
+      fi
       WRITESTR="$ZONE"
       for j in $(eval echo "{1..$J}"); do #quantity
          FNIN=${DATADIR[j]}/${QUANTITY[j]}_${FORECAST_CYCLE}0000_$FID.csv

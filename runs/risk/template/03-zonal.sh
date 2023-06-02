@@ -21,7 +21,7 @@ YMAX=`gdalinfo $f | grep "Upper Right" | cut -d'(' -f2 | cut -d')' -f1 | cut -d,
 TE="$XMIN $YMIN $XMAX $YMAX"
 
 HAVE_PLIGNRATE=no
-if [ "$PATTERN" = "utility1" ] || [ "$PATTERN" = "utility2" ]; then
+if [ "$PATTERN" = "$UTILITY01" ] || [ "$PATTERN" = "$UTILITY02" ]; then
    HAVE_PLIGNRATE=yes
 fi
 
