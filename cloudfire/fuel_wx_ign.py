@@ -68,7 +68,7 @@ def round_time_to_nearest(t,base):
 
 timezone = pytz.timezone("UTC")
 
-valid_fuel_versions = ["1.0.5", "1.3.0", "1.4.0", "2.0.0_2019", "2.0.0_2020", "2.1.0", "2.2.0"]
+valid_fuel_versions = ["1.0.5", "1.3.0", "1.4.0", "2.0.0_2019", "2.0.0_2020", "2.1.0", "2.2.0", "2.3.0"]
 valid_wx_types = ["forecast", "historical"]
 
 historical_wx_earliest = datetime.datetime(2011, 1, 30,  0, 0, tzinfo=datetime.timezone.utc)
