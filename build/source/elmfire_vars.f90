@@ -546,6 +546,7 @@ TYPE NODE
    !INTEGER :: EARLY_TIME       = 300
    !INTEGER :: DEVELOPED_TIME   = 18300
    !INTEGER :: DECAY_TIME       = 36300
+   INTEGER :: IBLDGFM           = 1
    INTEGER :: SIGN_X           = 1
    INTEGER :: SIGN_Y           = 1
    REAL    :: WIND_PROP        = 1.
