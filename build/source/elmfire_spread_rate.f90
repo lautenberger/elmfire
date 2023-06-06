@@ -286,9 +286,6 @@ END SUBROUTINE HAMADA
 ! *****************************************************************************
 
 
-
-! DWI ADD 3 --------------------------------------------------------------------------------------------
-
 ! *****************************************************************************
 SUBROUTINE UMD_UCB_BLDG_SPREAD(C, LB, T)
 ! *****************************************************************************
@@ -481,7 +478,7 @@ ENDIF
 HAMADA_A = BLDG_AREA%R4 (C%IX,C%IY,1) ! AVERAGE BUILDING PLAN DIMENSION , M 
 HAMADA_D = BLDG_SEPARATION_DIST%R4 (C%IX,C%IY,1) ! AVERAGE BUILDING SEPERATION , M 
 
-! This is regression from HAMADA. Subject of changes. DWI COMMENT ------------------------------------------
+! This is regression from HAMADA. Subject of changes. ------------------------------------------
 
 IF (V_MPS .LT. 10) THEN  ! HAZUS CORRECTION
 
@@ -535,7 +532,7 @@ ELSE
 
 ENDIF
 
-! DWI COMMENT ----------------------------------------------------------------------------------------
+! ----------------------------------------------------------------------------------------
 
 
 C%ELLIPSE_PARAMETERS%ELLIPSE_MAJOR = (C%ELLIPSE_PARAMETERS%DIST_DOWNWIND + C%ELLIPSE_PARAMETERS%DIST_UPWIND)/2
@@ -590,9 +587,6 @@ BURNING_NODES%HRR_TRANSIENT = AMAX1(0.0, BURNING_NODES%HRR_TRANSIENT)
 ! *****************************************************************************
 END SUBROUTINE HRR_TRANSIENT
 ! *****************************************************************************
-
-
-! DWI ADD 3 --------------------------------------------------------------------------------------------
 
 
 
