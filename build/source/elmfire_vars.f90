@@ -537,15 +537,7 @@ TYPE NODE
    REAL :: QDOT_AVG          = 0.
    
 ! UCB parameters
-   !REAL    :: HRR_PEAK         = 700.  !Default value
-   !REAL    :: FTP_PA           = 10500.
-   !REAL    :: DFC_COEFF        = 0.4
-   !REAL    :: RAD_COEFF        = 0.89
    REAL    :: RAD_DIST         = 100.
-   !REAL    :: BUILDING_HEIGHT  = 5.
-   !INTEGER :: EARLY_TIME       = 300
-   !INTEGER :: DEVELOPED_TIME   = 18300
-   !INTEGER :: DECAY_TIME       = 36300
    INTEGER :: IBLDGFM           = 1
    INTEGER :: SIGN_X           = 1
    INTEGER :: SIGN_Y           = 1
