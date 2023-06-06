@@ -592,10 +592,10 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          LIST_BURNED%TAIL%BURNED                 = .TRUE.
          LIST_BURNED%TAIL%TAU_EMBERGEN           = 0.
          
-         LIST_BURNED%TAIL%IFBFM                  = C%IFBFM  !DEBUG_DWI_PARAM
-         LIST_BURNED%TAIL%IBLDGFM                = C%IBLDGFM  !DEBUG_DWI_PARAM
-         LIST_BURNED%TAIL%WS20_NOW               = C%WS20_NOW   !DEBUG_DWI_PARAM
-         LIST_BURNED%TAIL%WD20_NOW               = C%WD20_NOW   !DEBUG_DWI_PARAM
+         LIST_BURNED%TAIL%IFBFM                  = C%IFBFM
+         LIST_BURNED%TAIL%IBLDGFM                = C%IBLDGFM 
+         LIST_BURNED%TAIL%WS20_NOW               = C%WS20_NOW
+         LIST_BURNED%TAIL%WD20_NOW               = C%WD20_NOW
 
 
          IF (ENABLE_SMOKE_OUTPUTS) THEN
@@ -1436,7 +1436,6 @@ LOGICAL :: DONE, CROWN_FIRE_AT_START, CROWN_FIRE_AT_END
 
 C => L%HEAD
 
-! DWI ADD 1 ------------------------------------------------
 
 IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2)) THEN
    LB_P => LB%HEAD
@@ -1451,7 +1450,6 @@ IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2)) THEN
       LB_P => LB_P%NEXT
    ENDDO
 ENDIF
-! DWI ADD 1 ----------------------------------------------------
 
 
 IF (ISTEP .EQ. 1) THEN
@@ -1604,8 +1602,7 @@ ELSE !ISTEP .EQ. 2
 
          IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) C%LOCAL_EMBERGEN_DURATION = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR
          
-         
-! DWI ADD 2 ----------------------------------------------------         
+              
          IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2) .AND. (C%IFBFM .EQ. 91)) THEN
          
             C%FLIN_SURFACE = 0.0 ! kW/m
@@ -1624,7 +1621,6 @@ ELSE !ISTEP .EQ. 2
 !            OPEN(555, FILE="UCBfline_DIAGNOSTIC.csv")
 !            WRITE(555,*) C%IX, C%IY, C%BURNED, C%TIME_OF_ARRIVAL, T, C%HRR_TRANSIENT, C%FLIN_SURFACE
          ENDIF
-! DWI ADD 2 ----------------------------------------------------
 
       ENDIF
       IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) THEN
