@@ -437,10 +437,28 @@ TYPE(RASTER_TYPE), TARGET :: BLDG_NONBURNABLE_FRAC ! Previously HAMADA_FB
 TYPE(RASTER_TYPE), TARGET :: BLDG_FOOTPRINT_FRAC
 TYPE(RASTER_TYPE), TARGET :: BLDG_FUEL_MODEL
 
+
+! UCB declares variables
+TYPE :: UCB_ELLIPSE
+   REAL     :: DIST_DOWNWIND ! Downwind distance (a) [m]
+   REAL     :: DIST_UPWIND ! Upwind distance (b) [m]
+   REAL     :: DIST_SIDEWIND ! Sidewind distance (c) [m]
+
+   INTEGER  :: FOREST_FACTOR ! urban = 1; forest = 3
+   REAL     :: WIND_POWER = 2 ! Default 1
+
+   REAL     :: ELLIPSE_MINOR ! Semiminor (A) [m]
+   REAL     :: ELLIPSE_MAJOR ! Semimajor (B) [m]
+   REAL     :: ELLIPSE_ECCENTRICITY ! Eccentricity (E) [m]
+
+END TYPE UCB_ELLIPSE
+
+
 ! Doubly linked list variables
 TYPE NODE
    TYPE(NODE), POINTER :: NEXT => NULL()
    TYPE(NODE), POINTER :: PREV => NULL()
+   TYPE(UCB_ELLIPSE) :: ELLIPSE_PARAMETERS
 
    INTEGER   :: BLDG_FUEL_MODEL = 0
    INTEGER*1 :: CROWN_FIRE =  0
@@ -517,6 +535,16 @@ TYPE NODE
    REAL :: HRRPUA            = 0.
    REAL :: SMOKE_TFRAC       = 0.
    REAL :: QDOT_AVG          = 0.
+   
+! UCB parameters
+   REAL    :: RAD_DIST         = 100.
+   INTEGER :: IBLDGFM           = 1
+   INTEGER :: SIGN_X           = 1
+   INTEGER :: SIGN_Y           = 1
+   REAL    :: WIND_PROP        = 1.
+   REAL    :: HEAT_VALUE       = 0.
+   REAL    :: HRR_TRANSIENT    = 0.
+   REAL    :: ABSOLUTE_U       = 0.
 
 END TYPE NODE
  
