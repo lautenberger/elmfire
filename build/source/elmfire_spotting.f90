@@ -67,8 +67,6 @@ MSD        = MAX( MEAN_SPOTTING_DIST*(FLIN**SPOT_FLIN_EXP)*(WS20_NOW**SPOT_WS_EX
 MU_DIST    = LOG(MSD*MSD / SQRT(MSD * NORMALIZED_SPOTTING_DIST_VARIANCE + MSD*MSD))
 SIGMA_DIST = SQRT(LOG(1. + MSD * NORMALIZED_SPOTTING_DIST_VARIANCE / (MSD*MSD)))
 
-CONTINUE
-
 IF (USE_UMD_SPOTTING_MODEL) THEN
 
    ! CALCULATE DISTRIBUTION PARAMETERS FROM LOCAL WIND SPEED & FIRELINE INTENSITY FROM SARDOY'S MODEL
@@ -152,6 +150,7 @@ ELSE
 ENDIF
 
 CONTAINS
+
 ! *****************************************************************************
 FUNCTION SARDOY_PDF_PARAMETERS(WS, FI)
 ! *****************************************************************************
@@ -164,11 +163,10 @@ REAL, PARAMETER :: T_INF   = 300.0 ! Ambient temperature, K
 REAL, PARAMETER :: G       = 9.81! Gravitional acceleration, m^2/s
 REAL :: I, U_WIND, LC, FR, MU_DIST, SIGMA_DIST, MU_SPANWISE, SIGMA_SPANWISE
 REAL, DIMENSION(4) :: SARDOY_PDF_PARAMETERS
-U_WIND = 0.447 * WS ! WIND SPEED IN M/S
-I  = MAX(FI,1E-6) / 1000.0                                          ! FIRELINE INTENSITY IN MW/M
-! WRITE(*,*) 'WIND_SPEED',U_WIND,'FLIN',I
-LC = (I*1000.0 / (RHO_INF * C_PG * T_INF * SQRT(G))) ** 0.67  ! Character length scale
-FR = U_WIND / SQRT(G * LC)                                ! FROUDE NUMBER
+U_WIND = 0.447 * WS ! Wind speed in m/s
+I  = MAX(FI,1E-6) / 1000.0 ! Fireline intensity in MW/m
+LC = (I*1000.0 / (RHO_INF * C_PG * T_INF * SQRT(G))) ** 0.67  ! Characteristic length scale
+FR = U_WIND / SQRT(G * LC) ! Froude number
 
 IF (FR .LE. 1.0) THEN
    MU_DIST    = (I ** 0.54) / MAX(U_WIND ** 0.55,1.0E-5)
@@ -181,8 +179,7 @@ ELSE
    SIGMA_DIST = 1.0 / MAX(I ** 0.01,1.0E-5) / MAX(U_WIND ** 0.02,1.0E-5)
    SIGMA_DIST = 4.95 * SIGMA_DIST - 3.48
 ENDIF
-! MU_DIST    = 0.1
-! SIGMA_DIST  = 0.1
+
 MU_SPANWISE = 0.0
 SIGMA_SPANWISE = 0.92 * LC
 SARDOY_PDF_PARAMETERS(1) = MU_DIST
@@ -197,8 +194,8 @@ END FUNCTION SARDOY_PDF_PARAMETERS
 ! *****************************************************************************
 FUNCTION EMBER_TO_EMIT_PER_CELL(WS, N0, CELLSIZE_ELM, AF, FMC, WN_FUEL, IFBFM, TAU_EMBERGEN)
 ! *****************************************************************************
-! FUNCTION CALCULATES THE SPOTTING DISTANCE DISTRIBUTION BASED ON THE SARDOY'S MODEL
-! TAKE THE INPUTS LOCAL WIND SPEED AND FIRELINE INTENSITY, RETURE MU AND SIGMA
+! Calculates spotting distance distribution based on Sardoy's model.
+! Takes as input local in speed and fireline intensity, reutrns MU and SIGMA
 REAL, INTENT(IN) :: WS, N0, CELLSIZE_ELM, AF, FMC, WN_FUEL, TAU_EMBERGEN
 INTEGER*2, INTENT(IN) :: IFBFM
 REAL, PARAMETER :: D_TRUNK        = 0.2 ! Trunk diameter, m
@@ -456,8 +453,7 @@ DO IEMBER = 1, NUM_EMBERS
 
       CALL RANDOM_NUMBER(R0)
 
-      ! IF (IGNPROB .GT. R0 .AND. DIST .GT. 1.5*CELLSIZE_ELM) THEN
-      IF (IGNPROB .GT. R0 .AND. DIST .GT. 0.5*CELLSIZE_ELM) THEN ! SET TO 0.5*CELLSIZE TO ALLOW ADJCENT CELL IGNITION
+      IF (IGNPROB .GT. R0 .AND. DIST .GT. 0.5*CELLSIZE_ELM) THEN
          
          GO = .TRUE. 
          IF (.NOT. USE_UMD_SPOTTING_MODEL) THEN
@@ -502,7 +498,6 @@ SARDOY_PDFINV = 0.5*(1+ERF((LOG(MAX(X,1E-6))-MU_DIST)/SQRT_2/SIGMA_DIST))
 ! *****************************************************************************
 END FUNCTION SARDOY_PDFINV
 ! *****************************************************************************
-
 
 ! *****************************************************************************
 END SUBROUTINE EMBER_TRAJECTORY
