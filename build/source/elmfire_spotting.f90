@@ -99,20 +99,27 @@ ENDIF
 
 IF (NEMBERS .EQ. 0) RETURN
 
-IF (USE_SPOTTING_LOOKUP_TABLE) THEN
+IF (USE_EULERIAN_FRAMEWORK) THEN
 
-   CALL FAST_SPOTTING(  &
+   CALL EMBER_TRAJECTORY_EULERIAN(  &
       CC%NCOLS                  , &
       CC%NROWS                  , &
       CC%CELLSIZE               , &
-      TIME_NOW                  , &
-      X0                        , &
-      MU_DIST                   , &
-      SIGMA_DIST                , &
+      NEMBERS                   , &
+      X0                        , & 
+      TSTOP_SPOT                , & 
+      PIGN                      , &
       PHIP                      , &
-      N_SPOT_FIRES              , &
-      IX_SPOT_FIRE              , &
-      IY_SPOT_FIRE)
+      IRANK_WORLD               , &
+      SIGMA_DIST                , &
+      MU_DIST                   , &
+      WS20_LO                   , &
+      WS20_HI                   , &
+      WD20_LO                   , &
+      WD20_HI                   , &
+      F_WIND                    , &
+      TIME_NOW                  , &
+      IGNMULT)
 ELSE
    CALL EMBER_TRAJECTORY ( &
       CC%NCOLS                  , &
@@ -502,361 +509,189 @@ END SUBROUTINE EMBER_TRAJECTORY
 ! *****************************************************************************
 
 ! *****************************************************************************
-SUBROUTINE BUILD_EMBER_TRAJECTORY_TABLE( &
-NX_ELM                     , & 
+SUBROUTINE EMBER_TRAJECTORY_EULERIAN( &
+NX_ELM                     , &
 NY_ELM                     , &
 CELLSIZE_ELM               , &
-DT_ELMFIRE                 , &
-MAX_SPOTTING_DISTANCE      , & 
-TSTOP_ELM)
+NUM_EMBERS                 , &
+X0_ELM                     , & 
+TSTOP_ELM                  , &
+PIGN_ELM                   , & 
+PHIP                       , &
+IRANK_WORLD                , &
+SIGMA_DIST                 , &
+MU_DIST                    , &
+WS20_LO                    , &
+WS20_HI                    , &
+WD20_LO                    , &
+WD20_HI                    , &
+F_WIND                     , &
+TIME_NOW                   , &
+IGNMULT)
 ! *****************************************************************************
-! Function used to construct ember trajectory table, global variables used are:
-! WSP, WDP, DT_METEOROLOGY, NUM_METEOROLOGY_TIMES
 
-! Result array to be used for subroutine FAST_SPOTTING are:
-! EMBER_TARGET_IX, EMBER_TARGET_IY, EMBER_TOA, TIME_LIST
+INTEGER, INTENT(IN) :: NX_ELM, NY_ELM, NUM_EMBERS, IRANK_WORLD
+REAL, INTENT(IN) :: CELLSIZE_ELM, PIGN_ELM, SIGMA_DIST, MU_DIST, F_WIND, IGNMULT
+REAL, INTENT(IN) :: PHIP(:,:), WS20_LO(:,:), WS20_HI(:,:), WD20_LO(:,:), WD20_HI(:,:)
 
-INTEGER, INTENT(IN) :: NX_ELM, NY_ELM
-REAL, INTENT(IN) :: TSTOP_ELM, CELLSIZE_ELM, MAX_SPOTTING_DISTANCE, DT_ELMFIRE
-REAL, ALLOCATABLE :: WS20_LO(:,:), WS20_HI(:,:), WD20_LO(:,:), WD20_HI(:,:)
-
-REAL :: SPOTTING_DISTANCE, DIST, EPS, R0
+REAL :: DIST, EPS, PDF_K
 
 !These also come from elmfire but have local analogs:
-REAL :: WD1TO, WD2TO, WDTO, WS20, WS20_0, T, TSTOP, DT, F_METEOROLOGY, T0
+REAL, INTENT(IN) :: X0_ELM(:), TSTOP_ELM, TIME_NOW
+CHARACTER(3) :: THREE
+CHARACTER(400) :: FNOUT
+REAL :: R0, IGNPROB, WD1TO, WD2TO, WDTO, WS20, WS20_0, T, TSTOP, DT, X_HIGH, X_LOW, X_MAX, NORM_FACTOR, P_LAND
 REAL, DIMENSION(3) :: X, X0, UWIND, UWIND0, OFFSET
-! INTEGER, ALLOCATABLE, INTENT(OUT) :: EMBER_TARGET_IX(:,:,:,:),EMBER_TARGET_IY(:,:,:,:)
-! REAL, ALLOCATABLE, INTENT(OUT) :: EMBER_TOA(:,:,:,:), TIME_LIST(:)
-INTEGER :: DIM_ET, DIM_SP, I_DT, I_SP, IX0, IY0, IX, IY, IXLAST, IYLAST, ICOL, IROW, &
-           ICOUNT, ITLO_METEOROLOGY, ITHI_METEOROLOGY
-
-! Table struct:n_t x n_source x n_SpotDist
-! t: Ember EMBERGEN time
-! SPOTTING DIST   DX  2DX  3DX  4DX  ...
-! [[t=0:  SOURCE  [ 1    1    1    1  ...
-!                   2    2    2    2  ... 
-!                   3    3    3    3  
-!                ...                    ]
-!   t=DT: SOURCE  [ 1    1    1    1  ...
-!                   2    2    2    2  ... 
-!                   3    3    3    3  
-!                ...                    ]
-!   t=2DT: 
-!   ...                                  
-!   t=nDT: SOURCE  [ 1    1    1    1  ...
-!                    2    2    2    2  ... 
-!                    3    3    3    3  
-!                ...                    ]]
-
-WRITE(*,*) 'Updating Spotting table...'
-
-TSTOP = TSTOP_ELM
-DIM_ET  = CEILING(TSTOP/DT_ELMFIRE)
-DIM_SP  = CEILING(MAX_SPOTTING_DISTANCE/CELLSIZE_ELM)
-
-! These variable are declared in elmfire_vars.f90
-ALLOCATE(EMBER_TOA(DIM_ET,NX_ELM,NY_ELM,DIM_SP))
-ALLOCATE(EMBER_TARGET_IX(DIM_ET,NX_ELM,NY_ELM,DIM_SP))
-ALLOCATE(EMBER_TARGET_IY(DIM_ET,NX_ELM,NY_ELM,DIM_SP))
-ALLOCATE(TIME_LIST(DIM_ET))
-
-DO I_DT=1,DIM_ET
-   T0 = (REAL(I_DT)-1.0)*DT_ELMFIRE
-   T = T0
-   TIME_LIST(I_DT) = T0
-
-   ! Determine current time in the wind raster
-   IF (I_DT .EQ. 1 .OR. NUM_METEOROLOGY_TIMES .GT. 1) THEN
-      ITLO_METEOROLOGY = MAX(1 + FLOOR(T / DT_METEOROLOGY),1)
-      ITLO_METEOROLOGY = MIN(ITLO_METEOROLOGY, NUM_METEOROLOGY_TIMES)
-      ITHI_METEOROLOGY = MIN(ITLO_METEOROLOGY + 1, NUM_METEOROLOGY_TIMES)
-      F_METEOROLOGY = (T - REAL(ITLO_METEOROLOGY-1) * DT_METEOROLOGY) / DT_METEOROLOGY
-      IF (ITLO_METEOROLOGY .EQ. ITHI_METEOROLOGY) F_METEOROLOGY = 1.
-
-      WS20_LO = WSP(:,:,ITLO_METEOROLOGY)
-      WS20_HI = WSP(:,:,ITHI_METEOROLOGY)
-      WD20_LO = WDP(:,:,ITLO_METEOROLOGY)
-      WD20_HI = WDP(:,:,ITHI_METEOROLOGY)
-      
-   ENDIF
-
-   ! Emit ember with all possible spotting distance at all locations at the current time
-   DO IX0 = 1,NX_ELM
-      DO IY0 = 1,NY_ELM
-         DO I_SP = 1,DIM_SP
-            CALL RANDOM_NUMBER(R0); EPS = 8.*(R0 - 0.5)
-            SPOTTING_DISTANCE = I_SP*CELLSIZE_ELM;
-            T = T0
-            X0(1) = (REAL(IX0)-0.5) * CC%CELLSIZE 
-            X0(2) = (REAL(IY0)-0.5) * CC%CELLSIZE 
-            X0(3) = DEM%R4(IX0,IY0,1) + MAX(CH%R4(IX0,IY0,1),2.0)
-
-            DIST = 0.
-
-            OFFSET(1:2) = X0(1:2)
-            X   (:)   = X0(:) - OFFSET(:)
-           
-            IXLAST = 0
-            IYLAST = 0
-
-            IX = CEILING ((X(1) + OFFSET(1)) / CELLSIZE_ELM)
-            IX = MAX(IX,1) ; IX = MIN (IX,NX_ELM)
-            ICOL = ICOL_ANALYSIS_F2C(IX)
-
-            IY = CEILING ((X(2) + OFFSET(2)) / CELLSIZE_ELM)
-            IY = MAX(IY,1) ; IY = MIN (IY,NY_ELM)
-            IROW = IROW_ANALYSIS_F2C(IY)
-
-            WS20 = WS20_LO(ICOL,IROW) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(ICOL,IROW) 
-            WS20 = 0.447 * WS20
-
-            ! DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
-            DT = DT_ELMFIRE
-
-            DO WHILE (T .LT. TSTOP .AND. DIST .LT. SPOTTING_DISTANCE )
-               ICOUNT = ICOUNT + 1
-               T = T + DT
-               IX = CEILING ((X(1) + OFFSET(1)) / CELLSIZE_ELM)
-               IX = MAX(IX,1) ; IX = MIN (IX,NX_ELM)
-               ICOL = ICOL_ANALYSIS_F2C(IX)
-
-               IY = CEILING ((X(2) + OFFSET(2)) / CELLSIZE_ELM)
-               IY = MAX(IY,1) ; IY = MIN (IY,NY_ELM)
-               IROW = IROW_ANALYSIS_F2C(IY)
-
-               IF (IX .NE. IXLAST .OR. IY .NE. IYLAST) THEN
-                  IF (IX .GE. NX_ELM .OR. IX .LE. 1) THEN
-                     T = 9E9; CYCLE
-                  ENDIF
-                  IF (IY .GE. NY_ELM .OR. IY .LE. 1) THEN
-                     T = 9E9; CYCLE
-                  ENDIF
-
-                  WS20 = WS20_LO(ICOL,IROW) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(ICOL,IROW) 
-                  WS20 = 0.447 * WS20
-
-                  ! DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
-                  DT = DT_ELMFIRE
-
-                  WD1TO = WD20_LO(ICOL,IROW) + 180. ; IF (WD1TO .GT. 360) WD1TO = WD1TO - 360.
-                  WD2TO = WD20_HI(ICOL,IROW) + 180. ; IF (WD2TO .GT. 360) WD2TO = WD2TO - 360.
-
-                  WDTO  = WD1TO + F_METEOROLOGY * (WD2TO - WD1TO)
-                  WDTO  = WDTO + EPS
-                  IF (WDTO .GT. 360.) WDTO = WDTO - 360.
-                  IF (WDTO .LT.   0.) WDTO = WDTO + 360.
-
-                  UWIND(1) = WS20 * SIN(WDTO*PI/180.)
-                  UWIND(2) = WS20 * COS(WDTO*PI/180.)
-               ENDIF
-
-               IF (ICOUNT .EQ. 1) THEN
-                  UWIND0(1) = UWIND(1)
-                  UWIND0(2) = UWIND(2)
-                  UWIND0(3) = 0.
-                  WS20_0 = WS20
-               ELSE
-                  UWIND(1) = UWIND0(1)
-                  UWIND(2) = UWIND0(2)
-                  WS20 = WS20_0
-               ENDIF
-
-               IF (ABS(UWIND(1)) .LT. 1E-6 .AND. ABS(UWIND(2)) .LT. 1E-6) T=9E9
-               IF (ICOUNT .GT. 100000) T=9E9
-
-               X(1:2)   = X(1:2) + UWIND(1:2) * DT
-               DIST     = DIST + WS20 * DT
-               
-               IXLAST = IX
-               IYLAST = IY
-            ENDDO
-            IF (T .LT. 1E9) THEN
-               IX = CEILING ((X(1) + OFFSET(1)) / CELLSIZE_ELM) ; IX = MAX(IX,1) ; IX = MIN (IX,NX_ELM)
-               IY = CEILING ((X(2) + OFFSET(2)) / CELLSIZE_ELM) ; IY = MAX(IY,1) ; IY = MIN (IY,NY_ELM)
-               EMBER_TARGET_IX(I_DT,IX0,IY0,I_SP) = IX
-               EMBER_TARGET_IY(I_DT,IX0,IY0,I_SP) = IY
-               EMBER_TOA(I_DT,IX0,IY0,I_SP) = T
-            ENDIF
-         ENDDO 
-      ENDDO
-   ENDDO
-ENDDO
-
-! Write the arrays to binary files for fast future rendering
-! OPEN(UNIT=10, FILE='EMBER_TARGET_IX.bin', FORM='BINARY')
-! WRITE(10) EMBER_TARGET_IX
-! CLOSE(10)
-
-! OPEN(UNIT=10, FILE='EMBER_TARGET_IY.bin', FORM='BINARY')
-! WRITE(10) EMBER_TARGET_IY
-! CLOSE(10)
-
-! OPEN(UNIT=10, FILE='EMBER_TOA.bin', FORM='BINARY')
-! WRITE(10) EMBER_TOA
-! CLOSE(10)
-
-! OPEN(UNIT=10, FILE='TIME_LIST.bin', FORM='BINARY')
-! WRITE(10) TIME_LIST
-! CLOSE(10)
-
-WRITE(*,*) 'Spotting Table updated!'
-
-! *****************************************************************************
-END SUBROUTINE BUILD_EMBER_TRAJECTORY_TABLE
-! *****************************************************************************
-
-! *****************************************************************************
-SUBROUTINE FAST_SPOTTING(  NX_ELM                     , &
-                           NY_ELM                     , &
-                           CELLSIZE_ELM               , &
-                           T_ELMFIRE                  , &
-                           X0_ELM                     , &
-                           MU_DIST                    , &
-                           SIGMA_DIST                 , &
-                           PHIP                       , &
-                           N_SPOT_FIRES               , &
-                           IX_SPOT_FIRE               , &
-                           IY_SPOT_FIRE)
-! *****************************************************************************
-
-! Variables: TIME_LIST_AVAIL, EMBER_TARGET_IX, EMBER_TARGET_IY, EMBER_TOA are look-up tables, 
-!            and should be globally accessible
-! Variable: EMBER_TIGN is an array to track and update the ignition time, also globally accessible
-! Variable: P_EPS is an arbitrary small number controlling the maximum spotting distance. Global. 
-
-INTEGER, INTENT(INOUT) :: N_SPOT_FIRES, IX_SPOT_FIRE(:), IY_SPOT_FIRE(:)
-INTEGER, INTENT(IN) :: NX_ELM, NY_ELM
-REAL, INTENT(IN) :: PHIP(:,:), X0_ELM(3), MU_DIST, SIGMA_DIST, CELLSIZE_ELM, T_ELMFIRE
-
-INTEGER :: I, IX, IY, N_DX_AVAIL, K_MAX, RECORD_INDEX, UNIGNITED_CELLS_AVAIL_LENGTH
-REAL :: PDF_K, X_HIGH, X_LOW, X0(3), OFFSET(3)
-
-INTEGER, ALLOCATABLE :: I_TIME(:), EMBER_TARGET_IX_LOCAL(:), EMBER_TARGET_IY_LOCAL(:), SPOTTING_DX(:), &
-                        IX_TARGET(:), IY_TARGET(:), UNIGNITED_CELLS_AVAIL(:), SPOTTING_DX_IGNITED_REMOVED(:)
-REAL, ALLOCATABLE :: EMBER_TOA_LOCAL(:), T_EMBER(:), PHIP_LOC(:), TIME_DIFF(:)
+INTEGER :: IX, IY, IXLAST, IYLAST, IXLAST_IGN, IYLAST_IGN,ICOL, IROW, ICOUNT, K_MAX, IT_IGN
 REAL, PARAMETER :: SQRT_2 = 1.4142135623731
 
-! Definition of X_max - PDF(k_max)<1e-3
-K_MAX = 0
-PDF_K = 1
-DO WHILE(PDF_K .GT. P_EPS)
-   K_MAX = K_MAX+1;
-   X_HIGH = (K_MAX+0.5)*CELLSIZE_ELM
-   X_LOW  = (K_MAX-0.5)*CELLSIZE_ELM
-   PDF_K = 0.5 * (ERF((LOG(X_HIGH)-MU_DIST) / SQRT_2 / SIGMA_DIST) - &
-                  ERF((LOG(X_LOW) -MU_DIST) / SQRT_2 / SIGMA_DIST))/CELLSIZE_ELM
-END DO
+X0   (:) = X0_ELM(:)               ! Initial position vector
+TSTOP    = TSTOP_ELM               ! Stop time 
 
-! IF(X_MAX .GT. SIZE(EMBER_TARGET,3)*delX .OR. T_ELMFIRE .GT. MAX(TIME_LIST_AVAIL))
-!     ! Add entris to search table
-!     [EMBER_TOA, EMBER_TARGET, TIME_LIST_AVAIL] = EMBER_TOA_TABLE(U_wind, WIND_TIME_LIST, SIMU_MESH, DT_ELMFIRE, delX, X_MAX, T_ELMFIRE+10000);
-! ENDIF
-X0 = X0_ELM;
+WRITE(THREE, '(I3.3)') IRANK_WORLD
+FNOUT = 'ignitions_' // THREE // '.csv'
 
-! Search pertinent table
-ALLOCATE(TIME_DIFF(SIZE(TIME_LIST)))
-TIME_DIFF = ABS(T_ELMFIRE-TIME_LIST);
-I_TIME = MINLOC(TIME_DIFF);
+UWIND (3) = 0. 
+OFFSET(3) = 0.
 
-IX = CEILING ((X0(1) + OFFSET(1)) / CELLSIZE_ELM)
-IX = MAX(IX,1) ; IX = MIN (IX,NX_ELM)
-
-IY = CEILING ((X0(2) + OFFSET(2)) / CELLSIZE_ELM)
-IY = MAX(IY,1) ; IY = MIN (IY,NY_ELM)
-
-N_DX_AVAIL=SIZE(EMBER_TARGET_IX,4)
-ALLOCATE(EMBER_TARGET_IX_LOCAL(N_DX_AVAIL))
-ALLOCATE(EMBER_TARGET_IY_LOCAL(N_DX_AVAIL))
-ALLOCATE(EMBER_TOA_LOCAL(N_DX_AVAIL))
-
-EMBER_TARGET_IX_LOCAL = RESHAPE(EMBER_TARGET_IX(I_TIME, IX, IY, :),[N_DX_AVAIL])
-EMBER_TARGET_IY_LOCAL = RESHAPE(EMBER_TARGET_IY(I_TIME, IX, IY, :),[N_DX_AVAIL])
-EMBER_TOA_LOCAL       = RESHAPE(EMBER_TOA(I_TIME, IX, IY, :),[N_DX_AVAIL])
-
-! Ignite all possible pixels
-ALLOCATE(SPOTTING_DX(K_MAX))
-SPOTTING_DX = (/(i, i=1, K_MAX)/)
-
-! Apply ignition probability
-! IF(IGNITION_PROBABILITY) THEN
-!    R0=rand(1,NUM_EMBERS_PER_TORCH_ELM);
-!    Fx=@(x)1/2*(1+erf((log(x)-MU_DIST)/sqrt(2)/SIGMA_DIST));
-!    Low = Fx(delX/2);High=Fx(X_MAX);
-!    R0 = R0*(High-Low)+Low;
-!    SPOTTING_DISTANCE = exp(sqrt(2.) * SIGMA_DIST * erfinv(2.*R0-1.) + MU_DIST);
-
-!    IGNPROB=0.01*PIGN;
-!    R0_IGN = rand(1,NUM_EMBERS_PER_TORCH_ELM);
-!    SPOTTING_DX = SPOTTING_DX(R0_IGN < IGNPROB);
-! ENDIF
-
-! Record all generated embers
-
-ALLOCATE(IX_TARGET(K_MAX))
-ALLOCATE(IY_TARGET(K_MAX))
-ALLOCATE(T_EMBER(K_MAX))
-IX_TARGET = EMBER_TARGET_IX_LOCAL(SPOTTING_DX)
-IY_TARGET = EMBER_TARGET_IY_LOCAL(SPOTTING_DX)
-T_EMBER   = EMBER_TOA_LOCAL(SPOTTING_DX)
-
-! OUTPUT DIAGNOSETIC
-! RES_DIST_ALL=sprintf('/Dist_all_%03d.bin',I_SIMU);
-! if(~exist([RES_DIR,RES_DIST_ALL],'file'))
-!     FileID_All=fopen([RES_DIR,RES_DIST_ALL],'w');
-! else
-!     FileID_All=fopen([RES_DIR,RES_DIST_ALL],'a');
-! end
-! !         fwrite(FileID_All,[T_ELMFIRE,T_ELMFIRE+ceil(T_ember/DT_ELMFIRE)*DT_ELMFIRE,X0_ELM,(max(1,(IX-2))-0.5) * delX],'double');
-! DATA_TO_WRITE = [zeros(length(IX_target),1)+T_ELMFIRE,...
-!                 T_EMBER,...
-!                 zeros(length(IX_target),1)+i_loc+2,...
-!                 IX_target];
-! DATA_TO_WRITE = reshape(DATA_TO_WRITE,1,[]);
-! fwrite(FileID_All,DATA_TO_WRITE,'double');
-! fclose(FileID_All);
-
-! Remove ignited targets
-ALLOCATE(PHIP_LOC(K_MAX))
-DO I=1,K_MAX
-   PHIP_LOC(I) = PHIP(IX_TARGET(I),IY_TARGET(I))
-ENDDO
-UNIGNITED_CELLS_AVAIL=PACK(SPOTTING_DX, PHIP_LOC>=0)
-UNIGNITED_CELLS_AVAIL_LENGTH = SIZE(UNIGNITED_CELLS_AVAIL)
-
-IF (UNIGNITED_CELLS_AVAIL_LENGTH<1) THEN
-   RETURN
-ELSE
-   ALLOCATE(SPOTTING_DX_IGNITED_REMOVED(UNIGNITED_CELLS_AVAIL_LENGTH))
-   SPOTTING_DX_IGNITED_REMOVED = SPOTTING_DX(UNIGNITED_CELLS_AVAIL)
-
-   ! Get toa and target location
-   DEALLOCATE(IX_TARGET)
-   DEALLOCATE(IY_TARGET)
-   DEALLOCATE(T_EMBER)
-
-   ALLOCATE(IX_TARGET(UNIGNITED_CELLS_AVAIL_LENGTH))
-   ALLOCATE(IY_TARGET(UNIGNITED_CELLS_AVAIL_LENGTH))
-   ALLOCATE(T_EMBER(UNIGNITED_CELLS_AVAIL_LENGTH))
-   IX_TARGET = EMBER_TARGET_IX_LOCAL(SPOTTING_DX_IGNITED_REMOVED)
-   IY_TARGET = EMBER_TARGET_IY_LOCAL(SPOTTING_DX_IGNITED_REMOVED)
-   T_EMBER   = EMBER_TOA_LOCAL(SPOTTING_DX_IGNITED_REMOVED)
-
-   ! Update ignition time on simulation map
-   RECORD_INDEX = N_SPOT_FIRES + 1
-   DO I=1,UNIGNITED_CELLS_AVAIL_LENGTH
-      IX_SPOT_FIRE(RECORD_INDEX) = IX_TARGET(I)
-      IY_SPOT_FIRE(RECORD_INDEX) = IY_TARGET(I)
-      IF(EMBER_TIGN(IX_TARGET(I),IY_TARGET(I)) .LT. 0) THEN
-         EMBER_TIGN(IX_TARGET(I),IY_TARGET(I)) = T_EMBER(I)
-      ELSE
-         EMBER_TIGN(IX_TARGET(I),IY_TARGET(I)) = MIN(T_EMBER(I), EMBER_TIGN(IX_TARGET(I),IY_TARGET(I)));
-      ENDIF
-      RECORD_INDEX = RECORD_INDEX + 1
-   ENDDO
+! Find the maximum spotting distance accoring to criterion P_EPS (P_EPS=0.001 by default)
+IF (USE_UMD_SPOTTING_MODEL) THEN
+   K_MAX = 0
+   PDF_K = 1
+   DO WHILE(PDF_K .GT. P_EPS)
+      K_MAX = K_MAX+1;
+      X_HIGH = (K_MAX+0.5)*CELLSIZE_ELM
+      X_LOW  = (K_MAX-0.5)*CELLSIZE_ELM
+      PDF_K = 0.5 * (ERF((LOG(X_HIGH)-MU_DIST) / SQRT_2 / SIGMA_DIST) - &
+                     ERF((LOG(X_LOW) -MU_DIST) / SQRT_2 / SIGMA_DIST))/CELLSIZE_ELM
+   END DO
+   X_MAX = K_MAX*CELLSIZE_ELM
 ENDIF
 
+NORM_FACTOR = SARDOY_CDF(0.5*CELLSIZE_ELM,(REAL(K_MAX)+0.5)*CELLSIZE_ELM, MU_DIST, SIGMA_DIST)
+
+DIST = 0.
+
+OFFSET(1:2) = X0(1:2)
+X   (:)   = X0(:) - OFFSET(:)
+T         = 0.
+
+IXLAST = 0
+IYLAST = 0
+
+IX = CEILING ((X(1) + OFFSET(1)) / CELLSIZE_ELM)
+IX = MAX(IX,1) ; IX = MIN (IX,NX_ELM)
+ICOL = ICOL_ANALYSIS_F2C(IX)
+
+IY = CEILING ((X(2) + OFFSET(2)) / CELLSIZE_ELM)
+IY = MAX(IY,1) ; IY = MIN (IY,NY_ELM)
+IROW = IROW_ANALYSIS_F2C(IY)
+
+WS20 = WS20_LO(ICOL,IROW) * (1. - F_WIND) + F_WIND * WS20_HI(ICOL,IROW) 
+WS20 = 0.447 * WS20
+
+DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+
+ICOUNT = 0
+
+CALL RANDOM_NUMBER(R0); EPS = 8.*(R0 - 0.5)
+
+DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
+   ICOUNT = ICOUNT + 1
+   T = T + DT
+   IX = CEILING ((X(1) + OFFSET(1)) / CELLSIZE_ELM)
+   IX = MAX(IX,1) ; IX = MIN (IX,NX_ELM)
+   ICOL = ICOL_ANALYSIS_F2C(IX)
+
+   IY = CEILING ((X(2) + OFFSET(2)) / CELLSIZE_ELM)
+   IY = MAX(IY,1) ; IY = MIN (IY,NY_ELM)
+   IROW = IROW_ANALYSIS_F2C(IY)
+
+   IF (IX .NE. IXLAST .OR. IY .NE. IYLAST) THEN
+      IF (IX .GE. NX_ELM .OR. IX .LE. 1) THEN
+         T = 9E9; CYCLE
+      ENDIF
+      IF (IY .GE. NY_ELM .OR. IY .LE. 1) THEN
+         T = 9E9; CYCLE
+      ENDIF
+
+      WS20 = WS20_LO(ICOL,IROW) * (1. - F_WIND) + F_WIND * WS20_HI(ICOL,IROW) 
+      WS20 = 0.447 * WS20
+
+      DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+
+      WD1TO = WD20_LO(ICOL,IROW) + 180. ; IF (WD1TO .GT. 360) WD1TO = WD1TO - 360.
+      WD2TO = WD20_HI(ICOL,IROW) + 180. ; IF (WD2TO .GT. 360) WD2TO = WD2TO - 360.
+
+      WDTO  = WD1TO + F_WIND * (WD2TO - WD1TO)
+      WDTO  = WDTO + EPS
+      IF (WDTO .GT. 360.) WDTO = WDTO - 360.
+      IF (WDTO .LT.   0.) WDTO = WDTO + 360.
+
+      UWIND(1) = WS20 * SIN(WDTO*PI/180.)
+      UWIND(2) = WS20 * COS(WDTO*PI/180.)
+   ENDIF
+
+   IF (ICOUNT .EQ. 1) THEN
+      UWIND0(1) = UWIND(1)
+      UWIND0(2) = UWIND(2)
+      UWIND0(3) = 0.
+      WS20_0 = WS20
+   ELSE
+      UWIND(1) = UWIND0(1)
+      UWIND(2) = UWIND0(2)
+      WS20 = WS20_0
+   ENDIF
+
+   IF (ABS(UWIND(1)) .LT. 1E-6 .AND. ABS(UWIND(2)) .LT. 1E-6) T=9E9
+   IF (ICOUNT .GT. 100000) T=9E9
+
+   X(1:2)   = X(1:2) + UWIND(1:2) * DT
+   DIST     = DIST + WS20 * DT
+   
+   IXLAST = IX
+   IYLAST = IY
+
+   IF(IX .NE. IXLAST_IGN .OR. IY .NE. IYLAST_IGN)THEN
+      IGNPROB=0.01*PIGN_ELM*IGNMULT
+      P_LAND = SARDOY_CDF(DIST-0.5*CELLSIZE_ELM,DIST+0.5*CELLSIZE_ELM, MU_DIST, SIGMA_DIST)/NORM_FACTOR
+      IT_IGN = FINDLOC((T+TIME_NOW-SPOTTING_TIME_TABLE)<=0,.TRUE., 1)
+      IT_IGN = MAX(IT_IGN,1)
+      IT_IGN = MIN(IT_IGN,SIZE(SPOTTING_TIME_TABLE))
+      
+      EMBER_ACCUMULATION_RATE(IX, IY, IT_IGN) = EMBER_ACCUMULATION_RATE(IX, IY, IT_IGN)+NUM_EMBERS*P_LAND
+      IXLAST_IGN = IX
+      IYLAST_IGN = IY
+
+      IF(PHIP(IX, IY)<0) THEN
+         continue
+      ENDIF
+
+      IF(T+TIME_NOW .LT. EMBER_TIGN(IX,IY) .OR. EMBER_TIGN(IX,IY) .LT. 0.0) THEN
+         EMBER_TIGN(IX,IY) = T+TIME_NOW
+      ENDIF
+   ENDIF
+
+ENDDO
+
+CONTAINS
+
 ! *****************************************************************************
-END SUBROUTINE FAST_SPOTTING
+REAL FUNCTION SARDOY_CDF(X_START, X_END, MU_DIST, SIGMA_DIST)
+! *****************************************************************************
+
+REAL, INTENT(IN) :: X_START, X_END,  MU_DIST, SIGMA_DIST
+REAL, PARAMETER :: SQRT_2 = 1.4142135623731
+
+SARDOY_CDF = 0.5*(1+ERF((LOG(MAX(X_END,1E-6))-MU_DIST)/SQRT_2/SIGMA_DIST)) - &
+             0.5*(1+ERF((LOG(MAX(X_START,1E-6))-MU_DIST)/SQRT_2/SIGMA_DIST))
+
+! *****************************************************************************
+END FUNCTION SARDOY_CDF
+! *****************************************************************************
+
+! *****************************************************************************
+END SUBROUTINE EMBER_TRAJECTORY_EULERIAN
 ! *****************************************************************************
 
 ! *****************************************************************************
@@ -865,6 +700,12 @@ SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE(C, STRUCTURE_AREA, T_ELMFIRE)
 ! This is to calculate the fireline intensity of a structural pixel since its iginition
 ! The fireline intensity will be used to determine the ember emitting duration
 USE ELMFIRE_VARS
+
+! T_ALPHA(1:256) ! Time needed to reach the heat release of 1000 KW
+! Q_F(1:256) ! Fire load
+! HRR_F! is the thermal heat energy release per unite of gross floor area. Appendix E.4 of Eurocode 1 UNI EN 1991-1-2 
+       ! shows some values of HHRf for different occupancies [kW/sqm];
+! HRR_MAX = HRR_F*A_F ! kW
 
 TYPE(NODE), POINTER, INTENT(INOUT) :: C
 
@@ -916,7 +757,7 @@ END SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE
 ! *****************************************************************************
 SUBROUTINE CLEAR_USED_EMBER(T_ELMFIRE)
 ! *****************************************************************************
-! Subroutine to delete used particles, save space
+! Subroutine to delete used particles, save space for Lagrangian scheme
 USE ELMFIRE_VARS
 
 REAL, INTENT(IN) :: T_ELMFIRE
