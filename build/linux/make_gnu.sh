@@ -23,12 +23,14 @@ cd elmfire
 rm -f *.o *.mod elmfire
 make -f ../Makefile_elmfire gnu_mpi_linux
 cp -f elmfire $ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER
+ln -fs $ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire
 rm -f *.o *.mod elmfire
 
 echo "Making elmfire_gnu_mpi_debug_linux"
 rm -f *.o *.mod elmfire_debug
 make -f ../Makefile_elmfire gnu_mpi_debug_linux
 cp -f elmfire_debug $ELMFIRE_INSTALL_DIR/elmfire_debug_$ELMFIRE_VER
+ln -fs $ELMFIRE_INSTALL_DIR/elmfire_debug_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_debug
 rm -f *.o *.mod elmfire_debug
 
 echo "Making elmfire_post"
@@ -38,11 +40,14 @@ cd elmfire_post
 rm -f *.o *.mod elmfire_post
 make -f ../Makefile_elmfire_post gnu_linux
 cp -f elmfire_post $ELMFIRE_INSTALL_DIR/elmfire_post_$ELMFIRE_VER
+ln -fs $ELMFIRE_INSTALL_DIR/elmfire_post_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_post
 
 echo "Making elmfire_post_gnu_debug_linux"
 rm -f *.o *.mod elmfire_post_debug
 make -f ../Makefile_elmfire_post gnu_debug_linux
 cp -f elmfire_post_debug $ELMFIRE_INSTALL_DIR/elmfire_post_debug_$ELMFIRE_VER
+ln -fs $ELMFIRE_INSTALL_DIR/elmfire_post_debug_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_post_debug
+
 rm -f *.o *.mod
 
 echo "Cleaning up"
