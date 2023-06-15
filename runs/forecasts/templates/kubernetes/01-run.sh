@@ -8,7 +8,7 @@ progress_message "Start"
 
 LOCAL_SCRATCH=$(pwd)
 ELMFIRE_VER=${ELMFIRE_VER:-2023.06}
-ELMFIRE=/usr/local/bin/elmfire_$ELMFIRE_VER
+ELMFIRE=/elmfire/elmfire/build/linux/bin/elmfire_$ELMFIRE_VER
 FIRE_NAME=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f1`
 DATE_START=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f2`
 TIME_START=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f3`
