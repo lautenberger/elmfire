@@ -2770,9 +2770,9 @@ IF (IRANK_WORLD .EQ. 0 .AND. DUMP_FIRE_SIZE_STATS) THEN
    FN = TRIM(OUTPUTS_DIRECTORY) // 'fire_size_stats.csv'
    OPEN(LUSTATS,FILE=TRIM(FN),FORM='FORMATTED',STATUS='REPLACE',IOSTAT=IOS)
    WRITE(LUSTATS,'(A)') 'icase,Meteorology band,x,y,tstop (h),Wall clock time (s),Total fire area (ac),&
-                         Crown fire area (ac),Fire volume (ac-ft),Population affected,Real estate value,&
-                         Land value,Nembers,Pyrome,Containfrac,PM 2.5 release (ug),HRR peak (MW),&
-                         Start timestamp,Fire id'
+                         &Crown fire area (ac),Fire volume (ac-ft),Population affected,Real estate value,&
+                         &Land value,Nembers,Pyrome,Containfrac,PM 2.5 release (ug),HRR peak (MW),&
+                         &Start timestamp,Fire id'
 
    IPYROME=1
 
