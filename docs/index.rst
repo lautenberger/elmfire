@@ -7,8 +7,8 @@ ELMFIRE- Eulerian Level Set Model of FIRE spread
    :align: center
 
 ELMFIRE, the Eulerian Level set Model of FIRE spread, is open-source 
-software Licensed under the `GNU General Public License Version 3 
-<https://www.gnu.org/licenses/gpl-3.0.en.html>`_ (GPLv3). It is a
+software Licensed under the `Eclipse Public License - 2.0 
+<https://www.eclipse.org/legal/epl-2.0/>`_ (EPLv2). It is a
 wildland fire spread model that can be used to:
 
 * Forecast the spread of fires in real time.
