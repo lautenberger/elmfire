@@ -282,13 +282,13 @@ progress_message "Creating tarball for GeoServer - old format"
 TARBALL=$FIRE_NAME-${START_DATE}_$START_TIME
 tar -cvf $TARBALL.tar * >& /dev/null
 
-if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
-   progress_message "Uploading tarball to production geoserver $GEOSERVER_HOSTNAME_PROD"
-   scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
-
-   progress_message "Extracting tarball on production geoserver $GEOSERVER_HOSTNAME_PROD to $GEOSERVER_BASEDIR_PROD"
-   ssh $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD "cd $GEOSERVER_INCOMINGDIR; tar -xf elmfire-$TARBALL.tar -C $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/; sudo chown -R $OWNERSHIP $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME/; sudo chmod -R 775 $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME; rm -f elmfire-$TARBALL.tar"
-fi
+#if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
+#   progress_message "Uploading tarball to production geoserver $GEOSERVER_HOSTNAME_PROD"
+#   scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
+#
+#   progress_message "Extracting tarball on production geoserver $GEOSERVER_HOSTNAME_PROD to $GEOSERVER_BASEDIR_PROD"
+#   ssh $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD "cd $GEOSERVER_INCOMINGDIR; tar -xf elmfire-$TARBALL.tar -C $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/; sudo chown -R $OWNERSHIP $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME/; sudo chmod -R 775 $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME; rm -f elmfire-$TARBALL.tar"
+#fi
 mv $TARBALL.tar ../$TARBALL-oldformat.tar
 
 # Process new geoserver directory
@@ -300,10 +300,14 @@ progress_message "Creating tarball for GeoServer - new format"
 tar -cf $TARBALL.tar * >& /dev/null
 
 if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
+   progress_message "Uploading tarball to production $GEOSERVER_HOSTNAME_PROD (new format)"
+   scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
+   progress_message "Extracting tarball on production geoserver $GEOSERVER_HOSTNAME_PROD to $GEOSERVER_BASEDIR_PROD"
+   ssh $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD "cd $GEOSERVER_INCOMINGDIR; tar -xf elmfire-$TARBALL.tar -C $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/; sudo chown -R $OWNERSHIP $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME/; sudo chmod -R 775 $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME/; rm elmfire-$TARBALL.tar"
+
    progress_message "Uploading tarball to development $GEOSERVER_HOSTNAME_DEV (new format)"
    scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_DEV:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
-
-   progress_message "Extracting tarball on $GEOSERVER_HOSTNAME_DEV to $GEOSERVER_BASEDIR_DEV"
+   progress_message "Extracting tarball on $development GEOSERVER_HOSTNAME_DEV to $GEOSERVER_BASEDIR_DEV"
    ssh $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_DEV "cd $GEOSERVER_INCOMINGDIR; tar -xf elmfire-$TARBALL.tar -C $GEOSERVER_BASEDIR_DEV/fire_spread_forecast/; sudo chown -R $OWNERSHIP $GEOSERVER_BASEDIR_DEV/fire_spread_forecast/$FIRE_NAME/; sudo chmod -R 775 $GEOSERVER_BASEDIR_DEV/fire_spread_forecast/$FIRE_NAME/; rm elmfire-$TARBALL.tar"
 fi
 mv $TARBALL.tar ..
