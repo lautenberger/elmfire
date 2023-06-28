@@ -57,7 +57,8 @@ YLLCORNER=`cat ./elmfire.data | grep COMPUTATIONAL_DOMAIN_YLLCORNER | cut -d= -f
 NCASES=`cat ./elmfire.data | grep NUM_ENSEMBLE_MEMBERS | cut -d= -f2 | xargs`
 DT=3600.
 #SIMULATION_TSTOP=`cat ./elmfire.data | grep SIMULATION_TSTOP | cut -d= -f2 | xargs`
-let "SIMULATION_TSTOP = 168 * 3600"
+#let "SIMULATION_TSTOP = 168 * 3600"
+let "SIMULATION_TSTOP = 336 * 3600"
 NX=`gdalinfo ./slp.tif | grep "Size is" | cut -ds -f2 | cut -d, -f1 | xargs`
 NY=`gdalinfo ./slp.tif | grep "Size is" | cut -ds -f2 | cut -d, -f2 | xargs`
 
