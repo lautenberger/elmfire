@@ -123,6 +123,9 @@ echo "DUMP_CROWN_FIRE = $DUMP_CROWN_FIRE"        >> elmfire_post.data
 echo "DUMP_TIME_OF_ARRIVAL = .TRUE."             >> elmfire_post.data
 echo "SCRATCH = '"$SCRATCH"/'"                   >> elmfire_post.data
 echo "PATH_TO_GDAL = '/usr/bin/'"                >> elmfire_post.data
+echo "FLAME_LENGTH_MIN = 1.0"                    >> elmfire_post.data
+echo "SPREAD_RATE_MIN = 1.0"                     >> elmfire_post.data
+
 if [ "$READ_ALREADY_BURNED" = "yes" ]; then
    echo "READ_ALREADY_BURNED = .TRUE."                     >> elmfire_post.data
    echo "ALREADY_BURNED_FILENAME = 'already_burned_float'" >> elmfire_post.data
