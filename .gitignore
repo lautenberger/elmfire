@@ -36,3 +36,6 @@ verification/01-elliptical-shape/exact_ellipses
 .vs
 work
 log.txt
+runs/forecasts/templates
+runs/hindcasts/runs
+runs/hindcasts/templates
