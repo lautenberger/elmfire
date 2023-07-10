@@ -1601,6 +1601,9 @@ ELSE !ISTEP .EQ. 2
             CALL STRUCTURE_DESIGN_FIRE_CURVE(C, STRUCTURE_AREA, T_ELMFIRE)
          ENDIF
       ENDIF
+
+      ! This is the best place to retrieve C%HRR_TRANSIENT for the output raster
+      
       C => C%NEXT
 
    ENDDO

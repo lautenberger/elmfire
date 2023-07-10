@@ -542,14 +542,16 @@ TYPE NODE
    REAL :: QDOT_AVG          = 0.
    
 ! UCB parameters
-   REAL    :: RAD_DIST         = 100.
-   INTEGER :: IBLDGFM           = 1
-   INTEGER :: SIGN_X           = 1
-   INTEGER :: SIGN_Y           = 1
-   REAL    :: WIND_PROP        = 1.
-   REAL    :: HEAT_VALUE       = 0.
-   REAL    :: HRR_TRANSIENT    = 0.
-   REAL    :: ABSOLUTE_U       = 0.
+   REAL    :: RAD_DIST           = 100.
+   INTEGER :: IBLDGFM            = 1
+   INTEGER :: SIGN_X             = 1
+   INTEGER :: SIGN_Y             = 1
+   REAL    :: WIND_PROP          = 1.
+   REAL    :: HEAT_VALUE         = 0.
+   REAL    :: HRR_TRANSIENT      = 0.
+   REAL    :: ABSOLUTE_U         = 0.
+   REAL    :: TOTAL_DFC_RECEIVED = 0.
+   REAL    :: TOTAL_RAD_RECEIVED = 0.
 
 END TYPE NODE
  
