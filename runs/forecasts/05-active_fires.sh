@@ -5,6 +5,10 @@ if [ -e ./log/05-active_fires.lock ]; then
 fi
 touch ./log/05-active_fires.lock
 
+RUN_SUPPRESSED_CASE=yes
+ONLY_RUN_NEWEST=yes
+QUEUE_ONE_SIMULATION_PER_FIRE=yes
+
 AVAILABLE_POLYGONS_CLI=$ELMFIRE_BASE_DIR/cloudfire/available_polygons.py
 SEC_BETWEEN_FIRES=10800
 SEC_TO_BLACK=129600
@@ -16,8 +20,10 @@ NUM_ENSEMBLE_MEMBERS=200
 RUN_HOURS=336
 FUEL_SOURCE=landfire
 FUEL_VERSION=2.2.0
-RUN_FIRES_NEWER_THAN=48
+RUN_FIRES_NEWER_THAN=12
 RUN_TEMPLATE=active_fires
+
+SCRATCH=$ELMFIRE_SCRATCH_BASE/05-active_fires.sh
 
 function diagnostic_msg {
    local NOW=`date -u +"%Y-%m-%d %H:%M:%S.%3N"`
@@ -33,6 +39,38 @@ function sec_from_timestamp {
    date -u -d "$YYYYMMDD $HH:$MM UTC" +%s
 }
 
+function launch_run {
+   local ACTIVE_FIRE=$1
+   local RUN_TEMPLATE=$2
+   STRING='{
+   "fireName": "'$ACTIVE_FIRE'",
+   "initializationType": "'active_fire_polygon'",
+   "activeFireTimestamp": "'$ACTIVE_FIRE_TIMESTAMP'",
+   "alreadyBurnedTimestamp": "'$ALREADY_BURNED_TIMESTAMP'",
+   "ignitionTime": "'$IGNITION_TIME'",
+   "westBuffer": '$WEST_BUFFER',
+   "southBuffer": '$SOUTH_BUFFER',
+   "eastBuffer": '$EAST_BUFFER',
+   "northBuffer": '$NORTH_BUFFER',
+   "numEnsembleMembers": '$NUM_ENSEMBLE_MEMBERS',
+   "addToActiveFires": "'no'",
+   "runHours": '$RUN_HOURS',
+   "fuelSource": "'$FUEL_SOURCE'",
+   "fuelVersion": "'$FUEL_VERSION'",
+   "scpInputDeck": "'elmfire'",
+   "returnAfterQueue": "'yes'",
+   "runTemplate": "'$RUN_TEMPLATE'"
+   }'
+
+   diagnostic_msg $STRING
+
+   touch ./input_decks/${ACTIVE_FIRE}_$ACTIVE_FIRE_TIMESTAMP.tar
+
+   cd $ELMFIRE_BASE_DIR/runs/forecasts
+   ./01-crs.sh "$STRING"
+   cd $CWD
+}
+
 CWD=$(pwd)
 mkdir $CWD/input_decks 2> /dev/null
 
@@ -40,6 +78,11 @@ let "RUN_FIRES_NEWER_THAN = RUN_FIRES_NEWER_THAN * 3600"
 
 ACTIVE_FIRES=`$AVAILABLE_POLYGONS_CLI --active=True --list='fires'`
 for ACTIVE_FIRE in $ACTIVE_FIRES; do
+   IS_SUPPRESSED=`echo $ACTIVE_FIRE | grep suppressed | wc -l`
+   if [ "$IS_SUPPRESSED" != "0" ]; then
+      continue
+   fi
+
    diagnostic_msg "Processing $ACTIVE_FIRE\n"
    NEWISH_AVAILABLE_TIMESTAMPS=''
    NEWISH_ALREADY_RUN_TIMESTAMPS=''
@@ -48,18 +91,20 @@ for ACTIVE_FIRE in $ACTIVE_FIRES; do
 
    NOW=`date -u +%s`
    AVAILABLE_TIMESTAMPS=`$AVAILABLE_POLYGONS_CLI --active=True --list='timestamps' --firename="$ACTIVE_FIRE"`
-   diagnostic_msg "AVAILABLE_TIMESTAMPS:\n$AVAILABLE_TIMESTAMPS"
 
    if [ -z "$AVAILABLE_TIMESTAMPS" ]; then
+      diagnostic_msg "$ACTIVE_FIRE no AVAILABLE_TIMESTAMPS"
       continue
    fi
 
+#   diagnostic_msg "$ACTIVE_FIRE AVAILABLE_TIMESTAMPS:\n$AVAILABLE_TIMESTAMPS"
+
    NEWEST_AVAILABLE_TIMESTAMP=`echo $AVAILABLE_TIMESTAMPS | rev | cut -d' ' -f1 | rev`
-   diagnostic_msg "NEWEST_AVAILABLE_TIMESTAMP: $NEWEST_AVAILABLE_TIMESTAMP"
+   diagnostic_msg "$ACTIVE_FIRE NEWEST_AVAILABLE_TIMESTAMP: $NEWEST_AVAILABLE_TIMESTAMP"
 
 # Make list of already run timestamps from input_decks directory
    ALREADY_RUN_TIMESTAMPS=`cd ./input_decks && ls ${ACTIVE_FIRE}_*.tar 2> /dev/null | cut -d_ -f2-3 | cut -d. -f1 && cd ..`
-   diagnostic_msg "ALREADY_RUN_TIMESTAMPS:\n$ALREADY_RUN_TIMESTAMPS"
+#   diagnostic_msg "ALREADY_RUN_TIMESTAMPS:\n$ALREADY_RUN_TIMESTAMPS"
 
 # Start by eliminating timestamps that are too old:
    for TIMESTAMP in $AVAILABLE_TIMESTAMPS; do
@@ -73,7 +118,12 @@ for ACTIVE_FIRE in $ACTIVE_FIRES; do
          fi
       fi
    done
-   diagnostic_msg "NEWISH_AVAILABLE_TIMESTAMPS:\n$NEWISH_AVAILABLE_TIMESTAMPS"
+   if [ -z "$NEWISH_AVAILABLE_TIMESTAMPS" ]; then
+      diagnostic_msg "$ACTIVE_FIRE no NEWISH_AVAILABLE_TIMESTAMPS"
+      continue
+   fi
+
+#   diagnostic_msg "$ACTIVE_FIRE NEWISH_AVAILABLE_TIMESTAMPS:\n$NEWISH_AVAILABLE_TIMESTAMPS"
 
 # Build list of already run timestamps
    for TIMESTAMP in $ALREADY_RUN_TIMESTAMPS; do
@@ -87,7 +137,8 @@ for ACTIVE_FIRE in $ACTIVE_FIRES; do
          fi
       fi
    done
-   diagnostic_msg "NEWISH_ALREADY_RUN_TIMESTAMPS:\n$NEWISH_ALREADY_RUN_TIMESTAMPS"
+
+#   diagnostic_msg "$ACTIVE_FIRE NEWISH_ALREADY_RUN_TIMESTAMPS:\n$NEWISH_ALREADY_RUN_TIMESTAMPS"
 
 # Now eliminate timestamps too close in time to an already run fire:
    for AVAILABLE_TIMESTAMP in $NEWISH_AVAILABLE_TIMESTAMPS; do
@@ -110,7 +161,12 @@ for ACTIVE_FIRE in $ACTIVE_FIRES; do
          PERHAPS_RUN_THESE_TIMESTAMPS=$PERHAPS_RUN_THESE_TIMESTAMPS" $AVAILABLE_TIMESTAMP"
       fi
    done
-   diagnostic_msg "PERHAPS_RUN_THESE_TIMESTAMPS:\n$PERHAPS_RUN_THESE_TIMESTAMPS"
+   if [ -z "$PERHAPS_RUN_THESE_TIMESTAMPS" ]; then
+      diagnostic_msg "$ACTIVE_FIRE no PERHAPS_RUN_THESE_TIMESTAMPS"
+      continue
+   fi
+
+#   diagnostic_msg "$ACTIVE_FIRE PERHAPS_RUN_THESE_TIMESTAMPS:\n$PERHAPS_RUN_THESE_TIMESTAMPS"
 
 # Now eliminate timestamps too close to themselves
    CURRENT_SEC=''
@@ -128,7 +184,18 @@ for ACTIVE_FIRE in $ACTIVE_FIRES; do
          RUN_THESE_TIMESTAMPS=$RUN_THESE_TIMESTAMPS" $TIMESTAMP"
       fi
    done
-   diagnostic_msg "$ACTIVE_FIRE RUN_THESE_TIMESTAMPS: $RUN_THESE_TIMESTAMPS"
+
+   if [ -z "$RUN_THESE_TIMESTAMPS" ]; then
+      diagnostic_msg "$ACTIVE_FIRE no RUN_THESE_TIMESTAMPS"
+      continue
+   fi
+
+   diagnostic_msg "$ACTIVE_FIRE definitely RUN_THESE_TIMESTAMPS: $RUN_THESE_TIMESTAMPS"
+
+   if [ "$ONLY_RUN_NEWEST" = "yes" ]; then
+      RUN_THESE_TIMESTAMPS=$NEWEST_AVAILABLE_TIMESTAMP
+      diagnostic_msg "$ACTIVE_FIRE only running newest timestamp: $RUN_THESE_TIMESTAMPS"
+   fi
 
    for ACTIVE_FIRE_TIMESTAMP in $RUN_THESE_TIMESTAMPS; do
       CURRENT_SEC=`sec_from_timestamp $ACTIVE_FIRE_TIMESTAMP`
@@ -149,38 +216,53 @@ for ACTIVE_FIRE in $ACTIVE_FIRES; do
 
       IGNITION_TIME=`date -d @$CURRENT_SEC +"%Y-%m-%d %H:%M UTC"`
 
-      STRING='{
-      "fireName": "'$ACTIVE_FIRE'",
-      "initializationType": "'active_fire_polygon'",
-      "activeFireTimestamp": "'$ACTIVE_FIRE_TIMESTAMP'",
-      "alreadyBurnedTimestamp": "'$ALREADY_BURNED_TIMESTAMP'",
-      "ignitionTime": "'$IGNITION_TIME'",
-      "westBuffer": '$WEST_BUFFER',
-      "southBuffer": '$SOUTH_BUFFER',
-      "eastBuffer": '$EAST_BUFFER',
-      "northBuffer": '$NORTH_BUFFER',
-      "numEnsembleMembers": '$NUM_ENSEMBLE_MEMBERS',
-      "addToActiveFires": "'no'",
-      "runHours": '$RUN_HOURS',
-      "fuelSource": "'$FUEL_SOURCE'",
-      "fuelVersion": "'$FUEL_VERSION'",
-      "scpInputDeck": "'elmfire'",
-      "returnAfterQueue": "'yes'",
-      "runTemplate": "'$RUN_TEMPLATE'"
-      }'
+      DONTRUN=no
+      if [ "$QUEUE_ONE_SIMULATION_PER_FIRE" = "yes" ]; then
+         mkdir $SCRATCH 2> /dev/null
+         FIRE_NOW=`echo $ACTIVE_FIRE | cut -d_ -f1`
+         FIRE_NOW_SUPPRESSED=$FIRE_NOW-suppressed
+         squeue --format="%6i,%8u,%3t,%60j" | tail -n +2 | tr -d ' ' | grep elmfire > $SCRATCH/squeue.txt
+         while read LINE; do
+            QUEUE_STATE=`echo $LINE | cut -d, -f3`
 
-      diagnostic_msg $STRING
+            if [ "$QUEUE_STATE" = "PD" ]; then
+               ACTIVE_FIRE_QUEUE=`echo $LINE | cut -d, -f4`
+               FIRE_QUEUE=`echo $ACTIVE_FIRE_QUEUE | cut -d_ -f1`
+               if [ "$FIRE_QUEUE" = "$FIRE_NOW" ]; then
+                 echo "Removing $FIRE_QUEUE from slurm queue"
+                 SLURMID=`echo $LINE | cut -d, -f1`
+                 scancel $SLURMID
+               fi
+               if [ "$FIRE_QUEUE" = "$FIRE_NOW_SUPPRESSED" ]; then
+                  echo "Removing $FIRE_QUEUE from slurm queue"
+                  SLURMID=`echo $LINE | cut -d, -f1`
+                  scancel $SLURMID
+               fi
 
-      touch ./input_decks/${ACTIVE_FIRE}_$ACTIVE_FIRE_TIMESTAMP.tar
+               if [ "$QUEUE_STATE" = "R" ]; then
+                  DONTRUN=yes
+               fi
 
-      cd $ELMFIRE_BASE_DIR/runs/forecasts
-      ./01-crs.sh "$STRING"
-      cd $CWD
+            fi
+
+         done < $SCRATCH/squeue.txt
+      fi
+
+      if [ "$DONTRUN" = "yes" ]; then
+         diagnostic_msg "Not running $ACTIVE_FIRE because $FIRE_NOW is already running"
+         continue
+      fi
+
+      launch_run $ACTIVE_FIRE $RUN_TEMPLATE
+      if [ "$RUN_SUPPRESSED_CASE" = "yes" ]; then
+         sleep 5
+         launch_run $ACTIVE_FIRE-suppressed $RUN_TEMPLATE-suppressed
+      fi
 
    done #ACTIVE_FIRE_TIMESTAMP
 
 done #ACTIVE_FIRE
 
-rm -f ./log/05-active_fires.lock
+rm -f -r ./log/05-active_fires.lock $SCRATCH
 
 exit 0
