@@ -21,6 +21,7 @@ HRS_IN_FORECAST[14]=336 #14-day forecast
 
 ELMFIRE_POST=$ELMFIRE_INSTALL_DIR/elmfire_post_$ELMFIRE_VER
 SCRATCH=$(pwd)/scratch
+echo "SCRATCH: $SCRATCH"
 
 rm -f -r $SCRATCH
 mkdir $SCRATCH
@@ -72,19 +73,40 @@ start_min=$((10#$START_MIN))
 ISMATCHDROP=`echo $FIRE_NAME | grep matchdrop | wc -l`
 if [ "$ISMATCHDROP" != "0" ]; then
    ISMATCHDROP=yes
+else
+   ISMATCHDROP=no
 fi
 if [ "$ISMATCHDROP" = "yes" ]; then
    N_PERCENTILES=5
    PERCS='10 30 50 70 90'
+   PERCS_GEOSERVER='10 30 50 70 90'
    PERCS_CSV='10., 30., 50., 70., 90.'
+   DUMP_PERCS='.TRUE., .TRUE., .TRUE., .TRUE., .TRUE.'
    RASTERS='hours-since-burned'
    DUMP_FLAME_LENGTH=.FALSE.
    DUMP_SPREAD_RATE=.FALSE.
    DUMP_CROWN_FIRE=.FALSE.
 else
-   N_PERCENTILES=10
-   PERCS='10 20 30 40 50 60 70 80 90 99'
-   PERCS_CSV='10., 20., 30., 40., 50., 60., 70., 80., 90., 99.'
+   N_PERCENTILES=14
+   PERCS='1 5 10 20 30 40 50 60 70 80 85 90 95 99'
+   PERCS_GEOSERVER='10 30 50 70 90'
+   PERCS_CSV='1., 5., 10., 20., 30., 40., 50., 60., 70., 80., 85., 90., 95., 99.'
+   DUMP_PERCS='.FALSE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .FALSE., .TRUE., .FALSE., .FALSE.'
+#   DUMP_PERCS='.TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE.'
+   PERC_FROM_FID[0]=1
+   PERC_FROM_FID[1]=5
+   PERC_FROM_FID[2]=10
+   PERC_FROM_FID[3]=20
+   PERC_FROM_FID[4]=30
+   PERC_FROM_FID[5]=40
+   PERC_FROM_FID[6]=50
+   PERC_FROM_FID[7]=60
+   PERC_FROM_FID[8]=70
+   PERC_FROM_FID[9]=80
+   PERC_FROM_FID[10]=85
+   PERC_FROM_FID[11]=90
+   PERC_FROM_FID[12]=95
+   PERC_FROM_FID[13]=99
    RASTERS='crown-fire flame-length hours-since-burned spread-rate'
    DUMP_FLAME_LENGTH=.TRUE.
    DUMP_SPREAD_RATE=.TRUE.
@@ -108,6 +130,7 @@ echo "NY = $NY"                                  >> elmfire_post.data
 echo "NCASES = $NCASES"                          >> elmfire_post.data
 echo "N_PERCENTILES = $N_PERCENTILES"            >> elmfire_post.data
 echo "PERCENTILES(:) = $PERCS_CSV"               >> elmfire_post.data
+echo "DUMP_HOURLY_OUTPUTS_FOR_PERC_NUM(:) = $DUMP_PERCS" >> elmfire_post.data
 echo "XLLCORNER = $XLLCORNER"                    >> elmfire_post.data
 echo "YLLCORNER = $YLLCORNER"                    >> elmfire_post.data
 echo "CELLSIZE = $CELLSIZE"                      >> elmfire_post.data
@@ -134,7 +157,7 @@ if [ "$READ_PHI" = "yes" ]; then
    echo "READ_PHI = .TRUE."                                >> elmfire_post.data
    echo "PHI_FILENAME = 'phi'"                             >> elmfire_post.data
 fi
-echo "/"                                         >> elmfire_post.data
+echo "/" >> elmfire_post.data
 
 wait
 progress_message "Done with initial setup, running elmfire_post"
@@ -147,10 +170,10 @@ progress_message "Converting .bil/.hdr files to .tif"
 progress_message "Preparing tifs for GeoServer"
 FIRE_DATE_TIME=$FIRE_NAME/${START_DATE}_${START_TIME}
 for PERC in $PERCS; do
-   mkdir -p geoserver/$FIRE_DATE_TIME/elmfire/landfire/$PERC
+   PERC_TWO=`printf %02d $PERC`
    for RASTER in $RASTERS; do
-      mkdir -p geoserver_new/$FIRE_DATE_TIME/elmfire/landfire/$PERC/$RASTER
-      cp -f ./imagemosaic_properties/* ./geoserver_new/$FIRE_DATE_TIME/elmfire/landfire/$PERC/$RASTER/
+      mkdir -p ./geoserver/$FIRE_DATE_TIME/elmfire/landfire/$PERC_TWO/$RASTER
+      cp -f ./imagemosaic_properties/* ./geoserver/$FIRE_DATE_TIME/elmfire/landfire/$PERC_TWO/$RASTER/
    done
 done
 
@@ -160,7 +183,7 @@ for frame in $(eval echo "{1..$NUM_TIMESTEPS}"); do
 done
 wait
 
-progress_message "Looping over percentiles, part 1"
+progress_message "Creating 7 and 14 day fire perimeters"
 rm -f $SCRATCH/intermediate*
 
 for days in 7 14; do
@@ -168,33 +191,30 @@ for days in 7 14; do
    HR_HI=${HRS_IN_FORECAST[days]}
    echo "HR_HI: $HR_HI"
    for PERC in $PERCS; do
-      cp -f time-of-arrival_$PERC.tif toa_$PERC.tif
-      gdal_edit.py -unsetnodata toa_$PERC.tif
-      gdal_calc.py -A toa_$PERC.tif --type=Byte --NoDataValue=0 \
-                   --calc="0 + (A>0.0001)*(A<$HR_HI)*$PERC" --outfile=$SCRATCH/intermediate_multi_${DAYS}_$PERC.tif 1>& /dev/null && \
-      gdal_polygonize.py $SCRATCH/intermediate_multi_${DAYS}_$PERC.tif $SCRATCH/intermediate_multi_${DAYS}_$PERC.shp 1>& /dev/null && \
-      ogr2ogr -progress -skipfailures $SCRATCH/intermediate_${DAYS}_$PERC.shp $SCRATCH/intermediate_multi_${DAYS}_$PERC.shp \
-              -dialect sqlite -sql "SELECT ST_Union(geometry) as geometry FROM intermediate_multi_${DAYS}_$PERC" 1>& /dev/null && \
-      set_percentile $SCRATCH/intermediate_${DAYS}_$PERC.shp $PERC 1>& /dev/null &
+      PERC_TWO=`printf %02d $PERC`
+      cp -f time-of-arrival_$PERC_TWO.tif toa_$PERC_TWO.tif
+      gdal_edit.py -unsetnodata toa_$PERC_TWO.tif
+      gdal_calc.py -A toa_$PERC_TWO.tif --type=Byte --NoDataValue=0 \
+                   --calc="0 + (A>0.0001)*(A<$HR_HI)*$PERC" --outfile=$SCRATCH/intermediate_multi_${DAYS}_$PERC_TWO.tif 1>& /dev/null && \
+      gdal_polygonize.py $SCRATCH/intermediate_multi_${DAYS}_$PERC_TWO.tif $SCRATCH/intermediate_multi_${DAYS}_$PERC_TWO.shp 1>& /dev/null && \
+      ogr2ogr -progress -skipfailures $SCRATCH/intermediate_${DAYS}_$PERC_TWO.shp $SCRATCH/intermediate_multi_${DAYS}_$PERC_TWO.shp \
+              -dialect sqlite -sql "SELECT ST_Union(geometry) as geometry FROM intermediate_multi_${DAYS}_$PERC_TWO" 1>& /dev/null && \
+      set_percentile $SCRATCH/intermediate_${DAYS}_$PERC_TWO.shp $PERC 1>& /dev/null &
    done
 done
 wait
 
 FIRST=yes
 for PERC in $PERCS; do
-   cp time-of-arrival_$PERC.tif ./geoserver/$FIRE_DATE_TIME/elmfire/landfire/$PERC/time-of-arrival.tif
-   mv time-of-arrival_$PERC.tif ./geoserver_new/$FIRE_DATE_TIME/elmfire/landfire/$PERC/time-of-arrival.tif
-   for RASTER in crown-fire flame-length spread-rate; do
-      rm -f ./geoserver/$FIRE_DATE_TIME/elmfire/landfire/$PERC/$RASTER*.tif
-   done
-   rmdir ./geoserver/$FIRE_DATE_TIME/elmfire/landfire/$PERC/* 2> /dev/null
+   PERC_TWO=`printf %02d $PERC`
+   mv time-of-arrival_$PERC_TWO.tif ./geoserver/$FIRE_DATE_TIME/elmfire/landfire/$PERC_TWO/time-of-arrival.tif
 
    for days in 7 14; do
       DAYS=`printf %02d $days`
       if [ "$FIRST" = "yes" ]; then
-         ogr2ogr $SCRATCH/out_$DAYS.shp $SCRATCH/intermediate_${DAYS}_$PERC.shp 1>& /dev/null
+         ogr2ogr                 $SCRATCH/out_$DAYS.shp $SCRATCH/intermediate_${DAYS}_$PERC_TWO.shp                1>& /dev/null
       else
-         ogr2ogr -update -append $SCRATCH/out_$DAYS.shp $SCRATCH/intermediate_${DAYS}_$PERC.shp -nln out_$DAYS 1>& /dev/null
+         ogr2ogr -update -append $SCRATCH/out_$DAYS.shp $SCRATCH/intermediate_${DAYS}_$PERC_TWO.shp -nln out_$DAYS 1>& /dev/null
       fi
    done
    FIRST=no
@@ -237,31 +257,27 @@ if [ "$ISMATCHDROP" = "yes" ]; then
       let "PERC = (FID + 1)*20 - 10"
       FNIN=$SCRATCH/${FIRE_NAME}_${START_DATE}_${START_TIME}_14_elmfire.shp
       FNOUT_NOPATH=isochrones_${FIRE_NAME}_${START_DATE}_${START_TIME}_$PERC.shp
-      PATH1=./geoserver_new/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC
-      PATH2=./geoserver/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC
+      PATHNAME=./geoserver/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC
 
       for days in 7 14; do
          DAYS=`printf %02d $days`
          ogr2ogr -fid $FID $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC.shp $SCRATCH/${FIRE_NAME}_${START_DATE}_${START_TIME}_${DAYS}_elmfire.shp &
       done
-      posnegbuffer $FNIN $FNOUT_NOPATH $PATH1 $PATH2 $FID $PERC 60.0 &
+      posnegbuffer $FNIN $FNOUT_NOPATH $PATHNAME $FID 60.0 &
    done
 else
-   for FID in {0..9}; do
-      let "PERC = (FID + 1)*10"
-      if [ "$FID" = "9" ]; then
-         PERC=99
-      fi
+   for FID in {0..13}; do
+      PERC=${PERC_FROM_FID[FID]}
+      PERC_TWO=`printf %02d $PERC`
       FNIN=$SCRATCH/${FIRE_NAME}_${START_DATE}_${START_TIME}_14_elmfire.shp
-      FNOUT_NOPATH=isochrones_${FIRE_NAME}_${START_DATE}_${START_TIME}_$PERC.shp
-      PATH1=./geoserver_new/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC
-      PATH2=./geoserver/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC
+      FNOUT_NOPATH=isochrones_${FIRE_NAME}_${START_DATE}_${START_TIME}_$PERC_TWO.shp
+      PATHNAME=./geoserver/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC_TWO
 
       for days in 7 14; do
          DAYS=`printf %02d $days`
-         ogr2ogr -fid $FID $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC.shp $SCRATCH/${FIRE_NAME}_${START_DATE}_${START_TIME}_${DAYS}_elmfire.shp &
+         ogr2ogr -fid $FID $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC_TWO.shp $SCRATCH/${FIRE_NAME}_${START_DATE}_${START_TIME}_${DAYS}_elmfire.shp &
       done
-      posnegbuffer $FNIN $FNOUT_NOPATH $PATH1 $PATH2 $FID $PERC 60.0 &
+      posnegbuffer $FNIN $FNOUT_NOPATH $PATHNAME $FID 60.0 &
    done
 fi
 wait
@@ -272,44 +288,24 @@ for days in 7 14; do
    zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire* 1>& /dev/null
 done
 
-for GEOSERVER_DIR in geoserver geoserver_new; do
-   for PERC in 20 40 60 80 99; do
-      rm -f -r ./$GEOSERVER_DIR/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC
-   done
+for PERC_TWO in 01 05 20 40 60 80 85 95 99; do
+   rm -f -r ./geoserver/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC_TWO
 done
 
-# Process original geoserver directory
-progress_message "Processing original geoserver directory"
-chmod -R 775 ./geoserver
-cd geoserver
-progress_message "Creating tarball for GeoServer - old format"
+# Process geoserver directory
+progress_message "Creating Geoserver tarball"
 TARBALL=$FIRE_NAME-${START_DATE}_$START_TIME
-tar -cvf $TARBALL.tar * >& /dev/null
-
-#if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
-#   progress_message "Uploading tarball to production geoserver $GEOSERVER_HOSTNAME_PROD"
-#   scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
-#
-#   progress_message "Extracting tarball on production geoserver $GEOSERVER_HOSTNAME_PROD to $GEOSERVER_BASEDIR_PROD"
-#   ssh $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD "cd $GEOSERVER_INCOMINGDIR; tar -xf elmfire-$TARBALL.tar -C $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/; sudo chown -R $OWNERSHIP $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME/; sudo chmod -R 775 $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME; rm -f elmfire-$TARBALL.tar"
-#fi
-mv $TARBALL.tar ../$TARBALL-oldformat.tar
-
-# Process new geoserver directory
-progress_message "Processing new geoserver directory"
-
-chmod -R 775 ../geoserver_new
-cd ../geoserver_new
-progress_message "Creating tarball for GeoServer - new format"
+chmod -R 775 ./geoserver
+cd ./geoserver
 tar -cf $TARBALL.tar * >& /dev/null
 
 if [ "$UPLOAD_TO_PYRECAST" = "yes" ]; then
-   progress_message "Uploading tarball to production $GEOSERVER_HOSTNAME_PROD (new format)"
+   progress_message "Uploading tarball to production $GEOSERVER_HOSTNAME_PROD"
    scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
    progress_message "Extracting tarball on production geoserver $GEOSERVER_HOSTNAME_PROD to $GEOSERVER_BASEDIR_PROD"
    ssh $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_PROD "cd $GEOSERVER_INCOMINGDIR; tar -xf elmfire-$TARBALL.tar -C $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/; sudo chown -R $OWNERSHIP $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME/; sudo chmod -R 775 $GEOSERVER_BASEDIR_PROD/fire_spread_forecast/$FIRE_NAME/; rm elmfire-$TARBALL.tar"
 
-   progress_message "Uploading tarball to development $GEOSERVER_HOSTNAME_DEV (new format)"
+   progress_message "Uploading tarball to development $GEOSERVER_HOSTNAME_DEV"
    scp $TARBALL.tar $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_DEV:$GEOSERVER_INCOMINGDIR/elmfire-$TARBALL.tar
    progress_message "Extracting tarball on $development GEOSERVER_HOSTNAME_DEV to $GEOSERVER_BASEDIR_DEV"
    ssh $GEOSERVER_USERNAME@$GEOSERVER_HOSTNAME_DEV "cd $GEOSERVER_INCOMINGDIR; tar -xf elmfire-$TARBALL.tar -C $GEOSERVER_BASEDIR_DEV/fire_spread_forecast/; sudo chown -R $OWNERSHIP $GEOSERVER_BASEDIR_DEV/fire_spread_forecast/$FIRE_NAME/; sudo chmod -R 775 $GEOSERVER_BASEDIR_DEV/fire_spread_forecast/$FIRE_NAME/; rm elmfire-$TARBALL.tar"
@@ -320,7 +316,7 @@ wait
 
 progress_message "Compressing ASCII & binary files and cleaning up"
 cd ..
-tar cf - *.bin | pigz > binary_outputs.tar.gz && rm -f -r *.bin diag*.csv geoserver geoserver_new $SCRATCH
+tar cf - *.bin | pigz > binary_outputs.tar.gz && rm -f -r *.bin diag*.csv geoserver $SCRATCH
 
 wait
 

@@ -12,6 +12,12 @@ compress () {
                    $STUB.bil $STUB.tif && rm -f $STUB.bil $STUB.hdr
 }
 
+for QUANTITY in crown-fire flame-length hours-since-burned spread-rate; do
+   for PERC_TWO in 01 05 20 40 60 80 85 95 99; do
+      rm -f $QUANTITY*_${PERC_TWO}_*
+   done
+done
+
 for f in time*.bil              ; do compress "$f" Float32 0 & done
 for f in crown-fire*.bil        ; do compress "$f" Byte  255 & done
 wait
