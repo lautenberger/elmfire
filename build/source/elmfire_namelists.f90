@@ -321,11 +321,10 @@ SIMULATION_DT                 = 5.0
 SIMULATION_DTMAX              = 600.0
 SIMULATION_TSTART             = 0.0
 SIMULATION_TSTOP              = 3600.0
-SUNRISE_HOUR                  = 6.0  ! local time, over-ridden by call to SUNRISE_SUNSET_CALCS
-SUNSET_HOUR                   = 20.0 ! local time, over-ridden by call to SUNRISE_SUNSET_CALCS
+SUNRISE_HOUR                  = 13.0 ! UTC, over-ridden by call to SUNRISE_SUNSET_CALCS
+SUNSET_HOUR                   = 27.0 ! UTC, over-ridden by call to SUNRISE_SUNSET_CALCS
 TARGET_CFL                    = 0.4
 USE_DIURNAL_ADJUSTMENT_FACTOR = .FALSE.
-UTC_OFFSET_HOURS              = -7
 
 READ(LUINPUT,NML=TIME_CONTROL,IOSTAT=IOS)
 IF (IOS > 0) THEN

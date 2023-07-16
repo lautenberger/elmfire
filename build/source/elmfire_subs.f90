@@ -767,11 +767,11 @@ END SUBROUTINE LOCATE
 ! *****************************************************************************
 
 !******************************************************************************
-SUBROUTINE SUNRISE_SUNSET_CALCS(LON_DEG,LAT_DEG,UTC_OFFSET_HOURS,YEAR,HOUR_OF_YEAR)
+SUBROUTINE SUNRISE_SUNSET_CALCS(LON_DEG,LAT_DEG,YEAR,HOUR_OF_YEAR)
 !******************************************************************************
 
 REAL, INTENT(IN) :: LON_DEG, LAT_DEG
-INTEGER, INTENT(IN) :: UTC_OFFSET_HOURS, YEAR, HOUR_OF_YEAR
+INTEGER, INTENT(IN) :: YEAR, HOUR_OF_YEAR
 LOGICAL :: LEAPYEAR
 INTEGER :: DAY_OF_YEAR, HOUR_OF_DAY
 REAL :: DAYS_PER_YEAR, GAMMA, EQTIME, COSPIMTHETA, DECL, HA, HA_SUNRISE, LAT_RAD, LON_RAD, PHI, THETA, TST, &
