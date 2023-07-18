@@ -37,7 +37,7 @@ import pytz
 
 def printerr(msg):
   print(msg)
-  exit()
+  exit(1)
 
 def str2bool(v):
     if isinstance(v, bool):

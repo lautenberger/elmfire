@@ -23,7 +23,7 @@ valid_historical_years_years = ["2014", "2015", "2016", "2017", "2018", "2019", 
 
 def printerr(msg):
   print(msg)
-  exit()
+  exit(1)
 
 def str2bool(v):
     if isinstance(v, bool):
