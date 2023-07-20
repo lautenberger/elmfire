@@ -71,7 +71,7 @@ SUNSET_HOUR                   = 20.0
 &SIMULATOR
 CROWN_FIRE_MODEL                     = 2
 ALLOW_NONBURNABLE_PIXEL_IGNITION     = .FALSE.
-MAX_RUNTIME                          = 2400.0
+MAX_RUNTIME                          = 600.0
 BANDTHICKNESS                        = 2
 WIND_FLUCTUATIONS                    = .FALSE.
 DT_WIND_FLUCTUATIONS                 = 300.
