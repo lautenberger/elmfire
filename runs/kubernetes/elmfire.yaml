@@ -7,8 +7,8 @@ spec:
   containers:
   - name: elmfire
     image: clauten/elmfire:latest
-#    imagePullPolicy: Always
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
+#    imagePullPolicy: IfNotPresent
     command: ["sh", "-c", "sleep 600"]
     volumeMounts:
     - mountPath: /scratch
