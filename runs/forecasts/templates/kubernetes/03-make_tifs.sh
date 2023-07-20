@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SRS=`gdalsrsinfo ./asp.tif  | grep "PROJ.4" | cut -d':' -f2 | xargs`
+NPARALLEL=16
 
 compress () {
    local f=$1
@@ -8,7 +9,7 @@ compress () {
    local NODATA=$3
    local STUB=`echo $f | cut -d. -f1`
 
-   gdal_translate -a_srs "$SRS" -a_nodata $NODATA -ot $OT -co "TILED=yes" -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" -co "NUM_THREADS=2" \
+   gdal_translate -a_srs "$SRS" -a_nodata $NODATA -ot $OT -co "TILED=yes" -co "COMPRESS=DEFLATE" -co "ZLEVEL=9"  \
                    $STUB.bil $STUB.tif && rm -f $STUB.bil $STUB.hdr
 }
 
@@ -18,14 +19,59 @@ for QUANTITY in crown-fire flame-length hours-since-burned spread-rate; do
    done
 done
 
-for f in time*.bil              ; do compress "$f" Float32 0 & done
-for f in crown-fire*.bil        ; do compress "$f" Byte  255 & done
+N=0
+for f in time*.bil; do
+   compress "$f" Float32 0 &
+   let "N=N+1"
+   if [ "$N" = "$NPARALLEL" ]; then
+     N=0
+     wait
+   fi
+done
 wait
-for f in flame-length*.bil      ; do compress "$f" Byte    0 & done
+
+N=0
+for f in crown-fire*.bil; do
+   compress "$f" Byte  255 &
+   let "N=N+1"
+   if [ "$N" = "$NPARALLEL" ]; then
+     N=0
+     wait
+   fi
+done
 wait
-for f in hours-since-burned*.bil; do compress "$f" Int16   0 & done
+
+N=0
+for f in flame-length*.bil; do
+   compress "$f" Byte    0 &
+   let "N=N+1"
+   if [ "$N" = "$NPARALLEL" ]; then
+     N=0
+     wait
+   fi
+done
 wait
-for f in spread-rate*.bil       ; do compress "$f" Byte    0 & done
+
+N=0
+for f in hours-since-burned*.bil; do
+   compress "$f" Int16   0 &
+   let "N=N+1"
+   if [ "$N" = "$NPARALLEL" ]; then
+     N=0
+     wait
+   fi
+done
+wait
+
+N=0
+for f in spread-rate*.bil; do
+   compress "$f" Byte    0 &
+   let "N=N+1"
+   if [ "$N" = "$NPARALLEL" ]; then
+     N=0
+     wait
+   fi
+done
 wait
 
 exit 0

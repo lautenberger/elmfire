@@ -50,6 +50,7 @@ HOSTS=`printf "$(hostname),%.0s" {1..128}`
 SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
 CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
 let "NP = SOCKETS * CORES_PER_SOCKET"
+NP=16
 echo "NP: $NP"
 
 CELLSIZE=`cat ./elmfire.data | grep COMPUTATIONAL_DOMAIN_CELLSIZE | cut -d= -f2 | xargs`
@@ -58,8 +59,7 @@ YLLCORNER=`cat ./elmfire.data | grep COMPUTATIONAL_DOMAIN_YLLCORNER | cut -d= -f
 NCASES=`cat ./elmfire.data | grep NUM_ENSEMBLE_MEMBERS | cut -d= -f2 | xargs`
 DT=3600.
 #SIMULATION_TSTOP=`cat ./elmfire.data | grep SIMULATION_TSTOP | cut -d= -f2 | xargs`
-#let "SIMULATION_TSTOP = 168 * 3600"
-let "SIMULATION_TSTOP = 336 * 3600"
+let "SIMULATION_TSTOP = 60 * 3600"
 NX=`gdalinfo ./slp.tif | grep "Size is" | cut -ds -f2 | cut -d, -f1 | xargs`
 NY=`gdalinfo ./slp.tif | grep "Size is" | cut -ds -f2 | cut -d, -f2 | xargs`
 
@@ -71,6 +71,7 @@ START_MIN=${START_TIME:2:2}
 start_min=$((10#$START_MIN))
 
 ISMATCHDROP=`echo $FIRE_NAME | grep matchdrop | wc -l`
+ISMATCHDROP=yes
 if [ "$ISMATCHDROP" != "0" ]; then
    ISMATCHDROP=yes
 else
