@@ -1,13 +1,13 @@
 #!/bin/bash
 
 ARGS='{
-"fireName": "nm-rfw-mar29",
+"fireName": "nm-pointign",
 "initializationType": "points_within_polygon",
-"ignitionTime": "2023-03-29 21:00 UTC",
-"ignitionLon": -106.3,
-"ignitionLat": 34.2,
-"centerLon": -106.3,
-"centerLat": 34.2,
+"ignitionTime": "2023-07-20 21:00 UTC",
+"ignitionLon": -111.268,
+"ignitionLat": 34.516,
+"centerLon": -111.268,
+"centerLat": 34.516,
 "westBuffer": 12,
 "southBuffer": 12,
 "eastBuffer": 24,
@@ -17,7 +17,7 @@ ARGS='{
 "ignitionRadius": 300,
 "runHours": 60,
 "fuelSource": "landfire",
-"fuelVersion": "2.2.0",
+"fuelVersion": "2.3.0",
 "scpInputDeck": "none",
 "returnAfterQueue": "'yes'",
 "runTemplate": "kubernetes"
