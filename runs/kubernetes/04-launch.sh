@@ -46,6 +46,7 @@ echo "Executing ELMFIRE"
 kubectl exec -it $POD -- /bin/bash -c "cd $FORECAST_DIR && ./01-crs.sh '$ARGS'"
 
 echo "Copying ELMFIRE outputs locally"
+mkdir ./out 2> /dev/null
 kubectl cp $POD:$FORECAST_DIR/runs/$FIRENAME/${FIRENAME}_$TIMESTAMP/${FIRENAME}-$TIMESTAMP.tar ./out/${FIRENAME}-$TIMESTAMP.tar
 
 echo "Cleaning up"
