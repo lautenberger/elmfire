@@ -162,7 +162,7 @@ echo "/" >> elmfire_post.data
 wait
 progress_message "Done with initial setup, running elmfire_post"
 export OMP_NUM_THREADS=$NP
-mpirun --mca btl tcp,self --map-by core --bind-to core --oversubscribe -np $NP -x OMP_NUM_THREADS $ELMFIRE_POST elmfire_post.data #2> /dev/null
+mpirun --mca btl tcp,self --map-by core --bind-to core --oversubscribe --allow-run-as-root -np $NP -x OMP_NUM_THREADS $ELMFIRE_POST elmfire_post.data #2> /dev/null
 
 progress_message "Converting .bil/.hdr files to .tif"
 ./03-make_tifs.sh >& log_make_tifs.sh
