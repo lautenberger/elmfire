@@ -19,7 +19,7 @@ mkdir -p $FORECAST_DIR 2> /dev/null
 SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
 CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
 let "NP = SOCKETS * CORES_PER_SOCKET"
-NP=32
+NP=16
 
 progress_message "Launching ELMFIRE"
 mpirun --mca btl tcp,self  --allow-run-as-root --map-by core --bind-to core --oversubscribe -np $NP $ELMFIRE elmfire.data >& elmfire.out

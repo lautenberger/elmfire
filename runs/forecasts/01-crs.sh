@@ -9,7 +9,7 @@ STRING="$1"
 SCRATCH=$ELMFIRE_SCRATCH_BASE/crs$RANDOM
 
 rm -f -r $SCRATCH
-mkdir $SCRATCH
+mkdir -p $SCRATCH
 
 . ./98-check_args.sh --source-only
 
