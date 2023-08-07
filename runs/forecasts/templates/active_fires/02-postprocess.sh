@@ -57,9 +57,8 @@ XLLCORNER=`cat ./elmfire.data | grep COMPUTATIONAL_DOMAIN_XLLCORNER | cut -d= -f
 YLLCORNER=`cat ./elmfire.data | grep COMPUTATIONAL_DOMAIN_YLLCORNER | cut -d= -f2 | xargs`
 NCASES=`cat ./elmfire.data | grep NUM_ENSEMBLE_MEMBERS | cut -d= -f2 | xargs`
 DT=3600.
-#SIMULATION_TSTOP=`cat ./elmfire.data | grep SIMULATION_TSTOP | cut -d= -f2 | xargs`
-#let "SIMULATION_TSTOP = 168 * 3600"
-let "SIMULATION_TSTOP = 336 * 3600"
+SIMULATION_TSTOP=`cat ./elmfire.data | grep SIMULATION_TSTOP | cut -d= -f2 | xargs`
+SIMULATION_TSTART=`cat ./elmfire.data | grep SIMULATION_TSTART | cut -d= -f2 | xargs`
 NX=`gdalinfo ./slp.tif | grep "Size is" | cut -ds -f2 | cut -d, -f1 | xargs`
 NY=`gdalinfo ./slp.tif | grep "Size is" | cut -ds -f2 | cut -d, -f2 | xargs`
 
@@ -113,7 +112,7 @@ else
    DUMP_CROWN_FIRE=.TRUE.
 fi
 
-NUM_TIMESTEPS=`echo "$SIMULATION_TSTOP / $DT" | bc -l | cut -d. -f1`
+NUM_TIMESTEPS=`echo "($SIMULATION_TSTOP - $SIMULATION_TSTART) / $DT" | bc -l | cut -d. -f1`
 if [ "$start_min" != "0" ]; then
    let "NUM_TIMESTEPS = NUM_TIMESTEPS + 1"
 fi
@@ -140,6 +139,7 @@ echo "NUM_TIMESTEPS = $NUM_TIMESTEPS"            >> elmfire_post.data
 echo "POSTPROCESS_TYPE = 1"                      >> elmfire_post.data
 echo "HOURLY_PYREGENCE_OUTPUTS = .TRUE."         >> elmfire_post.data
 echo "START_TIME_MINUTES_PAST_HOUR = $start_min" >> elmfire_post.data
+echo "FIREMODEL_SIMULATION_TSTART = $SIMULATION_TSTART" >> elmfire_post.data
 echo "DUMP_FLAME_LENGTH = $DUMP_FLAME_LENGTH"    >> elmfire_post.data
 echo "DUMP_SPREAD_RATE = $DUMP_SPREAD_RATE"      >> elmfire_post.data
 echo "DUMP_CROWN_FIRE = $DUMP_CROWN_FIRE"        >> elmfire_post.data
@@ -279,13 +279,25 @@ else
       done
       posnegbuffer $FNIN $FNOUT_NOPATH $PATHNAME $FID 60.0 &
    done
+   wait
+
+   for FID in {0..13}; do
+      PERC=${PERC_FROM_FID[FID]}
+      PERC_TWO=`printf %02d $PERC`
+      for days in 7 14; do
+         DAYS=`printf %02d $days`
+         add_acreage $PERC_TWO $DAYS &
+      done
+   done
+   wait
+
 fi
 wait
 
 progress_message "Zipping up"
 for days in 7 14; do
    DAYS=`printf %02d $days`
-   zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire* 1>& /dev/null
+   zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_* 1>& /dev/null
 done
 
 for PERC_TWO in 01 05 20 40 60 80 85 95 99; do
