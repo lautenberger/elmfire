@@ -16,11 +16,11 @@ WEST_BUFFER=24
 SOUTH_BUFFER=24
 EAST_BUFFER=24
 NORTH_BUFFER=24
-NUM_ENSEMBLE_MEMBERS=200
+NUM_ENSEMBLE_MEMBERS=100
 RUN_HOURS=336
 FUEL_SOURCE=landfire
-FUEL_VERSION=2.2.0
-RUN_FIRES_NEWER_THAN=12
+FUEL_VERSION=2.3.0_2.2.0
+RUN_FIRES_NEWER_THAN=24
 RUN_TEMPLATE=active_fires
 
 SCRATCH=$ELMFIRE_SCRATCH_BASE/05-active_fires.sh
@@ -83,6 +83,8 @@ for ACTIVE_FIRE in $ACTIVE_FIRES; do
       continue
    fi
 
+   echo ""
+   echo ""
    diagnostic_msg "Processing $ACTIVE_FIRE\n"
    NEWISH_AVAILABLE_TIMESTAMPS=''
    NEWISH_ALREADY_RUN_TIMESTAMPS=''
@@ -198,6 +200,12 @@ for ACTIVE_FIRE in $ACTIVE_FIRES; do
    fi
 
    for ACTIVE_FIRE_TIMESTAMP in $RUN_THESE_TIMESTAMPS; do
+      ISTHERE=`echo $ALREADY_RUN_TIMESTAMPS | grep $ACTIVE_FIRE_TIMESTAMP | wc -l`
+      if [ "$ISTHERE" != "0" ]; then
+         diagnostic_msg "$ACTIVE_FIRE not running $ACTIVE_FIRE_TIMESTAMP because it's already run"
+         continue
+      fi
+
       CURRENT_SEC=`sec_from_timestamp $ACTIVE_FIRE_TIMESTAMP`
 
       ALREADY_BURNED_TIMESTAMP='null'
