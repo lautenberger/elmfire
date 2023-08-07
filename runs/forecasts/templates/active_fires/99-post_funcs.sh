@@ -1,4 +1,4 @@
-function progress_message {
+progress_message () {
    NOW=`date -u +"%Y-%m-%d %H:%M:%S"`
    echo "$NOW - $1"
 }
@@ -59,4 +59,17 @@ posnegbuffer () {
    $BUFFER_SCRIPT $POSBUFFERED $FNOUT_LOCAL -$BUFFERDIST
    cp -f $PRJIN $PRJOUT
    ogr2ogr $PATHNAME/$FNOUT_NOPATH $FNOUT_LOCAL
+}
+
+add_acreage () {
+   local PERC_TWO=$1
+   local DAYS=$2
+   local INTERMEDIATE=$SCRATCH/intermediate_${DAYS}_$PERC_TWO.shp
+   local BASENAME=`basename -s .shp $INTERMEDIATE`
+   ogr2ogr $INTERMEDIATE $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC_TWO.shp
+   ACRES=`ogrinfo -sql "SELECT SUM(OGR_GEOM_AREA) AS TOTAL_AREA FROM $BASENAME" $INTERMEDIATE | grep 'TOTAL_AREA (Real)' | cut -d= -f2 | xargs`
+   ACRES=`echo "$ACRES / 4046.86" | bc -l | cut -d. -f1`
+   ACRES=`printf %06d $ACRES`
+   ogr2ogr $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_${ACRES}_$PERC_TWO.shp $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC_TWO.shp
+   rm -f $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC_TWO.*
 }
