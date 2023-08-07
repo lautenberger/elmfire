@@ -25,11 +25,15 @@ progress_message "Launching ELMFIRE"
 mpirun --mca btl tcp,self --map-by core --bind-to core --oversubscribe -np $NP $ELMFIRE elmfire.data >& elmfire.out
 
 progress_message "ELMFIRE complete, starting postprocess routines"
-./02-postprocess.sh >& log_postprocess.txt
 
-#./04-smoke.sh >& log_smoke.txt
-
-progress_message "Postprocessing complete, cleaning up"
+ACRES_UNIQ=`tail -n +2 fire_size_stats.csv | cut -d, -f7 | sort | uniq | wc -l`
+if [ "$ACRES_UNIQ" -gt 1 ]; then
+   ./02-postprocess.sh >& log_postprocess.txt
+   #./04-smoke.sh >& log_smoke.txt
+   progress_message "Postprocessing complete, cleaning up"
+else
+   progress_message "No non-zero fire sizes to post process"
+fi
 
 rm -f *.bsq *.hdr *.aux.xml crown-fire*.tif flame-length*.tif hours-since-burned*.tif spread-rate*.tif
 
