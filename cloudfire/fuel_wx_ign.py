@@ -94,7 +94,7 @@ parser.add_argument("--north_buffer", type=float, default=30.0, required = False
 # Fuel inputs - source (landfire) and version (1.4.0, 2.0.0, etc.)
 parser.add_argument("--do_fuel", default=True, required = False, nargs='?')
 parser.add_argument("--fuel_source", default='landfire', required = False, nargs='?')
-parser.add_argument("--fuel_version", default='2.2.0', required = False, nargs='?')
+parser.add_argument("--fuel_version", default='2.3.0_2.2.0', required = False, nargs='?')
 
 # Weather inputs
 parser.add_argument("--get_available_wx_times", default=False, required = False, nargs='?')
