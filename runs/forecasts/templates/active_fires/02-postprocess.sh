@@ -86,11 +86,12 @@ if [ "$ISMATCHDROP" = "yes" ]; then
    DUMP_SPREAD_RATE=.FALSE.
    DUMP_CROWN_FIRE=.FALSE.
 else
-   N_PERCENTILES=14
-   PERCS='1 5 10 20 30 40 50 60 70 80 85 90 95 99'
+   N_PERCENTILES=15
+   PERCS='1 5 10 20 30 40 50 60 70 75 80 85 90 95 99'
    PERCS_GEOSERVER='10 30 50 70 90'
-   PERCS_CSV='1., 5., 10., 20., 30., 40., 50., 60., 70., 80., 85., 90., 95., 99.'
-   DUMP_PERCS='.FALSE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .FALSE., .TRUE., .FALSE., .FALSE.'
+   PERCS_CSV='1., 5., 10., 20., 30., 40., 50., 60., 70., 75., 80., 85., 90., 95., 99.'
+#                 1        5       10      20       30      40       50      60      70       75       80       85       90       95      99
+   DUMP_PERCS='.FALSE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .TRUE., .FALSE., .FALSE., .FALSE., .TRUE., .FALSE., .FALSE.'
 #   DUMP_PERCS='.TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE., .TRUE.'
    PERC_FROM_FID[0]=1
    PERC_FROM_FID[1]=5
@@ -101,11 +102,12 @@ else
    PERC_FROM_FID[6]=50
    PERC_FROM_FID[7]=60
    PERC_FROM_FID[8]=70
-   PERC_FROM_FID[9]=80
-   PERC_FROM_FID[10]=85
-   PERC_FROM_FID[11]=90
-   PERC_FROM_FID[12]=95
-   PERC_FROM_FID[13]=99
+   PERC_FROM_FID[9]=75
+   PERC_FROM_FID[10]=80
+   PERC_FROM_FID[11]=85
+   PERC_FROM_FID[12]=90
+   PERC_FROM_FID[13]=95
+   PERC_FROM_FID[14]=99
    RASTERS='crown-fire flame-length hours-since-burned spread-rate'
    DUMP_FLAME_LENGTH=.TRUE.
    DUMP_SPREAD_RATE=.TRUE.
