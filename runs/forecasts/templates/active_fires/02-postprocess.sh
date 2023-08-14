@@ -302,7 +302,7 @@ for days in 7 14; do
    zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_* 1>& /dev/null
 done
 
-for PERC_TWO in 01 05 20 40 60 80 85 95 99; do
+for PERC_TWO in 01 05 20 40 60 75 80 85 95 99; do
    rm -f -r ./geoserver/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC_TWO
 done
 
