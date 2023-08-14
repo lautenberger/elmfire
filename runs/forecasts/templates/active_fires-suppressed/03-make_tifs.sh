@@ -13,7 +13,7 @@ compress () {
 }
 
 for QUANTITY in crown-fire flame-length hours-since-burned spread-rate; do
-   for PERC_TWO in 01 05 20 40 60 80 85 95 99; do
+   for PERC_TWO in 01 05 20 40 60 75 80 85 95 99; do
       rm -f $QUANTITY*_${PERC_TWO}_*
    done
 done
