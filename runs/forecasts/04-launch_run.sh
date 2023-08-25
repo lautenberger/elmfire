@@ -90,19 +90,14 @@ XUR=`gdalinfo ./asp.tif | grep "Upper Right" | cut -d ')' -f1  | cut -d '(' -f2 
 YUR=`gdalinfo ./asp.tif | grep "Upper Right" | cut -d ')' -f1  | cut -d '(' -f2 | cut -d, -f2`
 A_SRS=`gdalsrsinfo ./asp.tif | grep PROJ.4 | cut -d: -f2 | xargs`
 
-# Figure out UTC offset in hours when setting up DIURNAL_ADJUSTMENT_FACTOR
-wget -q -O timezonedb.txt "http://vip.timezonedb.com/v2.1/get-time-zone?key=$TIMEZONEDB_API_KEY&format=xml&by=position&lat=$CENTER_LAT&lng=$CENTER_LON"
-UTC_OFFSET_SEC=`cat timezonedb.txt | grep '<gmtOffset>' | cut -d'>' -f2 | cut -d'<' -f1`
-let "UTC_OFFSET_HOURS = UTC_OFFSET_SEC / 3600"
-rm -f timezonedb.txt
+FORECAST_START_HOUR=`cat metadata.out | grep WX_BEGIN | cut -d= -f2 | xargs | cut -d' ' -f2 | cut -d: -f1`
 
-FORECAST_START_HOUR=`date -u -d "$SIMULATION_START_TIME UTC + $UTC_OFFSET_HOURS hours" '+%H'`
 CURRENT_YEAR=`echo $SIMULATION_START_TIME | cut -d- -f1`
 JDAY=`date -u -d "$SIMULATION_START_TIME" +%j`
 HOUR=`date -u -d "$SIMULATION_START_TIME" +%H`
 jday=`echo $((10#$JDAY))`
 hour=`echo $((10#$HOUR))`
-let "HOUR_OF_YEAR = (jday - 1)*24 + hour"
+let "HOUR_OF_YEAR = (jday + 7 - 1)*24 + hour"
 
 WX_START_DATE=`cat $SCRATCH/metadata.out | grep WX_BEGIN | cut -d= -f2 | xargs`
 CENTER_LAT=`cat $SCRATCH/metadata.out | grep CENTER_LAT | cut -d= -f2 | xargs`
@@ -119,7 +114,6 @@ let "SIMULATION_TSTOP = SIMULATION_TSTART + RUN_HOURS * 3600"
 replace_line FORECAST_START_HOUR $FORECAST_START_HOUR no
 replace_line LONGITUDE $CENTER_LON no
 replace_line LATITUDE $CENTER_LAT no
-replace_line UTC_OFFSET_HOURS $UTC_OFFSET_HOURS no
 replace_line CURRENT_YEAR $CURRENT_YEAR no
 replace_line HOUR_OF_YEAR $HOUR_OF_YEAR no
 replace_line A_SRS "$A_SRS" yes

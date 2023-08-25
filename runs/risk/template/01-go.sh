@@ -153,6 +153,11 @@ while read TILE; do
 
    esac
 
+   if [ "$PATTERN" = "$UTILITY02" ]; then
+      PATTERN_SHORT=`echo $PATTERN | cut -d_ -f1`
+      mv $RUNDIR/inputs/$TILE/plignrate_$PATTERN_SHORT.tif $RUNDIR/inputs/$TILE/plignrate_$PATTERN.tif
+   fi
+
 done < $SCRATCH/tiles_with_halo.txt
 rm -f $SCRATCH/tiles_with_halo.txt
 

@@ -1,8 +1,8 @@
 FROM ubuntu:22.04 as intermediate
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN mkdir -p /elmfire/elmfire && \
-    apt-get update && \
+RUN mkdir -p /elmfire/elmfire /scratch/elmfire && \
+    apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install --no-install-recommends -y \
         bc \
@@ -24,20 +24,19 @@ RUN mkdir -p /elmfire/elmfire && \
     python3 -m pip install grpcio grpcio-tools && \
     locale-gen en_US.UTF-8 && export LANG=en_US.UTF-8
 
-COPY ./temp/ /elmfire/elmfire/
+COPY ./temp/ /elmfire/
 
 WORKDIR /elmfire/elmfire/build/linux
-RUN ./make_gnu.sh && \
-    apt-get purge -y build-essential && \
+RUN ./make_gnu.sh
+
+RUN apt-get purge -y build-essential && \
     apt-get autoremove -y && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -f -r /var/lib/apt/lists/*
 
 WORKDIR /
 
-ENV CLOUDFIRE_SCRATCH_BASE=/scratch
-ENV ELMFIRE_SCRATCH_BASE=/scratch
-ENV CLOUDFIRE_BASE_DIR=/elmfire/cloudfire
 ENV ELMFIRE_BASE_DIR=/elmfire/elmfire
+ENV ELMFIRE_SCRATCH_BASE=/scratch/elmfire
 ENV CLOUDFIRE_SERVER=172.92.17.198
 ENV USE_SLURM=no

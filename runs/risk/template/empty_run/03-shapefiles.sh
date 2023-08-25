@@ -12,7 +12,7 @@ TILE=$2
 
 DO_ZONAL_STATS=yes
 HAVE_PLIGNRATE=no
-if [ "$PATTERN" = "utility1" ] || [ "$PATTERN" = "utility2" ] ; then
+if [ "$PATTERN" = "$UTILITY01" ] || [ "$PATTERN" = "$UTILITY02" ] ; then
   HAVE_PLIGNRATE=yes
 fi
 

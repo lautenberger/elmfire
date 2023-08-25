@@ -18,7 +18,7 @@ OUTDIR=$(pwd)/out
 TE_3310='-400000 -700000 600050 500000'
 
 KS='1 2 3 4'
-if [ "$PATTERN" = "utility1" ]; then
+if [ "$PATTERN" = "$UTILITY01" ] || [ "$PATTERN" = "$UTILITY02" ]; then
    KS='1 2 3 4 5'
 fi
 

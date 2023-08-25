@@ -3,15 +3,16 @@
 CWD=$(pwd)
 ELMFIRE_CLEAN=$HOME/elmfire_clean
 
+rm -f -r $CWD/temp
+mkdir -p $CWD/temp/elmfire
+
 cd $ELMFIRE_CLEAN
 git pull
+cp -f -r * $CWD/temp/elmfire/
+
 cd $CWD
-
-mkdir temp
-cp -f -r $ELMFIRE_CLEAN/* ./temp/
-
 docker build -t elmfire .
 
-rm -f -r temp
+rm -f -r $CWD/temp
 
 exit 0

@@ -1,0 +1,107 @@
+--------------------------------------------------------------------------
+The library attempted to open the following supporting CUDA libraries,
+but each of them failed.  CUDA-aware support is disabled.
+libcuda.so.1: cannot open shared object file: No such file or directory
+libcuda.dylib: cannot open shared object file: No such file or directory
+/usr/lib64/libcuda.so.1: cannot open shared object file: No such file or directory
+/usr/lib64/libcuda.dylib: cannot open shared object file: No such file or directory
+If you are not interested in CUDA-aware support, then run with
+--mca opal_warn_on_missing_libcuda 0 to suppress this message.  If you are interested
+in CUDA-aware support, then try setting LD_LIBRARY_PATH to the location
+of libcuda.so.1 to get passed this issue.
+--------------------------------------------------------------------------
+ ELMFIRE 2023.03
+ Reading &MISCELLANEOUS namelist group
+ Reading &INPUTS namelist group
+ Reading &OUTPUTS namelist group
+ Reading &COMPUTATIONAL_DOMAIN namelist group
+ Reading &TIME_CONTROL namelist group
+ Reading &SIMULATOR namelist group
+ Reading &CALIBRATION namelist group
+ Reading &SUPPRESSION namelist group
+ Reading &SPOTTING namelist group
+ Reading &SMOKE namelist group
+ Reading &MONTE_CARLO namelist group
+ Reading headers for fuels/topography and weather rasters
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/asp.tif ./scratch/asp.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/ws.tif ./scratch/ws.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+ Setting up shared memory, part 1
+ Reading weather, fuel, and topography rasters
+/bin/rm -f ./scratch/ws.bsq ./scratch/ws.hdr ./scratch/ws.prj ./scratch/ws.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/ws.tif ./scratch/ws.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/wd.bsq ./scratch/wd.hdr ./scratch/wd.prj ./scratch/wd.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/wd.tif ./scratch/wd.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/m1.bsq ./scratch/m1.hdr ./scratch/m1.prj ./scratch/m1.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/m1.tif ./scratch/m1.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/m10.bsq ./scratch/m10.hdr ./scratch/m10.prj ./scratch/m10.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/m10.tif ./scratch/m10.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/m100.bsq ./scratch/m100.hdr ./scratch/m100.prj ./scratch/m100.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/m100.tif ./scratch/m100.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+ Reading fuel and topography rasters
+/bin/rm -f ./scratch/asp.bsq ./scratch/asp.hdr ./scratch/asp.prj ./scratch/asp.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/asp.tif ./scratch/asp.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/cbh.bsq ./scratch/cbh.hdr ./scratch/cbh.prj ./scratch/cbh.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/cbh.tif ./scratch/cbh.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/cbd.bsq ./scratch/cbd.hdr ./scratch/cbd.prj ./scratch/cbd.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/cbd.tif ./scratch/cbd.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/cc.bsq ./scratch/cc.hdr ./scratch/cc.prj ./scratch/cc.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/cc.tif ./scratch/cc.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/ch.bsq ./scratch/ch.hdr ./scratch/ch.prj ./scratch/ch.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/ch.tif ./scratch/ch.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/dem.bsq ./scratch/dem.hdr ./scratch/dem.prj ./scratch/dem.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/dem.tif ./scratch/dem.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/fbfm40.bsq ./scratch/fbfm40.hdr ./scratch/fbfm40.prj ./scratch/fbfm40.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/fbfm40.tif ./scratch/fbfm40.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/slp.bsq ./scratch/slp.hdr ./scratch/slp.prj ./scratch/slp.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/slp.tif ./scratch/slp.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/adj.bsq ./scratch/adj.hdr ./scratch/adj.prj ./scratch/adj.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/adj.tif ./scratch/adj.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+/bin/rm -f ./scratch/new_phi.bsq ./scratch/new_phi.hdr ./scratch/new_phi.prj ./scratch/new_phi.bsq.aux.xml
+/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./inputs/new_phi.tif ./scratch/new_phi.bsq
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+ Allocating additional rasters
+ Calculating NUM_CASES_TOTAL
+ Setting up shared memory, part 2
+ Setting up statistics arrays
+Meteorology band      1: Case #       1 complete.  Fire area:   3458.7 acres.
+ End of simulation reached successfully. Shutting down.
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+Input file size is 100, 166
+0...10...20...30...40...50...60...70...80...90...100 - done.
+0...10...20...30...40...50...60...70...80...90...100 - done.

@@ -77,21 +77,21 @@ for QUANTITY in surface_fire_area fire_volume affected_population; do
    wait
 done
 
-## Now do plignrate:
-#if [ "$PATTERN" != "all" ]; then
-#   for SUBTILE in 1_1 1_2 1_3 2_1 2_2 2_3 3_1 3_2 3_3; do
-#      FNLIST="$FNLIST plignrate_${PATTERN}_$SUBTILE.bil"
-#   done
-#   gdal_merge.py -o intermediate_$PATTERN.tif $FNLIST
-#   gdalwarp -multi -tr 150 150 -r bilinear intermediate_$PATTERN.tif plignrate_$PATTERN.tif
-#
-#   for h in {7..114}; do
-#      H=`printf %04d $h`
-#      gdal_translate -b $h -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" plignrate_$PATTERN.tif plignrate_$H.tif &
-#   done
-#   wait
-#   rm -f intermediate_$PATTERN* plignrate_$PATTERN*.bil plignrate_$PATTERN*.hdr plignrate_$PATTERN*.prj plignrate_$PATTERN*.xml plignrate_$PATTERN.tif
-#fi
+# Now do plignrate:
+if [ "$PATTERN" != "all" ]; then
+   for SUBTILE in 1_1 1_2 1_3 2_1 2_2 2_3 3_1 3_2 3_3; do
+      FNLIST="$FNLIST plignrate_${PATTERN}_$SUBTILE.bsq"
+   done
+   gdal_merge.py -o intermediate_$PATTERN.tif $FNLIST
+   gdalwarp -multi -tr 150 150 -r bilinear intermediate_$PATTERN.tif plignrate_$PATTERN.tif
+
+   for h in {7..114}; do
+      H=`printf %04d $h`
+      gdal_translate -b $h -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" plignrate_$PATTERN.tif plignrate_$H.tif &
+   done
+   wait
+   rm -f intermediate_$PATTERN* plignrate_$PATTERN*.bil plignrate_$PATTERN*.hdr plignrate_$PATTERN*.prj plignrate_$PATTERN*.xml plignrate_$PATTERN.tif
+fi
 
 wait
 
