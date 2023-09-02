@@ -1292,8 +1292,8 @@ DO
    IX = C%IX
    IY = C%IY
 
-! Remove cells that have been tagged for more than 1 day:
-   IF (PHIP(IX,IY) .GE. 0. .AND. C%TIME_ADDED .GT. 0. .AND. T - C%TIME_ADDED .GT. 86400. ) THEN 
+! Remove cells that have been tagged for more than 1 week:
+   IF (PHIP(IX,IY) .GE. 0. .AND. C%TIME_ADDED .GT. 0. .AND. T - C%TIME_ADDED .GT. 604800. ) THEN 
       C%TIME_SUPPRESSED = T
       NUM_DELETED = NUM_DELETED + 1
       CALL DELETE_NODE(LIST_TAGGED, C)
