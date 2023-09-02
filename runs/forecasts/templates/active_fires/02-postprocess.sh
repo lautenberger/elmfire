@@ -268,7 +268,7 @@ if [ "$ISMATCHDROP" = "yes" ]; then
       posnegbuffer $FNIN $FNOUT_NOPATH $PATHNAME $FID 60.0 &
    done
 else
-   for FID in {0..13}; do
+   for FID in {0..14}; do
       PERC=${PERC_FROM_FID[FID]}
       PERC_TWO=`printf %02d $PERC`
       FNIN=$SCRATCH/${FIRE_NAME}_${START_DATE}_${START_TIME}_14_elmfire.shp
@@ -283,7 +283,7 @@ else
    done
    wait
 
-   for FID in {0..13}; do
+   for FID in {0..14}; do
       PERC=${PERC_FROM_FID[FID]}
       PERC_TWO=`printf %02d $PERC`
       for days in 7 14; do
