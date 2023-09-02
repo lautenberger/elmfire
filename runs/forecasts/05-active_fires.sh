@@ -21,7 +21,7 @@ NUM_ENSEMBLE_MEMBERS=100
 RUN_HOURS=336
 FUEL_SOURCE=landfire
 FUEL_VERSION=2.3.0_2.2.0
-RUN_FIRES_NEWER_THAN=72
+RUN_FIRES_NEWER_THAN=96
 RUN_TEMPLATE=active_fires
 
 ACTIVE_FIRES_PYREGENCE=$CLOUDFIRE_BASE_DIR/inputs/fire/active_fire_polygons/active_fires_list/active_fires_pyregence.csv
