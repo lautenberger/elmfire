@@ -819,7 +819,19 @@ END SUBROUTINE SUNRISE_SUNSET_CALCS
 SUBROUTINE SHUTDOWN
 ! *****************************************************************************
 
-INTEGER :: IERR
+INTEGER :: I, IERR
+CHARACTER(4) :: FOUR
+LOGICAL :: LOPEN
+CHARACTER(400) :: FN
+
+IF (NUM_TIME_AT_BURNED_ACRES .GT. 0) THEN
+   DO I = 0, NPROC - 1
+      WRITE(FOUR, '(I4.4)') I
+      FN = TRIM(OUTPUTS_DIRECTORY) // 'burned-acres-timings_' // FOUR // '.csv'
+      INQUIRE(UNIT=LUBAT+I,OPENED=LOPEN)
+      IF (LOPEN) CLOSE(LUBAT+I) 
+   ENDDO
+ENDIF
 
 IF (NPROC .GT. 1) THEN
    CALL MPI_WIN_FREE(WIN_WS           )
