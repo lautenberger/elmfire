@@ -854,6 +854,7 @@ IF (NPROC .GT. 1) THEN
 
    CALL MPI_WIN_FREE(WIN_STATS_X                         )
    CALL MPI_WIN_FREE(WIN_STATS_Y                         )
+   CALL MPI_WIN_FREE(WIN_STATS_ASTOP                     )   
    CALL MPI_WIN_FREE(WIN_STATS_PROB                      )
    CALL MPI_WIN_FREE(WIN_STATS_SURFACE_FIRE_AREA         )
    CALL MPI_WIN_FREE(WIN_STATS_CROWN_FIRE_AREA           )
