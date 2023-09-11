@@ -9,7 +9,7 @@ $ELMFIRE_BASE_DIR/cloudfire/fuel_wx_ign.py \
 
 WX_INPUTS_FILE=wx.csv
 
-ELMFIRE_VER=${ELMFIRE_VER:-2023.0715}
+ELMFIRE_VER=${ELMFIRE_VER:-2023.0903}
 
 . ../functions/functions.sh
 
