@@ -452,6 +452,23 @@ NUM_PARAMETERS_RASTERS    = 0
 NUM_PARAMETERS_MISC       = 0
 NUM_MONTE_CARLO_VARIABLES = 0
 
+IF (RANDOM_IGNITIONS) THEN
+   IF (USE_IGNITION_MASK) THEN
+      IF ( TRIM (IGNITION_MASK_FILENAME) .EQ. '' ) THEN
+         WRITE(*,200) 'When RANDOM_IGNITIONS = .TRUE. ELMFIRE requires a Float32 ignition'
+         WRITE(*,200) 'mask specified via the keyword IGNITION_MASK_FILENAME on the &INPUTS'
+         WRITE(*,200) 'namelist group. Please set IGNITION_MASK_FILENAME and re-run.'
+      ENDIF
+   ELSE
+      WRITE(*,200) 'When RANDOM_IGNITIONS = .TRUE., setting USE_IGNITION_MASK = .FALSE. is now deprecated.'
+      WRITE(*,200) 'ELMFIRE assumes when RANDOM_IGNITIONS = .TRUE. that a Float32 ignition mask is provided'
+      WRITE(*,200) 'via the keyword IGNITION_MASK_FILENAME on the &INPUTS namelist group. The keyword '
+      WRITE(*,200) 'USE_IGNITION_MASK is scheduled for removal from the &MONTE_CARLO namelist group. '
+      WRITE(*,200) 'Until that time, please set USE_IGNITION_MASK = .TRUE. and set IGNITION_MASK_FILENAME.'
+      STOP
+   ENDIF
+ENDIF
+
 DO IVARN = 1, NUM_RASTERS_TO_PERTURB
    IF (SPATIAL_PERTURBATION(IVARN) .NE. 'GLOBAL' .AND. SPATIAL_PERTURBATION(IVARN) .NE. 'PIXEL') THEN
       WRITE(*,200) 'Error, SPATIAL_PERTURBATION must be GLOBAL or PIXEL. Variation: ', IVARN
