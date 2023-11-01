@@ -632,7 +632,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                   CALL SPOTTING ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
                                   N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
                                   SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL, DT) ! Parameters added to calculate number of physical embers
                ENDIF
             ENDIF
          ENDIF ! ENABLE_SPOTTING
@@ -643,7 +643,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
 
    ENDDO ! I = 1, LIST_TAGGED%NUM_NODES
 
-   IF (USE_UMD_SPOTTING_MODEL) THEN
+   IF (ENABLE_SPOTTING .AND. USE_UMD_SPOTTING_MODEL) THEN
       C => LIST_BURNED%HEAD
       DO I = 1, LIST_BURNED%NUM_NODES
          IF (USE_PHYSICAL_SPOTTING_DURATION) TAU_EMBERGEN = C%LOCAL_EMBERGEN_DURATION
@@ -665,7 +665,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                   CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI,WD20_LO, &
                                   WD20_HI,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT,T, C%TAU_EMBERGEN,&
                                   SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL, DT) ! Parameters added to calculate number of physical embers
                ENDIF
             ENDIF
          ENDIF
@@ -1537,6 +1537,11 @@ IF (ISTEP .EQ. 1) THEN
             ILH = MAX(MIN(NINT(100.*C%MLH),120),30)
             C%FLIN_SURFACE = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR * C%IR * C%VELOCITY * 0.3048 ! kW/m
 
+            IF (NO_SURFACE_FIRE) THEN
+               C%UX = 1E-5
+               C%UY = 1E-5
+            ENDIF
+
             CROWN_FIRE_AT_END = .FALSE.
             IF (CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) CROWN_FIRE_AT_END = .TRUE.
 
@@ -1583,6 +1588,12 @@ ELSE !ISTEP .EQ. 2
 
          ILH = MAX(MIN(NINT(100.*C%MLH),120),30)
          C%FLIN_SURFACE = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR * C%IR * C%VELOCITY * 0.3048 ! kW/m
+
+         IF (NO_SURFACE_FIRE) THEN
+               C%UX = 1E-5
+               C%UY = 1E-5
+         ENDIF
+
          IF (CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) C%FLIN_CANOPY = C%HPUA_CANOPY * C%VELOCITY * 5.08E-3
 
          IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) C%LOCAL_EMBERGEN_DURATION = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR
