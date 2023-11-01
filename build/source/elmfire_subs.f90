@@ -435,8 +435,8 @@ SELECT CASE (IQUANTITY)
 
    CASE (1)
       DO I = 1, L%NUM_NODES
-         ICOL = ICOL_ANALYSIS_F2C(C%IX)
-         IROW = IROW_ANALYSIS_F2C(C%IY)
+         ICOL = WX_ICOL_FROM_ANALYSIS_IX(C%IX)
+         IROW = WX_IROW_FROM_ANALYSIS_IY(C%IY)
          C%M1 = LO(ICOL,IROW) + F * (HI(ICOL,IROW) - LO(ICOL,IROW) )
          C%M1 = MAX (C%M1 + PERTURB_M1, 0.01)
          C => C%NEXT
@@ -444,8 +444,8 @@ SELECT CASE (IQUANTITY)
 
    CASE (2)
       DO I = 1, L%NUM_NODES
-         ICOL = ICOL_ANALYSIS_F2C(C%IX)
-         IROW = IROW_ANALYSIS_F2C(C%IY)
+         ICOL = WX_ICOL_FROM_ANALYSIS_IX(C%IX)
+         IROW = WX_IROW_FROM_ANALYSIS_IY(C%IY)
          C%M10 = LO(ICOL,IROW) + F * (HI(ICOL,IROW) - LO(ICOL,IROW) )
          C%M10 = MAX (C%M10 + PERTURB_M10, 0.01)
          C => C%NEXT
@@ -453,8 +453,8 @@ SELECT CASE (IQUANTITY)
 
    CASE (3)
       DO I = 1, L%NUM_NODES
-         ICOL = ICOL_ANALYSIS_F2C(C%IX)
-         IROW = IROW_ANALYSIS_F2C(C%IY)
+         ICOL = WX_ICOL_FROM_ANALYSIS_IX(C%IX)
+         IROW = WX_IROW_FROM_ANALYSIS_IY(C%IY)
          C%M100 = LO(ICOL,IROW) + F * (HI(ICOL,IROW) - LO(ICOL,IROW) )
          C%M100 = MAX (C%M100 + PERTURB_M100, 0.01)
          C => C%NEXT
@@ -462,8 +462,8 @@ SELECT CASE (IQUANTITY)
 
    CASE (4)
       DO I = 1, L%NUM_NODES
-         ICOL = ICOL_ANALYSIS_F2C(C%IX)
-         IROW = IROW_ANALYSIS_F2C(C%IY)
+         ICOL = WX_ICOL_FROM_ANALYSIS_IX(C%IX)
+         IROW = WX_IROW_FROM_ANALYSIS_IY(C%IY)
          C%MLH = LO(ICOL,IROW) + F * (HI(ICOL,IROW) - LO(ICOL,IROW) )
          C%MLH = MAX(C%MLH + PERTURB_MLH, 0.3)
          C => C%NEXT
@@ -471,8 +471,8 @@ SELECT CASE (IQUANTITY)
 
    CASE (5)
       DO I = 1, L%NUM_NODES
-         ICOL = ICOL_ANALYSIS_F2C(C%IX)
-         IROW = IROW_ANALYSIS_F2C(C%IY)
+         ICOL = WX_ICOL_FROM_ANALYSIS_IX(C%IX)
+         IROW = WX_IROW_FROM_ANALYSIS_IY(C%IY)
          C%MLW = LO(ICOL,IROW) + F * (HI(ICOL,IROW) - LO(ICOL,IROW) )
          C%MLW = MAX(C%MLW + PERTURB_MLW, 0.6)
          C => C%NEXT
@@ -480,8 +480,8 @@ SELECT CASE (IQUANTITY)
 
    CASE (6)
       DO I = 1, L%NUM_NODES
-         ICOL = ICOL_ANALYSIS_F2C(C%IX)
-         IROW = IROW_ANALYSIS_F2C(C%IY)
+         ICOL = WX_ICOL_FROM_ANALYSIS_IX(C%IX)
+         IROW = WX_IROW_FROM_ANALYSIS_IY(C%IY)
          C%FMC = LO(ICOL,IROW) + F * (HI(ICOL,IROW) - LO(ICOL,IROW) )
          C%FMC = C%FMC + PERTURB_FMC
          C => C%NEXT
@@ -489,8 +489,8 @@ SELECT CASE (IQUANTITY)
 
    CASE (7)
       DO I = 1, L%NUM_NODES
-         ICOL = ICOL_ANALYSIS_F2C(C%IX)
-         IROW = IROW_ANALYSIS_F2C(C%IY)
+         ICOL = WX_ICOL_FROM_ANALYSIS_IX(C%IX)
+         IROW = WX_IROW_FROM_ANALYSIS_IY(C%IY)
          C%WS20_INTERP = LO(ICOL,IROW) + F * (HI(ICOL,IROW) - LO(ICOL,IROW) )
          C%WS20_INTERP = MAX(C%WS20_INTERP + PERTURB_WS, 0.0)
          C%WS20_NOW = C%WS20_INTERP
@@ -503,6 +503,49 @@ END SELECT
 ! *****************************************************************************
 END SUBROUTINE INTERP_RASTER_LINKEDLIST
 ! *****************************************************************************
+
+! *****************************************************************************
+INTEGER FUNCTION WX_ICOL_FROM_ANALYSIS_IX(IX_IN)
+! *****************************************************************************
+
+INTEGER, INTENT(IN) :: IX_IN
+INTEGER :: IX
+
+IX                       = MAX ( MIN (IX_IN,                 FBFM%NCOLS ), 1 )
+WX_ICOL_FROM_ANALYSIS_IX = MAX ( MIN (ICOL_ANALYSIS_F2C(IX),   WS%NCOLS ), 1 )
+
+! *****************************************************************************
+END FUNCTION WX_ICOL_FROM_ANALYSIS_IX
+! *****************************************************************************
+
+! *****************************************************************************
+INTEGER FUNCTION WX_IROW_FROM_ANALYSIS_IY(IY_IN)
+! *****************************************************************************
+
+INTEGER, INTENT(IN) :: IY_IN
+INTEGER :: IY
+
+IY                       = MAX ( MIN (IY_IN,                 FBFM%NROWS ), 1 )
+WX_IROW_FROM_ANALYSIS_IY = MAX ( MIN (IROW_ANALYSIS_F2C(IY),   WS%NROWS ), 1 )
+
+! *****************************************************************************
+END FUNCTION WX_IROW_FROM_ANALYSIS_IY
+! *****************************************************************************
+
+! *****************************************************************************
+INTEGER FUNCTION ICOL_FINE_TO_COARSE(IX_IN)
+! *****************************************************************************
+
+INTEGER, INTENT(IN) :: IX_IN
+INTEGER :: IX
+
+IX = MAX(MIN(IX_IN, FBFM%NCOLS),1)
+ICOL_FINE_TO_COARSE = MAX(MIN(ICOL_ANALYSIS_F2C(IX),WS%NCOLS),1)
+
+! *****************************************************************************
+END FUNCTION ICOL_FINE_TO_COARSE
+! *****************************************************************************
+
 
 ! *****************************************************************************
 SUBROUTINE INTERP_RASTER_LINKEDLIST_SINGLE(NODEIN,LO,HI,F,IQUANTITY)
@@ -819,7 +862,28 @@ END SUBROUTINE SUNRISE_SUNSET_CALCS
 SUBROUTINE SHUTDOWN
 ! *****************************************************************************
 
-INTEGER :: IERR
+INTEGER :: I, IERR
+CHARACTER(4) :: FOUR
+LOGICAL :: LOPEN
+CHARACTER(400) :: FN
+
+IF (NUM_TIME_AT_BURNED_ACRES .GT. 0) THEN
+   DO I = 0, NPROC - 1
+      WRITE(FOUR, '(I4.4)') I
+      FN = TRIM(OUTPUTS_DIRECTORY) // 'burned-acres-timings_' // FOUR // '.csv'
+      INQUIRE(UNIT=LUBAT+I,OPENED=LOPEN)
+      IF (LOPEN) CLOSE(LUBAT+I) 
+   ENDDO
+ENDIF
+
+IF (PROCESS_TIMED_LOCATIONS) THEN
+   DO I = 0, NPROC - 1
+      WRITE(FOUR, '(I4.4)') I
+      FN = TRIM(OUTPUTS_DIRECTORY) // 'timed-locations-events_' // FOUR // '.csv'
+      INQUIRE(UNIT=LUTASL+I,OPENED=LOPEN)
+      IF (LOPEN) CLOSE(LUTASL+I)
+   ENDDO
+ENDIF
 
 IF (NPROC .GT. 1) THEN
    CALL MPI_WIN_FREE(WIN_WS           )
@@ -854,6 +918,7 @@ IF (NPROC .GT. 1) THEN
 
    CALL MPI_WIN_FREE(WIN_STATS_X                         )
    CALL MPI_WIN_FREE(WIN_STATS_Y                         )
+   CALL MPI_WIN_FREE(WIN_STATS_ASTOP                     )   
    CALL MPI_WIN_FREE(WIN_STATS_PROB                      )
    CALL MPI_WIN_FREE(WIN_STATS_SURFACE_FIRE_AREA         )
    CALL MPI_WIN_FREE(WIN_STATS_CROWN_FIRE_AREA           )

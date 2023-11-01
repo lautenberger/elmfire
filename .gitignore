@@ -39,3 +39,4 @@ log.txt
 runs/forecasts/templates
 runs/hindcasts/runs
 runs/hindcasts/templates
+runs/forecasts/archive

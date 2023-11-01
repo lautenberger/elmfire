@@ -2859,7 +2859,7 @@ IF (IRANK_WORLD .EQ. 0 .AND. DUMP_FIRE_SIZE_STATS) THEN
    WRITE(LUSTATS,'(A)') 'icase,Meteorology band,x,y,tstop (h),Wall clock time (s),Total fire area (ac),&
                          &Crown fire area (ac),Fire volume (ac-ft),Population affected,Real estate value,&
                          &Land value,Nembers,Pyrome,Containfrac,PM 2.5 release (ug),HRR peak (MW),&
-                         &Start timestamp,Fire id'
+                         &Start timestamp,Fire id,Astop (ac)'
 
    IPYROME=1
 
@@ -2887,11 +2887,11 @@ IF (IRANK_WORLD .EQ. 0 .AND. DUMP_FIRE_SIZE_STATS) THEN
                           STATS_WALL_CLOCK_TIME(I), STATS_SURFACE_FIRE_AREA(I), STATS_CROWN_FIRE_AREA(I), & 
                           STATS_FIRE_VOLUME(I), STATS_AFFECTED_POPULATION(I), STATS_AFFECTED_REAL_ESTATE_VALUE(I), &
                           STATS_AFFECTED_LAND_VALUE(I), INT(STATS_NEMBERS(I)),IPYROME, STATS_FINAL_CONTAINMENT_FRAC(I), &
-                          STATS_PM2P5_RELEASE(I), STATS_HRR_PEAK(I), TRIM(TIMESTAMP), TRIM(FIRE_ID)
+                          STATS_PM2P5_RELEASE(I), STATS_HRR_PEAK(I), TRIM(TIMESTAMP), TRIM(FIRE_ID), STATS_ASTOP(I)
    ENDDO
    CLOSE(LUSTATS)
-!         ICASE      BAND       X,Y          TSTOP      CLOCK      Fire           Emb   Pyrm   Containfrac     PM,HRR     TS      ID 
-9999 FORMAT(I7, ',', I5, ',', 2(F11.2, ','), F8.2, ',', F9.4, ',', 6(F13.1, ','), I7,',',I3, ',', F9.3, ',', 2(E9.3, ','), A, ',', A)
+!         ICASE      BAND       X,Y          TSTOP      CLOCK      Fire           Emb   Pyrm   Containfrac     PM,HRR     TS      ID       Astop
+9999 FORMAT(I7, ',', I5, ',', 2(F11.2, ','), F8.2, ',', F9.4, ',', 6(F13.1, ','), I7,',',I3, ',', F9.3, ',', 2(E9.3, ','), A, ',', A, ',', E9.3)
 
 ENDIF
 

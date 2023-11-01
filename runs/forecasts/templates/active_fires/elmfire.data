@@ -74,8 +74,8 @@ DT_WIND_FLUCTUATIONS                 = 300.
 WIND_SPEED_FLUCTUATION_INTENSITY     = 0.1
 WIND_DIRECTION_FLUCTUATION_INTENSITY = 0.1
 UNTAG_CELLS_TIMESTEP_INTERVAL        = 5
-UNTAG_TYPE_2                         = .TRUE.
-UNTAG_TYPE_3                         = .TRUE.
+UNTAG_TYPE_2                         = .FALSE.
+UNTAG_TYPE_3                         = .FALSE.
 DEBUG_LEVEL                          = 1
 ESTIMATE_URBAN_LOSSES                = .FALSE.
 RANDOMIZE_RANDOM_SEED                = .TRUE.
@@ -105,8 +105,8 @@ RASTER_TO_PERTURB(1)       = 'ADJ'
 SPATIAL_PERTURBATION(1)    = 'GLOBAL'
 TEMPORAL_PERTURBATION(1)   = 'STATIC'
 PDF_TYPE(1)                = 'UNIFORM'
-PDF_LOWER_LIMIT(1)         = -0.60
-PDF_UPPER_LIMIT(1)         =  0.00
+PDF_LOWER_LIMIT(1)         = -0.30
+PDF_UPPER_LIMIT(1)         =  0.30
 
 RASTER_TO_PERTURB(2)       = 'WS'
 SPATIAL_PERTURBATION(2)    = 'GLOBAL'
@@ -175,8 +175,8 @@ RASTER_TO_PERTURB(11)      = 'WAF'
 SPATIAL_PERTURBATION(11)   = 'GLOBAL'
 TEMPORAL_PERTURBATION(11)  = 'STATIC'
 PDF_TYPE(11)               = 'UNIFORM'
-PDF_LOWER_LIMIT(11)        = -0.02
-PDF_UPPER_LIMIT(11)        =  0.02
+PDF_LOWER_LIMIT(11)        = -0.03
+PDF_UPPER_LIMIT(11)        =  0.03
 /
 
 &SPOTTING

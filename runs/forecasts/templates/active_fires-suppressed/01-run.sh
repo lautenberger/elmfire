@@ -7,7 +7,7 @@ STARTSEC=`date +%s`
 progress_message "Start"
 
 LOCAL_SCRATCH=$(pwd)
-ELMFIRE_VER=${ELMFIRE_VER:-2023.0715}
+ELMFIRE_VER=${ELMFIRE_VER:-2023.1015}
 ELMFIRE_INSTALL_DIR=${ELMFIRE_INSTALL_DIR:-$ELMFIRE_BASE_DIR/build/linux/bin}
 ELMFIRE=$ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER
 FIRE_NAME=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f1`
@@ -20,6 +20,7 @@ mkdir -p $FORECAST_DIR 2> /dev/null
 SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
 CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
 let "NP = SOCKETS * CORES_PER_SOCKET"
+./98-set_adj.sh
 
 progress_message "Launching ELMFIRE"
 mpirun --mca btl tcp,self --map-by core --bind-to core --oversubscribe -np $NP $ELMFIRE elmfire.data >& elmfire.out
