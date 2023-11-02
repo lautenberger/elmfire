@@ -40,4 +40,4 @@ runs/forecasts/templates
 runs/hindcasts/runs
 runs/hindcasts/templates
 runs/forecasts/archive
-.DS_Store
+**/.DS_Store
