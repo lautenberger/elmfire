@@ -107,7 +107,6 @@ IF (USE_EULERIAN_SPOTTING) THEN
       X0                        , & 
       DT_ELMFIRE                , &
       TSTOP_SPOT                , & 
-      PIGN                      , &
       PHIP                      , &
       IRANK_WORLD               , &
       SIGMA_DIST                , &
@@ -117,8 +116,7 @@ IF (USE_EULERIAN_SPOTTING) THEN
       WD20_LO                   , &
       WD20_HI                   , &
       F_WIND                    , &
-      TIME_NOW                  , &
-      IGNMULT)
+      TIME_NOW)
 ELSE
    CALL EMBER_TRAJECTORY ( &
       CC%NCOLS                  , &
@@ -513,7 +511,6 @@ NUM_EMBERS                 , &
 X0_ELM                     , & 
 DT_ELMFIRE                 , &
 TSTOP_ELM                  , &
-PIGN_ELM                   , & 
 PHIP                       , &
 IRANK_WORLD                , &
 SIGMA_DIST                 , &
@@ -523,12 +520,11 @@ WS20_HI                    , &
 WD20_LO                    , &
 WD20_HI                    , &
 F_WIND                     , &
-TIME_NOW                   , &
-IGNMULT)
+TIME_NOW)
 ! *****************************************************************************
 
 INTEGER, INTENT(IN) :: NX_ELM, NY_ELM, NUM_EMBERS, IRANK_WORLD
-REAL, INTENT(IN) :: CELLSIZE_ELM, PIGN_ELM, SIGMA_DIST, MU_DIST, F_WIND, IGNMULT, DT_ELMFIRE
+REAL, INTENT(IN) :: CELLSIZE_ELM, SIGMA_DIST, MU_DIST, F_WIND, DT_ELMFIRE
 REAL, INTENT(IN) :: PHIP(:,:), WS20_LO(:,:), WS20_HI(:,:), WD20_LO(:,:), WD20_HI(:,:)
 
 REAL :: DIST, EPS, PDF_K
@@ -537,7 +533,7 @@ REAL :: DIST, EPS, PDF_K
 REAL, INTENT(IN) :: X0_ELM(:), TSTOP_ELM, TIME_NOW
 CHARACTER(3) :: THREE
 CHARACTER(400) :: FNOUT
-REAL :: R0, IGNPROB, WD1TO, WD2TO, WDTO, WS20, WS20_0, T, TSTOP, DT, X_HIGH, X_LOW, X_MAX, NORM_FACTOR, P_LAND, XLAST_IGN, YLAST_IGN
+REAL :: R0, WD1TO, WD2TO, WDTO, WS20, WS20_0, T, TSTOP, DT, X_MAX, NORM_FACTOR, P_LAND, DIST_LAST!, XLAST_IGN, YLAST_IGN, IGNPROB, X_HIGH, X_LOW
 REAL, DIMENSION(3) :: X, X0, UWIND, UWIND0, OFFSET
 INTEGER :: IX, IY, IXLAST, IYLAST,ICOL, IROW, ICOUNT, K_MAX, IT_IGN !, IXLAST_IGN, IYLAST_IGN
 REAL, PARAMETER :: SQRT_2 = 1.4142135623731
@@ -557,17 +553,15 @@ IF (USE_UMD_SPOTTING_MODEL) THEN
    PDF_K = 1
    DO WHILE(PDF_K .GT. P_EPS)
       K_MAX = K_MAX+1;
-      X_HIGH = (K_MAX+0.5)*CELLSIZE_ELM
-      X_LOW  = (K_MAX-0.5)*CELLSIZE_ELM
-      PDF_K = 0.5 * (ERF((LOG(X_HIGH)-MU_DIST) / SQRT_2 / SIGMA_DIST) - &
-                     ERF((LOG(X_LOW) -MU_DIST) / SQRT_2 / SIGMA_DIST))/CELLSIZE_ELM
+      PDF_K = SARDOY_CDF(REAL(K_MAX)*CELLSIZE_ELM,(REAL(K_MAX)+1)*CELLSIZE_ELM, MU_DIST, SIGMA_DIST)/CELLSIZE_ELM
    END DO
    X_MAX = K_MAX*CELLSIZE_ELM
 ENDIF
 
-NORM_FACTOR = SARDOY_CDF(0.5*CELLSIZE_ELM,(REAL(K_MAX)+0.5)*CELLSIZE_ELM, MU_DIST, SIGMA_DIST)
+NORM_FACTOR = SARDOY_CDF(1E-6,REAL(K_MAX)*CELLSIZE_ELM, MU_DIST, SIGMA_DIST)
 
 DIST = 0.
+DIST_LAST = DIST
 
 OFFSET(1:2) = X0(1:2)
 X   (:)   = X0(:) - OFFSET(:)
@@ -590,12 +584,13 @@ WS20 = 0.447 * WS20
 IF (USE_LEVEL_SET_DT_FOR_SPOTTING) THEN
    DT = DT_ELMFIRE
 ELSE
-   DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+   ! DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+   DT = CELLSIZE_ELM / WS20
 ENDIF
 
 ICOUNT = 0
-XLAST_IGN = X(1)
-YLAST_IGN = X(2)
+! XLAST_IGN = X(1)
+! YLAST_IGN = X(2)
 
 CALL RANDOM_NUMBER(R0); EPS = 8.*(R0 - 0.5)
 
@@ -624,7 +619,8 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
       IF (USE_LEVEL_SET_DT_FOR_SPOTTING) THEN
          DT = DT_ELMFIRE
       ELSE
-         DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+         ! DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+         DT =  CELLSIZE_ELM / WS20    
       ENDIF
 
       WD1TO = WD20_LO(ICOL,IROW) + 180. ; IF (WD1TO .GT. 360) WD1TO = WD1TO - 360.
@@ -659,25 +655,19 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
    IXLAST = IX
    IYLAST = IY
 
-   IF(ABS(X(1)-XLAST_IGN) .GE. CELLSIZE_ELM .OR. ABS(X(2)-YLAST_IGN) .GE. CELLSIZE_ELM)THEN
-      IGNPROB=0.01*PIGN_ELM*IGNMULT
-      P_LAND = SARDOY_CDF(DIST-0.5*CELLSIZE_ELM,DIST+0.5*CELLSIZE_ELM, MU_DIST, SIGMA_DIST)/NORM_FACTOR
-      IT_IGN = FINDLOC((T+TIME_NOW-SPOTTING_TIME_TABLE)<=0,.TRUE., 1)
-      IT_IGN = MAX(IT_IGN,1)
-      IT_IGN = MIN(IT_IGN,SIZE(SPOTTING_TIME_TABLE))
-      
-      EMBER_ACCUMULATION_RATE(IX, IY, IT_IGN) = EMBER_ACCUMULATION_RATE(IX, IY, IT_IGN)+NUM_EMBERS*P_LAND
-      XLAST_IGN = X(1)
-      YLAST_IGN = X(2)
+   ! Filling entries for ember flux table, which will be used as input for the ignition model
+   IT_IGN = CEILING((T+TIME_NOW)/DT_DUMP_EMBER_FLUX)
+   IT_IGN = MAX(IT_IGN,1)
+   IT_IGN = MIN(IT_IGN,EMBER_FLUX_TABLE_LEN)
+   P_LAND = SARDOY_CDF(DIST_LAST,DIST, MU_DIST, SIGMA_DIST)/NORM_FACTOR
+   EMBER_ACCUMULATION_RATE(IX, IY, IT_IGN) = EMBER_ACCUMULATION_RATE(IX, IY, IT_IGN)+NUM_EMBERS*P_LAND
 
-      IF(PHIP(IX, IY)<0) THEN
-         continue
-      ENDIF
-      ! WRITE(*,*) T+TIME_NOW, IX, IY, DIST, WS20, DT
-      IF(T+TIME_NOW .LT. EMBER_TIGN(IX,IY) .OR. EMBER_TIGN(IX,IY) .LT. 0.0) THEN
-         EMBER_TIGN(IX,IY) = T+TIME_NOW
-      ENDIF
+   ! If probability of ignition is 100%, EMBER_TIGN will be used, avoid allocating a big array of EMBER_ACCUMULATION_RATE
+   IF(T+TIME_NOW .LT. EMBER_TIGN(IX,IY) .OR. EMBER_TIGN(IX,IY) .LT. 0.0) THEN
+      EMBER_TIGN(IX,IY) = T+TIME_NOW
    ENDIF
+
+   DIST_LAST = DIST
 
 ENDDO
 
@@ -787,6 +777,31 @@ NUM_TRACKED_EMBERS =  NUM_UNUSED_EMBERS
 SPOTTING_STATS = SPOTTING_STATS_TEMP
 ! *****************************************************************************
 END SUBROUTINE CLEAR_USED_EMBER
+! *****************************************************************************
+
+! *****************************************************************************
+LOGICAL FUNCTION EMBER_IGNITION(IX,IY,T_ELMFIRE)
+! *****************************************************************************
+! Firebrand ignition model, based on the ember accumulation history
+USE ELMFIRE_VARS
+
+REAL, INTENT(IN) :: T_ELMFIRE
+INTEGER, INTENT(IN) :: IX,IY
+
+REAL :: NUM_ACCUMULATED_EMBERS
+INTEGER :: IT_IGN
+
+EMBER_IGNITION = .FALSE.
+
+IT_IGN = CEILING(T_ELMFIRE/DT_DUMP_EMBER_FLUX)
+IT_IGN = MAX(IT_IGN,1)
+IT_IGN = MIN(IT_IGN,EMBER_FLUX_TABLE_LEN)
+NUM_ACCUMULATED_EMBERS = SUM(EMBER_ACCUMULATION_RATE(IX,IY,1:IT_IGN:1))
+
+IF (NUM_ACCUMULATED_EMBERS .GT. 0) EMBER_IGNITION = .TRUE.
+
+! *****************************************************************************
+END FUNCTION EMBER_IGNITION
 ! *****************************************************************************
 
 ! *****************************************************************************
