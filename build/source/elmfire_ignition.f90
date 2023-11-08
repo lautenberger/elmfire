@@ -217,8 +217,6 @@ DO IWX_BAND = IWX_BAND_START, IWX_BAND_STOP, IWX_BAND_SKIP
 
 ENDDO
 
-IF (DUMP_CASES_TO_RUN_UP_FRONT) CALL WRITE_CASES_TO_RUN
-
 100  FORMAT(A)
 
 ! *****************************************************************************
@@ -270,13 +268,6 @@ IF (USE_ERC) THEN
          STATS_X(ICASE) = X_FROM_ICOL (ICOL_ARR(I), IGN_MASK%XLLCORNER, IGN_MASK%CELLSIZE)
          STATS_Y(ICASE) = Y_FROM_IROW (IROW_ARR(I), IGN_MASK%YLLCORNER, IGN_MASK%CELLSIZE)
          STATS_ASTOP(ICASE) = 9E9
-
-         IF (RANDOM_IGNITIONS_TYPE .EQ. 1) THEN
-            STATS_PROB(ICASE) = IGN_MASK%R4(ICOL_ARR(I),IROW_ARR(I),1)
-         ELSE
-            STATS_PROB(ICASE) = 1.
-         ENDIF
-
       ENDDO
    ENDDO
 
@@ -299,20 +290,12 @@ ELSE
    PROB(NUM_IGNITABLE_PIXELS+1) = 1E0
 
    DO ICASE = 1, NUM_CASES_TOTAL
-
       CALL RANDOM_NUMBER(R0)
       CALL LOCATE(PROB(:), NUM_IGNITABLE_PIXELS+1, R0, I)
       I = MIN(MAX(1,I),NUM_IGNITABLE_PIXELS)
       STATS_X(ICASE) = X_FROM_ICOL (ICOL_ARR(I), IGN_MASK%XLLCORNER, IGN_MASK%CELLSIZE)
       STATS_Y(ICASE) = Y_FROM_IROW (IROW_ARR(I), IGN_MASK%YLLCORNER, IGN_MASK%CELLSIZE)
       STATS_ASTOP(ICASE) = 9E9
-      
-      IF (RANDOM_IGNITIONS_TYPE .EQ. 1) THEN
-         STATS_PROB(ICASE) = IGN_MASK%R4(ICOL_ARR(I),IROW_ARR(I),1)
-      ELSE
-         STATS_PROB(ICASE) = 1.
-      ENDIF
-
    ENDDO !ICASE = 1, NUM_CASES_TOTAL
 
 ENDIF
@@ -322,32 +305,6 @@ IF (USE_ERC) DEALLOCATE(IX_IGNFAC, IY_IGNFAC)
 
 ! *****************************************************************************
 END SUBROUTINE DETERMINE_IGNITION_LOCATIONS
-! *****************************************************************************
-
-! *****************************************************************************
-SUBROUTINE WRITE_CASES_TO_RUN
-! *****************************************************************************
-
-INTEGER :: IWX_BAND, IOS
-CHARACTER(400) :: FN
-
-FN = TRIM(OUTPUTS_DIRECTORY) // 'cases_to_run.csv' 
-OPEN(LUOUTPUT,FILE=TRIM(FN),FORM='FORMATTED',STATUS='REPLACE',IOSTAT=IOS)
-WRITE(LUOUTPUT,9998) RCOUNT_SUM, RCOUNT_NOERC_SUM
-
-WRITE(LUOUTPUT,'(A)') 'weather band,# cases'
-
-DO IWX_BAND = IWX_BAND_START, IWX_BAND_STOP, IWX_BAND_SKIP
-   WRITE(LUOUTPUT,9999) IWX_BAND, NUM_CASES_PER_STARTING_WX_BAND(IWX_BAND)
-ENDDO
-
-CLOSE(LUOUTPUT)
-
-9998 FORMAT(F16.9, ',', F16.9)
-9999 FORMAT(I5,',',I4)
-
-! *****************************************************************************
-END SUBROUTINE WRITE_CASES_TO_RUN
 ! *****************************************************************************
 
 ! *****************************************************************************
