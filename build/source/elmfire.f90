@@ -533,6 +533,7 @@ IF (MODE .NE. 2) THEN
       CALL ACCUMULATE_CPU_USAGE(15, IT1, IT2)
      
 ! Main call to spread model
+      IT1_LSP = IT1
       CALL LEVEL_SET_PROPAGATION(IWX_BAND,ICASE,NTIMESTEPS)
       WRITE(*,'(A, I6, A, I7, A, F8.1, A)') "Meteorology band ", IWX_BAND, ": Case # ", ICASE, " complete.  Fire area: ", &
                                              STATS_SURFACE_FIRE_AREA(ICASE), " acres."
