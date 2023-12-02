@@ -4,7 +4,7 @@
 $ELMFIRE_BASE_DIR/cloudfire/fuel_wx_ign.py \
     --do_wx=False --do_ignition=False \
     --center_lon=-120.05 --center_lat=38.13 \
-    --fuel_source='landfire' --fuel_version='2.2.0' \
+    --fuel_source='landfire' --fuel_version='2.3.0' \
     --outdir='./fuel' --name='tutorial04'
 
 WX_INPUTS_FILE=wx.csv
@@ -16,12 +16,10 @@ ELMFIRE_VER=${ELMFIRE_VER:-2023.1202}
 SCRATCH=./scratch
 INPUTS=./inputs
 OUTPUTS=./outputs
-MISC=./misc
 
-rm -f -r $SCRATCH $INPUTS $OUTPUTS $MISC
-mkdir $SCRATCH $INPUTS $OUTPUTS $MISC
+rm -f -r $SCRATCH $INPUTS $OUTPUTS
+mkdir $SCRATCH $INPUTS $OUTPUTS
 cp elmfire.data.in $INPUTS/elmfire.data
-cp $ELMFIRE_BASE_DIR/build/source/fuel_models.csv $MISC
 
 tar -xvf ./fuel/tutorial04.tar -C $INPUTS
 rm -f $INPUTS/m*.tif $INPUTS/w*.tif $INPUTS/l*.tif $INPUTS/ignition*.tif $INPUTS/forecast_cycle.txt
@@ -71,6 +69,6 @@ done
 wait
 
 # Clean up and exit:
-rm -f -r ./outputs/*.bil ./outputs/*.hdr $SCRATCH $MISC
+rm -f -r ./outputs/*.bil ./outputs/*.hdr $SCRATCH
 
 exit 0

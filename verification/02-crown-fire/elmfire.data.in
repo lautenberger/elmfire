@@ -53,8 +53,6 @@ T_IGN(1)         = 0.0
 /
 
 &MISCELLANEOUS
-MISCELLANEOUS_INPUTS_DIRECTORY = './misc'
-FUEL_MODEL_FILE                = 'fuel_models.csv'
 PATH_TO_GDAL                   = '/usr/bin'
 SCRATCH                        = './scratch'
 /

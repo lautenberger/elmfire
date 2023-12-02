@@ -4,7 +4,7 @@
 $ELMFIRE_BASE_DIR/cloudfire/fuel_wx_ign.py \
     --do_wx=False --do_ignition=False \
     --center_lon=-120.281 --center_lat=37.440 \
-    --fuel_source='landfire' --fuel_version='2.2.0' \
+    --fuel_source='landfire' --fuel_version='2.3.0' \
     --outdir='./fuel' --name='tutorial03'
 
 SIMULATION_TSTOP=22200.0 # Simulation stop time (seconds)
@@ -19,12 +19,10 @@ ELMFIRE_VER=${ELMFIRE_VER:-2023.1202}
 SCRATCH=./scratch
 INPUTS=./inputs
 OUTPUTS=./outputs
-MISC=./misc
 
-rm -f -r $SCRATCH $INPUTS $OUTPUTS $MISC
-mkdir $SCRATCH $INPUTS $OUTPUTS $MISC
+rm -f -r $SCRATCH $INPUTS $OUTPUTS
+mkdir $SCRATCH $INPUTS $OUTPUTS
 cp elmfire.data.in $INPUTS/elmfire.data
-cp $ELMFIRE_BASE_DIR/build/source/fuel_models.csv $MISC
 
 tar -xvf ./fuel/tutorial03.tar -C $INPUTS
 rm -f $INPUTS/m*.tif $INPUTS/w*.tif $INPUTS/l*.tif $INPUTS/ignition*.tif $INPUTS/forecast_cycle.txt
@@ -84,6 +82,6 @@ done
 gdal_contour -i 3600 `ls ./outputs/time_of_arrival*.tif` ./outputs/hourly_isochrones.shp
 
 # Clean up and exit:
-#rm -f -r ./outputs/*.csv ./outputs/*.bil ./outputs/*.hdr $SCRATCH $MISC
+#rm -f -r ./outputs/*.csv ./outputs/*.bil ./outputs/*.hdr $SCRATCH
 
 exit 0

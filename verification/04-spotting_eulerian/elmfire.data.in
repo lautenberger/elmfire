@@ -52,6 +52,7 @@ NUM_IGNITIONS = 0
 CRITICAL_SPOTTING_FIRELINE_INTENSITY(:)   = 0.
 EMBER_GR                                  = 10.0
 ENABLE_SPOTTING                           = .TRUE. 
+/
 PIGN                                      = 100.0 !Percent
 PIGN_MAX                                  = 100.0
 PIGN_MIN                                  = 100.0
@@ -67,13 +68,13 @@ USE_SUPERSEDED_SPOTTING                   = .FALSE.
 USE_EULERIAN_FRAMEWORK                    = .TRUE.
 DT_DUMP_EMBER_FLUX                        = 10
 /
+
 &WUI
 USE_BLDG_SPREAD_MODEL                 = .TRUE.
 /
 
 &MISCELLANEOUS
-MISCELLANEOUS_INPUTS_DIRECTORY = './misc'
-FUEL_MODEL_FILE                = 'fuel_models.csv'
-PATH_TO_GDAL                   = '/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin'
+PATH_TO_GDAL                   = '/usr/bin'
 SCRATCH                        = './scratch'
 /
+PATH_TO_GDAL                   = '/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin'

@@ -41,13 +41,11 @@ TE="$XMIN $YMIN $XMAX $YMAX"
 SCRATCH=./scratch
 INPUTS=./inputs
 OUTPUTS=./outputs
-MISC=./misc
 
-rm -f -r $SCRATCH $INPUTS $OUTPUTS $MISC
-mkdir $SCRATCH $INPUTS $OUTPUTS $MISC
+rm -f -r $SCRATCH $INPUTS $OUTPUTS
+mkdir $SCRATCH $INPUTS $OUTPUTS
 
 cp elmfire.data.in $INPUTS/elmfire.data
-cp $ELMFIRE_BASE_DIR/build/source/fuel_models.csv $MISC
 
 printf "x,y,z\n-100000,-100000,0\n100000,-100000,0\n-100000,100000,0\n100000,100000,0\n" > $SCRATCH/dummy.xyz
 
@@ -103,6 +101,6 @@ done
 gdal_contour -i 3600 `ls ./outputs/time_of_arrival*.tif` ./outputs/hourly_isochrones.shp
 
 # Clean up and exit:
-#rm -f -r ./outputs/*.csv ./outputs/*.bil ./outputs/*.hdr $SCRATCH $MISC
+#rm -f -r ./outputs/*.csv ./outputs/*.bil ./outputs/*.hdr $SCRATCH
 
 exit 0
