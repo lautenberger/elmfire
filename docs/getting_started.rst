@@ -18,7 +18,7 @@ The following commands will install packages needed to build and run ELMFIRE:
 .. code-block:: console
 
    sudo apt-get update && sudo apt-get upgrade -y
-   sudo apt-get install -y bc csvkit gdal-bin gfortran jq libopenmpi-dev \
+   sudo apt-get install -y bc csvkit gdal-bin gfortran git jq libopenmpi-dev \
                            openmpi-bin pigz python3 python3-pip unzip wget zip
    sudo pip3 install google-api-python-client python-dateutil
    sudo python3 -m pip install grpcio grpcio-tools
