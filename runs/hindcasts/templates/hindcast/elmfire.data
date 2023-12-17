@@ -181,8 +181,6 @@ CALIBRATE                    = .FALSE.
 /
 
 &MISCELLANEOUS
-MISCELLANEOUS_INPUTS_DIRECTORY = './'
-FUEL_MODEL_FILE                = 'fuel_models.csv'
 PATH_TO_GDAL                   = '/usr/bin'
 SCRATCH                        = './'
 /
