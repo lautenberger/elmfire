@@ -5,8 +5,9 @@ if [ ! -d $CLOUDFIRE_BASE_DIR/inputs/wx ]; then
    exit 1
 fi
 
-WX_MODELS='hrrr nam_conusnest nam_awip12 gfs0p125 gfs0p25 nbm ecmwf'
-WX_MODELS_SHORT='h n1 n2 g1 g2 b e'
+WX_MODELS='hrrr nam_conusnest nam_awip12 gfs0p125 gfs0p25 nbm ecmwf adswrf cansac_wrf hybrid'
+#WX_MODELS_SHORT='h n1 n2 g1 g2 b e a c y'
+ WX_MODELS_SHORT='r n1 n2 g1 g2 b e a c y'
 WX_MODEL_QUANTITIES='ffwi pign rh tmpf wd wg ws'
 
 SPREAD_MODEL_QUANTITIES='fire-area impacted-structures fire-volume plignrate'
@@ -47,7 +48,8 @@ for SPREAD_MODEL_QUANTITY in $SPREAD_MODEL_QUANTITIES; do
    QUANTITY_SHORT[j]=$SPREAD_MODEL_QUANTITY_SHORT
    COL[j]=2 # 2=lo, 3=hi, 4=avg
    LO_HI_AVG[j]=l
-   MODEL_ID[j]=l
+#   MODEL_ID[j]=l
+   MODEL_ID[j]=m
 
    let "j=j+1"
    DATADIR[j]=$(pwd)/polygon_zonal_stats
@@ -55,7 +57,8 @@ for SPREAD_MODEL_QUANTITY in $SPREAD_MODEL_QUANTITIES; do
    QUANTITY_SHORT[j]=$SPREAD_MODEL_QUANTITY_SHORT
    COL[j]=4 # 2=lo, 3=hi, 4=avg
    LO_HI_AVG[j]=a
-   MODEL_ID[j]=l
+#   MODEL_ID[j]=l
+   MODEL_ID[j]=m
 
    let "j=j+1"
    DATADIR[j]=$(pwd)/polygon_zonal_stats
@@ -63,7 +66,8 @@ for SPREAD_MODEL_QUANTITY in $SPREAD_MODEL_QUANTITIES; do
    QUANTITY_SHORT[j]=$SPREAD_MODEL_QUANTITY_SHORT
    COL[j]=3 # 2=lo, 3=hi, 4=avg
    LO_HI_AVG[j]=h
-   MODEL_ID[j]=l
+#   MODEL_ID[j]=l
+   MODEL_ID[j]=m
 
 done
 
@@ -131,10 +135,14 @@ function do_attribute_table {
    cp $SCRATCH/header.csv $SCRATCH/$fh.csv
 
    for FID in $(eval echo "{0..$NFM1}"); do
-      ZONE=`ogrinfo -al -so -fid $FID $POLYGONS | grep 'NAME (String)' | cut -d= -f2 | xargs`
+
+#      ZONE=`ogrinfo -al -so -fid $FID $POLYGONS | grep 'Short name (String)' | cut -d= -f2 | xargs`
+      ZONE=`ogrinfo -al -so -fid $FID $POLYGONS | grep 'Name (String)' | cut -d= -f2 | xargs`
+
       if [ -z "$ZONE" ]; then
-         ZONE=`ogrinfo -al -so -fid $FID $POLYGONS | grep 'PDZ_CKT (String)' | cut -d= -f2 | xargs`
+         ZONE=`ogrinfo -al -so -fid $FID $POLYGONS | grep 'NAME (String)' | cut -d= -f2 | xargs`
       fi
+
       WRITESTR="$ZONE"
       for j in $(eval echo "{1..$J}"); do #quantity
          FNIN=${DATADIR[j]}/${QUANTITY[j]}_${FORECAST_CYCLE}0000_$FID.csv
