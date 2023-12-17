@@ -10,7 +10,8 @@ if [ "$PATTERN" = "all" ]; then
 elif [ "$PATTERN" = "tlines" ]; then
    NPARALLEL=3
 else
-   NPARALLEL=18
+#   NPARALLEL=18
+   NPARALLEL=6
 fi
 
 SCRATCH=$ELMFIRE_SCRATCH_BASE/risk_post_$RANDOM
@@ -18,9 +19,9 @@ OUTDIR=$(pwd)/out
 TE_3310='-400000 -700000 600050 500000'
 
 KS='1 2 3 4'
-if [ "$PATTERN" = "$UTILITY01" ] || [ "$PATTERN" = "$UTILITY02" ]; then
-   KS='1 2 3 4 5'
-fi
+#if [ "$PATTERN" = "$UTILITY01" ] || [ "$PATTERN" = "$UTILITY02" ]; then
+#   KS='1 2 3 4 5'
+#fi
 
 if [ "$PATTERN" = "all" ]; then
    KS='4'
@@ -141,15 +142,15 @@ function merge {
       --co="TILED=yes" --calc="( 0 + (A>0)*A*B)" --outfile=$OUTDIR/${QUANTITY_OUT[k]}_$TIMESTAMP.tif &&
       rm -f $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif $SCRATCH/$FH/$k/3310-${QUANTITY_OUT[k]}_$TIMESTAMP.tif &
    else
-#      for k in $KS; do
-#         gdal_merge.py -init -9999 -n -9999 -a_nodata -9999 -o $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif ${FNLIST[k]} &&
-#         gdalwarp -multi -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" -wo "NUM_THREADS=4" $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif $OUTDIR/${QUANTITY_OUT[k]}_$TIMESTAMP.tif &&
-#         rm -f $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif &
-#      done
-      k=4
-      gdal_merge.py -init -9999 -n -9999 -a_nodata -9999 -o $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif ${FNLIST[k]} &&
-      gdalwarp -multi -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" -co "TILED=yes" $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif $OUTDIR/${QUANTITY_OUT[k]}_$TIMESTAMP.tif &&
-      rm -f $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif &
+      for k in $KS; do
+         gdal_merge.py -init -9999 -n -9999 -a_nodata -9999 -o $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif ${FNLIST[k]} &&
+         gdalwarp -multi -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" -wo "NUM_THREADS=4" $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif $OUTDIR/${QUANTITY_OUT[k]}_$TIMESTAMP.tif &&
+         rm -f $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif &
+      done
+#      k=4
+#      gdal_merge.py -init -9999 -n -9999 -a_nodata -9999 -o $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif ${FNLIST[k]} &&
+#      gdalwarp -multi -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" -co "TILED=yes" $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif $OUTDIR/${QUANTITY_OUT[k]}_$TIMESTAMP.tif &&
+#      rm -f $SCRATCH/$FH/$k/${QUANTITY_OUT[k]}_$TIMESTAMP.tif &
    fi
    wait
 
