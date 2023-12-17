@@ -21,7 +21,7 @@ STRING='{
 "fuelSource": "dummy_fuel_source",
 "fuelVersion": "dummy_fuel_version",
 "scpInputDeck": "none",
-"runTemplate": "default"
+"runTemplate": "firestarter"
 }'
 
 ./01-crs.sh "$STRING"
