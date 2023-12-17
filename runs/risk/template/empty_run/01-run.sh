@@ -14,6 +14,9 @@ TR='150 150'
 SRCWIN='1600 1600 1600 1600'
 MPIRUN=`which mpirun`
 SCRATCH=$ELMFIRE_SCRATCH_BASE/risk_run
+INTERMEDIATE_OUTPUTS_DIR=$ELMFIRE_SCRATCH_BASE/$FORECAST_CYCLE-$PATTERN-$FUELS_INPUTS/$TILE
+mkdir -p $INTERMEDIATE_OUTPUTS_DIR
+
 SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
 CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
 let "NP = SOCKETS * CORES_PER_SOCKET"
@@ -44,8 +47,14 @@ if [ "$PATTERN" != "all" ]; then
    ./02-rasterize.sh $PATTERN >& rasterize.log
 fi
 
+N=0
 for f in times_burned*.bil; do
    compress "$f" no &
+   let "N=N+1"
+   if [ "$N" = "$NP" ]; then
+      N=0
+      wait
+   fi
 done
 wait
 
@@ -55,6 +64,6 @@ fi
 
 rm -f *.bsq *.hdr *.xml
 
-mv * $OUTDIR/
+mv * $INTERMEDIATE_OUTPUTS_DIR/
 
 exit 0

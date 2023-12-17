@@ -15,6 +15,7 @@ HAVE_PLIGNRATE=no
 if [ "$PATTERN" = "$UTILITY01" ] || [ "$PATTERN" = "$UTILITY02" ] ; then
   HAVE_PLIGNRATE=yes
 fi
+HAVE_PLIGNRATE=no
 
 if [ "$HAVE_PLIGNRATE" = "yes" ]; then
    QUANTITIES='surface_fire_area fire_volume affected_population plignrate'
@@ -45,9 +46,9 @@ parallel_zonal_stats(){
       FNLIST="$FNLIST ./${QUANTITY}_$HOUR.txt"
       $ZONAL_STATS $VECTOR_POLYGONS ./${QUANTITY}_$HOUR.tif ./${QUANTITY}_$HOUR.csv && \
       sed -i 's/,,,/-1.0,-1.0,-1.0,-1.0/g' ./${QUANTITY}_$HOUR.csv && \
-      cat ${QUANTITY}_$HOUR.csv | cut -d, -f2 > ./${QUANTITY}_$HOUR.txt &
+      cat ${QUANTITY}_$HOUR.csv | cut -d, -f2 > ./${QUANTITY}_$HOUR.txt # &
    done
-   wait
+#   wait
 
    if [ "$HAVE_PLIGNRATE" = "yes" ]; then
       echo "area,volume,structures,plignrate" > $BASE.csv

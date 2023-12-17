@@ -5,6 +5,10 @@ START_SEC=`date +%s`
 
 PATTERN=$1
 
+SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
+CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
+let "NP = SOCKETS * CORES_PER_SOCKET"
+
 CLOUDFIRE_VER=${CLOUDFIRE_VER:-2023.0515}
 IGNITION_DENSITY_GRID=$CLOUDFIRE_BASE_DIR/code/linux/bin/ignition_density_grid_$CLOUDFIRE_VER
 
@@ -62,38 +66,54 @@ function create_inputs {
 
 }
 
+N=0
 for h in {7..114}; do
    create_inputs $h &
+   let "N=N+1"
+   if [ "$N" = "$NP" ]; then
+      N=0
+      wait
+   fi
 done
 wait
 
+N=0
 for QUANTITY in surface_fire_area fire_volume affected_population; do
    for h in {7..114}; do
       H=`printf %04d $h`
       $IGNITION_DENSITY_GRID ${QUANTITY}_$H.data && \
       gdal_translate -a_srs "EPSG:5070" -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" ${QUANTITY}_$H.bil ${QUANTITY}_$H.tif &&
       rm -f ${QUANTITY}_$H.bil ${QUANTITY}_$H.hdr ${QUANTITY}_$H.data ${QUANTITY}_$H.csv &
+      let "N=N+1"
+      if [ "$N" = "$NP" ]; then
+         N=0
+         wait
+      fi
    done
-   wait
 done
-
-# Now do plignrate:
-if [ "$PATTERN" != "all" ]; then
-   for SUBTILE in 1_1 1_2 1_3 2_1 2_2 2_3 3_1 3_2 3_3; do
-      FNLIST="$FNLIST plignrate_${PATTERN}_$SUBTILE.bsq"
-   done
-   gdal_merge.py -o intermediate_$PATTERN.tif $FNLIST
-   gdalwarp -multi -tr 150 150 -r bilinear intermediate_$PATTERN.tif plignrate_$PATTERN.tif
-
-   for h in {7..114}; do
-      H=`printf %04d $h`
-      gdal_translate -b $h -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" plignrate_$PATTERN.tif plignrate_$H.tif &
-   done
-   wait
-   rm -f intermediate_$PATTERN* plignrate_$PATTERN*.bil plignrate_$PATTERN*.hdr plignrate_$PATTERN*.prj plignrate_$PATTERN*.xml plignrate_$PATTERN.tif
-fi
-
 wait
+
+## Now do plignrate:
+#N=0
+#if [ "$PATTERN" != "all" ]; then
+#   for SUBTILE in 1_1 1_2 1_3 2_1 2_2 2_3 3_1 3_2 3_3; do
+#      FNLIST="$FNLIST plignrate_${PATTERN}_$SUBTILE.bsq"
+#   done
+#   gdal_merge.py -o intermediate_$PATTERN.tif $FNLIST
+#   gdalwarp -multi -tr 150 150 -r bilinear intermediate_$PATTERN.tif plignrate_$PATTERN.tif
+#
+#   for h in {7..114}; do
+#      H=`printf %04d $h`
+#      gdal_translate -b $h -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" plignrate_$PATTERN.tif plignrate_$H.tif &
+#      let "N=N+1"
+#      if [ "$N" = "$NP" ]; then
+#         N=0
+#         wait
+#      fi
+#   done
+#   wait
+#   rm -f intermediate_$PATTERN* plignrate_$PATTERN*.bil plignrate_$PATTERN*.hdr plignrate_$PATTERN*.prj plignrate_$PATTERN*.xml plignrate_$PATTERN.tif
+#fi
 
 date
 END_SEC=`date +%s`
