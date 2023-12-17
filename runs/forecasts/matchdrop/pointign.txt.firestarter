@@ -1,0 +1,36 @@
+#!/bin/bash
+
+cd $ELMFIRE_BASE_DIR/runs/forecasts
+
+STRING='{
+"fireName": "dummy_firename",
+"initializationType": "points_within_polygon",
+"ignitionTime": "dummy_ignition_time",
+"ignitionLon": dummy_ignition_lon,
+"ignitionLat": dummy_ignition_lat,
+"centerLon": dummy_center_lon,
+"centerLat": dummy_center_lat,
+"westBuffer": dummy_west_buffer,
+"southBuffer": dummy_south_buffer,
+"eastBuffer": dummy_east_buffer,
+"northBuffer": dummy_north_buffer,
+"numEnsembleMembers": dummy_num_ensemble_members,
+"addToActiveFires": "dummy_add_to_active_fires",
+"ignitionRadius": dummy_ignition_radius,
+"runHours": dummy_run_hours,
+"fuelSource": "dummy_fuel_source",
+"fuelVersion": "dummy_fuel_version",
+"scpInputDeck": "none",
+"runTemplate": "firestarter"
+}'
+
+./01-crs.sh "$STRING"
+
+FIRENAME=`echo $STRING      | jq -r '.fireName'`
+IGNITION_TIME=`echo $STRING | jq -r '.ignitionTime'`
+TIMESTAMP=`date -u -d "$IGNITION_TIME" +"%Y%m%d_%H%M00"`
+
+PERIMETER=$ELMFIRE_BASE_DIR/runs/forecasts/runs/$FIRENAME/${FIRENAME}_$TIMESTAMP/perimeter.json
+echo $PERIMETER
+
+exit 0
