@@ -81,10 +81,12 @@ fi
 
 TILELIST=$ELMFIRE_BASE_DIR/config/ignition/patterns/$PATTERN/tiles/tiles.txt
 RUNDIR=$ELMFIRE_BASE_DIR/runs/risk/runs/$FORECAST_CYCLE-$PATTERN-$FUELS_INPUTS
+INTERMEDIATE_OUTPUTS_BASE_DIR=$ELMFIRE_SCRATCH_BASE/$FORECAST_CYCLE-$PATTERN-$FUELS_INPUTS
+
 INPUTS_DIR=$RUNDIR/inputs
 
 rm -f -r $INPUTS_DIR
-mkdir $ELMFIRE_SCRATCH_BASE $SCRATCH $RUNDIR $INPUTS_DIR 2> /dev/null
+mkdir -p $SCRATCH $INTERMEDIATE_OUTPUTS_BASE_DIR $RUNDIR $INPUTS_DIR 2> /dev/null
 
 # Start by getting data from cloudfire
 
@@ -240,16 +242,16 @@ for TILE in $TILES; do
 
 done
 
-cp -f $CWD/02-post.sh $RUNDIR
+cp -f $CWD/02-post.sh $INTERMEDIATE_OUTPUTS_BASE_DIR
 if [ "$PATTERN" = "all" ]; then
-   cp -f $CWD/0304-rasterize.sh $RUNDIR
+   cp -f $CWD/0304-rasterize.sh $INTERMEDIATE_OUTPUTS_BASE_DIR
 else
-   cp -f $CWD/03-zonal.sh           $RUNDIR
-   cp -f $CWD/04-attribute_table.sh $RUNDIR
+   cp -f $CWD/03-zonal.sh           $INTERMEDIATE_OUTPUTS_BASE_DIR
+   cp -f $CWD/04-attribute_table.sh $INTERMEDIATE_OUTPUTS_BASE_DIR
 fi
-cp -f $CWD/05-upload.sh $RUNDIR
+cp -f $CWD/05-upload.sh $INTERMEDIATE_OUTPUTS_BASE_DIR
 
-cd $RUNDIR
+cd $INTERMEDIATE_OUTPUTS_BASE_DIR
 
 ./02-post.sh >& log_02-post.txt
 
@@ -261,5 +263,7 @@ else
 fi
 
 ./05-upload.sh >& log_05-upload.txt
+
+cp -f -r * $RUNDIR
 
 exit 0
