@@ -454,14 +454,18 @@ IF (RANDOM_IGNITIONS) THEN
          WRITE(*,200) 'specified via the keyworkd IGNITIONS_CSV_FILENAME on the &INPUTS'
          WRITE(*,200) 'namelist group. Please set IGNITION_MASK_FILENAME or IGNITIONS_CSV_FILENAME'
          WRITE(*,200) 'and rerun.'
+         STOP
       ENDIF
    ELSE
-      WRITE(*,200) 'When RANDOM_IGNITIONS = .TRUE., setting USE_IGNITION_MASK = .FALSE. is now deprecated.'
-      WRITE(*,200) 'ELMFIRE assumes when RANDOM_IGNITIONS = .TRUE. that a Float32 ignition mask is provided'
-      WRITE(*,200) 'via the keyword IGNITION_MASK_FILENAME on the &INPUTS namelist group. The keyword '
-      WRITE(*,200) 'USE_IGNITION_MASK is scheduled for removal from the &MONTE_CARLO namelist group. '
-      WRITE(*,200) 'Until that time, please set USE_IGNITION_MASK = .TRUE. and set IGNITION_MASK_FILENAME.'
-      STOP
+      IF (TRIM(IGNITIONS_CSV_FILENAME) .EQ. '') THEN
+         WRITE(*,200) 'When RANDOM_IGNITIONS = .TRUE., setting USE_IGNITION_MASK = .FALSE. is now deprecated.'
+         WRITE(*,200) 'unless IGNITIONS_CSV_FILENAME is specified.'
+         WRITE(*,200) 'ELMFIRE assumes when RANDOM_IGNITIONS = .TRUE. that a Float32 ignition mask is provided'
+         WRITE(*,200) 'via the keyword IGNITION_MASK_FILENAME on the &INPUTS namelist group. The keyword '
+         WRITE(*,200) 'USE_IGNITION_MASK is scheduled for removal from the &MONTE_CARLO namelist group. '
+         WRITE(*,200) 'Until that time, please set USE_IGNITION_MASK = .TRUE. and set IGNITION_MASK_FILENAME.'
+         STOP
+      ENDIF
    ENDIF
 ENDIF
 
