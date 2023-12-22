@@ -447,10 +447,13 @@ NUM_MONTE_CARLO_VARIABLES = 0
 
 IF (RANDOM_IGNITIONS) THEN
    IF (USE_IGNITION_MASK) THEN
-      IF ( TRIM (IGNITION_MASK_FILENAME) .EQ. '' ) THEN
+      IF ( TRIM(IGNITIONS_CSV_FILENAME) .EQ. '' .AND. TRIM(IGNITION_MASK_FILENAME) .EQ. '' ) THEN
          WRITE(*,200) 'When RANDOM_IGNITIONS = .TRUE. ELMFIRE requires a Float32 ignition'
          WRITE(*,200) 'mask specified via the keyword IGNITION_MASK_FILENAME on the &INPUTS'
-         WRITE(*,200) 'namelist group. Please set IGNITION_MASK_FILENAME and re-run.'
+         WRITE(*,200) 'namelist group OR a sequence of igntitions contained in a .csv file'
+         WRITE(*,200) 'specified via the keyworkd IGNITIONS_CSV_FILENAME on the &INPUTS'
+         WRITE(*,200) 'namelist group. Please set IGNITION_MASK_FILENAME or IGNITIONS_CSV_FILENAME'
+         WRITE(*,200) 'and rerun.'
       ENDIF
    ELSE
       WRITE(*,200) 'When RANDOM_IGNITIONS = .TRUE., setting USE_IGNITION_MASK = .FALSE. is now deprecated.'
