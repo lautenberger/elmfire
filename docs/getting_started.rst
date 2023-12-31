@@ -86,6 +86,6 @@ ELMFIRE and its postprocessing tool can be built as follows:
 
 Unless an error occurs, this will build the executables 
 ``elmfire_VERSION`` and ``elmfire_post_VERSION`` (where version is, for 
-example, 2023.1221) and copy them to ``$ELMFIRE_INSTALL_DIR``. If 
+example, 2023.1231) and copy them to ``$ELMFIRE_INSTALL_DIR``. If 
 this directory is not in the user's ``$PATH`` it should be added at this 
 time. Note that two debug executables are also built.
