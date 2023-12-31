@@ -504,6 +504,139 @@ END SUBROUTINE INTERP_RASTER_LINKEDLIST
 ! *****************************************************************************
 
 ! *****************************************************************************
+SUBROUTINE INTERP_RASTER_LINKEDLIST_BILINEAR(L,LO,HI,F,IQUANTITY)
+! *****************************************************************************
+
+TYPE (DLL), INTENT(INOUT) :: L
+REAL, DIMENSION(:,:), INTENT(IN) :: LO,HI
+INTEGER, INTENT(IN) :: IQUANTITY
+REAL, INTENT(IN) :: F
+TYPE(NODE), POINTER :: C
+REAL, PARAMETER :: CONVERSION_FACTOR = 5280./60.
+REAL :: X1, X2, Y1, Y2, CX, CY, PL, PH, PNOW
+REAL :: Q11L, Q21L, Q12L, Q22L, Q11H, Q21H, Q12H, Q22H
+INTEGER :: I, I1, I2, J1, J2
+
+C => L%HEAD
+
+DO I = 1, L%NUM_NODES
+    
+   CALL GET_BILINEAR_INTERPOLATE_COEFFS(C%IX, C%IY, X1, Y1, X2, Y2, I1, J1, I2, J2, CX, CY)
+
+   Q12L = LO(I1, J2) ; Q22L = LO(I2, J2)
+   Q11L = LO(I1, J1) ; Q21L = LO(I2, J1)
+   PL   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, Q11L, Q21L, Q12L, Q22L)
+         
+   Q12H = HI(I1, J2) ; Q22H = HI(I2, J2)
+   Q11H = HI(I1, J1) ; Q21H = HI(I2, J1)
+   PH   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, Q11H, Q21H, Q12H, Q22H)
+   
+   PNOW = PL + F * (PH - PL)
+
+   SELECT CASE (IQUANTITY)
+      CASE (1)
+         C%M1   = MAX (PNOW + PERTURB_M1  , 0.01)
+      CASE (2)
+         C%M10  = MAX (PNOW + PERTURB_M10 , 0.01)
+      CASE (3)
+         C%M100 = MAX (PNOW + PERTURB_M100, 0.01)
+      CASE (4)
+         C%MLH  = MAX (PNOW + PERTURB_MLH , 0.30)
+      CASE (5)
+         C%MLW  = MAX (PNOW + PERTURB_MLW , 0.60)
+      CASE (6)
+         C%FMC = PNOW + PERTURB_FMC
+      CASE (7)
+         C%WS20_INTERP = MAX(PNOW + PERTURB_WS, 0.0)
+         C%WS20_NOW = C%WS20_INTERP
+         C%WSMF = C%WS20_NOW * MAX((WAF%R4(C%IX,C%IY,1) + PERTURB_WAF),0.) * CONVERSION_FACTOR
+      END SELECT
+   
+   C => C%NEXT
+
+ENDDO
+
+! *****************************************************************************
+END SUBROUTINE INTERP_RASTER_LINKEDLIST_BILINEAR
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE GET_BILINEAR_INTERPOLATE_COEFFS(IX, IY, X1, Y1, X2, Y2, I1, J1, I2, J2, CX, CY)
+! *****************************************************************************
+
+INTEGER, INTENT(IN) :: IX, IY
+REAL, INTENT(OUT) :: X1, Y1, X2, Y2, CX, CY
+INTEGER, INTENT(OUT) :: I1, J1, I2, J2
+
+REAL :: XLL_WX, YLL_WX, CELLSIZE_WX, XLL_FUEL, YLL_FUEL, CELLSIZE_FUEL
+INTEGER :: NCOL_WX, NROW_WX
+
+XLL_WX        = WS%XLLCORNER
+YLL_WX        = WS%YLLCORNER
+CELLSIZE_WX   = WS%CELLSIZE
+NCOL_WX       = WS%NCOLS
+NROW_WX       = WS%NROWS
+
+XLL_FUEL      = WS%XLLCORNER
+YLL_FUEL      = WS%YLLCORNER
+CELLSIZE_FUEL = WS%CELLSIZE
+
+CX = XLL_FUEL + (REAL(IX) - 0.5) * CELLSIZE_FUEL
+CY = YLL_FUEL + (REAL(IY) - 0.5) * CELLSIZE_FUEL
+
+I1 = 1 + NINT( (CX - XLL_WX) / CELLSIZE_WX )
+I1 = MAX ( MIN(I1    , NCOL_WX), 1 )
+I2 = MAX ( MIN(I1 + 1, NCOL_WX), 1 )
+
+J1 = 1 + NINT( (CY - YLL_WX) / CELLSIZE_WX )
+J1 = MAX ( MIN(J1,     NROW_WX), 1 )
+J2 = MAX ( MIN(J2 + 1, NROW_WX), 1 )
+
+X1 = XLL_WX + (REAL(I1) - 0.5) * CELLSIZE_WX
+X2 = XLL_WX + (REAL(I2) - 0.5) * CELLSIZE_WX
+Y1 = YLL_WX + (REAL(J1) - 0.5) * CELLSIZE_WX
+Y2 = YLL_WX + (REAL(J2) - 0.5) * CELLSIZE_WX
+
+! *****************************************************************************
+END SUBROUTINE GET_BILINEAR_INTERPOLATE_COEFFS
+! *****************************************************************************
+
+! *****************************************************************************
+REAL FUNCTION BILINEAR_INTERPOLATE(X, Y, X1, Y1, X2, Y2, Q11, Q21, Q12, Q22)
+! *****************************************************************************
+
+REAL, INTENT(IN) :: X, Y, X1, Y1, X2, Y2, Q11, Q21, Q12, Q22
+REAL :: X2MX1, Y2MY1, DENOM, X2MX, Y2MY, XMX1, YMY1, NUMER1, NUMER2, NUMER3, &
+        NUMER4, P
+
+X2MX1 = X2 - X1
+Y2MY1 = Y2 - Y1
+DENOM = X2MX1 * Y2MY1 
+
+X2MX  = X2 - X
+Y2MY  = Y2 - Y
+XMX1  = X - X1
+YMY1  = Y - Y1
+
+IF (DENOM .GT. 1E-3) THEN
+   NUMER1 = X2MX * Y2MY * Q11
+   NUMER2 = XMX1 * Y2MY * Q21
+   NUMER3 = X2MX * YMY1 * Q12
+   NUMER4 = XMX1 * YMY1 * Q22
+   P = ( NUMER1 + NUMER2 + NUMER3 + NUMER4 ) / DENOM
+ELSE IF (X2MX1 .LT. 1E-3) THEN ! Only interpolate in y direction
+   P = ( Q11 * Y2MY + Q12 * YMY1 ) / Y2MY1
+ELSE ! Only interpolate in x direction
+   P = ( Q11 * X2MX + Q21 * XMX1 ) / X2MX1
+ENDIF
+
+BILINEAR_INTERPOLATE = P 
+
+! *****************************************************************************
+END FUNCTION BILINEAR_INTERPOLATE
+! *****************************************************************************
+
+! *****************************************************************************
 INTEGER FUNCTION WX_ICOL_FROM_ANALYSIS_IX(IX_IN)
 ! *****************************************************************************
 
@@ -544,7 +677,6 @@ ICOL_FINE_TO_COARSE = MAX(MIN(ICOL_ANALYSIS_F2C(IX),WS%NCOLS),1)
 ! *****************************************************************************
 END FUNCTION ICOL_FINE_TO_COARSE
 ! *****************************************************************************
-
 
 ! *****************************************************************************
 SUBROUTINE INTERP_RASTER_LINKEDLIST_SINGLE(NODEIN,LO,HI,F,IQUANTITY)
@@ -598,6 +730,57 @@ END SELECT
 
 ! *****************************************************************************
 END SUBROUTINE INTERP_RASTER_LINKEDLIST_SINGLE
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR(NODEIN,LO,HI,F,IQUANTITY)
+! *****************************************************************************
+
+TYPE (NODE), POINTER, INTENT(OUT) :: NODEIN
+REAL, DIMENSION(:,:), INTENT(IN) :: LO,HI
+INTEGER, INTENT(IN) :: IQUANTITY
+REAL, INTENT(IN) :: F
+TYPE(NODE), POINTER :: C
+REAL, PARAMETER :: CONVERSION_FACTOR = 5280./60.
+REAL :: X1, X2, Y1, Y2, CX, CY, PL, PH, PNOW
+REAL :: Q11L, Q21L, Q12L, Q22L, Q11H, Q21H, Q12H, Q22H
+INTEGER :: I1, I2, J1, J2
+
+C => NODEIN
+
+CALL GET_BILINEAR_INTERPOLATE_COEFFS(C%IX, C%IY, X1, Y1, X2, Y2, I1, J1, I2, J2, CX, CY)
+
+Q12L = LO(I1, J2) ; Q22L = LO(I2, J2)
+Q11L = LO(I1, J1) ; Q21L = LO(I2, J1)
+PL   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, Q11L, Q21L, Q12L, Q22L)
+         
+Q12H = HI(I1, J2) ; Q22H = HI(I2, J2)
+Q11H = HI(I1, J1) ; Q21H = HI(I2, J1)
+PH   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, Q11H, Q21H, Q12H, Q22H)
+   
+PNOW = PL + F * (PH - PL)
+
+SELECT CASE (IQUANTITY)
+   CASE (1)
+      C%M1   = MAX(PNOW + PERTURB_M1  , 0.01)
+   CASE (2)
+      C%M10  = MAX(PNOW + PERTURB_M10 , 0.01)
+   CASE (3)
+      C%M100 = MAX(PNOW + PERTURB_M100, 0.01)
+   CASE (4)
+      C%MLH  = MAX(PNOW + PERTURB_MLH , 0.30)
+   CASE (5)
+      C%MLW  = MAX(PNOW + PERTURB_MLW , 0.60)
+   CASE (6)
+      C%FMC  = PNOW + PERTURB_FMC
+   CASE (7)
+      C%WS20_INTERP = MAX(PNOW + PERTURB_WS, 0.0)
+      C%WS20_NOW = C%WS20_INTERP
+      C%WSMF = C%WS20_NOW * MAX((WAF%R4(C%IX,C%IY,1) + PERTURB_WAF),0.) * CONVERSION_FACTOR
+END SELECT
+
+! *****************************************************************************
+END SUBROUTINE INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR
 ! *****************************************************************************
 
 ! *****************************************************************************
