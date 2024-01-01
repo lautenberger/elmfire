@@ -561,6 +561,228 @@ END SUBROUTINE INTERP_RASTER_LINKEDLIST_BILINEAR
 ! *****************************************************************************
 
 ! *****************************************************************************
+SUBROUTINE INTERP_WIND_LINKEDLIST_BILINEAR(L,WSLO,WSHI,WDLO,WDHI,F)
+! *****************************************************************************
+
+TYPE (DLL), INTENT(INOUT) :: L
+REAL, DIMENSION(:,:), INTENT(IN) :: WSLO,WSHI,WDLO,WDHI
+REAL, INTENT(IN) :: F
+TYPE(NODE), POINTER :: C
+REAL, PARAMETER :: CONVERSION_FACTOR = 5280./60.
+REAL :: X1, X2, Y1, Y2, CX, CY
+REAL :: WS11L, WS21L, WS12L, WS22L, WS11H, WS21H, WS12H, WS22H, &
+        WD11L, WD21L, WD12L, WD22L, WD11H, WD21H, WD12H, WD22H, &
+        UX11L, UX21L, UX12L, UX22L, UX11H, UX21H, UX12H, UX22H, &
+        UY11L, UY21L, UY12L, UY22L, UY11H, UY21H, UY12H, UY22H
+REAL :: UXL, UXH, UYL, UYH, UXNOW, UYNOW, WSNOW, WDNOW
+
+INTEGER :: I, I1, I2, J1, J2
+
+C => L%HEAD
+
+DO I = 1, L%NUM_NODES
+    
+   CALL GET_BILINEAR_INTERPOLATE_COEFFS(C%IX, C%IY, X1, Y1, X2, Y2, I1, J1, I2, J2, CX, CY)
+
+! Wind speed and wind direction (lo)
+   WS12L = WSLO(I1, J2) ; WS22L = WSLO(I2, J2)
+   WS11L = WSLO(I1, J1) ; WS21L = WSLO(I2, J1)
+   
+   WD12L = WDLO(I1, J2) ; WD22L = WSLO(I2, J2)
+   WD11L = WDLO(I1, J1) ; WD21L = WSLO(I2, J1)
+
+! Convert to x and y components
+   UX12L = UX_FROM_WSWD(WS12L, WD12L) ; UX22L = UX_FROM_WSWD(WS22L, WD22L)
+   UX11L = UX_FROM_WSWD(WS11L, WD11L) ; UX21L = UX_FROM_WSWD(WS21L, WD21L)
+
+   UY12L = UY_FROM_WSWD(WS12L, WD12L) ; UY22L = UY_FROM_WSWD(WS22L, WD22L)
+   UY11L = UY_FROM_WSWD(WS11L, WD11L) ; UY21L = UY_FROM_WSWD(WS21L, WD21L)
+   
+! Interpolate spatially
+   UXL   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, UX11L, UX21L, UX12L, UX22L)
+   UYL   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, UY11L, UY21L, UY12L, UY22L)
+
+! Wind speed and wind direction (hi)
+   WS12H = WSHI(I1, J2) ; WS22H = WSHI(I2, J2)
+   WS11H = WSHI(I1, J1) ; WS21H = WSHI(I2, J1)
+   
+   WD12H = WDHI(I1, J2) ; WD22H = WSHI(I2, J2)
+   WD11H = WDHI(I1, J1) ; WD21H = WSHI(I2, J1)
+
+! Convert to x and y components
+   UX12H = UX_FROM_WSWD(WS12H, WD12H) ; UX22H = UX_FROM_WSWD(WS22H, WD22H)
+   UX11H = UX_FROM_WSWD(WS11H, WD11H) ; UX21H = UX_FROM_WSWD(WS21H, WD21H)
+
+   UY12H = UY_FROM_WSWD(WS12H, WD12H) ; UY22H = UY_FROM_WSWD(WS22H, WD22H)
+   UY11H = UY_FROM_WSWD(WS11H, WD11H) ; UY21H = UY_FROM_WSWD(WS21H, WD21H)
+   
+! Interpolate spatially
+   UXH   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, UX11H, UX21H, UX12H, UX22H)
+   UYH   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, UY11H, UY21H, UY12H, UY22H)
+
+! Interpolate temporally
+   UXNOW = UXL + F * (UXH - UXL)
+   UYNOW = UYL + F * (UYH - UYL)
+   
+! Convert to wind speed and direction
+   IF      (UXNOW .EQ. 0. .AND. UYNOW .EQ. 0.) THEN 
+      WDNOW = 0.
+   ELSE IF (UXNOW .GT. 0. .AND. UYNOW .EQ. 0.) THEN
+      WDNOW = 0.5*PI
+   ELSE IF (UXNOW .LT. 0. .AND. UYNOW .EQ. 0.) THEN          
+      WDNOW = 1.5*PI          
+   ELSE IF (UXNOW .EQ. 0. .AND. UYNOW .GT. 0.) THEN
+      WDNOW = 0.0*PI
+   ELSE IF (UXNOW .EQ. 0. .AND. UYNOW .LT. 0.) THEN          
+      WDNOW = 1.0*PI
+   ELSE
+      IF (UXNOW .GT. 0. .AND. UYNOW .GT. 0.) WDNOW = 0.     + ATAN(  UXNOW /  UYNOW ) 
+      IF (UXNOW .GT. 0. .AND. UYNOW .LT. 0.) WDNOW = 0.5*PI + ATAN( -UYNOW /  UXNOW )
+      IF (UXNOW .LT. 0. .AND. UYNOW .LT. 0.) WDNOW = PI     + ATAN(  UXNOW /  UYNOW )
+      IF (UXNOW .LT. 0. .AND. UYNOW .GT. 0.) WDNOW = 1.5*PI + ATAN(  UYNOW / ABS(UXNOW) )
+   ENDIF
+
+   WSNOW = SQRT(UXNOW*UXNOW + UYNOW*UYNOW)
+   
+   WDNOW = WDNOW * 180. / PI
+   WDNOW = WDNOW + 180. 
+   IF (WDNOW .GT. 360) WDNOW = WDNOW - 360.
+
+   C%WD20_INTERP = WDNOW + PERTURB_WD
+   IF (C%WD20_INTERP .GT. 360.) C%WD20_INTERP = C%WD20_INTERP - 360.
+   IF (C%WD20_INTERP .LT.   0.) C%WD20_INTERP = C%WD20_INTERP + 360.
+   C%WD20_NOW = C%WD20_INTERP
+
+   C%WS20_INTERP = MAX(WSNOW + PERTURB_WS, 0.0)
+   C%WS20_NOW = C%WS20_INTERP
+   C%WSMF = C%WS20_NOW * MAX((WAF%R4(C%IX,C%IY,1) + PERTURB_WAF),0.) * CONVERSION_FACTOR
+   
+   C => C%NEXT
+
+ENDDO
+
+! *****************************************************************************
+END SUBROUTINE INTERP_WIND_LINKEDLIST_BILINEAR
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE INTERP_WIND_SINGLE_BILINEAR(NODEIN,WSLO,WSHI,WDLO,WDHI,F)
+! *****************************************************************************
+
+TYPE(NODE), POINTER, INTENT(OUT) :: NODEIN
+REAL, DIMENSION(:,:), INTENT(IN) :: WSLO,WSHI,WDLO,WDHI
+REAL, INTENT(IN) :: F
+TYPE(NODE), POINTER :: C
+REAL, PARAMETER :: CONVERSION_FACTOR = 5280./60.
+REAL :: X1, X2, Y1, Y2, CX, CY
+REAL :: WS11L, WS21L, WS12L, WS22L, WS11H, WS21H, WS12H, WS22H, &
+        WD11L, WD21L, WD12L, WD22L, WD11H, WD21H, WD12H, WD22H, &
+        UX11L, UX21L, UX12L, UX22L, UX11H, UX21H, UX12H, UX22H, &
+        UY11L, UY21L, UY12L, UY22L, UY11H, UY21H, UY12H, UY22H
+REAL :: UXL, UXH, UYL, UYH, UXNOW, UYNOW, WSNOW, WDNOW
+
+INTEGER :: I1, I2, J1, J2
+
+C => NODEIN
+    
+CALL GET_BILINEAR_INTERPOLATE_COEFFS(C%IX, C%IY, X1, Y1, X2, Y2, I1, J1, I2, J2, CX, CY)
+
+! Wind speed and wind direction (lo)
+WS12L = WSLO(I1, J2) ; WS22L = WSLO(I2, J2)
+WS11L = WSLO(I1, J1) ; WS21L = WSLO(I2, J1)
+   
+WD12L = WDLO(I1, J2) ; WD22L = WSLO(I2, J2)
+WD11L = WDLO(I1, J1) ; WD21L = WSLO(I2, J1)
+
+! Convert to x and y components
+UX12L = UX_FROM_WSWD(WS12L, WD12L) ; UX22L = UX_FROM_WSWD(WS22L, WD22L)
+UX11L = UX_FROM_WSWD(WS11L, WD11L) ; UX21L = UX_FROM_WSWD(WS21L, WD21L)
+
+UY12L = UY_FROM_WSWD(WS12L, WD12L) ; UY22L = UY_FROM_WSWD(WS22L, WD22L)
+UY11L = UY_FROM_WSWD(WS11L, WD11L) ; UY21L = UY_FROM_WSWD(WS21L, WD21L)
+   
+! Interpolate spatially
+UXL   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, UX11L, UX21L, UX12L, UX22L)
+UYL   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, UY11L, UY21L, UY12L, UY22L)
+
+! Wind speed and wind direction (hi)
+WS12H = WSHI(I1, J2) ; WS22H = WSHI(I2, J2)
+WS11H = WSHI(I1, J1) ; WS21H = WSHI(I2, J1)
+   
+WD12H = WDHI(I1, J2) ; WD22H = WSHI(I2, J2)
+WD11H = WDHI(I1, J1) ; WD21H = WSHI(I2, J1)
+
+! Convert to x and y components
+UX12H = UX_FROM_WSWD(WS12H, WD12H) ; UX22H = UX_FROM_WSWD(WS22H, WD22H)
+UX11H = UX_FROM_WSWD(WS11H, WD11H) ; UX21H = UX_FROM_WSWD(WS21H, WD21H)
+
+UY12H = UY_FROM_WSWD(WS12H, WD12H) ; UY22H = UY_FROM_WSWD(WS22H, WD22H)
+UY11H = UY_FROM_WSWD(WS11H, WD11H) ; UY21H = UY_FROM_WSWD(WS21H, WD21H)
+   
+! Interpolate spatially
+UXH   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, UX11H, UX21H, UX12H, UX22H)
+UYH   = BILINEAR_INTERPOLATE(CX, CY, X1, Y1, X2, Y2, UY11H, UY21H, UY12H, UY22H)
+
+! Interpolate temporally
+UXNOW = UXL + F * (UXH - UXL)
+UYNOW = UYL + F * (UYH - UYL)
+   
+! Convert to wind speed and direction
+IF      (UXNOW .EQ. 0. .AND. UYNOW .EQ. 0.) THEN 
+   WDNOW = 0.
+ELSE IF (UXNOW .GT. 0. .AND. UYNOW .EQ. 0.) THEN
+   WDNOW = 0.5*PI
+ELSE IF (UXNOW .LT. 0. .AND. UYNOW .EQ. 0.) THEN          
+   WDNOW = 1.5*PI          
+ELSE IF (UXNOW .EQ. 0. .AND. UYNOW .GT. 0.) THEN
+   WDNOW = 0.0*PI
+ELSE IF (UXNOW .EQ. 0. .AND. UYNOW .LT. 0.) THEN          
+   WDNOW = 1.0*PI
+ELSE
+   IF (UXNOW .GT. 0. .AND. UYNOW .GT. 0.) WDNOW = 0.     + ATAN(  UXNOW /  UYNOW ) 
+   IF (UXNOW .GT. 0. .AND. UYNOW .LT. 0.) WDNOW = 0.5*PI + ATAN( -UYNOW /  UXNOW )
+   IF (UXNOW .LT. 0. .AND. UYNOW .LT. 0.) WDNOW = PI     + ATAN(  UXNOW /  UYNOW )
+   IF (UXNOW .LT. 0. .AND. UYNOW .GT. 0.) WDNOW = 1.5*PI + ATAN(  UYNOW / ABS(UXNOW) )
+ENDIF
+
+WSNOW = SQRT(UXNOW*UXNOW + UYNOW*UYNOW)
+   
+WDNOW = WDNOW * 180. / PI
+WDNOW = WDNOW + 180. 
+IF (WDNOW .GT. 360) WDNOW = WDNOW - 360.
+
+C%WD20_INTERP = WDNOW + PERTURB_WD
+IF (C%WD20_INTERP .GT. 360.) C%WD20_INTERP = C%WD20_INTERP - 360.
+IF (C%WD20_INTERP .LT.   0.) C%WD20_INTERP = C%WD20_INTERP + 360.
+C%WD20_NOW = C%WD20_INTERP
+
+C%WS20_INTERP = MAX(WSNOW + PERTURB_WS, 0.0)
+C%WS20_NOW = C%WS20_INTERP
+C%WSMF = C%WS20_NOW * MAX((WAF%R4(C%IX,C%IY,1) + PERTURB_WAF),0.) * CONVERSION_FACTOR
+   
+! *****************************************************************************
+END SUBROUTINE INTERP_WIND_SINGLE_BILINEAR
+! *****************************************************************************
+
+! *****************************************************************************
+REAL FUNCTION UX_FROM_WSWD(WS,WD)
+! *****************************************************************************
+   REAL, INTENT(IN) :: WS, WD
+   UX_FROM_WSWD = WS * COS( (WD + 90.) * PI / 180.) 
+! *****************************************************************************
+END FUNCTION UX_FROM_WSWD
+! *****************************************************************************
+
+! *****************************************************************************
+REAL FUNCTION UY_FROM_WSWD(WS,WD)
+! *****************************************************************************
+   REAL, INTENT(IN) :: WS, WD
+   UY_FROM_WSWD = WS * SIN( (WD - 90.) * PI / 180.) 
+! *****************************************************************************
+END FUNCTION UY_FROM_WSWD
+! *****************************************************************************
+
+! *****************************************************************************
 SUBROUTINE GET_BILINEAR_INTERPOLATE_COEFFS(IX, IY, X1, Y1, X2, Y2, I1, J1, I2, J2, CX, CY)
 ! *****************************************************************************
 
