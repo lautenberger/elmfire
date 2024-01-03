@@ -30,6 +30,6 @@ rm -f -r ./$FIRENAME* 2> /dev/null
          $NUM_ENSEMBLE_MEMBERS $RUN_HOURS $FUEL_SOURCE $FUEL_VERSION \
          $RUN_TEMPLATE
 
-rm -f ./run.sh
+#rm -f ./run.sh
 
 exit 0

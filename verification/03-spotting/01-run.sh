@@ -6,7 +6,7 @@ CELLSIZE=30.0 # Grid size in meters
 
 # End inputs specification
 
-ELMFIRE_VER=${ELMFIRE_VER:-2023.1231}
+ELMFIRE_VER=${ELMFIRE_VER:-2024.0103}
 
 SCRATCH=./scratch
 INPUTS=./inputs

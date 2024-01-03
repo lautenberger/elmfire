@@ -26,7 +26,7 @@ WX_INPUTS_FILE=wx.csv
 
 # End inputs specification
 
-ELMFIRE_VER=${ELMFIRE_VER:-2023.1231}
+ELMFIRE_VER=${ELMFIRE_VER:-2024.0103}
 
 . ../functions/functions.sh
 
