@@ -162,7 +162,7 @@ REAL, PARAMETER :: T_INF   = 300.0 ! Ambient temperature, K
 REAL, PARAMETER :: G       = 9.81! Gravitional acceleration, m^2/s
 REAL :: I, U_WIND, LC, FR, MU_DIST, SIGMA_DIST, MU_SPANWISE, SIGMA_SPANWISE
 REAL, DIMENSION(4) :: SARDOY_PDF_PARAMETERS
-U_WIND = 0.447 * WS ! Wind speed in m/s
+U_WIND = 0.447 * WS / 0.87 ! Wind speed in m/s, Use 10-m wind speed
 I  = MAX(FI,1E-6) / 1000.0 ! Fireline intensity in MW/m
 LC = (I*1000.0 / (RHO_INF * C_PG * T_INF * SQRT(G))) ** 0.67  ! Characteristic length scale
 FR = U_WIND / SQRT(G * LC) ! Froude number
@@ -204,7 +204,7 @@ REAL :: M_FUEL, U_WIND, N_EMBER, Y_FIREBRAND
 REAL :: EMBER_TO_EMIT_PER_CELL
 
 M_FUEL = CELLSIZE_ELM*CELLSIZE_ELM*WN_FUEL ! Available vegetation fuel mass in a cell, kg
-U_WIND = WS*0.447 ! wind speed, m/s
+U_WIND = WS*0.447 ! wind speed, m/s (This is 20-ft wind, to be verified)
 
 IF (IFBFM .EQ. 91) THEN
     ! Lee and Davidson, 2010, ember from structure
@@ -713,65 +713,65 @@ END FUNCTION SARDOY_CDF
 END SUBROUTINE EMBER_TRAJECTORY_EULERIAN
 ! *****************************************************************************
 
-! *****************************************************************************
-SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE(C, STRUCTURE_AREA, T_ELMFIRE)
-! *****************************************************************************
-! This is to calculate the fireline intensity of a structural pixel since its iginition
-! The fireline intensity will be used to determine the ember emitting duration
-USE ELMFIRE_VARS
+! ! *****************************************************************************
+! SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE(C, STRUCTURE_AREA, T_ELMFIRE)
+! ! *****************************************************************************
+! ! This is to calculate the fireline intensity of a structural pixel since its iginition
+! ! The fireline intensity will be used to determine the ember emitting duration
+! USE ELMFIRE_VARS
 
-! T_ALPHA(1:256) ! Time needed to reach the heat release of 1000 KW
-! Q_F(1:256) ! Fire load
-! HRR_F! is the thermal heat energy release per unite of gross floor area. Appendix E.4 of Eurocode 1 UNI EN 1991-1-2 
-       ! shows some values of HHRf for different occupancies [kW/sqm];
-! HRR_MAX = HRR_F*A_F ! kW
+! ! T_ALPHA(1:256) ! Time needed to reach the heat release of 1000 KW
+! ! Q_F(1:256) ! Fire load
+! ! HRR_F! is the thermal heat energy release per unite of gross floor area. Appendix E.4 of Eurocode 1 UNI EN 1991-1-2 
+!        ! shows some values of HHRf for different occupancies [kW/sqm];
+! ! HRR_MAX = HRR_F*A_F ! kW
 
-TYPE(NODE), POINTER, INTENT(INOUT) :: C
+! TYPE(NODE), POINTER, INTENT(INOUT) :: C
 
-REAL, INTENT(IN) :: STRUCTURE_AREA, T_ELMFIRE
+! REAL, INTENT(IN) :: STRUCTURE_AREA, T_ELMFIRE
 
-REAL, PARAMETER :: T_ALPHA = 300.0, Q_F = 1000000.0
+! REAL, PARAMETER :: T_ALPHA = 300.0, Q_F = 1000000.0
 
-REAL :: TIME_SINCE_IGNITION, T_MAX, T_DECAY, T_TOTAL, HRR_MAX, HRR, &
-        T_EMBERGEN_START, T_EMBERGEN_END
+! REAL :: TIME_SINCE_IGNITION, T_MAX, T_DECAY, T_TOTAL, HRR_MAX, HRR, &
+!         T_EMBERGEN_START, T_EMBERGEN_END
 
-TIME_SINCE_IGNITION = T_ELMFIRE-C%TIME_OF_ARRIVAL
+! TIME_SINCE_IGNITION = T_ELMFIRE-C%TIME_OF_ARRIVAL
 
-! Use Q_dot = Q_dot0*t^2 for growth
-HRR_MAX = 400.0*STRUCTURE_AREA ! kW
-T_MAX   = SQRT(HRR_MAX*T_ALPHA**2.0/1000.0)
-T_DECAY = T_MAX+(0.7*Q_F*STRUCTURE_AREA - 1000.0/3.0/T_ALPHA/T_ALPHA*T_MAX**3.0)/HRR_MAX
-T_TOTAL = T_DECAY+2*0.3*Q_F*STRUCTURE_AREA/HRR_MAX
+! ! Use Q_dot = Q_dot0*t^2 for growth
+! HRR_MAX = 400.0*STRUCTURE_AREA ! kW
+! T_MAX   = SQRT(HRR_MAX*T_ALPHA**2.0/1000.0)
+! T_DECAY = T_MAX+(0.7*Q_F*STRUCTURE_AREA - 1000.0/3.0/T_ALPHA/T_ALPHA*T_MAX**3.0)/HRR_MAX
+! T_TOTAL = T_DECAY+2*0.3*Q_F*STRUCTURE_AREA/HRR_MAX
 
-T_EMBERGEN_START = SQRT(CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/1000.0)*T_ALPHA
-T_EMBERGEN_START = MIN(T_EMBERGEN_START,T_MAX)
-T_EMBERGEN_START = MAX(T_EMBERGEN_START,0.0)
+! T_EMBERGEN_START = SQRT(CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/1000.0)*T_ALPHA
+! T_EMBERGEN_START = MIN(T_EMBERGEN_START,T_MAX)
+! T_EMBERGEN_START = MAX(T_EMBERGEN_START,0.0)
 
-T_EMBERGEN_END = T_TOTAL-CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/HRR_MAX*(T_TOTAL-T_DECAY);
-T_EMBERGEN_END = MAX(T_EMBERGEN_END,T_DECAY)
-T_EMBERGEN_END = MIN(T_EMBERGEN_END,T_TOTAL)
+! T_EMBERGEN_END = T_TOTAL-CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/HRR_MAX*(T_TOTAL-T_DECAY);
+! T_EMBERGEN_END = MAX(T_EMBERGEN_END,T_DECAY)
+! T_EMBERGEN_END = MIN(T_EMBERGEN_END,T_TOTAL)
 
-C%LOCAL_EMBERGEN_DURATION   = T_EMBERGEN_END-T_EMBERGEN_START
+! C%LOCAL_EMBERGEN_DURATION   = T_EMBERGEN_END-T_EMBERGEN_START
 
-IF (C%TIME_OF_ARRIVAL .LT. 0.0) THEN
-    C%FLIN_SURFACE = 0.0
-ELSE
-    IF (TIME_SINCE_IGNITION .LT. T_MAX .AND. TIME_SINCE_IGNITION .GE. 0.0) THEN
-        HRR = 1000.0*(TIME_SINCE_IGNITION/T_ALPHA)**2.0
-        C%FLIN_SURFACE = HRR/CC%CELLSIZE
-    ELSEIF (TIME_SINCE_IGNITION .GE. T_MAX .AND. TIME_SINCE_IGNITION .LT. T_DECAY) THEN
-        HRR = HRR_MAX
-        C%FLIN_SURFACE = HRR/CC%CELLSIZE
-    ELSE
-        HRR = HRR_MAX*(T_TOTAL-TIME_SINCE_IGNITION)/(T_TOTAL-T_DECAY)
-        IF (HRR .LE. 0) HRR = 0.0
-        C%FLIN_SURFACE = HRR/CC%CELLSIZE
-    ENDIF
-ENDIF
+! IF (C%TIME_OF_ARRIVAL .LT. 0.0) THEN
+!     C%FLIN_SURFACE = 0.0
+! ELSE
+!     IF (TIME_SINCE_IGNITION .LT. T_MAX .AND. TIME_SINCE_IGNITION .GE. 0.0) THEN
+!         HRR = 1000.0*(TIME_SINCE_IGNITION/T_ALPHA)**2.0
+!         C%FLIN_SURFACE = HRR/CC%CELLSIZE
+!     ELSEIF (TIME_SINCE_IGNITION .GE. T_MAX .AND. TIME_SINCE_IGNITION .LT. T_DECAY) THEN
+!         HRR = HRR_MAX
+!         C%FLIN_SURFACE = HRR/CC%CELLSIZE
+!     ELSE
+!         HRR = HRR_MAX*(T_TOTAL-TIME_SINCE_IGNITION)/(T_TOTAL-T_DECAY)
+!         IF (HRR .LE. 0) HRR = 0.0
+!         C%FLIN_SURFACE = HRR/CC%CELLSIZE
+!     ENDIF
+! ENDIF
 
-! *****************************************************************************
-END SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE
-! *****************************************************************************
+! ! *****************************************************************************
+! END SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE
+! ! *****************************************************************************
 
 ! *****************************************************************************
 SUBROUTINE CLEAR_USED_EMBER(T_ELMFIRE)
@@ -810,17 +810,20 @@ USE ELMFIRE_VARS
 REAL, INTENT(IN) :: T_ELMFIRE
 INTEGER, INTENT(IN) :: IX,IY
 
-REAL :: NUM_ACCUMULATED_EMBERS
+REAL :: NUM_ACCUMULATED_EMBERS_PUA, CRITICAL_SPOTTING_IGNITION_EMBER_DENSITY_LOCAL ! Accumulated number of embers per unit area
 INTEGER :: IT_IGN
 
 EMBER_IGNITION = .FALSE.
 
+! CRITICAL_SPOTTING_IGNITION_EMBER_DENSITY_LOCAL = CRITICAL_SPOTTING_IGNITION_EMBER_DENSITY%R4(IX,IY,1)
+CRITICAL_SPOTTING_IGNITION_EMBER_DENSITY_LOCAL = 0
+
 IT_IGN = CEILING(T_ELMFIRE/DT_DUMP_EMBER_FLUX)
 IT_IGN = MAX(IT_IGN,1)
 IT_IGN = MIN(IT_IGN,EMBER_FLUX_TABLE_LEN)
-NUM_ACCUMULATED_EMBERS = SUM(EMBER_ACCUMULATION_RATE(IX,IY,1:IT_IGN:1))
+NUM_ACCUMULATED_EMBERS_PUA = SUM(EMBER_ACCUMULATION_RATE(IX,IY,1:IT_IGN:1))/ANALYSIS_CELLSIZE/ANALYSIS_CELLSIZE
 
-IF (NUM_ACCUMULATED_EMBERS .GT. 0) EMBER_IGNITION = .TRUE.
+IF (NUM_ACCUMULATED_EMBERS_PUA .GT. CRITICAL_SPOTTING_IGNITION_EMBER_DENSITY_LOCAL) EMBER_IGNITION = .TRUE.
 
 ! *****************************************************************************
 END FUNCTION EMBER_IGNITION

@@ -557,6 +557,10 @@ TYPE NODE
    REAL    :: TOTAL_DFC_RECEIVED = 0.
    REAL    :: TOTAL_RAD_RECEIVED = 0.
 
+! UMD spotting parameters
+   REAL    :: T_START_SPOTTING = -1. 
+   REAL    :: T_END_SPOTTING   = -1. 
+
 END TYPE NODE
  
 TYPE DLL
