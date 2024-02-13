@@ -42,9 +42,9 @@ END SUBROUTINE SET_SPOTTING_PARAMETERS
 ! *****************************************************************************
 
 ! *****************************************************************************
-SUBROUTINE SPOTTING(IX0,IY0,WS20_NOW,FLIN,F_WIND,WS20_LO, WS20_HI, WD20_LO, WD20_HI, &
-                    N_SPOT_FIRES, IX_SPOT_FIRE, IY_SPOT_FIRE, ICASE, DT, TIME_NOW, TAU, IGNMULT, &
-                    BLDG_FOOTPRINT_FRAC_LOCAL, FMC, IFBFM, WN_FUEL, DT_ELMFIRE)
+SUBROUTINE SPOTTING(IX0,IY0,WS20_NOW,FLIN, N_SPOT_FIRES, IX_SPOT_FIRE, IY_SPOT_FIRE, &
+                    ICASE, DT, TIME_NOW, TAU, IGNMULT, BLDG_FOOTPRINT_FRAC_LOCAL, &
+                    FMC, IFBFM, WN_FUEL)
 ! *****************************************************************************
 
 IMPLICIT NONE
@@ -52,9 +52,8 @@ IMPLICIT NONE
 INTEGER, INTENT(IN) :: IX0, IY0, ICASE
 INTEGER*2, INTENT(IN) :: IFBFM
 INTEGER :: N_SPOT_FIRES, IX_SPOT_FIRE(:), IY_SPOT_FIRE(:)
-REAL, INTENT(IN) :: WS20_NOW, FLIN, F_WIND, DT, TIME_NOW, TAU, IGNMULT, &
-                    BLDG_FOOTPRINT_FRAC_LOCAL, FMC, WN_FUEL, DT_ELMFIRE
-REAL, INTENT(IN), DIMENSION(:,:)  ::  WS20_LO, WS20_HI, WD20_LO, WD20_HI
+REAL, INTENT(IN) :: WS20_NOW, FLIN, DT, TIME_NOW, TAU, IGNMULT, &
+                    BLDG_FOOTPRINT_FRAC_LOCAL, FMC, WN_FUEL
 REAL :: R0, X0(1:3), MSD, SIGMA_DIST, MU_DIST, MU_SPANWISE, SIGMA_SPANWISE, &
          NEMBERS_REAL, P, EMBERGEN_DT, SARDOY_PARAMETERS(1:4)
 REAL, PARAMETER :: TSTOP_SPOT= 1200.
@@ -103,20 +102,13 @@ IF (USE_EULERIAN_SPOTTING) THEN
       CC%NCOLS                  , &
       CC%NROWS                  , &
       CC%CELLSIZE               , &
-      NEMBERS                   , &
-      X0                        , & 
-      DT_ELMFIRE                , &
+      NEMBERS_REAL              , &
+      X0                        , &
       TSTOP_SPOT                , & 
-      PHIP                      , &
       IRANK_WORLD               , &
       SIGMA_DIST                , &
       MU_DIST                   , &
       TIME_NOW)
-      ! WS20_LO                   , &
-      ! WS20_HI                   , &
-      ! WD20_LO                   , &
-      ! WD20_HI                   , &
-      ! F_WIND                    , &
 ELSE
    CALL EMBER_TRAJECTORY ( &
       CC%NCOLS                  , &
@@ -135,11 +127,6 @@ ELSE
       SIGMA_SPANWISE            , &
       MU_SPANWISE               , &
       SPOTTING_DISTRIBUTION_TYPE, &
-      WS20_LO                   , &
-      WS20_HI                   , &
-      WD20_LO                   , &
-      WD20_HI                   , &
-      F_WIND                    , &
       N_SPOT_FIRES              , &
       IX_SPOT_FIRE              , &
       IY_SPOT_FIRE              , &
@@ -243,11 +230,6 @@ MU_DIST                    , &
 SIGMA_SPANWISE             , &
 MU_SPANWISE                , &
 SPOTTING_DISTRIBUTION_TYPE , &
-WS20_LO                    , &
-WS20_HI                    , &
-WD20_LO                    , &
-WD20_HI                    , &
-F_WIND                     , &
 N_SPOT_FIRES               , &
 IX_SPOT_FIRE               , &
 IY_SPOT_FIRE               , &
@@ -259,11 +241,11 @@ IGNMULT)
 INTEGER, INTENT(IN) :: NX_ELM, NY_ELM, NUM_EMBERS, IRANK_WORLD, ICASE
 INTEGER :: N_SPOT_FIRES, IX_SPOT_FIRE(:), IY_SPOT_FIRE(:)
 REAL, INTENT(IN) :: CELLSIZE_ELM, PIGN_ELM, MIN_SPOTTING_DISTANCE, MAX_SPOTTING_DISTANCE, &
-                    SIGMA_DIST, MU_DIST, SIGMA_SPANWISE, MU_SPANWISE, F_WIND, TIME_NOW, IGNMULT
-REAL, INTENT(IN) :: PHIP(:,:), WS20_LO(:,:), WS20_HI(:,:), WD20_LO(:,:), WD20_HI(:,:)
+                    SIGMA_DIST, MU_DIST, SIGMA_SPANWISE, MU_SPANWISE, TIME_NOW, IGNMULT
+REAL, INTENT(IN) :: PHIP(:,:)
 
 CHARACTER(60), INTENT(IN) :: SPOTTING_DISTRIBUTION_TYPE
-REAL :: SPOTTING_DISTANCE, DIST, EPS, PDF_K, SPANWISE_DEVIATION, UWIND_ABS, INV_UWIND_TIMES_SPANWISE_DEVIATION 
+REAL :: F_WIND, SPOTTING_DISTANCE, DIST, EPS, PDF_K, SPANWISE_DEVIATION, UWIND_ABS, INV_UWIND_TIMES_SPANWISE_DEVIATION 
 
 !These also come from elmfire but have local analogs:
 REAL, INTENT(IN) :: X0_ELM(:), TSTOP_ELM
@@ -271,7 +253,8 @@ CHARACTER(3) :: THREE
 CHARACTER(400) :: FNOUT
 REAL :: R0, IGNPROB, WD1TO, WD2TO, WDTO, WS20, WS20_0, T, TSTOP, DT, X_HIGH, X_LOW, HIGH, LOW, X_MAX
 REAL, DIMENSION(3) :: X, X0, UWIND, UWIND0, OFFSET
-INTEGER :: IEMBER, I, J, I1, I2, J1, J2, IX, IY, IXLAST, IYLAST, ICOL, IROW, ICOUNT, K_MAX
+REAL, POINTER, DIMENSION(:,:), SAVE :: WS20_LO, WS20_HI, WD20_LO, WD20_HI
+INTEGER :: IEMBER, I, J, I1, I2, J1, J2, IX, IY, IXLAST, IYLAST, ICOL, IROW, ICOUNT, K_MAX, ITLO_METEOROLOGY, ITHI_METEOROLOGY
 LOGICAL :: GO
 REAL, PARAMETER :: SQRT_2 = 1.4142135623731
 
@@ -337,10 +320,25 @@ DO IEMBER = 1, NUM_EMBERS
    IY = MAX(IY,1) ; IY = MIN (IY,NY_ELM)
    IROW = IROW_ANALYSIS_F2C(IY)
 
+   ITLO_METEOROLOGY = MAX(1 + FLOOR((T+TIME_NOW) / DT_METEOROLOGY),1)
+   ITLO_METEOROLOGY = MIN(ITLO_METEOROLOGY, NUM_METEOROLOGY_TIMES)
+   ITHI_METEOROLOGY = MIN(ITLO_METEOROLOGY + 1, NUM_METEOROLOGY_TIMES)
+   F_WIND = (T + TIME_NOW - REAL(ITLO_METEOROLOGY-1) * DT_METEOROLOGY) / DT_METEOROLOGY
+   IF (ITLO_METEOROLOGY .EQ. ITHI_METEOROLOGY) F_WIND = 1.
+
+   WS20_LO => WSP   (:,:,ITLO_METEOROLOGY)
+   WS20_HI => WSP   (:,:,ITHI_METEOROLOGY)
+   WD20_LO => WDP   (:,:,ITLO_METEOROLOGY)
+   WD20_HI => WDP   (:,:,ITHI_METEOROLOGY)
+   
    WS20 = WS20_LO(ICOL,IROW) * (1. - F_WIND) + F_WIND * WS20_HI(ICOL,IROW) 
    WS20 = 0.447 * WS20
 
-   DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+   IF (USE_HALF_CFL_DT_FOR_SPOTTING) THEN
+      DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+   ELSE
+      DT =  CELLSIZE_ELM / MAX(WS20, 0.01) 
+   ENDIF
 
    IF (USE_UMD_SPOTTING_MODEL) THEN
       NUM_TRACKED_EMBERS = MIN (NUM_TRACKED_EMBERS + 1, EMBER_TRACKER_SIZE)
@@ -381,10 +379,25 @@ DO IEMBER = 1, NUM_EMBERS
             T = 9E9; CYCLE
          ENDIF
 
+         ITLO_METEOROLOGY = MAX(1 + FLOOR((T+TIME_NOW) / DT_METEOROLOGY),1)
+         ITLO_METEOROLOGY = MIN(ITLO_METEOROLOGY, NUM_METEOROLOGY_TIMES)
+         ITHI_METEOROLOGY = MIN(ITLO_METEOROLOGY + 1, NUM_METEOROLOGY_TIMES)
+         F_WIND = (T + TIME_NOW - REAL(ITLO_METEOROLOGY-1) * DT_METEOROLOGY) / DT_METEOROLOGY
+         IF (ITLO_METEOROLOGY .EQ. ITHI_METEOROLOGY) F_WIND = 1.
+
+         WS20_LO => WSP   (:,:,ITLO_METEOROLOGY)
+         WS20_HI => WSP   (:,:,ITHI_METEOROLOGY)
+         WD20_LO => WDP   (:,:,ITLO_METEOROLOGY)
+         WD20_HI => WDP   (:,:,ITHI_METEOROLOGY)
+
          WS20 = WS20_LO(ICOL,IROW) * (1. - F_WIND) + F_WIND * WS20_HI(ICOL,IROW) 
          WS20 = 0.447 * WS20
 
-         DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+         IF (USE_HALF_CFL_DT_FOR_SPOTTING) THEN
+            DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
+         ELSE
+            DT =  CELLSIZE_ELM / MAX(WS20, 0.01) 
+         ENDIF
 
          WD1TO = WD20_LO(ICOL,IROW) + 180. ; IF (WD1TO .GT. 360) WD1TO = WD1TO - 360.
          WD2TO = WD20_HI(ICOL,IROW) + 180. ; IF (WD2TO .GT. 360) WD2TO = WD2TO - 360.
@@ -508,24 +521,16 @@ NX_ELM                     , &
 NY_ELM                     , &
 CELLSIZE_ELM               , &
 NUM_EMBERS                 , &
-X0_ELM                     , & 
-DT_ELMFIRE                 , &
+X0_ELM                     , &
 TSTOP_ELM                  , &
-PHIP                       , &
 IRANK_WORLD                , &
 SIGMA_DIST                 , &
 MU_DIST                    , &
 TIME_NOW)
 ! *****************************************************************************
-! WS20_LO                    , &
-! WS20_HI                    , &
-! WD20_LO                    , &
-! WD20_HI                    , &
-! F_WIND                     , &
 
-INTEGER, INTENT(IN) :: NX_ELM, NY_ELM, NUM_EMBERS, IRANK_WORLD
-REAL, INTENT(IN) :: CELLSIZE_ELM, SIGMA_DIST, MU_DIST, DT_ELMFIRE !F_WIND, 
-REAL, INTENT(IN) :: PHIP(:,:)!, WS20_LO(:,:), WS20_HI(:,:), WD20_LO(:,:), WD20_HI(:,:)
+INTEGER, INTENT(IN) :: NX_ELM, NY_ELM, IRANK_WORLD
+REAL, INTENT(IN) :: CELLSIZE_ELM, SIGMA_DIST, MU_DIST, NUM_EMBERS 
 
 REAL :: DIST, EPS, PDF_K
 
@@ -592,11 +597,10 @@ WS20_HI_SPOTTING => WSP   (:,:,ITHI_METEOROLOGY)
 WS20 = WS20_LO_SPOTTING(ICOL,IROW) * (1. - F_WIND) + F_WIND * WS20_HI_SPOTTING(ICOL,IROW) 
 WS20 = 0.447 * WS20
 
-IF (USE_LEVEL_SET_DT_FOR_SPOTTING) THEN
-   DT = DT_ELMFIRE
+IF (USE_HALF_CFL_DT_FOR_SPOTTING) THEN
+   DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
 ELSE
-   ! DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
-   DT = CELLSIZE_ELM / MAX (WS20, 0.01)
+   DT =  CELLSIZE_ELM / MAX(WS20, 0.01) 
 ENDIF
 
 ICOUNT = 0
@@ -638,10 +642,9 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
       WS20 = WS20_LO_SPOTTING(ICOL,IROW) * (1. - F_WIND) + F_WIND * WS20_HI_SPOTTING(ICOL,IROW) 
       WS20 = 0.447 * WS20
 
-      IF (USE_LEVEL_SET_DT_FOR_SPOTTING) THEN
-         DT = DT_ELMFIRE
+      IF (USE_HALF_CFL_DT_FOR_SPOTTING) THEN
+         DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
       ELSE
-         ! DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
          DT =  CELLSIZE_ELM / MAX(WS20, 0.01) 
       ENDIF
 

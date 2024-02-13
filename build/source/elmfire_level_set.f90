@@ -771,10 +771,9 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                                   N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
                                   SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)) )
                ELSE
-                  CALL SPOTTING ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
-                                  N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
-                                  SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL, DT) ! Parameters added to calculate number of physical embers
+                  CALL SPOTTING ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE, N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,&
+                                  ICASE, DT, T, 0., SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
+                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
                ENDIF
             ENDIF
          ENDIF ! ENABLE_SPOTTING
@@ -835,10 +834,9 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                                   N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
                                   SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)) )
                ELSE
-                  CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI,WD20_LO, &
-                                  WD20_HI,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT,T, C%TAU_EMBERGEN,&
-                                  SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)), &
-                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL, DT) ! Parameters added to calculate number of physical embers
+                  CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,&
+                                  ICASE,DT,T, C%TAU_EMBERGEN,SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)),&
+                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
                ENDIF
             ENDIF
          ENDIF
