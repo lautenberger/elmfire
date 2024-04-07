@@ -354,23 +354,21 @@ IF (.NOT. RANDOM_IGNITIONS) THEN
 
          IF (USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(C%IX,C%IY,1)
 
-         ICOL = ICOL_ANALYSIS_F2C(IX)
-         IROW = IROW_ANALYSIS_F2C(IY)
          LIST_BURNED%TAIL%TIME_OF_ARRIVAL        = T
-         LIST_BURNED%TAIL%WS20_NOW               = WS20_LO(ICOL,IROW) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(ICOL,IROW)
+         LIST_BURNED%TAIL%WS20_NOW               = WS20_LO(IX,IY) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(IX,IY)
          LIST_BURNED%TAIL%TAU_EMBERGEN           = 0.
 
-!         IF (ENABLE_SMOKE_OUTPUTS) THEN
-!            LIST_BURNED%TAIL%TIME_IGNITED = T
-!            IF (C%VELOCITY .GT. 0.) THEN
-!               TBURN = ASP%CELLSIZE / (C%VELOCITY * 0.3048 / 60.)
-!            ELSE
-!               TBURN = 30.0
-!            ENDIF
-!            TBURN = MIN(MAX(TBURN,1.),10800.0)
-!            LIST_BURNED%TAIL%TIME_EXTINGUISHED = T + TBURN
-!            LIST_BURNED%TAIL%HRRPUA = (C%FLIN_SURFACE + C%FLIN_CANOPY) / ASP%CELLSIZE ! Yiren: FLIN_SURFACE and FLIN_CANOPY seems asigned no value(0 and 0)
-!         ENDIF
+         IF (ENABLE_SMOKE_OUTPUTS) THEN
+            LIST_BURNED%TAIL%TIME_IGNITED = T
+            IF (C%VELOCITY .GT. 0.) THEN
+               TBURN = ASP%CELLSIZE / (C%VELOCITY * 0.3048 / 60.)
+            ELSE
+               TBURN = 30.0
+            ENDIF
+            TBURN = MIN(MAX(TBURN,1.),10800.0)
+            LIST_BURNED%TAIL%TIME_EXTINGUISHED = T + TBURN
+            LIST_BURNED%TAIL%HRRPUA = (C%FLIN_SURFACE + C%FLIN_CANOPY) / ASP%CELLSIZE ! Yiren: FLIN_SURFACE and FLIN_CANOPY seems asigned no value(0 and 0)
+         ENDIF
       ENDIF
    ENDDO
    ENDDO
