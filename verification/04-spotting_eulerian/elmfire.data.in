@@ -128,9 +128,9 @@ ENABLE_SURFACE_FIRE_SPOTTING              = .TRUE.
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT      = 100.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MAX  = 100.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MIN  = 100.0
-PIGN                                      = 100.0 !Percent
-PIGN_MAX                                  = 100.0
-PIGN_MIN                                  = 100.0
+PIGN                                      = 99.0 !Percent
+PIGN_MAX                                  = 99.0
+PIGN_MIN                                  = 99.0
 SURFACE_FIRE_SPOTTING_PERCENT(:)          = 100.
 TAU_EMBERGEN                              = 10.0
 USE_UMD_SPOTTING_MODEL                    = .TRUE.
@@ -145,7 +145,7 @@ USE_HALF_CFL_DT_FOR_SPOTTING              = .FALSE.
 BUILD_EMBER_FLUX_TABLE                    = .TRUE.
 USE_EMBER_IGNITION_MODEL                  = .TRUE.
 USE_SIMPLE_IGNITION_MODEL                 = .TRUE.
-LOCAL_IGNITION_TIME                       = 0.0 ! seconds, for simple ignition model only
+LOCAL_IGNITION_TIME                       = 50.0 ! seconds, for simple ignition model only
 CELL_IGNITION_DELAY                       = 0.0 ! seconds, Delay of setting phi = -1 when attacked by firebrands and ignited, for simple ignition model only
 /
 

@@ -2174,7 +2174,7 @@ ENDIF
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 
-! This block need modification, datatype of EMBER_FLUX changed to float, and EMBER_FLUX%R4 is a NCOLS by NROWS by NBANDS 3-D tuple
+! Currently not working with ACCUMULATE_EMBER_FLUX = .TRUE.
 IF (DUMP_EMBER_FLUX .AND. ACCUMULATE_EMBER_FLUX) THEN 
    R=>TIMES_BURNED
 

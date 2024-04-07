@@ -821,7 +821,7 @@ REAL, INTENT(IN) :: T_ELMFIRE, DT_ELMFIRE, UWIND, P_IGN_INPUT, TAU_IGN_INPUT, T_
 INTEGER, INTENT(IN) :: IX,IY
 
 REAL :: NUM_ACCUMULATED_EMBERS_PUA, V_AIR, P_IGN, TAU_IGN, T_DEVELOP, &
-        COEF_WIND, PSI, M_EMBER, IGNITION_CRITERION, P_N, R0
+        COEF_WIND, PSI, M_EMBER, IGNITION_CRITERION, P_N, R0, HFT, F
 INTEGER :: IT_IGN_HI, IT_IGN_LO, IFBFM, IBLDGFM
 
 EMBER_IGNITION = .FALSE.
@@ -844,14 +844,28 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
               
       ! Ignition critical ember mass density from De Beer' Thesis, 2023
       M_EMBER = 0.2E-3 ! Estimated ember mass, 0.2 g
-      COEF_WIND = 0.3 ! Correction for boundary layer Wind speed, model required!
+
+      IF(IFBFM .NE. 91)
+         IF (CC .GT. 1E-4 .AND. CH .GT. 1E-4) THEN !Canopy is present
+            HFT = CH / 0.3048
+            F = 0.3333 * CC * CROWN_RATIO !Same as BEHAVE
+         ELSE !Canopy is not present
+            HFT = FUEL_MODEL_TABLE_2D(IFBFM,30)%DELTA
+            F = 0.05
+         ENDIF
+         COEF_WIND = 0.555/SQRT(F*HFT)/LOG((HFT+20-0.64*HFT)/(0.13*HFT))
+      ELSE
+         F = 0.3 !30% volume filling percentage
+         HFT = 25.23 ! ft, z_0=1 m=3.28 ft, HFT=z_0(ft)/0.13
+         COEF_WIND = 0.555/SQRT(F*HFT)/LOG((HFT+20-0.64*HFT)/(0.13*HFT))
+      ENDIF
 
       PSI = NUM_ACCUMULATED_EMBERS_PUA * M_EMBER/1E4 ! Firebrand coverage density (mass load, g/cm2) 
       V_AIR = UWIND*COEF_WIND
       IGNITION_CRITERION = PSI*(V_AIR-0.0888)*(V_AIR-3.8912)+0.1945 ! UMD Fitted curve at P_IGN = 0.5
 
       IF(IGNITION_CRITERION .LT. 0)THEN
-         P_IGN = 0.9
+         P_IGN = 0.90
       ELSE
          P_IGN = 0.0
       ENDIF
@@ -861,8 +875,8 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
 
       IF (IFBFM .EQ. 91) THEN
          IBLDGFM = BLDG_FUEL_MODEL%I2(IX,IY,1)
-         T_DEVELOP = 80.0 * BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%T_EARLY / BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%HRRPUA_PEAK ! 80 kW/m2 is an estimated HRRPUA at the ignition by firebrands
-         T_DEVELOP = BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%T_EARLY-T_DEVELOP ! Sub-model required
+         ! T_DEVELOP = 80.0 * BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%T_EARLY / BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%HRRPUA_PEAK ! 80 kW/m2 is an estimated HRRPUA at the ignition by firebrands
+         T_DEVELOP = BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%T_EARLY !
       ELSE
          T_DEVELOP = ANALYSIS_CELLSIZE
       ENDIF

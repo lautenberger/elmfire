@@ -674,6 +674,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          SURFACE_FIRE   (IX,IY) = 1
          TIME_OF_ARRIVAL(IX,IY) = T
          IF (C%CROWN_FIRE .LT. 0) C%CROWN_FIRE = 0
+         
 ! Note that per Thomas (1963) and Rothermel (1991), crown fire flame length is Lf=0.2*I^2/3
          IF (C%FLIN_SURFACE .GT. 0.) THEN
             C%FLAME_LENGTH = (0.0775 / 0.3048) * (C%FLIN_SURFACE + C%FLIN_CANOPY) ** 0.46 
