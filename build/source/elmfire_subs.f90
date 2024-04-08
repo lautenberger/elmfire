@@ -1046,13 +1046,12 @@ END FUNCTION NEW_DLL
 ! *****************************************************************************
  
 ! *****************************************************************************
-SUBROUTINE APPEND(DL2, IX, IY, IS_LISTBURNED, T)
+SUBROUTINE APPEND(DL2, IX, IY, T)
 ! *****************************************************************************
 
 TYPE(DLL), INTENT(INOUT) :: DL2
 INTEGER, INTENT(IN)      :: IX, IY
 REAL, INTENT(IN) :: T
-LOGICAL, INTENT(IN) :: IS_LISTBURNED
  
 TYPE(NODE), POINTER :: NP
 
@@ -1070,11 +1069,9 @@ DL2%TAIL%IX         =  IX
 DL2%TAIL%IY         =  IY
 DL2%TAIL%TIME_ADDED =  T
 
-IF (.NOT. IS_LISTBURNED) THEN
-   DL2%TAIL%IFBFM   =  FBFM%I2(IX,IY,1)
-   DL2%TAIL%ADJ     =  ADJ%R4(IX,IY,1)
-   DL2%TAIL%TANSLP2 =  TANSLP2(MAX(MIN(NINT(SLP%R4(IX,IY,1)),90),0))
-ENDIF
+DL2%TAIL%IFBFM   =  FBFM%I2(IX,IY,1)
+DL2%TAIL%ADJ     =  ADJ%R4(IX,IY,1)
+DL2%TAIL%TANSLP2 =  TANSLP2(MAX(MIN(NINT(SLP%R4(IX,IY,1)),90),0))
 
 DL2%TAIL%PREV       => NP
 DL2%TAIL%PREV%NEXT  => DL2%TAIL
