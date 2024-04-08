@@ -643,27 +643,11 @@ END FUNCTION CALC_WIND_ADJUSTMENT_FACTOR_SINGLE
 ! *****************************************************************************
 
 ! *****************************************************************************
-SUBROUTINE READ_FUEL_MODEL_TABLE
+SUBROUTINE WRITE_FUEL_MODEL_TABLE
 ! *****************************************************************************
 
-CHARACTER(400) :: FNINPUT, FNOUTPUT
-INTEGER :: I, INUM, IOS, ILH
-REAL :: LIVEFRAC, DEADFRAC, LH, WSMFEFF, LOW, PHIMAG
-INTEGER, PARAMETER :: NUM_FUEL_MODELS = 303
-TYPE(FUEL_MODEL_TABLE_TYPE) :: FM
-
-TYPE(FUEL_MODEL_TABLE_TYPE), ALLOCATABLE, DIMENSION(:) :: FUEL_MODEL_TABLE
-
-ALLOCATE(FUEL_MODEL_TABLE(0:NUM_FUEL_MODELS))
-
-FUEL_MODEL_TABLE(:)%SHORTNAME='NULL' !Initialize fuel model names
-
-FM%SIG(2) = 109.  !  10-hour surface area to volume ratio, 1/ft
-FM%SIG(3) =  30.  ! 100-hour surface area to volume ratio, 1/ft
-FM%RHOP   =  32.  ! Particle density
-FM%ST     =   0.055
-FM%SE     =   0.01
-FM%ETAS   = 0.174/(FM%SE**0.19) !Mineral damping coefficient, dimensionless
+CHARACTER(400) :: FNOUTPUT
+INTEGER :: IOS
 
 IF ( TRIM(FUEL_MODEL_FILE) .EQ. 'null') THEN
    FUEL_MODEL_FILE='fuel_models.csv'
@@ -737,6 +721,33 @@ IF ( TRIM(FUEL_MODEL_FILE) .EQ. 'null') THEN
    CLOSE(LUOUTPUT)
 ENDIF
 
+! *****************************************************************************
+END SUBROUTINE WRITE_FUEL_MODEL_TABLE
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE READ_FUEL_MODEL_TABLE
+! *****************************************************************************
+
+CHARACTER(400) :: FNINPUT
+INTEGER :: I, INUM, IOS, ILH
+REAL :: LIVEFRAC, DEADFRAC, LH, WSMFEFF, LOW, PHIMAG
+INTEGER, PARAMETER :: NUM_FUEL_MODELS = 303
+TYPE(FUEL_MODEL_TABLE_TYPE) :: FM
+
+TYPE(FUEL_MODEL_TABLE_TYPE), ALLOCATABLE, DIMENSION(:) :: FUEL_MODEL_TABLE
+
+ALLOCATE(FUEL_MODEL_TABLE(0:NUM_FUEL_MODELS))
+
+FUEL_MODEL_TABLE(:)%SHORTNAME='NULL' !Initialize fuel model names
+
+FM%SIG(2) = 109.  !  10-hour surface area to volume ratio, 1/ft
+FM%SIG(3) =  30.  ! 100-hour surface area to volume ratio, 1/ft
+FM%RHOP   =  32.  ! Particle density
+FM%ST     =   0.055
+FM%SE     =   0.01
+FM%ETAS   = 0.174/(FM%SE**0.19) !Mineral damping coefficient, dimensionless
+
 FNINPUT = TRIM(MISCELLANEOUS_INPUTS_DIRECTORY) // TRIM(FUEL_MODEL_FILE)
 
 !Attempt to open fuel model table file:
@@ -751,8 +762,10 @@ IOS = 0
 DO WHILE (IOS .EQ. 0)
    READ(LUINPUT,*,IOSTAT=IOS) INUM,FM%SHORTNAME,FM%DYNAMIC,FM%W0(1),FM%W0(2),FM%W0(3),FM%W0(5), &
                                    FM%W0(6),FM%SIG(1),FM%SIG(5),FM%SIG(6),FM%DELTA,FM%MEX_DEAD,FM%HOC
-   FM%MEX_DEAD = FM%MEX_DEAD / 100.
-   IF (IOS .EQ. 0) FUEL_MODEL_TABLE(INUM) = FM
+   IF (IOS .EQ. 0) THEN
+      FM%MEX_DEAD = FM%MEX_DEAD / 100.
+      FUEL_MODEL_TABLE(INUM) = FM
+   ENDIF
 ENDDO
 CLOSE(LUINPUT)
 
