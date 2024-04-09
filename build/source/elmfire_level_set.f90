@@ -852,7 +852,9 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
             DO IX = 1,NX
 
                IF (USE_EMBER_IGNITION_MODEL) THEN
-                  WS20 = WS20_LO(IX,IY) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(IX,IY)
+                  ICOL = ICOL_ANALYSIS_F2C(IX)
+                  IROW = IROW_ANALYSIS_F2C(IY)
+                  WS20 = WS20_LO(ICOL,IROW) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(ICOL,IROW)
                   ! Lines added to utilize the tabulated ignition probability proposed by UCB
                   IFBFM = FBFM%I2(IX,IY,1)
                   IF(IFBFM .NE. 91) THEN
