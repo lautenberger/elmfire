@@ -336,7 +336,7 @@ IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(22) .AND. MODE .NE. 2) THEN
       DO IROW = 1, PHI0%NROWS
       DO ICOL = 1, PHI0%NCOLS
          CALL RANDOM_NUMBER(RX)
-         IF (PHI0%R4(ICOL,IROW,1) .GT. 0.9) PHI0%R4(ICOL,IROW,1) = PHI0%R4(ICOL,IROW,1) + 1E-4 * (0.5 - RX)
+         PHI0%R4(ICOL,IROW,1) = PHI0%R4(ICOL,IROW,1) + 1E-3 * (0.5 - RX)
       ENDDO
       ENDDO
    ENDIF
@@ -603,7 +603,7 @@ IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(22) .AND. MODE .NE. 2) THEN
       DO IROW = 1, PHI0%NROWS
       DO ICOL = 1, PHI0%NCOLS
          CALL RANDOM_NUMBER(RX)
-         IF (PHI0%R4(ICOL,IROW,1) .GT. 0.9) PHI0%R4(ICOL,IROW,1) = PHI0%R4(ICOL,IROW,1) + 1E-4 * (0.5 - RX)
+         PHI0%R4(ICOL,IROW,1) = PHI0%R4(ICOL,IROW,1) + 1E-3 * (0.5 - RX)
       ENDDO
       ENDDO
    ENDIF
@@ -2190,6 +2190,35 @@ ENDIF
 
 ! *****************************************************************************
 END SUBROUTINE POSTPROCESS
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE WRITE_NODE(C,IRANK,ICASE,T)
+! *****************************************************************************
+
+INTEGER, INTENT(IN) :: IRANK, ICASE
+REAL, INTENT(IN) :: T
+TYPE(NODE), INTENT(IN) :: C
+LOGICAL :: LOPEN
+INTEGER :: IOS
+CHARACTER(11) :: FN
+CHARACTER(7) :: SEVEN
+
+WRITE(SEVEN, '(I7.7)') ICASE
+
+FN = SEVEN // '.csv'
+INQUIRE(UNIT=LUNODES+ICASE,OPENED=LOPEN)
+
+IF (.NOT. LOPEN) THEN 
+   OPEN(LUNODES+ICASE,FILE=TRIM(FN),FORM='FORMATTED',STATUS='REPLACE',IOSTAT=IOS)
+   WRITE(LUNODES+ICASE,'(A)') 'IRANK,ICASE,T,IX,IY,M1,M10,M100,MLH,MLW,UX,UY,WD20_INTERP,WD20_NOW,WS20_INTERP,WS20_NOW,WSMF'
+ENDIF
+
+WRITE(LUNODES+IRANK,'(I6, ",", I6, ",", F10.1, ",", I6, ",", I6, ",", 12(F8.3, ",") )') IRANK, ICASE, T, C%IX, C%IY, &
+   C%M1, C%M10, C%M100, C%MLH, C%MLW, C%UX, C%UY, C%WD20_INTERP, C%WD20_NOW, C%WS20_INTERP, C%WS20_NOW, C%WSMF
+
+! *****************************************************************************
+END SUBROUTINE WRITE_NODE
 ! *****************************************************************************
 
 ! *****************************************************************************

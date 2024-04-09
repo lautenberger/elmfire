@@ -41,6 +41,19 @@ DO I = 1, NUM_NODES
       CYCLE
    ENDIF
 
+   IF ( ISNONBURNABLE(C%IX,C%IY) ) THEN
+      C%IR = 0.
+      C%PHIW_SURFACE = 0.
+      C%PHIS_SURFACE = 0.
+      C%VS0 = 0.
+      C%VELOCITY_DMS_SURFACE = 0.
+      C%IR = 0.
+      C%HPUA_SURFACE = 0.
+      C%FLIN_DMS_SURFACE = 0.
+      C => C%NEXT
+      CYCLE
+   ENDIF
+
    M(1)  = C%M1
    M(2)  = C%M10
    M(3)  = C%M100
