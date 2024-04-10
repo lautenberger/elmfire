@@ -33,6 +33,7 @@ runs/risk/template/config
 scratch
 validation/01-single-fire/ca-county_20180701_062200
 verification/01-elliptical-shape/exact_ellipses
+verification/04-spotting_eulerian
 tutorials/05-UMD-spotting
 .vs
 work

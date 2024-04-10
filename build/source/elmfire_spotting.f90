@@ -852,7 +852,7 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
       ENDIF
 
       PSI = NUM_ACCUMULATED_EMBERS_PUA * M_EMBER/1E4 ! Firebrand coverage density (mass load, g/cm2) 
-      V_AIR = UWIND*COEF_WIND
+      V_AIR = UWIND*COEF_WIND*0.447
       IGNITION_CRITERION = PSI*(V_AIR-0.0888)*(V_AIR-3.8912)+0.1945 ! UMD Fitted curve at P_IGN = 0.5
 
       IF(IGNITION_CRITERION .LT. 0)THEN
@@ -875,6 +875,7 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
       ELSE
          T_DEVELOP = 75.0 ! Assume a ultrafast fire growth rate for non-structural fuels
       ENDIF
+
    ENDIF ! IF(.NOT. USE_SIMPLE_IGNITION_MODEL)THEN
 
    IF(NUM_ACCUMULATED_EMBERS_PUA .GT. 0) THEN
