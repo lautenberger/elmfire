@@ -9,6 +9,7 @@ OUTDIR=$ELMFIRE_BASE_DIR/runs/risk/runs/$FORECAST_CYCLE-$PATTERN-$FUELS_INPUTS/$
 ELMFIRE_VER=${ELMFIRE_VER:-2024.0326}
 ELMFIRE_INSTALL_DIR=${ELMFIRE_INSTALL_DIR:-$ELMFIRE_BASE_DIR/build/linux/bin}
 ELMFIRE=$ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER
+TIMEOUT=3600
 
 TR='150 150'
 SRCWIN='1600 1600 1600 1600'
@@ -41,7 +42,8 @@ killall $MPIRUN $ELMFIRE postprocess.sh 2> /dev/null
 
 # Run elmfire
 echo "localhost slots=$NP" > $CWD/hosts
-$MPIRUN --mca btl tcp,self --bind-to core --oversubscribe -np $NP -machinefile hosts -x OMP_NUM_THREADS $ELMFIRE elmfire.data >& elmfire.log
+#$MPIRUN --mca btl tcp,self --bind-to core --oversubscribe -np $NP -machinefile hosts -x OMP_NUM_THREADS $ELMFIRE elmfire.data >& elmfire.log
+timeout ${TIMEOUT}s $MPIRUN --mca btl tcp,self --bind-to core --oversubscribe -np $NP -machinefile hosts -x OMP_NUM_THREADS $ELMFIRE elmfire.data >& elmfire.log
 
 if [ "$PATTERN" != "all" ]; then
    ./02-rasterize.sh $PATTERN >& rasterize.log
