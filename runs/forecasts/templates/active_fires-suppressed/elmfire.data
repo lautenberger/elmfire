@@ -33,11 +33,7 @@ OUTPUTS_DIRECTORY                = './'
 CONVERT_TO_GEOTIFF               = .FALSE.
 DTDUMP                           = 999999.
 DUMP_TIMINGS                     = .TRUE.
-DUMP_TIME_OF_ARRIVAL             = .FALSE.
-DUMP_INTERMEDIATE_TIMINGS        = .FALSE.
-CALCULATE_BURN_PROBABILITY       = .FALSE.
 DUMP_BINARY_OUTPUTS              = .TRUE.
-DUMP_PROGRESS_MESSAGES           = .TRUE.
 /
 
 &COMPUTATIONAL_DOMAIN
@@ -204,10 +200,6 @@ CROWN_FIRE_SPOTTING_PERCENT_MAX          = 1.2
 !PIGN                                     = 100.0
 PIGN_MIN                                 = 20.0
 PIGN_MAX                                 = 90.0
-/
-
-&CALIBRATION
-CALIBRATE                    = .FALSE.
 /
 
 &MISCELLANEOUS
