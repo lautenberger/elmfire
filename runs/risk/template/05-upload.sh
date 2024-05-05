@@ -51,7 +51,13 @@ if [ "$PATTERN_OUT" != "all" ]; then
 fi
 
 FNLIST=`ls ./out/*.tif ./out/*.shp ./out/*.dbf ./out/*.prj ./out/*.shx`
-scp -r $FNLIST $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE/elmfire/landfire/
+GO=yes
+while [ "$GO" = "yes" ]; do
+   rsync -rv --timeout=10 $FNLIST $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE/elmfire/landfire/
+   if [ "$?" = "0" ]; then
+      GO=no
+   fi
+done
 
 if [ "$REMOTE_OWNER" = "sig-reax" ]; then
    ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'sig-reax:domain users' $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE"
@@ -65,7 +71,13 @@ if [ "$UPLOAD_PSPS_ZONAL_STATS" = "yes" ]; then
    ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'sig-reax:domain users' $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE"
    FNLIST=`ls ./deenergization-zones/*`
 
-   scp -r $FNLIST $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE/
+   GO=yes
+   while [ "$GO" = "yes" ]; do
+      rsync -rv --timeout=10 $FNLIST $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE/
+      if [ "$?" = "0" ]; then
+         GO=no
+      fi
+   done
 
    if [ "$REMOTE_OWNER" = "sig-reax" ]; then
       ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'sig-reax:domain users' $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE"
