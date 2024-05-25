@@ -10,18 +10,20 @@ else
    case $PATTERN in
      tlines)
        REMOTE_USER=elmfire
-       REMOTE_OWNER=elmfire
+       REMOTE_OWNER='domain users'
        REMOTE_HOST=shasta
        REMOTE_DIRECTORY=/srv/gis
        UPLOAD_PSPS_ZONAL_STATS=no
+       PATTERN_OUT=$PATTERN
        ;;
 
      all)
        REMOTE_USER=elmfire
-       REMOTE_OWNER=elmfire
+       REMOTE_OWNER='domain users'
        REMOTE_HOST=shasta
        REMOTE_DIRECTORY=/srv/gis
        UPLOAD_PSPS_ZONAL_STATS=no
+       PATTERN_OUT=$PATTERN
        ;;
 
      *)
@@ -36,15 +38,17 @@ if [ "$REMOTE_HOST" = "none" ]; then
    exit 0
 fi
 
-PATTERN_OUT=$PATTERN
+echo "Pattern: $PATTERN"
+echo "Pattern out: $PATTERN_OUT"
+echo "Remote user: $REMOTE_USER"
+echo "Remote host: $REMOTE_HOST"
+echo "Remote host: $REMOTE_DIRECTORY"
 
 # Start with times burned & split lines
-ssh $REMOTE_USER@$REMOTE_HOST "sudo mkdir -p $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE/elmfire/landfire"
-if [ "$REMOTE_OWNER" = "sig-reax" ]; then
-   ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'sig-reax:domain users' $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE"
-else
-   ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'elmfire:domain users'  $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE"
-fi
+PARTIALPATH=$REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE
+FULLPATH=$PARTIALPATH/elmfire/landfire
+ssh $REMOTE_USER@$REMOTE_HOST "sudo mkdir -p $FULLPATH"
+ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $PARTIALPATH; sudo chown -R 'sig-app:domain users' $PARTIALPATH"
 
 if [ "$PATTERN_OUT" != "all" ]; then
    rm -f ./out/fire*.tif ./out/impacted*.tif ./out/crown*.tif ./out/plign*.tif
@@ -53,37 +57,31 @@ fi
 FNLIST=`ls ./out/*.tif ./out/*.shp ./out/*.dbf ./out/*.prj ./out/*.shx`
 GO=yes
 while [ "$GO" = "yes" ]; do
-   rsync -rv --timeout=10 $FNLIST $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE/elmfire/landfire/
+   rsync -rv --timeout=10 $FNLIST $REMOTE_USER@$REMOTE_HOST:$FULLPATH/
    if [ "$?" = "0" ]; then
       GO=no
    fi
 done
 
-if [ "$REMOTE_OWNER" = "sig-reax" ]; then
-   ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'sig-reax:domain users' $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE"
-else
-   ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'elmfire:domain users'  $REMOTE_DIRECTORY/fire_risk_forecast/$PATTERN_OUT/$FORECAST_CYCLE"
-fi
+ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $PARTIALPATH; sudo chown -R 'sig-app:domain users' $PARTIALPATH"
 
 # Now on to zonal statistics
 if [ "$UPLOAD_PSPS_ZONAL_STATS" = "yes" ]; then
-   ssh $REMOTE_USER@$REMOTE_HOST "sudo mkdir -p $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE"
-   ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'sig-reax:domain users' $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE"
+   FULLPATH=$REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE
+
+   ssh $REMOTE_USER@$REMOTE_HOST "sudo mkdir -p $FULLPATH"
+   ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $FULLPATH; sudo chown -R 'sig-app:domain users' $FULLPATH"
    FNLIST=`ls ./deenergization-zones/*`
 
    GO=yes
    while [ "$GO" = "yes" ]; do
-      rsync -rv --timeout=10 $FNLIST $REMOTE_USER@$REMOTE_HOST:$REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE/
+      rsync -rv --timeout=10 $FNLIST $REMOTE_USER@$REMOTE_HOST:$FULLPATH/
       if [ "$?" = "0" ]; then
          GO=no
       fi
    done
 
-   if [ "$REMOTE_OWNER" = "sig-reax" ]; then
-      ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'sig-reax:domain users' $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE"
-   else
-      ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE; sudo chown -R 'elmfire:domain users'  $REMOTE_DIRECTORY/psps_zonal/$PATTERN_OUT/$FORECAST_CYCLE"
-   fi
+   ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $FULLPATH; sudo chown -R 'sig-app:domain users' $FULLPATH"
 
 fi
 
