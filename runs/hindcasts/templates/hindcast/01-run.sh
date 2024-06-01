@@ -23,23 +23,21 @@ CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
 let "NP = SOCKETS * CORES_PER_SOCKET"
 
 progress_message "Launching ELMFIRE"
-mpirun --mca btl tcp,self --map-by core --bind-to core --oversubscribe -np $NP $ELMFIRE elmfire.data >& elmfire.out
+mpirun --mca btl tcp,self,vader --map-by core --bind-to core --oversubscribe --mca btl_tcp_if_exclude 172.17.0.0/24,127.0.0.0/24 -np $NP $ELMFIRE elmfire.data >& elmfire.out
 
-progress_message "ELMFIRE complete, starting .bil->.tif conversion"
-./03-make_tifs.sh >& /dev/null
+progress_message "ELMFIRE complete, starting .bin->.bil conversion"
+./02-elmfire_post.sh >& elmfire_post.log
 
-progress_message ".bil -> .tif conversion complete, cleaning up"
+progress_message "Postprocessing complete, cleaning up"
 
-rm -f *.aux.xml crown-fire*.tif flame-length*.tif hours-since-burned*.tif spread-rate*.tif *.bsq *.hdr *.aux.xml
+rm -f *.aux.xml *.bsq *.hdr *.aux.xml
 
 cp -f -r * $HINDCAST_DIR
 cd $HINDCAST_DIR
 
-if [ "$CALC_FITNESS" = "yes" ]; then
-   progress_message "Calculating fitness"
-   ./04-fitness.sh >& /dev/null
-   mv coeffs_w_fitness.csv coeffs.csv
-fi
+progress_message "Calculating fitness"
+./04-fitness.sh >& fitness.log
+mv coeffs_w_fitness.csv coeffs.csv
 
 mkdir ./wx ./fuel
 for QUANTITY in ws wd m1 lh lw; do
