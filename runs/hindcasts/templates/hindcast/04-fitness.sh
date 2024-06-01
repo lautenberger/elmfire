@@ -1,14 +1,16 @@
 #!/bin/bash
 
-DATADIR=./
+CWD=$(pwd)
+DATADIR=$CWD/
+ONLY_USE_LAST_CALIBRATION_TIME=yes
 SCRATCH=$ELMFIRE_SCRATCH_BASE/04-fitness
 SEC_BETWEEN_CALIBRATION=10800
 NCASES=`tail -n +2 fire_size_stats.csv | wc -l`
 NPARALLEL=$NCASES
 declare -a SUMFIT
 
-AVAILABLE_POLYGONS_CLI=$ELMFIRE_BASE_DIR/cloudfire/available_polygons.py
-GET_POLYGON_CLI=$ELMFIRE_BASE_DIR/cloudfire/get_polygon.py
+AVAILABLE_POLYGONS_CLI=$CLOUDFIRE_BASE_DIR/microservices-dev/available_polygons/available_polygons.py
+GET_POLYGON_CLI=$CLOUDFIRE_BASE_DIR/microservices-dev/get_polygon/get_polygon.py
 BUFFERSCRIPT=$CLOUDFIRE_BASE_DIR/code/buffer.py
 
 rm -f -r $SCRATCH
@@ -28,26 +30,33 @@ function calc_fitness {
    local COUNT=0
    local FITNESS
 
-   SEVEN=`printf %07d $i`
-   f=`ls $DATADIR/time_of_arrival_${SEVEN}_*.tif`
-   cp $f $SCRATCH/toa_$SEVEN.tif
-   gdal_edit.py -unsetnodata $SCRATCH/toa_$SEVEN.tif
+   THREE=`printf %03d $i`
+   f=`ls $DATADIR/time-of-arrival_$THREE*.tif`
+   gdal_calc.py -A $f --co="COMPRESS=DEFLATE" --co="ZLEVEL=9" --outfile="$SCRATCH/toa_$THREE.tif" --calc="(A>0)*60.0"
+   gdal_edit.py -unsetnodata $SCRATCH/toa_$THREE.tif
 
    for TIMESTAMP in $CALIBRATION_TIMESTAMPS; do
       echo "$i, $TIMESTAMP"
       TIMESTAMP_SEC=`sec_from_timestamp $TIMESTAMP`
       let "ELAPSED = TIMESTAMP_SEC - FORECAST_START_SEC_FLOOR"
-      gdal_calc.py -A $SCRATCH/toa_$SEVEN.tif -B $SCRATCH/burning.tif --NoDataValue=-9999 \
+      gdal_calc.py -A $SCRATCH/toa_$THREE.tif -B $SCRATCH/burning.tif --NoDataValue=-9999 \
                    --co="COMPRESS=DEFLATE" --co="ZLEVEL=9" \
-                   --calc="0.0 + B + 1.0*(A>0)*(A<$ELAPSED)" --outfile=$SCRATCH/model_${SEVEN}_$ELAPSED.tif 1>& /dev/null
-      gdal_calc.py -A $SCRATCH/target_$ELAPSED.tif -B $SCRATCH/model_${SEVEN}_$ELAPSED.tif -C $SCRATCH/burning.tif \
+                   --calc="0.0 + B + 1.0*(A>0)*(A<$ELAPSED)" --outfile=$SCRATCH/model_${THREE}_$ELAPSED.tif 1>& /dev/null
+# Intersection over union fitness function:
+      gdal_calc.py -A $SCRATCH/target_$ELAPSED.tif -B $SCRATCH/model_${THREE}_$ELAPSED.tif -C $SCRATCH/burning.tif \
                    --co="COMPRESS=DEFLATE" --co="ZLEVEL=9" \
-                   --NoDataValue=-9999 --outfile=$SCRATCH/corr_${SEVEN}_$ELAPSED.tif \
-                   --calc="0.0 + 1.0*(C!=1)*( 1.0*(A==1)*(B==1) - 1.0*(A==0)*(B==1) - 1.0*(A==1)*(B==0))" 1>& /dev/null
-      CORR_AVG=`gdalinfo -stats $SCRATCH/corr_${SEVEN}_$ELAPSED.tif | grep STATISTICS_MEAN | cut -d= -f2`
-      TARG_AVG=`gdalinfo -stats $SCRATCH/target_$ELAPSED.tif | grep STATISTICS_MEAN | cut -d= -f2`
+                   --NoDataValue=-9999 --outfile=$SCRATCH/union_${THREE}_$ELAPSED.tif \
+                   --calc="numpy.absolute(C-1) * numpy.minimum( 1, (A==1) + (B==1) ) " 1>& /dev/null
+
+      gdal_calc.py -A $SCRATCH/target_$ELAPSED.tif -B $SCRATCH/model_${THREE}_$ELAPSED.tif -C $SCRATCH/burning.tif \
+                   --co="COMPRESS=DEFLATE" --co="ZLEVEL=9" \
+                   --NoDataValue=-9999 --outfile=$SCRATCH/intersection_${THREE}_$ELAPSED.tif \
+                   --calc="numpy.absolute(C-1) * (A==1) * (B==1) " 1>& /dev/null
+
+      INTERSECTION_AVG=`gdalinfo -stats $SCRATCH/intersection_${THREE}_$ELAPSED.tif | grep STATISTICS_MEAN | cut -d= -f2`
+      UNION_AVG=`       gdalinfo -stats $SCRATCH/union_${THREE}_$ELAPSED.tif        | grep STATISTICS_MEAN | cut -d= -f2`
       let "COUNT = COUNT + 1"
-      FITNESS[COUNT]=`echo "$CORR_AVG / $TARG_AVG" | bc -l`
+      FITNESS[COUNT]=`echo "$INTERSECTION_AVG / $UNION_AVG" | bc -l`
       SUMFIT[i]=`echo "${SUMFIT[i]} + ${FITNESS[COUNT]}" | bc -l`
    done
    SUMFIT[i]=`echo "${SUMFIT[i]} / $NUM_CALIBRATION_TIMES" | bc -l`
@@ -98,7 +107,12 @@ for TIMESTAMP in $POSSIBLE_CALIBRATION_TIMESTAMPS; do
    fi
 done
 
-f=`ls $DATADIR/time_of_arrival_0000001_*.tif`
+if [ "$ONLY_USE_LAST_CALIBRATION_TIME" = "yes" ]; then
+   NUM_CALIBRATION_TIMES=1
+   CALIBRATION_TIMESTAMPS=`echo $CALIBRATION_TIMESTAMPS | rev | cut -d' ' -f1 | rev`
+fi
+
+f=`ls $DATADIR/time-of-arrival_001.tif | head -n 1`
 SRS=`gdalsrsinfo $f | grep PROJ.4 | cut -d: -f2 | xargs`
 cp -f $f $SCRATCH/dummy.tif
 cp -f $DATADIR/burning.tif $SCRATCH/
@@ -136,6 +150,8 @@ for (( i=1; i<=$NCASES; i++ )); do
 done
 wait
 
+echo "All done! now summarizing fitness"
+
 echo "icase,fitness" > $SCRATCH/fitness.csv
 for (( i=1; i<=$NCASES; i++ )); do
    FIT=`cat $SCRATCH/$i.txt`
@@ -145,11 +161,12 @@ done
 cat $SCRATCH/fitness.csv | cut -d, -f2 > $SCRATCH/fitness.txt
 cat $DATADIR/coeffs.csv | tr -d [:blank:] | sed 's/.$//' > $SCRATCH/coeffs.csv
 paste -d, $SCRATCH/coeffs.csv $SCRATCH/fitness.txt > $DATADIR/coeffs_w_fitness.csv
-mkdir $DATADIR/toa $DATADIR/targ $DATADIR/model $DATADIR/corr
-mv $DATADIR/time*.tif $DATADIR/toa
+mkdir $DATADIR/toa $DATADIR/targ $DATADIR/model $DATADIR/intersection $DATADIR/union 2> /dev/null
+mv $SCRATCH/toa*.tif $DATADIR/toa
 mv $SCRATCH/targ*.tif $DATADIR/targ
-mv $SCRATCH/corr*.tif $DATADIR/corr
 mv $SCRATCH/model*.tif $DATADIR/model
+mv $SCRATCH/intersection*.tif $DATADIR/intersection
+mv $SCRATCH/union*.tif $DATADIR/union
 
 rm -f -r $SCRATCH
 
