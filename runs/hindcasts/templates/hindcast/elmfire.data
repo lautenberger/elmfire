@@ -33,11 +33,8 @@ OUTPUTS_DIRECTORY                = './'
 CONVERT_TO_GEOTIFF               = .FALSE.
 DTDUMP                           = 999999.
 DUMP_TIMINGS                     = .TRUE.
-DUMP_TIME_OF_ARRIVAL             = .TRUE.
-DUMP_INTERMEDIATE_TIMINGS        = .FALSE.
-CALCULATE_BURN_PROBABILITY       = .FALSE.
-DUMP_BINARY_OUTPUTS              = .FALSE.
-DUMP_PROGRESS_MESSAGES           = .TRUE.
+DUMP_TIME_OF_ARRIVAL             = .FALSE.
+DUMP_BINARY_OUTPUTS              = .TRUE.
 /
 
 &COMPUTATIONAL_DOMAIN
@@ -51,22 +48,21 @@ COMPUTATIONAL_DOMAIN_YLLCORNER =
 SIMULATION_TSTART             = 
 SIMULATION_TSTOP              = 
 SIMULATION_DT                 = 1.0
-SIMULATION_DTMAX              = 60.0
+SIMULATION_DTMAX              = 30.0
 TARGET_CFL                    = 0.9
 USE_DIURNAL_ADJUSTMENT_FACTOR = .FALSE.
-BURN_PERIOD_LENGTH            = 12.0
-FORECAST_START_HOUR           = 
-CURRENT_YEAR =
-HOUR_OF_YEAR =
-LATITUDE =
-LONGITUDE =
-UTC_OFFSET_HOURS =
 /
+BURN_PERIOD_LENGTH            =
+FORECAST_START_HOUR           =
+CURRENT_YEAR                  =
+HOUR_OF_YEAR                  =
+LATITUDE                      =
+LONGITUDE                     =
 
 &SIMULATOR
 CROWN_FIRE_MODEL                     = 2
 ALLOW_NONBURNABLE_PIXEL_IGNITION     = .FALSE.
-MAX_RUNTIME                          = 300.0
+MAX_RUNTIME                          = 1200.0
 BANDTHICKNESS                        = 2
 WIND_FLUCTUATIONS                    = .FALSE.
 DT_WIND_FLUCTUATIONS                 = 300.
@@ -84,15 +80,15 @@ RANDOMIZE_RANDOM_SEED                = .TRUE.
 METEOROLOGY_BAND_START              = 1
 METEOROLOGY_BAND_STOP               = 1
 METEOROLOGY_BAND_SKIP_INTERVAL      = 1
-NUM_METEOROLOGY_TIMES               = 337
+NUM_METEOROLOGY_TIMES               = 49
 EDGEBUFFER                          = 30.
-RANDOM_IGNITIONS                    = .FALSE.
-USE_IGNITION_MASK                   = .FALSE.
+RANDOM_IGNITIONS = .FALSE.
+USE_IGNITION_MASK = .FALSE.
 USE_ERC                             = .FALSE.
 ALLOW_MULTIPLE_IGNITIONS_AT_A_PIXEL = .TRUE.
-NUM_ENSEMBLE_MEMBERS                = 200
+NUM_ENSEMBLE_MEMBERS = 100
 
-SEED                                     = 2023
+SEED                                     = 2024
 WIND_DIRECTION_FLUCTUATION_INTENSITY_MIN = 0.01
 WIND_DIRECTION_FLUCTUATION_INTENSITY_MAX = 0.10
 WIND_SPEED_FLUCTUATION_INTENSITY_MIN     = 0.01
@@ -125,15 +121,15 @@ RASTER_TO_PERTURB(4)       = 'M1'
 SPATIAL_PERTURBATION(4)    = 'GLOBAL'
 TEMPORAL_PERTURBATION(4)   = 'STATIC'
 PDF_TYPE(4)                = 'UNIFORM'
-PDF_LOWER_LIMIT(4)         = -0.01
-PDF_UPPER_LIMIT(4)         =  0.015
+PDF_LOWER_LIMIT(4)         = -0.02
+PDF_UPPER_LIMIT(4)         =  0.01
 
 RASTER_TO_PERTURB(5)       = 'M10'
 SPATIAL_PERTURBATION(5)    = 'GLOBAL'
 TEMPORAL_PERTURBATION(5)   = 'STATIC'
 PDF_TYPE(5)                = 'UNIFORM'
-PDF_LOWER_LIMIT(5)         = -0.01
-PDF_UPPER_LIMIT(5)         =  0.015
+PDF_LOWER_LIMIT(5)         = -0.02
+PDF_UPPER_LIMIT(5)         =  0.01
 
 RASTER_TO_PERTURB(6)       = 'M100'
 SPATIAL_PERTURBATION(6)    = 'GLOBAL'
@@ -146,8 +142,8 @@ RASTER_TO_PERTURB(7)       = 'WAF'
 SPATIAL_PERTURBATION(7)    = 'GLOBAL'
 TEMPORAL_PERTURBATION(7)   = 'STATIC'
 PDF_TYPE(7)                = 'UNIFORM'
-PDF_LOWER_LIMIT(7)         = -0.02
-PDF_UPPER_LIMIT(7)         =  0.02
+PDF_LOWER_LIMIT(7)         =  0.00
+PDF_UPPER_LIMIT(7)         =  0.05
 /
 
 &SPOTTING
@@ -169,15 +165,10 @@ NEMBERS_MAX_LO                           = 1
 NEMBERS_MAX_HI                           = 1
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MIN = 0.00
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MAX = 0.13
-!CROWN_FIRE_SPOTTING_PERCENT              = 1.0
 CROWN_FIRE_SPOTTING_PERCENT_MIN          = 0.1
 CROWN_FIRE_SPOTTING_PERCENT_MAX          = 1.2
 PIGN_MIN                                 = 100.0
 PIGN_MAX                                 = 100.0
-/
-
-&CALIBRATION
-CALIBRATE                    = .FALSE.
 /
 
 &MISCELLANEOUS

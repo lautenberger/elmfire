@@ -40,10 +40,7 @@ OUTPUTS_DIRECTORY                = './'
 CONVERT_TO_GEOTIFF               = .FALSE.
 DTDUMP                           = 3600.
 DUMP_TIMINGS                     = .TRUE.
-DUMP_INTERMEDIATE_TIMINGS        = .FALSE.
 DUMP_HOURLY_RASTERS              = .TRUE.
-DUMP_HOURLY_RASTERS_ASAP         = .TRUE.
-CALCULATE_BURN_PROBABILITY       = .FALSE.
 CALCULATE_TIMES_BURNED           = .TRUE.
 DUMP_BINARY_OUTPUTS              = .FALSE.
 DUMP_SURFACE_FIRE_AREA           = .FALSE.
@@ -129,10 +126,6 @@ CROWN_FIRE_SPOTTING_PERCENT_MIN          = 0.2
 CROWN_FIRE_SPOTTING_PERCENT_MAX          = 0.8
 PIGN_MIN                                 = 100.0
 PIGN_MAX                                 = 100.0
-/
-
-&CALIBRATION
-CALIBRATE                    = .FALSE.
 /
 
 &SUPPRESSION
