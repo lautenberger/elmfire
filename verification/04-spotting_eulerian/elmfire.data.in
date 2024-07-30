@@ -44,7 +44,7 @@ COMPUTATIONAL_DOMAIN_YLLCORNER = -6000.00
 &TIME_CONTROL
 SIMULATION_DT    = 2.237
 SIMULATION_DTMAX = 2.237
-SIMULATION_TSTOP = 2000.0
+SIMULATION_TSTOP = 1000.0
 /
 
 &SIMULATOR
@@ -60,7 +60,7 @@ USE_SUPERSEDED_SPOTTING                   = .FALSE.
 USE_UMD_SPOTTING_MODEL                    = .TRUE.
 USE_EULERIAN_SPOTTING                     = .TRUE.
 BUILD_EMBER_FLUX_TABLE                    = .FALSE.
-USE_EMBER_IGNITION_MODEL                  = .TRUE.
+USE_EMBER_IGNITION_MODEL                  = .FALSE.
 USE_SIMPLE_IGNITION_MODEL                 = .TRUE.
 USE_PHYSICAL_SPOTTING_DURATION            = .FALSE.
 USE_PHYSICAL_EMBER_NUMBER                 = .FALSE.
@@ -76,7 +76,7 @@ PIGN_MAX                                  = 100.0
 PIGN_MIN                                  = 100.0
 LOCAL_IGNITION_TIME			  = 10.0
 CELL_IGNITION_DELAY			  = 0.0
-DT_DUMP_EMBER_FLUX                        = 2.237 ! Time interval to save the ember flux
+DT_DUMP_EMBER_FLUX                        = 0.28 ! Time interval to save the ember flux
 
 CRITICAL_SPOTTING_FIRELINE_INTENSITY(:)   = 0
 SURFACE_FIRE_SPOTTING_PERCENT(:)          = 100.
