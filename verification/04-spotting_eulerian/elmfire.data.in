@@ -9,7 +9,7 @@ DEM_FILENAME                   = 'dem'
 FBFM_FILENAME                  = 'fbfm40'
 SLP_FILENAME                   = 'slp'
 ADJ_FILENAME                   = 'adj'
-PHI_FILENAME                   = 'new_phi'
+PHI_FILENAME                   = 'phi'
 DT_METEOROLOGY                 = 3600.0
 WEATHER_DIRECTORY              = './inputs'
 WS_FILENAME                    = 'ws'
@@ -31,6 +31,7 @@ DUMP_TIME_OF_ARRIVAL = .TRUE.
 CONVERT_TO_GEOTIFF   = .TRUE.
 DUMP_EMBER_FLUX      = .TRUE.
 DUMP_PHI             = .FALSE.
+USE_EMBER_COUNT_BINS = .TRUE.
 /
 
 &COMPUTATIONAL_DOMAIN
@@ -43,110 +44,55 @@ COMPUTATIONAL_DOMAIN_YLLCORNER = -6000.00
 &TIME_CONTROL
 SIMULATION_DT    = 2.237
 SIMULATION_DTMAX = 2.237
-SIMULATION_TSTOP = 1000.0
+SIMULATION_TSTOP = 2000.0
 /
 
 &SIMULATOR
-NUM_IGNITIONS = 0
-/
-
-MONTE_CARLO
-METEOROLOGY_BAND_START                   = 1
-METEOROLOGY_BAND_STOP                    = 25
-NUM_METEOROLOGY_TIMES                    = 25
-METEOROLOGY_BAND_SKIP_INTERVAL           = 26
-ALLOW_MULTIPLE_IGNITIONS_AT_A_PIXEL      = .TRUE.
-EDGEBUFFER                               = 30.
-NUM_ENSEMBLE_MEMBERS                     = 1
-RANDOM_IGNITIONS                         = .FALSE.
-SEED                                     = 2023
-USE_IGNITION_MASK                        = .FALSE.
-WIND_DIRECTION_FLUCTUATION_INTENSITY_MIN = 0.15
-WIND_DIRECTION_FLUCTUATION_INTENSITY_MAX = 0.15
-WIND_SPEED_FLUCTUATION_INTENSITY_MIN     = 0.1
-WIND_SPEED_FLUCTUATION_INTENSITY_MAX     = 0.1
-NUM_RASTERS_TO_PERTURB                   = 7
-
-RASTER_TO_PERTURB(1)       = 'ADJ'
-SPATIAL_PERTURBATION(1)    = 'GLOBAL'
-TEMPORAL_PERTURBATION(1)   = 'STATIC'
-PDF_TYPE(1)                = 'UNIFORM'
-PDF_LOWER_LIMIT(1)         = -0.2988
-PDF_UPPER_LIMIT(1)         = -0.2988
-
-RASTER_TO_PERTURB(2)       = 'WS'
-SPATIAL_PERTURBATION(2)    = 'GLOBAL'
-TEMPORAL_PERTURBATION(2)   = 'STATIC'
-PDF_TYPE(2)                = 'UNIFORM'
-PDF_LOWER_LIMIT(2)         = -0.4371
-PDF_UPPER_LIMIT(2)         = -0.4371
-
-RASTER_TO_PERTURB(3)       = 'WD'
-SPATIAL_PERTURBATION(3)    = 'GLOBAL'
-TEMPORAL_PERTURBATION(3)   = 'STATIC'
-PDF_TYPE(3)                = 'UNIFORM'
-PDF_LOWER_LIMIT(3)         = -1.8633
-PDF_UPPER_LIMIT(3)         = -1.8633
-
-RASTER_TO_PERTURB(4)       = 'M1'
-SPATIAL_PERTURBATION(4)    = 'GLOBAL'
-TEMPORAL_PERTURBATION(4)   = 'STATIC'
-PDF_TYPE(4)                = 'UNIFORM'
-PDF_LOWER_LIMIT(4)         = -0.0095
-PDF_UPPER_LIMIT(4)         = -0.0095
-
-RASTER_TO_PERTURB(5)       = 'M10'
-SPATIAL_PERTURBATION(5)    = 'GLOBAL'
-TEMPORAL_PERTURBATION(5)   = 'STATIC'
-PDF_TYPE(5)                = 'UNIFORM'
-PDF_LOWER_LIMIT(5)         = -0.0059
-
-RASTER_TO_PERTURB(6)       = 'M100'
-SPATIAL_PERTURBATION(6)    = 'GLOBAL'
-TEMPORAL_PERTURBATION(6)   = 'STATIC'
-PDF_TYPE(6)                = 'UNIFORM'
-PDF_LOWER_LIMIT(6)         = -0.0027
-PDF_UPPER_LIMIT(6)         = -0.0027
-
-RASTER_TO_PERTURB(7)      = 'WAF'
-SPATIAL_PERTURBATION(7)   = 'GLOBAL'
-TEMPORAL_PERTURBATION(7)  = 'STATIC'
-PDF_TYPE(7)               = 'UNIFORM'
-PDF_LOWER_LIMIT(7)        = -0.0127
-PDF_UPPER_LIMIT(7)        = -0.0127
+NUM_IGNITIONS = 1
+X_IGN(1)=-4500
+Y_IGN(1)=-1500
 /
 
 &SPOTTING
-CRITICAL_SPOTTING_FIRELINE_INTENSITY(:)   = 0.
+ENABLE_SPOTTING                           = .TRUE.
+ENABLE_SURFACE_FIRE_SPOTTING              = .TRUE.
+USE_SUPERSEDED_SPOTTING                   = .FALSE.
+USE_UMD_SPOTTING_MODEL                    = .TRUE.
+USE_EULERIAN_SPOTTING                     = .TRUE.
+BUILD_EMBER_FLUX_TABLE                    = .FALSE.
+USE_EMBER_IGNITION_MODEL                  = .TRUE.
+USE_SIMPLE_IGNITION_MODEL                 = .TRUE.
+USE_PHYSICAL_SPOTTING_DURATION            = .FALSE.
+USE_PHYSICAL_EMBER_NUMBER                 = .FALSE.
+NO_SURFACE_FIRE                           = .TRUE.
+USE_HALF_CFL_DT_FOR_SPOTTING              = .FALSE.
+
+P_EPS                                     = 0.01
+EMBER_GR                                  = 10000 ! ember number pcs/m2/s
+TAU_EMBERGEN                              = 10.0
+!Use with simple ignition
+PIGN                                      = 100.0 !Percent
+PIGN_MAX                                  = 100.0
+PIGN_MIN                                  = 100.0
+LOCAL_IGNITION_TIME			  = 10.0
+CELL_IGNITION_DELAY			  = 0.0
+DT_DUMP_EMBER_FLUX                        = 2.237 ! Time interval to save the ember flux
+
+CRITICAL_SPOTTING_FIRELINE_INTENSITY(:)   = 0
+SURFACE_FIRE_SPOTTING_PERCENT(:)          = 100.
 CROWN_FIRE_SPOTTING_PERCENT               = 100.
 CROWN_FIRE_SPOTTING_PERCENT_MAX           = 100.
 CROWN_FIRE_SPOTTING_PERCENT_MIN           = 100.
-EMBER_GR                                  = 1E5 ! ember number pcs/m2/s
-EMBER_SAMPLING_FACTOR                     = 100.0 
-ENABLE_SPOTTING                           = .TRUE. 
-ENABLE_SURFACE_FIRE_SPOTTING              = .TRUE.
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT      = 100.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MAX  = 100.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MIN  = 100.0
-PIGN                                      = 99.0 !Percent
-PIGN_MAX                                  = 99.0
-PIGN_MIN                                  = 99.0
-SURFACE_FIRE_SPOTTING_PERCENT(:)          = 100.
-TAU_EMBERGEN                              = 10.0
-USE_UMD_SPOTTING_MODEL                    = .TRUE.
-P_EPS                                     = 0.0001 
-USE_EULERIAN_SPOTTING                     = .TRUE. 
-USE_PHYSICAL_SPOTTING_DURATION            = .FALSE.
-USE_PHYSICAL_EMBER_NUMBER                 = .FALSE.
-USE_SUPERSEDED_SPOTTING                   = .FALSE.
-DT_DUMP_EMBER_FLUX                        = 5. ! Time interval to save the ember flux
-NO_SURFACE_FIRE                           = .TRUE.
-USE_HALF_CFL_DT_FOR_SPOTTING              = .FALSE.
-BUILD_EMBER_FLUX_TABLE                    = .TRUE.
-USE_EMBER_IGNITION_MODEL                  = .TRUE.
-USE_SIMPLE_IGNITION_MODEL                 = .TRUE.
-LOCAL_IGNITION_TIME                       = 50.0 ! seconds, for simple ignition model only
-CELL_IGNITION_DELAY                       = 0.0 ! seconds, Delay of setting phi = -1 when attacked by firebrands and ignited, for simple ignition model only
+EMBER_SAMPLING_FACTOR                     = 100.0
+
+USE_CUSTOMIZED_PDF                        = .TRUE.
+MU_CROSSWIND                              = 0.0
+SIGMA_CROSSWIND                           = 20.0
+MU_DOWNWIND                               = 1.55
+SIGMA_DOWNWIND                            = 1.5
 /
 
 &WUI
