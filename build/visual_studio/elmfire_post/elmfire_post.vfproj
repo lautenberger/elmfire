@@ -17,14 +17,14 @@
 			<Tool Name="VFManifestTool" SuppressStartupBanner="true"/>
 		</Configuration>
 		<Configuration Name="Debug|x64" UseCompiler="ifxCompiler">
-			<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files (x86)\Intel\oneAPI\mpi\latest\include" OpenMP="OpenMPParallelCode" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" Traceback="true" RuntimeChecks="rtChecksAll" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebugDLL"/>
-			<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\Program Files (x86)\Intel\oneAPI\mpi\latest\lib\debug" GenerateDebugInformation="true" SubSystem="subSystemConsole" HeapReserveSize="32768000" HeapCommitSize="32768000" StackReserveSize="32768000" StackCommitSize="32768000" LargeAddressAware="addrAwareLarge" AdditionalDependencies="impi.lib"/>
+			<Tool Name="VFFortranCompilerTool" AdditionalOptions="/heap-arrays" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="$(I_MPI_ONEAPI_ROOT)\include\mpi" OpenMP="OpenMPParallelCode" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" Traceback="true" RuntimeChecks="rtChecksAll" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebugDLL"/>
+			<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="$(I_MPI_ONEAPI_ROOT)\lib\mpi\debug" GenerateDebugInformation="true" SubSystem="subSystemConsole" HeapReserveSize="32768000" HeapCommitSize="32768000" StackReserveSize="32768000" StackCommitSize="32768000" LargeAddressAware="addrAwareLarge" AdditionalDependencies="impi.lib"/>
 			<Tool Name="VFResourceCompilerTool"/>
 			<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
 			<Tool Name="VFCustomBuildTool"/>
 			<Tool Name="VFPreLinkEventTool"/>
 			<Tool Name="VFPreBuildEventTool"/>
-			<Tool Name="VFPostBuildEventTool"/>
+			<Tool Name="VFPostBuildEventTool" Description="C:\Program Files (x86)\Intel\oneAPI\mpi\2021.13\bin\mpi\debug"/>
 			<Tool Name="VFManifestTool" SuppressStartupBanner="true"/>
 		</Configuration>
 		<Configuration Name="Release|Win32" UseCompiler="ifortCompiler">
