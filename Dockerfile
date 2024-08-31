@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as intermediate
+FROM ubuntu:22.04 AS intermediate
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN mkdir -p /elmfire/elmfire /scratch/elmfire && \
@@ -37,7 +37,7 @@ RUN apt-get purge -y build-essential && \
     apt-get clean && \
     rm -f -r /var/lib/apt/lists/*
 
-WORKDIR /
+WORKDIR /elmfire
 
 ENV ELMFIRE_VER=2024.0326
 ENV ELMFIRE_BASE_DIR=/elmfire/elmfire
