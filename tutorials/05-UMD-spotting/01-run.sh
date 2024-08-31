@@ -15,7 +15,7 @@ OUTPUTS=./outputs
 rm -f -r $SCRATCH $INPUTS $OUTPUTS
 mkdir $INPUTS $SCRATCH $OUTPUTS
 
-echo $CELLSIZE | python input_generator.py
+echo $CELLSIZE | python3 input_generator.py
 cp elmfire.data.in $INPUTS/elmfire.data
 A_SRS="EPSG: 32610" # Spatial reference system - UTM Zone 10
 
