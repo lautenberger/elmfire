@@ -31,7 +31,7 @@ A_SRS="EPSG: 32610" # Spatial reference system - UTM Zone 10
 
 # End inputs specification
 
-ELMFIRE_VER=${ELMFIRE_VER:-2024.0326}
+ELMFIRE_VER=${ELMFIRE_VER:-2024.0831}
 
 . ../functions/functions.sh
 

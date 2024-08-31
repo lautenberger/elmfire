@@ -4,7 +4,7 @@ Getting Started
 ===============
 
 The steps below will install and configure ELMFIRE. This has been tested 
-on a clean install of `Ubuntu Server 22.04.2 LTS 
+on a clean install of `Ubuntu Server 24.04.1 LTS 
 <https://ubuntu.com/download/server>`_. Modifications to run on other 
 Linux distributions may be required.
 
@@ -36,7 +36,11 @@ The current ELMFIRE repository can be cloned as follows:
 
 Since this will clone the current repository, including all recent 
 commits, for use in production environments a user may want to clone the 
-latest stable release / branch instead.
+latest stable release / branch instead, i.e.:
+
+.. code-block:: console
+
+   git clone --branch 2024.0831 --single-branch https://github.com/lautenberger/elmfire.git
 
 .. _set-env-vars:
 
@@ -86,6 +90,6 @@ ELMFIRE and its postprocessing tool can be built as follows:
 
 Unless an error occurs, this will build the executables 
 ``elmfire_VERSION`` and ``elmfire_post_VERSION`` (where version is, for 
-example, 2024.0326) and copy them to ``$ELMFIRE_INSTALL_DIR``. If 
+example, 2024.0831) and copy them to ``$ELMFIRE_INSTALL_DIR``. If 
 this directory is not in the user's ``$PATH`` it should be added at this 
 time. Note that two debug executables are also built.
