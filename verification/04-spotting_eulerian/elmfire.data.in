@@ -9,7 +9,7 @@ DEM_FILENAME                   = 'dem'
 FBFM_FILENAME                  = 'fbfm40'
 SLP_FILENAME                   = 'slp'
 ADJ_FILENAME                   = 'adj'
-PHI_FILENAME                   = 'new_phi'
+PHI_FILENAME                   = 'phi'
 DT_METEOROLOGY                 = 3600.0
 WEATHER_DIRECTORY              = './inputs'
 WS_FILENAME                    = 'ws'
@@ -24,11 +24,14 @@ LW_MOISTURE_CONTENT            = 60.0
 &OUTPUTS
 OUTPUTS_DIRECTORY    = './outputs'
 DTDUMP               = 3600.
+ACCUMULATE_EMBER_FLUX= .FALSE.
 DUMP_FLIN            = .TRUE.
 DUMP_SPREAD_RATE     = .TRUE.
 DUMP_TIME_OF_ARRIVAL = .TRUE.
-CONVERT_TO_GEOTIFF   = .FALSE.
-DUMP_EMBER_FLUX_UMD = .TRUE.
+CONVERT_TO_GEOTIFF   = .TRUE.
+DUMP_EMBER_FLUX      = .TRUE.
+DUMP_PHI             = .FALSE.
+USE_EMBER_COUNT_BINS = .TRUE.
 /
 
 &COMPUTATIONAL_DOMAIN
@@ -39,42 +42,73 @@ COMPUTATIONAL_DOMAIN_YLLCORNER = -6000.00
 /
 
 &TIME_CONTROL
-SIMULATION_DT    = 1.0
-SIMULATION_DTMAX = 1.0
-SIMULATION_TSTOP = 21600.0
+SIMULATION_DT    = 2.237
+SIMULATION_DTMAX = 2.237
+SIMULATION_TSTOP = 1000.0
 /
 
 &SIMULATOR
-NUM_IGNITIONS = 0
+NUM_IGNITIONS = 1
+X_IGN(1)=-4500
+Y_IGN(1)=-1500
 /
 
 &SPOTTING
-CRITICAL_SPOTTING_FIRELINE_INTENSITY(:)   = 0.
-EMBER_GR                                  = 10.0
-ENABLE_SPOTTING                           = .TRUE. 
-/
+ENABLE_SPOTTING                           = .TRUE.
+ENABLE_SURFACE_FIRE_SPOTTING              = .TRUE.
+USE_SUPERSEDED_SPOTTING                   = .FALSE.
+USE_UMD_SPOTTING_MODEL                    = .TRUE.
+USE_EULERIAN_SPOTTING                     = .TRUE.
+BUILD_EMBER_FLUX_TABLE                    = .FALSE.
+USE_EMBER_IGNITION_MODEL                  = .FALSE.
+USE_SIMPLE_IGNITION_MODEL                 = .TRUE.
+USE_PHYSICAL_SPOTTING_DURATION            = .FALSE.
+USE_PHYSICAL_EMBER_NUMBER                 = .FALSE.
+NO_SURFACE_FIRE                           = .TRUE.
+USE_HALF_CFL_DT_FOR_SPOTTING              = .FALSE.
+
+P_EPS                                     = 0.01
+EMBER_GR                                  = 10000 ! ember number pcs/m2/s
+TAU_EMBERGEN                              = 10.0
+!Use with simple ignition
 PIGN                                      = 100.0 !Percent
 PIGN_MAX                                  = 100.0
 PIGN_MIN                                  = 100.0
-TAU_EMBERGEN                              = 10.0
-USE_UMD_SPOTTING_MODEL                    = .TRUE.
-P_EPS                                     = 0.0001 
-USE_PHYSICAL_SPOTTING_DURATION            = .FALSE.
-USE_PHYSICAL_EMBER_NUMBER                 = .FALSE.
-EMBER_SAMPLING_FACTOR                     = 50.0
+LOCAL_IGNITION_TIME			  = 10.0
+CELL_IGNITION_DELAY			  = 0.0
+DT_DUMP_EMBER_FLUX                        = 0.28 ! Time interval to save the ember flux
+
+CRITICAL_SPOTTING_FIRELINE_INTENSITY(:)   = 0
+SURFACE_FIRE_SPOTTING_PERCENT(:)          = 100.
+CROWN_FIRE_SPOTTING_PERCENT               = 100.
+CROWN_FIRE_SPOTTING_PERCENT_MAX           = 100.
+CROWN_FIRE_SPOTTING_PERCENT_MIN           = 100.
+GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT      = 100.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MAX  = 100.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MIN  = 100.0
-USE_SUPERSEDED_SPOTTING                   = .FALSE.
-USE_EULERIAN_FRAMEWORK                    = .TRUE.
-DT_DUMP_EMBER_FLUX                        = 10
+EMBER_SAMPLING_FACTOR                     = 100.0
+
+USE_CUSTOMIZED_PDF                        = .TRUE.
+MU_CROSSWIND                              = 0.0
+SIGMA_CROSSWIND                           = 20.0
+MU_DOWNWIND                               = 1.55
+SIGMA_DOWNWIND                            = 1.5
 /
 
 &WUI
+BLDG_AREA_CONSTANT                    = 20.0
+BLDG_SEPARATION_DIST_CONSTANT         = 10.0
+BLDG_NONBURNABLE_FRAC_CONSTANT        = 0.9
+BLDG_FOOTPRINT_FRAC_CONSTANT          = 0.2
+BLDG_FUEL_MODEL_CONSTANT              = 1
+BLDG_SPREAD_MODEL_TYPE                = 2
 USE_BLDG_SPREAD_MODEL                 = .TRUE.
+USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS = .TRUE.
 /
 
 &MISCELLANEOUS
-PATH_TO_GDAL                   = '/usr/bin'
+MISCELLANEOUS_INPUTS_DIRECTORY = './misc'
+FUEL_MODEL_FILE                = 'fuel_models.csv'
+PATH_TO_GDAL                   ='/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/'
 SCRATCH                        = './scratch'
 /
-PATH_TO_GDAL                   = '/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin'

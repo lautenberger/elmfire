@@ -665,7 +665,8 @@ SPOT_FLIN_EXP, SPOT_FLIN_EXP_HI, SPOT_FLIN_EXP_LO, SPOT_WS_EXP, SPOT_WS_EXP_HI, 
 SURFACE_FIRE_SPOTTING_PERCENT, SURFACE_FIRE_SPOTTING_PERCENT_MULT, TAU_EMBERGEN, USE_UMD_SPOTTING_MODEL, EMBER_GR, SOURCE_FUEL_IGN_MULT, &
 P_EPS, USE_PHYSICAL_SPOTTING_DURATION, USE_PHYSICAL_EMBER_NUMBER, EMBER_SAMPLING_FACTOR, USE_EULERIAN_SPOTTING, &
 USE_SUPERSEDED_SPOTTING, DT_DUMP_EMBER_FLUX, NO_SURFACE_FIRE, USE_HALF_CFL_DT_FOR_SPOTTING, BUILD_EMBER_FLUX_TABLE, USE_EMBER_IGNITION_MODEL, &
-USE_SIMPLE_IGNITION_MODEL, CRITICAL_IGNITION_EMBER_NUMBER_LOAD
+USE_SIMPLE_IGNITION_MODEL, LOCAL_IGNITION_TIME, CELL_IGNITION_DELAY, USE_CUSTOMIZED_PDF, MU_CROSSWIND, &
+SIGMA_CROSSWIND, MU_DOWNWIND, SIGMA_DOWNWIND
 
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading &SPOTTING namelist group'
 
@@ -695,9 +696,11 @@ NEMBERS_MIN_LO                            = 0
 NORMALIZED_SPOTTING_DIST_VARIANCE         = 0.
 NORMALIZED_SPOTTING_DIST_VARIANCE_MAX     = 0.
 NORMALIZED_SPOTTING_DIST_VARIANCE_MIN     = 0.
-PIGN                                      = 1.0 !Percent
+PIGN                                      = 1.0 ! PERCENT
 PIGN_MAX                                  = 1.0
 PIGN_MIN                                  = 1.0
+LOCAL_IGNITION_TIME                       = 30.0 ! seconds, for simple ignition model only
+CELL_IGNITION_DELAY                       = 100.0 ! seconds, Delay of setting phi = -1 when attacked by firebrands and ignited, for simple ignition model only
 SOURCE_FUEL_IGN_MULT(:)                   = 1.0
 SPOTTING_DISTRIBUTION_TYPE                = 'LOGNORMAL'
 SPOT_FLIN_EXP                             = 0.5
@@ -715,6 +718,7 @@ P_EPS                                     = 0.001
 USE_EULERIAN_SPOTTING                     = .FALSE. 
 USE_PHYSICAL_SPOTTING_DURATION            = .FALSE.
 USE_PHYSICAL_EMBER_NUMBER                 = .FALSE.
+USE_CUSTOMIZED_PDF                        = .FALSE.
 USE_SUPERSEDED_SPOTTING                   = .TRUE.
 DT_DUMP_EMBER_FLUX                        = 30 ! Time interval to save the ember flux
 NO_SURFACE_FIRE                           = .FALSE.
@@ -722,7 +726,10 @@ USE_HALF_CFL_DT_FOR_SPOTTING              = .FALSE.
 BUILD_EMBER_FLUX_TABLE                    = .FALSE.
 USE_EMBER_IGNITION_MODEL                  = .FALSE.
 USE_SIMPLE_IGNITION_MODEL                 = .TRUE.
-CRITICAL_IGNITION_EMBER_NUMBER_LOAD       = 0.0
+MU_CROSSWIND                              = 0.0
+SIGMA_CROSSWIND                           = 0.0
+MU_DOWNWIND                               = 0.0
+SIGMA_DOWNWIND                            = 0.0
 
 READ(LUINPUT,NML=SPOTTING,IOSTAT=IOS)
 IF (IOS > 0) THEN
