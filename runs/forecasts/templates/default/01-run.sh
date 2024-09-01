@@ -35,7 +35,6 @@ rm -f *.bsq *.hdr *.aux.xml crown-fire*.tif flame-length*.tif hours-since-burned
 
 cp -f -r * $FORECAST_DIR
 cd $FORECAST_DIR
-tar -cf ${FIRE_NAME}_$TIMESTAMP_START.tar ./* && mv ${FIRE_NAME}_$TIMESTAMP_START.tar $CLOUDFIRE_BASE_DIR/microservices/elmfire/srv/
 
 rm -f -r $LOCAL_SCRATCH
 
