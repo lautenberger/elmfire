@@ -14,8 +14,10 @@ import argparse
 import subprocess
 import os
 
-#cloudfire_server= os.environ['CLOUDFIRE_SERVER']
-cloudfire_server='172.92.17.198'
+if "CLOUDFIRE_SERVER" in os.environ:
+    cloudfire_server= os.environ['CLOUDFIRE_SERVER']
+else:
+    cloudfire_server='172.92.17.198'
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--firename", required = True, nargs='?' )
