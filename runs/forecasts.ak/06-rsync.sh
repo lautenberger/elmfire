@@ -1,0 +1,1 @@
+../forecasts/06-rsync.sh
