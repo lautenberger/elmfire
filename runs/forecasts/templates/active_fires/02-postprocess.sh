@@ -4,6 +4,9 @@
 
 progress_message "Starting 02-postprocess.sh"
 
+CREATE_FIREMAP_OUTPUTS=yes
+CREATE_DAILY_OUTPUTS=yes
+LIMIT_TO_SEVEN_DAYS=yes
 UPLOAD_TO_PYRECAST="${UPLOAD_TO_PYRECAST:-no}"
 GEOSERVER_USERNAME="${GEOSERVER_USERNAME:-elmfire}"
 GEOSERVER_HOSTNAME_PROD="${GEOSERVER_HOSTNAME_PROD:-trinity}"
@@ -117,6 +120,9 @@ fi
 NUM_TIMESTEPS=`echo "($SIMULATION_TSTOP - $SIMULATION_TSTART) / $DT" | bc -l | cut -d. -f1`
 if [ "$start_min" != "0" ]; then
    let "NUM_TIMESTEPS = NUM_TIMESTEPS + 1"
+fi
+if [ "$LIMIT_TO_SEVEN_DAYS" = "yes" ]; then
+   NUM_TIMESTEPS=169
 fi
 
 TIMESTAMP_BY_FRAME[1]='null'
@@ -299,8 +305,13 @@ wait
 progress_message "Zipping up"
 for days in 7 14; do
    DAYS=`printf %02d $days`
-   zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_* 1>& /dev/null
+   zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}*_elm* 1>& /dev/null
 done
+
+if [ "$CREATE_DAILY_OUTPUTS" = "yes" ]; then
+   progress_message "Running daily post-processing"
+   ./40-daily.sh
+fi
 
 for PERC_TWO in 01 05 20 40 60 75 80 85 95 99; do
    rm -f -r ./geoserver/$FIRE_NAME/${START_DATE}_${START_TIME}/elmfire/landfire/$PERC_TWO
@@ -330,6 +341,12 @@ wait
 
 progress_message "Compressing ASCII & binary files and cleaning up"
 cd ..
+
+if [ "$CREATE_FIREMAP_OUTPUTS" = "yes" ]; then
+   progress_message "Running WIFIRE firemap post-processing"
+   ./20-firemap.sh
+fi
+
 tar cf - *.bin | pigz > binary_outputs.tar.gz && rm -f -r *.bin diag*.csv geoserver $SCRATCH
 
 wait
