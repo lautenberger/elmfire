@@ -70,6 +70,7 @@ add_acreage () {
    ACRES=`ogrinfo -sql "SELECT SUM(OGR_GEOM_AREA) AS TOTAL_AREA FROM $BASENAME" $INTERMEDIATE | grep 'TOTAL_AREA (Real)' | cut -d= -f2 | xargs`
    ACRES=`echo "$ACRES / 4046.86" | bc -l | cut -d. -f1`
    ACRES=`printf %06d $ACRES`
-   ogr2ogr $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_${ACRES}_$PERC_TWO.shp $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC_TWO.shp
+#   ogr2ogr $SCRATCH/elm_${FIRE_NAME}_${MDT}_${DAYS}_${ACRES}_$PERC_TWO.shp   $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC_TWO.shp
+   ogr2ogr $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_${ACRES}_${PERC_TWO}_elm.shp $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC_TWO.shp
    rm -f $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}_elmfire_$PERC_TWO.*
 }
