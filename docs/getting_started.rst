@@ -19,9 +19,26 @@ The following commands will install packages needed to build and run ELMFIRE:
 
    sudo apt-get update && sudo apt-get upgrade -y
    sudo apt-get install -y bc csvkit gdal-bin gfortran git jq libopenmpi-dev \
-                           openmpi-bin pigz python3 python3-pip unzip wget zip
-   sudo pip3 install google-api-python-client python-dateutil
-   sudo python3 -m pip install grpcio grpcio-tools
+                           openmpi-bin pigz python3 python3-dateutil python3-pip \
+                           unzip wget zip
+
+Three Python libraries / packages related to Google Remote Proecedure Call (gRPC)
+are needed to run the CloudFire microservices that provide ELMFIRE with fuel,
+weather, and ignition geospatial data. These can be installed system-wide
+as follows:
+
+.. code-block:: console
+
+   sudo pip3 install google-api-python-client grpcio grpcio-tools --break-system-packages
+
+Alternatively, `virtualenv` can be used to prevent forcing a system-wide install as follows:
+
+.. code-block:: console
+
+   sudo apt-get install python3-virtualenv
+   virtualenv $HOME/virtualenv/elmfire
+   source $HOME/virtualenv/elmfire/bin/activate
+   $HOME/virtualenv/elmfire/bin/pip3 install google-api-python-client grpcio grpcio-tools
 
 .. _clone-repo:
 
