@@ -23,7 +23,7 @@ let "NP = SOCKETS * CORES_PER_SOCKET"
 ./98-set_adj.sh
 
 progress_message "Launching ELMFIRE"
-mpirun --mca btl tcp,self --map-by core --bind-to core --oversubscribe -np $NP $ELMFIRE elmfire.data >& elmfire.out
+timeout 720m mpirun --mca btl tcp,self --map-by core --bind-to core --oversubscribe -np $NP $ELMFIRE elmfire.data >& elmfire.out
 
 progress_message "ELMFIRE complete, starting postprocess routines"
 
@@ -40,7 +40,6 @@ rm -f *.bsq *.hdr *.aux.xml crown-fire*.tif flame-length*.tif hours-since-burned
 
 cp -f -r * $FORECAST_DIR
 cd $FORECAST_DIR
-tar -cf ${FIRE_NAME}_$TIMESTAMP_START.tar ./* && mv ${FIRE_NAME}_$TIMESTAMP_START.tar $CLOUDFIRE_BASE_DIR/microservices/elmfire/srv/
 
 rm -f -r $LOCAL_SCRATCH
 
