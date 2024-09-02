@@ -58,7 +58,7 @@ def run():
 
             case 'wget':
                for suffix in suffices:
-                   command='wget -r -np -nH --cut-dirs=2 -R "index.html*" -P ' + outdir + ' ' + response.fileloc + '.' + suffix
+                   command='wget -q -r -np -nH --cut-dirs=2 -R "index.html*" -P ' + outdir + ' ' + response.fileloc + '.' + suffix
                    proc = subprocess.Popen([command], stdout=subprocess.PIPE, shell = True)
                    proc.wait()
 
