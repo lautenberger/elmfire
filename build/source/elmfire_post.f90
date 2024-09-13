@@ -487,7 +487,7 @@ IF (POSTPROCESS_TYPE .EQ. 1) THEN ! Ensemble fire forecast
          DO J = 1, NUM_CASES_TO_PROCESS
             CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
             ICASE    = ICASE_TO_PROCESS(J)
-            IWX_BAND = STATS_IWX_BAND(ICASE)
+            IWX_BAND = 1
             WRITE(FOUR,  '(I4.4)') IWX_BAND
             WRITE(SEVEN, '(I7.7)') ICASE
             ID = TRIM(SEVEN)
