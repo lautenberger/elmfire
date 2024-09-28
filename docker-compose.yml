@@ -1,0 +1,13 @@
+services:
+  elmfire:
+    container_name: client
+    hostname: client
+    build: .
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    working_dir: /elmfire/elmfire
+    entrypoint: bash
+    volumes:
+      - ./docker_shared_folder:/elmfire/elmfire/docker_shared_folder
+    environment:
+      - USE_SLURM=no

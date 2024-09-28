@@ -14,8 +14,12 @@ lfmdate=sys.argv[3]
 tile=sys.argv[4]
 transfer_mode=sys.argv[5]
 
-#cloudfire_server='172.92.17.198'
-cloudfire_server='sierra'
+if "CLOUDFIRE_SERVER" in os.environ:
+    cloudfire_server= os.environ['CLOUDFIRE_SERVER']
+else:
+    cloudfire_server='172.92.17.198'
+
+#cloudfire_server='sierra'
 cloudfire_channel=cloudfire_server + ':50050'
 
 def run():

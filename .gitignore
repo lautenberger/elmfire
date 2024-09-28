@@ -38,8 +38,6 @@ tutorials/05-UMD-spotting
 .vs
 work
 log.txt
-runs/forecasts/templates
 runs/hindcasts/runs
-runs/hindcasts/templates
 runs/forecasts/archive
 **/.DS_Store

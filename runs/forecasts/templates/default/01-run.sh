@@ -7,7 +7,7 @@ STARTSEC=`date +%s`
 progress_message "Start"
 
 LOCAL_SCRATCH=$(pwd)
-ELMFIRE_VER=${ELMFIRE_VER:-2024.0326}
+ELMFIRE_VER=${ELMFIRE_VER:-2024.0916}
 ELMFIRE_INSTALL_DIR=${ELMFIRE_INSTALL_DIR:-$ELMFIRE_BASE_DIR/build/linux/bin}
 ELMFIRE=$ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER
 FIRE_NAME=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f1`
@@ -35,7 +35,6 @@ rm -f *.bsq *.hdr *.aux.xml crown-fire*.tif flame-length*.tif hours-since-burned
 
 cp -f -r * $FORECAST_DIR
 cd $FORECAST_DIR
-tar -cf ${FIRE_NAME}_$TIMESTAMP_START.tar ./* && mv ${FIRE_NAME}_$TIMESTAMP_START.tar $CLOUDFIRE_BASE_DIR/microservices/elmfire/srv/
 
 rm -f -r $LOCAL_SCRATCH
 

@@ -5,9 +5,10 @@ if [ -e ./log/05-active_fires.lock ]; then
 fi
 touch ./log/05-active_fires.lock
 
-RUN_SUPPRESSED_CASE=yes
+RUN_SUPPRESSED_CASE=no
 ONLY_RUN_NEWEST=yes
 QUEUE_ONE_SIMULATION_PER_FIRE=yes
+EXCLUDE_ALASKA=yes
 
 AVAILABLE_POLYGONS_CLI=$ELMFIRE_BASE_DIR/cloudfire/available_polygons.py
 SEC_BETWEEN_FIRES=10800
@@ -20,7 +21,7 @@ NORTH_BUFFER=24
 NUM_ENSEMBLE_MEMBERS=100
 RUN_HOURS=336
 FUEL_SOURCE=landfire
-FUEL_VERSION=2.3.0_2.2.0
+FUEL_VERSION=2.4.0_2.3.0_2.1.0_nbflip
 RUN_FIRES_NEWER_THAN=96
 RUN_TEMPLATE=active_fires
 
@@ -81,6 +82,12 @@ let "RUN_FIRES_NEWER_THAN = RUN_FIRES_NEWER_THAN * 3600"
 
 ACTIVE_FIRES=`$AVAILABLE_POLYGONS_CLI --active=True --list='fires'`
 for ACTIVE_FIRE in $ACTIVE_FIRES; do
+
+   STATE=`echo $ACTIVE_FIRE | cut -d'-' -f1`
+   if [ "$EXCLUDE_ALASKA" = "yes" ] && [ "$STATE" = "ak" ]; then
+      continue
+   fi
+
    IS_SUPPRESSED=`echo $ACTIVE_FIRE | grep suppressed | wc -l`
    if [ "$IS_SUPPRESSED" != "0" ]; then
       continue

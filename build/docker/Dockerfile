@@ -24,7 +24,10 @@ RUN mkdir -p /elmfire/elmfire /scratch/elmfire && \
     python3 -m pip install grpcio grpcio-tools && \
     locale-gen en_US.UTF-8 && export LANG=en_US.UTF-8
 
-COPY ./temp/ /elmfire/
+
+FROM intermediate
+
+COPY . /elmfire/elmfire
 
 WORKDIR /elmfire/elmfire/build/linux
 RUN ./make_gnu.sh
@@ -36,7 +39,9 @@ RUN apt-get purge -y build-essential && \
 
 WORKDIR /
 
+ENV ELMFIRE_VER=2024.0916
 ENV ELMFIRE_BASE_DIR=/elmfire/elmfire
 ENV ELMFIRE_SCRATCH_BASE=/scratch/elmfire
+ENV ELMFIRE_INSTALL_DIR=$ELMFIRE_BASE_DIR/build/linux/bin
 ENV CLOUDFIRE_SERVER=172.92.17.198
-ENV USE_SLURM=no
+ENV PATH=$PATH:$ELMFIRE_INSTALL_DIR:$ELMFIRE_BASE_DIR/cloudfire

@@ -68,15 +68,19 @@ def round_time_to_nearest(t,base):
 
 timezone = pytz.timezone("UTC")
 
-valid_fuel_versions = ["1.0.5", "1.3.0", "1.4.0", "2.0.0_2019", "2.0.0_2020", "2.1.0", "2.2.0", "2.3.0", "2.3.0_2.2.0"]
+valid_fuel_versions = ["1.0.5", "1.3.0", "1.4.0", "2.0.0_2019", "2.0.0_2020", "2.1.0", "2.2.0", "2.3.0", "2.3.0_2.2.0", "2.4.0_2.3.0", "2.4.0_2.3.0_2.1.0_nbflip" ]
 valid_wx_types = ["forecast", "historical"]
 
 historical_wx_earliest = datetime.datetime(2011, 1, 30,  0, 0, tzinfo=datetime.timezone.utc)
 historical_wx_latest =   datetime.datetime(2022, 9, 30, 23, 0, tzinfo=datetime.timezone.utc)
 
 print_inputs=False
-#cloudfire_server=os.environ['CLOUDFIRE_SERVER']
-cloudfire_server='172.92.17.198'
+
+if "CLOUDFIRE_SERVER" in os.environ:
+    cloudfire_server= os.environ['CLOUDFIRE_SERVER']
+else:
+    cloudfire_server='172.92.17.198'
+
 cloudfire_channel=cloudfire_server + ':50052'
 
 parser = argparse.ArgumentParser()
@@ -94,7 +98,7 @@ parser.add_argument("--north_buffer", type=float, default=30.0, required = False
 # Fuel inputs - source (landfire) and version (1.4.0, 2.0.0, etc.)
 parser.add_argument("--do_fuel", default=True, required = False, nargs='?')
 parser.add_argument("--fuel_source", default='landfire', required = False, nargs='?')
-parser.add_argument("--fuel_version", default='2.3.0_2.2.0', required = False, nargs='?')
+parser.add_argument("--fuel_version", default='2.4.0_2.3.0', required = False, nargs='?')
 
 # Weather inputs
 parser.add_argument("--get_available_wx_times", default=False, required = False, nargs='?')
@@ -339,6 +343,7 @@ def run():
 #            print( "Specify --transfer_mode as 'cp', 'scp', or 'wget' ")
 #
     command='wget -q -r -np -nH --cut-dirs=2 -R "index.html*" -P ' + outdir + ' ' + response.fileloc
+#    command='scp ' + response.fileloc + ' ' + outdir + '/'
 
     if command:
         proc = subprocess.Popen([command], stdout=subprocess.PIPE, shell = True)

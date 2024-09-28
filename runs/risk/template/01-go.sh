@@ -266,4 +266,7 @@ fi
 
 cp -f -r * $RUNDIR
 
+cd $ELMFIRE_SCRATCH_BASE
+rm -f -r *
+
 exit 0

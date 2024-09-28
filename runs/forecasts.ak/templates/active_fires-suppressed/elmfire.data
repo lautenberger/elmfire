@@ -1,0 +1,225 @@
+&INPUTS
+FUELS_AND_TOPOGRAPHY_DIRECTORY = './'
+ASP_FILENAME                   = 'asp'
+CBD_FILENAME                   = 'cbd'
+CBH_FILENAME                   = 'cbh'
+CC_FILENAME                    = 'cc'
+CH_FILENAME                    = 'ch'
+DEM_FILENAME                   = 'dem'
+FBFM_FILENAME                  = 'fbfm40'
+SLP_FILENAME                   = 'slp'
+ADJ_FILENAME                   = 'adj'
+PHI_FILENAME                   = 'phi'
+IGNITION_MASK_FILENAME         = 'ignition_mask'
+WEATHER_DIRECTORY              = './'
+DT_METEOROLOGY                 = 3600.
+WS_FILENAME                    = 'ws'
+WD_FILENAME                    = 'wd'
+M1_FILENAME                    = 'm1'
+M10_FILENAME                   = 'm10'
+M100_FILENAME                  = 'm100'
+DEAD_MC_IN_PERCENT             = .TRUE.
+LIVE_MC_IN_PERCENT             = .TRUE.
+USE_CONSTANT_LH                = .FALSE.
+MLH_FILENAME                   = 'lh'
+USE_CONSTANT_LW                = .FALSE.
+MLW_FILENAME                   = 'lw'
+USE_CONSTANT_FMC               = .TRUE.
+FOLIAR_MOISTURE_CONTENT        = 110.0
+/
+
+&OUTPUTS
+OUTPUTS_DIRECTORY                = './'
+CONVERT_TO_GEOTIFF               = .FALSE.
+DTDUMP                           = 999999.
+DUMP_TIMINGS                     = .TRUE.
+DUMP_BINARY_OUTPUTS              = .TRUE.
+/
+
+&COMPUTATIONAL_DOMAIN
+A_SRS                          = 
+COMPUTATIONAL_DOMAIN_CELLSIZE  = 30.0
+COMPUTATIONAL_DOMAIN_XLLCORNER = 
+COMPUTATIONAL_DOMAIN_YLLCORNER = 
+/
+
+&TIME_CONTROL
+SIMULATION_TSTART             = 
+SIMULATION_TSTOP              = 
+SIMULATION_DT                 = 1.0
+SIMULATION_DTMAX              = 60.0
+TARGET_CFL                    = 0.9
+USE_DIURNAL_ADJUSTMENT_FACTOR = .TRUE.
+BURN_PERIOD_LENGTH            = 9.0
+BURN_PERIOD_CENTER_FRAC       = 0.7
+OVERNIGHT_ADJUSTMENT_FACTOR   = 0.05
+FORECAST_START_HOUR           = 
+CURRENT_YEAR =
+HOUR_OF_YEAR =
+LATITUDE =
+LONGITUDE =
+/
+
+&SIMULATOR
+CROWN_FIRE_MODEL                     = 2
+ALLOW_NONBURNABLE_PIXEL_IGNITION     = .FALSE.
+MAX_RUNTIME                          = 3600.0
+BANDTHICKNESS                        = 2
+WIND_FLUCTUATIONS                    = .FALSE.
+DT_WIND_FLUCTUATIONS                 = 300.
+WIND_SPEED_FLUCTUATION_INTENSITY     = 0.1
+WIND_DIRECTION_FLUCTUATION_INTENSITY = 0.1
+UNTAG_CELLS_TIMESTEP_INTERVAL        = 5
+UNTAG_TYPE_2                         = .FALSE.
+UNTAG_TYPE_3                         = .FALSE.
+DEBUG_LEVEL                          = 1
+ESTIMATE_URBAN_LOSSES                = .FALSE.
+RANDOMIZE_RANDOM_SEED                = .TRUE.
+/
+
+&MONTE_CARLO
+METEOROLOGY_BAND_START                   = 1
+METEOROLOGY_BAND_STOP                    = 1
+METEOROLOGY_BAND_SKIP_INTERVAL           = 1
+NUM_METEOROLOGY_TIMES                    = 385
+EDGEBUFFER                               = 30.
+RANDOM_IGNITIONS                    = .FALSE.
+USE_IGNITION_MASK                   = .FALSE.
+USE_ERC                                  = .FALSE.
+ALLOW_MULTIPLE_IGNITIONS_AT_A_PIXEL      = .TRUE.
+NUM_ENSEMBLE_MEMBERS                    = 100
+
+SEED                                     = 2023
+WIND_DIRECTION_FLUCTUATION_INTENSITY_MIN = 0.01
+WIND_DIRECTION_FLUCTUATION_INTENSITY_MAX = 0.10
+WIND_SPEED_FLUCTUATION_INTENSITY_MIN     = 0.01
+WIND_SPEED_FLUCTUATION_INTENSITY_MAX     = 0.10
+
+NUM_RASTERS_TO_PERTURB                   = 11
+
+RASTER_TO_PERTURB(1)       = 'ADJ'
+SPATIAL_PERTURBATION(1)    = 'GLOBAL'
+TEMPORAL_PERTURBATION(1)   = 'STATIC'
+PDF_TYPE(1)                = 'UNIFORM'
+PDF_LOWER_LIMIT(1)         = -0.30
+PDF_UPPER_LIMIT(1)         =  0.30
+
+RASTER_TO_PERTURB(2)       = 'WS'
+SPATIAL_PERTURBATION(2)    = 'GLOBAL'
+TEMPORAL_PERTURBATION(2)   = 'STATIC'
+PDF_TYPE(2)                = 'UNIFORM'
+PDF_LOWER_LIMIT(2)         = -3.5
+PDF_UPPER_LIMIT(2)         =  3.5
+
+RASTER_TO_PERTURB(3)       = 'WD'
+SPATIAL_PERTURBATION(3)    = 'GLOBAL'
+TEMPORAL_PERTURBATION(3)   = 'STATIC'
+PDF_TYPE(3)                = 'UNIFORM'
+PDF_LOWER_LIMIT(3)         = -7.5
+PDF_UPPER_LIMIT(3)         =  7.5
+
+RASTER_TO_PERTURB(4)       = 'M1'
+SPATIAL_PERTURBATION(4)    = 'GLOBAL'
+TEMPORAL_PERTURBATION(4)   = 'STATIC'
+PDF_TYPE(4)                = 'UNIFORM'
+PDF_LOWER_LIMIT(4)         = -0.01
+PDF_UPPER_LIMIT(4)         =  0.01
+
+RASTER_TO_PERTURB(5)       = 'M10'
+SPATIAL_PERTURBATION(5)    = 'GLOBAL'
+TEMPORAL_PERTURBATION(5)   = 'STATIC'
+PDF_TYPE(5)                = 'UNIFORM'
+PDF_LOWER_LIMIT(5)         = -0.01
+PDF_UPPER_LIMIT(5)         =  0.01
+
+RASTER_TO_PERTURB(6)       = 'M100'
+SPATIAL_PERTURBATION(6)    = 'GLOBAL'
+TEMPORAL_PERTURBATION(6)   = 'STATIC'
+PDF_TYPE(6)                = 'UNIFORM'
+PDF_LOWER_LIMIT(6)         = -0.01
+PDF_UPPER_LIMIT(6)         =  0.01
+
+RASTER_TO_PERTURB(7)       = 'CBD'
+SPATIAL_PERTURBATION(7)    = 'GLOBAL'
+TEMPORAL_PERTURBATION(7)   = 'STATIC'
+PDF_TYPE(7)                = 'UNIFORM'
+PDF_LOWER_LIMIT(7)         = -0.05
+PDF_UPPER_LIMIT(7)         =  0.05
+
+RASTER_TO_PERTURB(8)       = 'CBH'
+SPATIAL_PERTURBATION(8)    = 'GLOBAL'
+TEMPORAL_PERTURBATION(8)   = 'STATIC'
+PDF_TYPE(8)                = 'UNIFORM'
+PDF_LOWER_LIMIT(8)         = -2.0
+PDF_UPPER_LIMIT(8)         =  2.0
+
+RASTER_TO_PERTURB(9)       = 'CC'
+SPATIAL_PERTURBATION(9)    = 'GLOBAL'
+TEMPORAL_PERTURBATION(9)   = 'STATIC'
+PDF_TYPE(9)                = 'UNIFORM'
+PDF_LOWER_LIMIT(9)         = -0.05
+PDF_UPPER_LIMIT(9)         =  0.05
+
+RASTER_TO_PERTURB(10)      = 'CH'
+SPATIAL_PERTURBATION(10)   = 'GLOBAL'
+TEMPORAL_PERTURBATION(10)  = 'STATIC'
+PDF_TYPE(10)               = 'UNIFORM'
+PDF_LOWER_LIMIT(10)        = -5.0
+PDF_UPPER_LIMIT(10)        =  5.0
+
+RASTER_TO_PERTURB(11)      = 'WAF'
+SPATIAL_PERTURBATION(11)   = 'GLOBAL'
+TEMPORAL_PERTURBATION(11)  = 'STATIC'
+PDF_TYPE(11)               = 'UNIFORM'
+PDF_LOWER_LIMIT(11)        = -0.03
+PDF_UPPER_LIMIT(11)        =  0.03
+/
+
+&SPOTTING
+ENABLE_SPOTTING                          = .TRUE.
+ENABLE_SURFACE_FIRE_SPOTTING             = .TRUE.
+SURFACE_FIRE_SPOTTING_PERCENT(:)         = 0.1
+CRITICAL_SPOTTING_FIRELINE_INTENSITY     = 1000.0
+SPOTTING_DISTRIBUTION_TYPE               = 'LOGNORMAL'
+MEAN_SPOTTING_DIST_MIN                   = 5.0
+MEAN_SPOTTING_DIST_MAX                   = 15.0
+NORMALIZED_SPOTTING_DIST_VARIANCE_MIN    = 250.0 
+NORMALIZED_SPOTTING_DIST_VARIANCE_MAX    = 600.0
+SPOT_WS_EXP_LO                           = 0.4
+SPOT_WS_EXP_HI                           = 0.7
+SPOT_FLIN_EXP_LO                         = 0.2
+SPOT_FLIN_EXP_HI                         = 0.4
+NEMBERS_MIN                              = 1
+NEMBERS_MAX_LO                           = 1
+NEMBERS_MAX_HI                           = 1
+GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MIN = 0.00
+GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MAX = 0.13
+!CROWN_FIRE_SPOTTING_PERCENT              = 1.0
+CROWN_FIRE_SPOTTING_PERCENT_MIN          = 0.1
+CROWN_FIRE_SPOTTING_PERCENT_MAX          = 1.2
+!PIGN                                     = 100.0
+PIGN_MIN                                 = 20.0
+PIGN_MAX                                 = 90.0
+/
+
+&MISCELLANEOUS
+MISCELLANEOUS_INPUTS_DIRECTORY = './'
+FUEL_MODEL_FILE                = 'fuel_models.csv'
+PATH_TO_GDAL                   = '/usr/bin'
+SCRATCH                        = './'
+/
+
+&SUPPRESSION
+ENABLE_INITIAL_ATTACK      = .FALSE.
+ENABLE_EXTENDED_ATTACK     = .TRUE.
+USE_SDI                    = .FALSE.
+DT_EXTENDED_ATTACK         = 1800.0
+MAX_CONTAINMENT_PER_DAY    = 150.0
+AREA_NO_CONTAINMENT_CHANGE = 18000.0 /
+
+&SMOKE
+ENABLE_SMOKE_OUTPUTS = .FALSE.
+DT_SMOKE_OUTPUTS     = 1800.0
+SMOKE_HOC            = 12.
+SMOKE_YIELD          = 0.01
+/

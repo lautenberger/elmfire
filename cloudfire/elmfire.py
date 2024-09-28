@@ -71,8 +71,12 @@ historical_wx_earliest = datetime.datetime(2011, 1, 30,  0, 0, tzinfo=datetime.t
 historical_wx_latest =   datetime.datetime(2022, 9, 30, 23, 0, tzinfo=datetime.timezone.utc)
 
 print_inputs=False
-#cloudfire_server=os.environ['CLOUDFIRE_SERVER']
-cloudfire_server='172.92.17.198'
+
+if "CLOUDFIRE_SERVER" in os.environ:
+    cloudfire_server= os.environ['CLOUDFIRE_SERVER']
+else:
+    cloudfire_server='172.92.17.198'
+
 cloudfire_channel=cloudfire_server + ':60090'
 
 parser = argparse.ArgumentParser()
@@ -89,7 +93,7 @@ parser.add_argument("--north_buffer", type=float, default=30.0, required = False
 
 # Fuel inputs - source (landfire) and version (1.4.0, 2.0.0, etc.)
 parser.add_argument("--fuel_source", default='landfire', required = False, nargs='?')
-parser.add_argument("--fuel_version", default='2.2.0', required = False, nargs='?')
+parser.add_argument("--fuel_version", default='2.4.0_2.3.0', required = False, nargs='?')
 
 # Weather inputs
 parser.add_argument("--wx_type", default='forecast', required = False, nargs='?')

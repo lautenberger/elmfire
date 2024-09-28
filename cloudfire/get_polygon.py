@@ -14,8 +14,10 @@ import argparse
 import subprocess
 import os
 
-#cloudfire_server= os.environ['CLOUDFIRE_SERVER']
-cloudfire_server='172.92.17.198'
+if "CLOUDFIRE_SERVER" in os.environ:
+    cloudfire_server= os.environ['CLOUDFIRE_SERVER']
+else:
+    cloudfire_server='172.92.17.198'
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--firename", required = True, nargs='?' )
@@ -56,7 +58,7 @@ def run():
 
             case 'wget':
                for suffix in suffices:
-                   command='wget -r -np -nH --cut-dirs=2 -R "index.html*" -P ' + outdir + ' ' + response.fileloc + '.' + suffix
+                   command='wget -q -r -np -nH --cut-dirs=2 -R "index.html*" -P ' + outdir + ' ' + response.fileloc + '.' + suffix
                    proc = subprocess.Popen([command], stdout=subprocess.PIPE, shell = True)
                    proc.wait()
 

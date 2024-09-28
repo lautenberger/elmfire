@@ -6,7 +6,7 @@ CELLSIZE=30.0 # Grid size in meters
 
 # End inputs specification
 
-ELMFIRE_VER=${ELMFIRE_VER:-2024.0326}
+ELMFIRE_VER=${ELMFIRE_VER:-2024.0916}
 
 SCRATCH=./scratch
 INPUTS=./inputs
@@ -15,7 +15,7 @@ OUTPUTS=./outputs
 rm -f -r $SCRATCH $INPUTS $OUTPUTS
 mkdir $INPUTS $SCRATCH $OUTPUTS
 
-echo $CELLSIZE | python input_generator.py
+echo $CELLSIZE | python3 input_generator.py
 cp elmfire.data.in $INPUTS/elmfire.data
 A_SRS="EPSG: 32610" # Spatial reference system - UTM Zone 10
 
