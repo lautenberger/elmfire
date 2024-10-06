@@ -674,7 +674,7 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
 
    IF (ABS(UWIND(1)) .LT. 1E-6 .AND. ABS(UWIND(2)) .LT. 1E-6) T=9E9
    IF (ICOUNT .GT. 100000) T=9E9
-
+   
    X(1:2)   = X(1:2) + UWIND(1:2) * DT
    DIST     = DIST + WS20 * DT
    
