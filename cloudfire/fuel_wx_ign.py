@@ -72,7 +72,10 @@ valid_fuel_versions = ["1.0.5", "1.3.0", "1.4.0", "2.0.0_2019", "2.0.0_2020", "2
 valid_wx_types = ["forecast", "historical"]
 
 historical_wx_earliest = datetime.datetime(2011, 1, 30,  0, 0, tzinfo=datetime.timezone.utc)
-historical_wx_latest =   datetime.datetime(2022, 9, 30, 23, 0, tzinfo=datetime.timezone.utc)
+historical_wx_latest =   datetime.datetime(2024, 11, 15, 0, 0, tzinfo=datetime.timezone.utc)
+
+# TODO: Dynamic date range
+# historical_wx_latest = datetime.datetime.now() - timedelta(1)
 
 print_inputs=False
 
