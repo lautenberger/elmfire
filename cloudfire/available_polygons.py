@@ -22,7 +22,7 @@ if "CLOUDFIRE_SERVER" in os.environ:
 else:
     cloudfire_server='172.92.17.198'
 
-valid_historical_years_years = ["2014", "2015", "2016", "2017", "2018", "2019", "2020"]
+valid_historical_years_years = ["2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024"]
 
 def printerr(msg):
   print(msg)
