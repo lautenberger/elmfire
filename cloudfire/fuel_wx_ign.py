@@ -68,11 +68,11 @@ def round_time_to_nearest(t,base):
 
 timezone = pytz.timezone("UTC")
 
-valid_fuel_versions = ["1.0.5", "1.3.0", "1.4.0", "2.0.0_2019", "2.0.0_2020", "2.1.0", "2.2.0", "2.3.0", "2.3.0_2.2.0", "2.4.0_2.3.0", "2.4.0_2.3.0_2.1.0_nbflip" ]
+valid_fuel_versions = ["1.0.5", "1.3.0", "1.4.0", "2.0.0_2019", "2.0.0_2020", "2.1.0", "2.2.0", "2.3.0", "2.4.0", "2.4.0_2.1.0_nbflip" ]
 valid_wx_types = ["forecast", "historical"]
 
 historical_wx_earliest = datetime.datetime(2011, 1, 30,  0, 0, tzinfo=datetime.timezone.utc)
-historical_wx_latest =   datetime.datetime(2022, 9, 30, 23, 0, tzinfo=datetime.timezone.utc)
+historical_wx_latest =   datetime.datetime(2025, 1, 19, 23, 0, tzinfo=datetime.timezone.utc)
 
 print_inputs=False
 
@@ -120,7 +120,8 @@ parser.add_argument("--ignition_radius", type=float, default=300.0, required=Fal
 args = parser.parse_args()
 
 # Print available weather dates and return?
-t = datetime.datetime.utcnow() - timedelta(hours = 5)
+#t = datetime.datetime.utcnow() - timedelta(hours = 5)
+t = datetime.datetime.now(datetime.UTC) - timedelta(hours = 5)
 five_hours_ago = datetime.datetime(t.year, t.month, t.day, t.hour, t.minute, tzinfo=datetime.timezone.utc)
 forecast_cycle_latest = round_time_to_nearest(five_hours_ago, 6)
 forecast_cycle_earliest = forecast_cycle_latest - timedelta(hours = 66)
