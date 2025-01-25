@@ -120,8 +120,8 @@ parser.add_argument("--ignition_radius", type=float, default=300.0, required=Fal
 args = parser.parse_args()
 
 # Print available weather dates and return?
-#t = datetime.datetime.utcnow() - timedelta(hours = 5)
-t = datetime.datetime.now(datetime.UTC) - timedelta(hours = 5)
+t = datetime.datetime.utcnow() - timedelta(hours = 5)
+#t = datetime.datetime.now(datetime.UTC) - timedelta(hours = 5)
 five_hours_ago = datetime.datetime(t.year, t.month, t.day, t.hour, t.minute, tzinfo=datetime.timezone.utc)
 forecast_cycle_latest = round_time_to_nearest(five_hours_ago, 6)
 forecast_cycle_earliest = forecast_cycle_latest - timedelta(hours = 66)
