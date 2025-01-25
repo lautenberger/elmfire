@@ -7,9 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'ELMFIRE'
-copyright = '2024, Chris Lautenberger'
+copyright = '2025, Chris Lautenberger'
 author = 'Chris Lautenberger'
-release = '2024.0916'
+release = '2025.0125'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
