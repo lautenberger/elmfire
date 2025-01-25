@@ -79,7 +79,7 @@ print_inputs=False
 if "CLOUDFIRE_SERVER" in os.environ:
     cloudfire_server= os.environ['CLOUDFIRE_SERVER']
 else:
-    cloudfire_server='172.92.17.198'
+    cloudfire_server='worldgen.cloudfire.io'
 
 cloudfire_channel=cloudfire_server + ':50052'
 
