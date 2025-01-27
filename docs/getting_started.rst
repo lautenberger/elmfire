@@ -76,7 +76,7 @@ ELMFIRE uses four environment variables:
    ELMFIRE executable files will be installed (default: 
    ``$ELMFIRE_BASE_DIR/build/linux/bin``).
 4. ``CLOUDFIRE_SERVER``: IP address of Cloudfire microservices server 
-   (this should be set to ``172.92.17.198``, more on this later).
+   (this should be set to ``worldgen.cloudfire.io``, more on this later).
 
 The easiest way to specify these variables is by exporting them from 
 your ``~/.bashrc`` file. For example, one could ``pico ~/.bashrc`` and 
@@ -88,7 +88,7 @@ then add the following lines (replacing ``/scratch/clauten``,
    export ELMFIRE_SCRATCH_BASE=/scratch/clauten
    export ELMFIRE_BASE_DIR=/home/clauten/elmfire
    export ELMFIRE_INSTALL_DIR=$ELMFIRE_BASE_DIR/build/linux/bin
-   export CLOUDFIRE_SERVER=172.92.17.198
+   export CLOUDFIRE_SERVER=worldgen.cloudfire.io
    export PATH=$PATH:$ELMFIRE_INSTALL_DIR:$ELMFIRE_BASE_DIR/cloudfire
 
 These environment variables will be set on the next login or after 

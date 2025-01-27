@@ -4,12 +4,12 @@
 $ELMFIRE_BASE_DIR/cloudfire/fuel_wx_ign.py \
     --do_wx=False --do_ignition=False \
     --center_lon=-120.05 --center_lat=38.13 \
-    --fuel_source='landfire' --fuel_version='2.3.0' \
+    --fuel_source='landfire' --fuel_version='2.4.0' \
     --outdir='./fuel' --name='tutorial04'
 
 WX_INPUTS_FILE=wx.csv
 
-ELMFIRE_VER=${ELMFIRE_VER:-2024.0916}
+ELMFIRE_VER=${ELMFIRE_VER:-2025.0125}
 
 . ../functions/functions.sh
 

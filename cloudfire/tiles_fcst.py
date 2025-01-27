@@ -17,10 +17,9 @@ transfer_mode=sys.argv[5]
 if "CLOUDFIRE_SERVER" in os.environ:
     cloudfire_server= os.environ['CLOUDFIRE_SERVER']
 else:
-    cloudfire_server='172.92.17.198'
+    cloudfire_server='worldgen.cloudfire.io'
 
-#cloudfire_server='sierra'
-cloudfire_channel=cloudfire_server + ':50050'
+cloudfire_channel=cloudfire_server + ':50055'
 
 def run():
     with grpc.insecure_channel(cloudfire_channel) as channel:
@@ -36,6 +35,7 @@ def run():
     print(response.structdensloc)
     print(response.ignloc)
     print(response.lfmloc)
+    print(response.snodasloc)
 
 if __name__ == '__main__':
     logging.basicConfig()

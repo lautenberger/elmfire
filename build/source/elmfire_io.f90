@@ -1453,7 +1453,7 @@ DO JTILE = 1, 3
          ENDIF
       ENDDO
       J=I+1
-      DO I=1,100
+      DO I=1,120
          IF (TEMPSTR(I:I) .EQ. '}') TEMPSTR(I:I)=' '
       ENDDO
       READ(TEMPSTR(J:),*) IDUMMY, IDUMMY, RASTER%XLLCORNER, RASTER%YLLCORNER, RASTER%XDIM, RASTER%YDIM
@@ -2190,7 +2190,7 @@ END SUBROUTINE POSTPROCESS
 ! *****************************************************************************
 
 ! *****************************************************************************
-SUBROUTINE WRITE_NODE(C,IRANK,ICASE,T)
+SUBROUTINE WRITE_STATION(C,IRANK,ICASE,T)
 ! *****************************************************************************
 
 INTEGER, INTENT(IN) :: IRANK, ICASE
@@ -2204,18 +2204,18 @@ CHARACTER(7) :: SEVEN
 WRITE(SEVEN, '(I7.7)') ICASE
 
 FN = SEVEN // '.csv'
-INQUIRE(UNIT=LUNODES+ICASE,OPENED=LOPEN)
+INQUIRE(UNIT=LUNODES+IRANK,OPENED=LOPEN)
 
 IF (.NOT. LOPEN) THEN 
-   OPEN(LUNODES+ICASE,FILE=TRIM(FN),FORM='FORMATTED',STATUS='REPLACE',IOSTAT=IOS)
-   WRITE(LUNODES+ICASE,'(A)') 'IRANK,ICASE,T,IX,IY,M1,M10,M100,MLH,MLW,UX,UY,WD20_INTERP,WD20_NOW,WS20_INTERP,WS20_NOW,WSMF'
+   OPEN(LUNODES+IRANK,FILE=TRIM(FN),FORM='FORMATTED',STATUS='REPLACE',IOSTAT=IOS)
+   WRITE(LUNODES+IRANK,'(A)') 'IRANK,ICASE,T,M1,M10,M100,MLH,MLW,WD20_NOW,WS20_NOW,WSMF'
 ENDIF
 
-WRITE(LUNODES+IRANK,'(I6, ",", I6, ",", F10.1, ",", I6, ",", I6, ",", 12(F8.3, ",") )') IRANK, ICASE, T, C%IX, C%IY, &
-   C%M1, C%M10, C%M100, C%MLH, C%MLW, C%UX, C%UY, C%WD20_INTERP, C%WD20_NOW, C%WS20_INTERP, C%WS20_NOW, C%WSMF
+WRITE(LUNODES+IRANK,'(I4, ",", I7, ",", F10.1, ",", 8(F8.3, ",") )') IRANK, ICASE, T, &
+   C%M1, C%M10, C%M100, C%MLH, C%MLW, C%WD20_NOW, C%WS20_NOW, C%WSMF
 
 ! *****************************************************************************
-END SUBROUTINE WRITE_NODE
+END SUBROUTINE WRITE_STATION
 ! *****************************************************************************
 
 ! *****************************************************************************
