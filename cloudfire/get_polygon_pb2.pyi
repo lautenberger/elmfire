@@ -4,14 +4,8 @@ from typing import ClassVar as _ClassVar, Optional as _Optional
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class Reply(_message.Message):
-    __slots__ = ["fileloc"]
-    FILELOC_FIELD_NUMBER: _ClassVar[int]
-    fileloc: str
-    def __init__(self, fileloc: _Optional[str] = ...) -> None: ...
-
 class Request(_message.Message):
-    __slots__ = ["firename", "timestamp", "transfer_mode"]
+    __slots__ = ("firename", "timestamp", "transfer_mode")
     FIRENAME_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     TRANSFER_MODE_FIELD_NUMBER: _ClassVar[int]
@@ -19,3 +13,9 @@ class Request(_message.Message):
     timestamp: str
     transfer_mode: str
     def __init__(self, firename: _Optional[str] = ..., timestamp: _Optional[str] = ..., transfer_mode: _Optional[str] = ...) -> None: ...
+
+class Reply(_message.Message):
+    __slots__ = ("fileloc",)
+    FILELOC_FIELD_NUMBER: _ClassVar[int]
+    fileloc: str
+    def __init__(self, fileloc: _Optional[str] = ...) -> None: ...
