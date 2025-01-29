@@ -84,14 +84,15 @@ IF (USE_UMD_SPOTTING_MODEL) THEN
 
    ! Calculate number of embers to emit
    IF (USE_PHYSICAL_EMBER_NUMBER) THEN
-      NEMBERS_REAL = EMBER_TO_EMIT_PER_CELL(WS20_NOW, EMBER_SAMPLING_FACTOR, CC%CELLSIZE, &
-                                 BLDG_FOOTPRINT_FRAC_LOCAL, FMC, WN_FUEL, IFBFM, TAU_EMBERGEN)
+      ! NEMBERS_REAL = EMBER_TO_EMIT_PER_CELL(WS20_NOW, EMBER_SAMPLING_FACTOR, CC%CELLSIZE, &
+      !                   BLDG_FOOTPRINT_FRAC_LOCAL, FMC, WN_FUEL, IFBFM, TAU_EMBERGEN, FLIN)
+      NEMBERS_REAL = EMBER_TO_EMIT_PER_CELL(CC%CELLSIZE, IFBFM, FLIN, EMBER_GR_PER_MW_BLDG, EMBER_GR_PER_MW_VEGE)
    ELSE
       EMBERGEN_DT = MAX(MIN(DT, TAU_EMBERGEN - TAU),0.)
       NEMBERS_REAL = EMBER_GR * CC%CELLSIZE * CC%CELLSIZE * EMBERGEN_DT
    ENDIF
 
-   NEMBERS = FLOOR(NEMBERS_REAL)
+   NEMBERS = FLOOR(NEMBERS_REAL/EMBER_SAMPLING_FACTOR)
    P = MOD(NEMBERS_REAL,1.0)
    CALL RANDOM_NUMBER(R0)
    IF (R0 .LE. P) NEMBERS = NEMBERS + 1
@@ -186,32 +187,57 @@ SARDOY_PDF_PARAMETERS(4) = SIGMA_SPANWISE
 END FUNCTION SARDOY_PDF_PARAMETERS
 ! *****************************************************************************
 
+! ! *****************************************************************************
+! FUNCTION EMBER_TO_EMIT_PER_CELL(WS, N0, CELLSIZE_ELM, AF, FMC, WN_FUEL, IFBFM, TAU_EMBERGEN, FLIN)
+! ! *****************************************************************************
+! ! Calculates spotting distance distribution based on Sardoy's model.
+! ! Takes as input local in speed and fireline intensity, reutrns MU and SIGMA
+! REAL, INTENT(IN) :: WS, N0, CELLSIZE_ELM, AF, FMC, WN_FUEL, TAU_EMBERGEN, FLIN
+! INTEGER*2, INTENT(IN) :: IFBFM
+! REAL, PARAMETER :: D_TRUNK        = 0.2 ! Trunk diameter, m
+! REAL, PARAMETER :: M_FIREBRAND    = 2.0e-4 ! firebrand mass, kg
+! REAL, PARAMETER :: G       = 9.81! Gravitional acceleration, m^2/s
+! REAL :: M_FUEL, U_WIND, N_EMBER, Y_FIREBRAND
+! REAL :: EMBER_TO_EMIT_PER_CELL
+
+! M_FUEL = CELLSIZE_ELM*CELLSIZE_ELM*WN_FUEL ! Available vegetation fuel mass in a cell, kg
+! U_WIND = WS*0.447 ! wind speed, m/s (This is 20-ft wind, to be verified)
+
+! IF (IFBFM .EQ. 91) THEN
+!     ! Lee and Davidson, 2010, ember from structure
+!     ! N_EMBER = 206.66*EXP(0.1876*U_WIND)*(CELLSIZE_ELM*CELLSIZE_ELM*AF)
+!     N_EMBER = FLIN * CELLSIZE_ELM * EMBER_GR_PER_MW_VEGE
+! ELSE
+!     ! Ju et al, 2023, ember from vegetation
+!     ! Y_FIREBRAND = 1.70*MAX(FMC,1E-6)**(-0.14)*(U_WIND/SQRT(G*D_TRUNK))**0.63+0.15
+!     ! N_EMBER = Y_FIREBRAND*M_FUEL/M_FIREBRAND
+!     N_EMBER = FLIN * CELLSIZE_ELM * EMBER_GR_PER_MW_BLDG
+! ENDIF
+
+! ! EMBER_TO_EMIT_PER_CELL = N_EMBER/MAX(N0*TAU_EMBERGEN,1E-6)
+! EMBER_TO_EMIT_PER_CELL = N_EMBER
+
+! ! *****************************************************************************
+! END FUNCTION EMBER_TO_EMIT_PER_CELL
+! ! *****************************************************************************
+
 ! *****************************************************************************
-FUNCTION EMBER_TO_EMIT_PER_CELL(WS, N0, CELLSIZE_ELM, AF, FMC, WN_FUEL, IFBFM, TAU_EMBERGEN)
+FUNCTION EMBER_TO_EMIT_PER_CELL(CELLSIZE_ELM, IFBFM, FLIN, EMBER_GR_PER_MW_BLDG, EMBER_GR_PER_MW_VEGE)
 ! *****************************************************************************
 ! Calculates spotting distance distribution based on Sardoy's model.
 ! Takes as input local in speed and fireline intensity, reutrns MU and SIGMA
-REAL, INTENT(IN) :: WS, N0, CELLSIZE_ELM, AF, FMC, WN_FUEL, TAU_EMBERGEN
+REAL, INTENT(IN) :: CELLSIZE_ELM, FLIN, EMBER_GR_PER_MW_BLDG, EMBER_GR_PER_MW_VEGE
 INTEGER*2, INTENT(IN) :: IFBFM
-REAL, PARAMETER :: D_TRUNK        = 0.2 ! Trunk diameter, m
-REAL, PARAMETER :: M_FIREBRAND    = 2.0e-4 ! firebrand mass, kg
-REAL, PARAMETER :: G       = 9.81! Gravitional acceleration, m^2/s
-REAL :: M_FUEL, U_WIND, N_EMBER, Y_FIREBRAND
-REAL :: EMBER_TO_EMIT_PER_CELL
-
-M_FUEL = CELLSIZE_ELM*CELLSIZE_ELM*WN_FUEL ! Available vegetation fuel mass in a cell, kg
-U_WIND = WS*0.447 ! wind speed, m/s (This is 20-ft wind, to be verified)
+REAL :: EMBER_TO_EMIT_PER_CELL, N_EMBER
 
 IF (IFBFM .EQ. 91) THEN
-    ! Lee and Davidson, 2010, ember from structure
-    N_EMBER = 206.66*EXP(0.1876*U_WIND)*(CELLSIZE_ELM*CELLSIZE_ELM*AF)
+    N_EMBER = FLIN * CELLSIZE_ELM * EMBER_GR_PER_MW_BLDG
 ELSE
     ! Ju et al, 2023, ember from vegetation
-    Y_FIREBRAND = 1.70*MAX(FMC,1E-6)**(-0.14)*(U_WIND/SQRT(G*D_TRUNK))**0.63+0.15
-    N_EMBER = Y_FIREBRAND*M_FUEL/M_FIREBRAND
+    N_EMBER = FLIN * CELLSIZE_ELM * EMBER_GR_PER_MW_VEGE
 ENDIF
 
-EMBER_TO_EMIT_PER_CELL = N_EMBER/MAX(N0*TAU_EMBERGEN,1E-6)
+EMBER_TO_EMIT_PER_CELL = N_EMBER
 
 ! *****************************************************************************
 END FUNCTION EMBER_TO_EMIT_PER_CELL
@@ -674,7 +700,7 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
 
    IF (ABS(UWIND(1)) .LT. 1E-6 .AND. ABS(UWIND(2)) .LT. 1E-6) T=9E9
    IF (ICOUNT .GT. 100000) T=9E9
-
+   
    X(1:2)   = X(1:2) + UWIND(1:2) * DT
    DIST     = DIST + WS20 * DT
    
@@ -699,15 +725,15 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
 
    IF (K_MAX_SPANWISE .GT. 1) THEN
       P_LAND_SPANWISE = 0.5*(ERF((CELLSIZE_ELM*0.5-MU_SPANWISE)/SQRT_2/SIGMA_SPANWISE)- &
-                             ERF((-CELLSIZE_ELM*0.5-MU_SPANWISE)/SQRT_2/SIGMA_SPANWISE))
+                             ERF((-CELLSIZE_ELM*0.5-MU_SPANWISE)/SQRT_2/SIGMA_SPANWISE))/NORM_FACTOR_SPANWISE
       EMBER_FLUX%R4(IX,IY,IT_IGN) = EMBER_FLUX%R4(IX,IY,IT_IGN) + NUM_EMBERS*P_LAND*P_LAND_SPANWISE
       ! If probability of ignition is 100%, EMBER_TIGN will be used, avoid allocating a big array of EMBER_ACCUMULATION_RATE
       IF(T+TIME_NOW .LT. EMBER_TIGN(IX,IY) .OR. EMBER_TIGN(IX,IY) .LT. 0.0) THEN
          EMBER_TIGN(IX,IY) = T+TIME_NOW
       ENDIF
-      DO I=2, K_MAX_SPANWISE
+      DO I=2, (K_MAX_SPANWISE+1)
          P_LAND_SPANWISE = 0.5*(ERF((CELLSIZE_ELM*(I-1+0.5)-MU_SPANWISE)/SQRT_2/SIGMA_SPANWISE)- &
-                                ERF((CELLSIZE_ELM*(I-2+0.5)-MU_SPANWISE)/SQRT_2/SIGMA_SPANWISE))
+                                ERF((CELLSIZE_ELM*(I-2+0.5)-MU_SPANWISE)/SQRT_2/SIGMA_SPANWISE))/NORM_FACTOR_SPANWISE
          ! Side-1
          INV_UWIND_TIMES_SPANWISE_DEVIATION = CELLSIZE_ELM*(I-1)/MAX(1E-6,UWIND_ABS)
          X_SPANWISE=X(1)+(COS(90*PI/180.)*UWIND(1)-SIN(90*PI/180.)*UWIND(2))*INV_UWIND_TIMES_SPANWISE_DEVIATION
@@ -865,12 +891,12 @@ END SUBROUTINE CLEAR_USED_EMBER
 ! *****************************************************************************
 
 ! *****************************************************************************
-LOGICAL FUNCTION EMBER_IGNITION(IX,IY,T_ELMFIRE, DT_ELMFIRE, UWIND, P_IGN_INPUT, TAU_IGN_INPUT, T_DEVELOP_INPUT)
+LOGICAL FUNCTION EMBER_IGNITION(IX,IY,T_ELMFIRE, DT_ELMFIRE, UWIND, P_IGN_INPUT, TAU_IGN_INPUT, T_DEVELOP_INPUT, HARDENING_FACTCOR)
 ! *****************************************************************************
 ! Firebrand ignition model, based on the ember accumulation history
 USE ELMFIRE_VARS
 
-REAL, INTENT(IN) :: T_ELMFIRE, DT_ELMFIRE, UWIND, P_IGN_INPUT, TAU_IGN_INPUT, T_DEVELOP_INPUT
+REAL, INTENT(IN) :: T_ELMFIRE, DT_ELMFIRE, UWIND, P_IGN_INPUT, TAU_IGN_INPUT, T_DEVELOP_INPUT, HARDENING_FACTCOR
 INTEGER, INTENT(IN) :: IX,IY
 
 REAL :: NUM_ACCUMULATED_EMBERS_PUA, V_AIR, P_IGN, TAU_IGN, T_DEVELOP, &
@@ -898,7 +924,7 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
       IFBFM = FBFM%I2(IX,IY,1)
               
       ! Ignition critical ember mass density from De Beer' Thesis, 2023
-      M_EMBER = 0.2E-3 ! Estimated ember mass, 0.2 g
+      M_EMBER = 0.2 ! Estimated ember mass, 0.2 g
 
       IF(IFBFM .NE. 91) THEN
          IF (CC%R4(IX,IY, 1) .GT. 1E-4 .AND. CH%R4(IX,IY, 1) .GT. 1E-4) THEN !Canopy is present
@@ -917,7 +943,7 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
 
       PSI = NUM_ACCUMULATED_EMBERS_PUA * M_EMBER/1E4 ! Firebrand coverage density (mass load, g/cm2) 
       V_AIR = UWIND*COEF_WIND*0.447
-      IGNITION_CRITERION = PSI*(V_AIR-0.0888)*(V_AIR-3.8912)+0.1945 ! UMD Fitted curve at P_IGN = 0.5
+      IGNITION_CRITERION = HARDENING_FACTCOR*PSI*(V_AIR-0.003)*(V_AIR-4.017)+0.188 ! UMD Fitted curve at P_IGN = 0.5
 
       IF(IGNITION_CRITERION .LT. 0)THEN
          P_IGN = 0.90
@@ -926,17 +952,18 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
       ENDIF
       ! End of De Beer's model
 
-      TAU_IGN = 42.1 ! Value derived from ThermaKin simulation for WRC.
-
       IF (IFBFM .EQ. 91) THEN
          IF(USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2) THEN
             IBLDGFM = BLDG_FUEL_MODEL%I2(IX,IY,1)
+            TAU_IGN = BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%TAU_IGN ! Value derived from ThermaKin simulation for WRC.
             ! T_DEVELOP = 80.0 * BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%T_EARLY / BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%HRRPUA_PEAK ! 80 kW/m2 is an estimated HRRPUA at the ignition by firebrands
             T_DEVELOP = BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%T_EARLY !
          ELSE
+            TAU_IGN = 42.1 ! Value derived from ThermaKin simulation for WRC.
             T_DEVELOP = 300.0 ! Assume a medium fire growth rate for not defined structural fuels
          ENDIF
       ELSE
+         TAU_IGN = 42.1 ! Value derived from ThermaKin simulation for WRC.
          T_DEVELOP = 75.0 ! Assume a ultrafast fire growth rate for non-structural fuels
       ENDIF
 
