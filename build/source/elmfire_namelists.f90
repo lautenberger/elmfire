@@ -29,14 +29,14 @@ IF (IOS > 0) THEN
    STOP
 ENDIF
 
-PATH_TO_GDAL                   = TRIM(PATH_TO_GDAL                  ) // PATH_SEPARATOR
+PATH_TO_GDAL = TRIM(PATH_TO_GDAL) // PATH_SEPARATOR
 
 ! if dirs are still null don't add a path separator
 IF (MISCELLANEOUS_INPUTS_DIRECTORY .NE. 'null') THEN
    MISCELLANEOUS_INPUTS_DIRECTORY = TRIM(MISCELLANEOUS_INPUTS_DIRECTORY) // PATH_SEPARATOR
 ENDIF
 IF (SCRATCH .NE. 'null') THEN
-   SCRATCH                        = TRIM(SCRATCH                       ) // PATH_SEPARATOR
+   SCRATCH = TRIM(SCRATCH) // PATH_SEPARATOR
 ENDIF
 
 ! *****************************************************************************
