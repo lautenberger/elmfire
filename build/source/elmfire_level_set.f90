@@ -907,7 +907,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                   CALL TAG_BAND(NX, NY, IX, IY, T+DT)
                   PHIP           (IX,IY) = -1.0
                   ! Record firebrand ignited cells
-                  WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
+                  IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
                ENDIF
                ENDIF
             ENDDO
@@ -951,7 +951,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
             CALL TAG_BAND(NX, NY, IX, IY, T)
             TIME_OF_ARRIVAL(IX,IY) = T
             PHIP           (IX,IY) = -1.0
-            WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
+            IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
          ENDIF
       ENDDO
    ENDIF
