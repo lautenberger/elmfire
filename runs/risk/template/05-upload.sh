@@ -51,10 +51,10 @@ ssh $REMOTE_USER@$REMOTE_HOST "sudo mkdir -p $FULLPATH"
 ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $PARTIALPATH; sudo chown -R 'sig-app:domain users' $PARTIALPATH"
 
 if [ "$PATTERN_OUT" != "all" ]; then
-   rm -f ./out/fire*.tif ./out/impacted*.tif ./out/crown*.tif ./out/plign*.tif
+   rm -f ./post/fire*.tif ./post/impacted*.tif ./post/crown*.tif ./post/plign*.tif
 fi
 
-FNLIST=`ls ./out/*.tif ./out/*.shp ./out/*.dbf ./out/*.prj ./out/*.shx`
+FNLIST=`ls ./post/*.tif ./post/*.shp ./post/*.dbf ./post/*.prj ./post/*.shx`
 GO=yes
 while [ "$GO" = "yes" ]; do
    rsync -rv --timeout=10 $FNLIST $REMOTE_USER@$REMOTE_HOST:$FULLPATH/

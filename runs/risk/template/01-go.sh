@@ -1,57 +1,59 @@
 #!/bin/bash
-#SBATCH --nodes=1               # node count
-#SBATCH --ntasks=1              # total number of tasks across all nodes
-#SBATCH --cpus-per-task=64      # cpu-cores per task (>1 if multi-threaded tasks)
-#SBATCH --priority=4000000000
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
 #SBATCH --exclusive
 #SBATCH --exclude=
+#SBATCH --mem=250G
+#SBATCH -t 12:00:00
 
-function link_tiles {
-   local QUANTITY=$1
-   local DATADIR=$2
-   local I=$3
-   local J=$4
-   local SUBDIR=$5
-
-   i=$((10#$I)) ; let "im1 = i - 1"; let "ip1 = i + 1"
-   j=$((10#$J)) ; let "jm1 = j - 1"; let "jp1 = j + 1"
-
-   for i in $(eval echo "{$im1..$ip1}"); do
-      I=`printf "%03d" $i`
-      let "ilocal = i + 1 - im1"
-      for j in $(eval echo "{$jm1..$jp1}"); do
-         J=`printf "%03d" $j`
-         let "jlocal = j + 1 - jm1"
-         gdal_translate -of ENVI -co "INTERLEAVE=BSQ" $DATADIR/${I}_${J}/$QUANTITY.tif $SCRATCH/${QUANTITY}_${ilocal}_${jlocal}.bsq
+function wait_for_slurm_jobs {
+   local JOB_IDS="$1"
+   ANYRUNNING=yes
+   while [ "$ANYRUNNING" = "yes" ]; do
+      NOW=`date -u +"%Y-%m-%d %H:%M:%S"`
+      echo "$NOW Checking if slurm jobs are finished"
+      ANYRUNNING=no
+      for JOB_ID in $JOB_IDS; do
+         ISRUNNING=`squeue -j $JOB_ID 2> /dev/null | wc -l`
+         if [ "$ISRUNNING" != "0" ]; then
+            ANYRUNNING=yes
+         fi
       done
+      sleep 30
    done
 }
 
-echo "PATTERN $PATTERN"
-echo "FUELS_INPUTS $FUELS_INPUTS"
-echo "FORECAST_CYCLE $FORECAST_CYCLE"
-echo "CLOUDFIRE_SERVER $CLOUDFIRE_SERVER"
-echo "ELMFIRE_SCRATCH_BASE $ELMFIRE_SCRATCH_BASE"
-
-TILEFILE=$ELMFIRE_BASE_DIR/config/tiles_conus_aea.csv
-
-DATA_COPY_METHOD=cp # cp, scp, wget
-TILES_FCST_CLI=$ELMFIRE_BASE_DIR/cloudfire/tiles_fcst.py
-SCRATCH=$ELMFIRE_SCRATCH_BASE/risk_run
-
-FORECAST_CYCLE=${FORECAST_CYCLE:-$1}
 PATTERN=${PATTERN:-$1}
-FUELS_INPUTS=${FUELS_INPUTS:-$1}
+FUELS_INPUTS=${FUELS_INPUTS:-$2}
+FORECAST_CYCLE=${FORECAST_CYCLE:-$3}
+NUM_CORES_PER_TASK=${NUM_CORES_PER_TASK:-$4}
+PARALLELIZATION_STRATEGY=${PARALLELIZATION_STRATEGY:-$5}
 
-TODAY=`echo $FORECAST_CYCLE | cut -d_ -f1`
-LFMDATE=`date -u -d "$TODAY - 1 day" +%Y%m%d`
+echo "PATTERN:                  $PATTERN"
+echo "FUELS_INPUTS:             $FUELS_INPUTS"
+echo "FORECAST_CYCLE:           $FORECAST_CYCLE"
+echo "NUM_CORES_PER_TASK:       $NUM_CORES_PER_TASK"
+echo "PARALLELIZATION_STRATEGY: $PARALLELIZATION_STRATEGY"
+echo "CLOUDFIRE_SERVER:         $CLOUDFIRE_SERVER"
+echo "ELMFIRE_SCRATCH_BASE:     $ELMFIRE_SCRATCH_BASE"
+
+# Configuration parameters
+DATA_COPY_METHOD=scp # cp, scp, wget
+USE_SNODAS=yes
+
+# Directories and files
 CWD=$(pwd)
+TILEFILE=$ELMFIRE_BASE_DIR/config/tiles_conus_aea.csv
+TILES_FCST_CLI=$ELMFIRE_BASE_DIR/cloudfire/tiles_fcst.py
+SCRATCH=$ELMFIRE_SCRATCH_BASE/setup_risk_run_${PATTERN}_${FUELS_INPUTS}_$FORECAST_CYCLE
+RUNDIR=$ELMFIRE_BASE_DIR/runs/risk/runs/$FORECAST_CYCLE-$PATTERN-$FUELS_INPUTS
+TILELIST=$ELMFIRE_BASE_DIR/config/ignition/patterns/$PATTERN/tiles/tiles.txt
 
-# Check that we have 0 or 3 command line arguments:
-if [ "$#" != "0" ] && [ "$#" != "3" ]; then
-   echo "Specify zero or three command line arguments"
-   exit 1
-fi
+## Check that we have 0 or 3 command line arguments:
+#if [ "$#" != "0" ] && [ "$#" != "3" ]; then
+#   echo "Specify zero or three command line arguments"
+#   exit 1
+#fi
 
 # First command line argument is FORECAST_CYCLE, or infer it from directory name:
 if [ -z "$FORECAST_CYCLE" ]; then
@@ -79,21 +81,16 @@ if [ "$FUELS_INPUTS" != "landfire" ] ; then
    exit 1
 fi
 
-TILELIST=$ELMFIRE_BASE_DIR/config/ignition/patterns/$PATTERN/tiles/tiles.txt
-RUNDIR=$ELMFIRE_BASE_DIR/runs/risk/runs/$FORECAST_CYCLE-$PATTERN-$FUELS_INPUTS
-INTERMEDIATE_OUTPUTS_BASE_DIR=$ELMFIRE_SCRATCH_BASE/$FORECAST_CYCLE-$PATTERN-$FUELS_INPUTS
+#TODO:  Add error checking for command line arguments 4 & 5
 
-INPUTS_DIR=$RUNDIR/inputs
+# Start with clean scratch and inputs directory
+rm -f -r $SCRATCH $RUNDIR/inputs
+mkdir -p $SCRATCH $RUNDIR/inputs
 
-rm -f -r $INPUTS_DIR
-mkdir -p $SCRATCH $INTERMEDIATE_OUTPUTS_BASE_DIR $RUNDIR $INPUTS_DIR 2> /dev/null
-
-# Start by getting data from cloudfire
-
+# Build list of tiles to run
 while read TILE ; do
    TILES="$TILES $TILE"
 done < $TILELIST
-
 echo "TILES: $TILES"
 
 for TILE in $TILES; do
@@ -114,10 +111,23 @@ done
 cat $SCRATCH/tiles_with_halo_and_duplicates.txt | sort | uniq > $SCRATCH/tiles_with_halo.txt
 rm $SCRATCH/tiles_with_halo_and_duplicates.txt
 
+# Get input data from cloudfire microservice
+
+TODAY=`echo $FORECAST_CYCLE | cut -d_ -f1`
+LFMDATE=`date -u -d "$TODAY - 1 day" +%Y%m%d`
+
 while read TILE; do
-   mkdir $RUNDIR/inputs/$TILE
+   mkdir -p $RUNDIR/inputs/$TILE
    echo "$TILES_FCST_CLI $PATTERN $FORECAST_CYCLE $LFMDATE $TILE $DATA_COPY_METHOD"
-   read -d '' WXLOC FUELLOC TOPOLOC STRUCTDENSLOC IGNLOC LFMLOC <<<$($TILES_FCST_CLI $PATTERN $FORECAST_CYCLE $LFMDATE $TILE $DATA_COPY_METHOD)
+   read -d '' WXLOC FUELLOC TOPOLOC STRUCTDENSLOC IGNLOC LFMLOC SNODASLOC <<<$($TILES_FCST_CLI $PATTERN $FORECAST_CYCLE $LFMDATE $TILE $DATA_COPY_METHOD)
+
+echo "WXLOC        : $WXLOC"
+echo "FUELLOC      : $FUELLOC"
+echo "TOPOLOC      : $TOPOLOC"
+echo "STRUCTDENSLOC: $STRUCTDENSLOC"
+echo "IGNLOC       : $IGNLOC"
+echo "LFMLOC       : $LFMLOC"
+echo "SNODASLOC    : $SNODASLOC"
 
    case $DATA_COPY_METHOD in
 
@@ -128,15 +138,18 @@ while read TILE; do
          cp -f $STRUCTDENSLOC/* $RUNDIR/inputs/$TILE/
          cp -f $IGNLOC/*        $RUNDIR/inputs/$TILE/
          cp -f $LFMLOC/*        $RUNDIR/inputs/$TILE/
+         cp -f $SNODASLOC/*     $RUNDIR/inputs/$TILE/
          ;;
 
       'scp')
-         scp $WXLOC/*         $RUNDIR/inputs/$TILE/
-         scp $FUELLOC/*       $RUNDIR/inputs/$TILE/
-         scp $TOPOLOC/*       $RUNDIR/inputs/$TILE/
-         scp $STRUCTDENSLOC/* $RUNDIR/inputs/$TILE/
-         scp $IGNLOC/*        $RUNDIR/inputs/$TILE/
-         scp $LFMLOC/*        $RUNDIR/inputs/$TILE/
+         scp $WXLOC/*         $RUNDIR/inputs/$TILE/ &
+         scp $FUELLOC/*       $RUNDIR/inputs/$TILE/ &
+         scp $TOPOLOC/*       $RUNDIR/inputs/$TILE/ &
+         scp $STRUCTDENSLOC/* $RUNDIR/inputs/$TILE/ &
+         scp $IGNLOC/*        $RUNDIR/inputs/$TILE/ &
+         scp $LFMLOC/*        $RUNDIR/inputs/$TILE/ &
+         scp $SNODASLOC/*     $RUNDIR/inputs/$TILE/ &
+         wait
          ;;
 
       'wget')
@@ -146,6 +159,7 @@ while read TILE; do
          wget -r -np -nH --cut-dirs=2 -R "index.html*" -P $RUNDIR/inputs/$TILE/ $STRUCTDENSLOC/
          wget -r -np -nH --cut-dirs=3 -R "index.html*" -P $RUNDIR/inputs/$TILE/ $IGNLOC/
          wget -r -np -nH --cut-dirs=2 -R "index.html*" -P $RUNDIR/inputs/$TILE/ $LFMLOC/
+         wget -r -np -nH --cut-dirs=2 -R "index.html*" -P $RUNDIR/inputs/$TILE/ $SNODASLOC/
          ;;
 
       *)
@@ -163,110 +177,43 @@ while read TILE; do
 done < $SCRATCH/tiles_with_halo.txt
 rm -f $SCRATCH/tiles_with_halo.txt
 
-# Done getting data from cloudfire - now loop over tiles
-
+# Done getting data from cloudfire microservice - now loop over tiles
 for TILE in $TILES; do
-
    echo $TILE
-   rm -f -r $RUNDIR/$TILE $SCRATCH
-   mkdir $RUNDIR/$TILE $SCRATCH
+   rm -f -r $RUNDIR/$TILE
+   mkdir -p $RUNDIR/$TILE
+   cd $RUNDIR/$TILE
 
    if [ "$PATTERN" = "all" ]; then
-      cp -f $CWD/empty_run/elmfire.data.all $SCRATCH/elmfire.data
+      cp -f $CWD/empty_run/elmfire.data.all        ./elmfire.data
    else
-      cp -f $CWD/empty_run/elmfire.data.powerlines $SCRATCH/elmfire.data
+      cp -f $CWD/empty_run/elmfire.data.powerlines ./elmfire.data
    fi
-   cp -f $CWD/empty_run/*.sh $SCRATCH
-   cp -f $CWD/empty_run/kernel_density.data $SCRATCH
-   cp -f $ELMFIRE_BASE_DIR/build/source/fuel_models.csv $SCRATCH
+   cp -f $CWD/empty_run/*.sh                            ./
+   cp -f $CWD/empty_run/kernel_density.data             ./
+   cp -f $ELMFIRE_BASE_DIR/build/source/fuel_models.csv ./
 
-   cd $SCRATCH
-
-   I=`echo $TILE | cut -d_ -f1`
-   J=`echo $TILE | cut -d_ -f2`
-
-   for QUANTITY in asp dem slp cbd cbh cc ch fbfm40; do
-      link_tiles $QUANTITY $INPUTS_DIR $I $J fuels_and_topography &
-   done
-
-   link_tiles ignition_mask              $INPUTS_DIR $I $J fuels_and_topography &
-   link_tiles structure_density_per_acre $INPUTS_DIR $I $J fuels_and_topography &
-
-   for QUANTITY in erc m100 m10 m1 wd ws lh lw plignrate_$PATTERN; do
-      link_tiles $QUANTITY $INPUTS_DIR $I $J weather &
-   done
-
-   wait
-
-   for A in ./fbfm40*.bsq; do
-      ROW=`basename $A | cut -d_ -f2`
-      COL=`basename $A | cut -d_ -f3 | cut -d. -f1`
-      gdal_calc.py -A $A --type="Float32" --NoDataValue=-9999 --format="ENVI" --co="INTERLEAVE=BSQ" --calc="A*0.0 + 1.0" --outfile="./adj_${ROW}_${COL}.bsq" &
-      gdal_calc.py -A $A --type="Float32" --NoDataValue=-9999 --format="ENVI" --co="INTERLEAVE=BSQ" --calc="A*0.0 + 1.0" --outfile="./phi_${ROW}_${COL}.bsq" &
-   done
-   wait
-
-# The .bsq.aux.xml file created by gdal_calc doesn't work
-   for i_j in 1_1 1_2 1_3 2_1 2_2 2_3 3_1 3_2 3_3; do
-      for QUANTITY in adj phi; do
-         rm -f ${QUANTITY}_$i_j.bsq.aux.xml
-         cp -f ignition_mask_$i_j.bsq.aux.xml ${QUANTITY}_$i_j.bsq.aux.xml
-      done
-   done
-
-# Set XLLCORNER and YLLCORNER:
-   XLLCORNER=`gdalinfo ./slp_1_1.bsq | grep 'Lower Left' | cut -d'(' -f2 | cut -d')' -f1 | cut -d, -f1 | xargs`
-   YLLCORNER=`gdalinfo ./slp_1_1.bsq | grep 'Lower Left' | cut -d'(' -f2 | cut -d')' -f1 | cut -d, -f2 | xargs`
-
-   LINENUM=`grep -n "COMPUTATIONAL_DOMAIN_XLLCORNER" ./elmfire.data | cut -d: -f1`
-   sed -i "$LINENUM d" ./elmfire.data
-   sed -i "$LINENUM i COMPUTATIONAL_DOMAIN_XLLCORNER = $XLLCORNER" ./elmfire.data
-
-   LINENUM=`grep -n "COMPUTATIONAL_DOMAIN_YLLCORNER" ./elmfire.data | cut -d: -f1`
-   sed -i "$LINENUM d" ./elmfire.data
-   sed -i "$LINENUM i COMPUTATIONAL_DOMAIN_YLLCORNER = $YLLCORNER" ./elmfire.data
-
-# Grid declination
-   LINE=`cat $TILEFILE | grep $TILE`
-   GRID_DECL=`echo $LINE | cut -d, -f 12`
-
-# Set GRID_DECLINATION
-   LINENUM=`grep -n "GRID_DECLINATION" elmfire.data | cut -d: -f1`
-   sed -i "$LINENUM d" elmfire.data
-   sed -i "$LINENUM i GRID_DECLINATION = $GRID_DECL" elmfire.data
-
-   wait
-
-   ./01-run.sh $PATTERN $FUELS_INPUTS $FORECAST_CYCLE $TILE >& run.log
-   cd $CWD
-
+   if [ "$PARALLELIZATION_STRATEGY" = "multinode" ]; then
+      JOB_ID=$(sbatch --job-name=${FORECAST_CYCLE}_${PATTERN}_$TILE --chdir=$ELMFIRE_SCRATCH_BASE \
+             --output=$RUNDIR/log/01-run_${TILE}_%j.log \
+             --export=ALL,PATTERN=$PATTERN,FUELS_INPUTS=$FUELS_INPUTS,FORECAST_CYCLE=$FORECAST_CYCLE,ELMFIRE_SCRATCH_BASE=$ELMFIRE_SCRATCH_BASE,TILE=$TILE,NUM_CORES_PER_TASK=$NUM_CORES_PER_TASK,PARALLELIZATION_STRATEGY=$PARALLELIZATION_STRATEGY,USE_SNODAS=$USE_SNODAS \
+             01-run.sh | awk '{print $4}')
+      JOB_IDS="$JOB_IDS $JOB_ID"
+   else
+      ./01-run.sh $PATTERN $FUELS_INPUTS $FORECAST_CYCLE $ELMFIRE_SCRATCH_BASE $TILE $NUM_CORES_PER_TASK $PARALLELIZATION_STRATEGY $USE_SNODAS >& $RUNDIR/log/01-run_$TILE.log
+   fi
 done
 
-cp -f $CWD/02-post.sh $INTERMEDIATE_OUTPUTS_BASE_DIR
-if [ "$PATTERN" = "all" ]; then
-   cp -f $CWD/0304-rasterize.sh $INTERMEDIATE_OUTPUTS_BASE_DIR
-else
-   cp -f $CWD/03-zonal.sh           $INTERMEDIATE_OUTPUTS_BASE_DIR
-   cp -f $CWD/04-attribute_table.sh $INTERMEDIATE_OUTPUTS_BASE_DIR
-fi
-cp -f $CWD/05-upload.sh $INTERMEDIATE_OUTPUTS_BASE_DIR
-
-cd $INTERMEDIATE_OUTPUTS_BASE_DIR
-
-./02-post.sh >& log_02-post.txt
-
-if [ "$PATTERN" = "all" ]; then
-   ./0304-rasterize.sh >& log_0304-rasterize.txt
-else
-   ./03-zonal.sh           >& log_03-zonal.txt
-   ./04-attribute_table.sh >& log_04-attribute_table.txt
+# Wait for jobs to finish up
+if [ "$PARALLELIZATION_STRATEGY" = "multinode" ]; then
+   wait_for_slurm_jobs "$JOB_IDS"
 fi
 
-./05-upload.sh >& log_05-upload.txt
+# Run post-processing
+cd $ELMFIRE_BASE_DIR/runs/risk
+./02-post.sh $RUNDIR
 
-cp -f -r * $RUNDIR
-
-cd $ELMFIRE_SCRATCH_BASE
-rm -f -r *
+# Clean up
+rm -f -r $SCRATCH
 
 exit 0

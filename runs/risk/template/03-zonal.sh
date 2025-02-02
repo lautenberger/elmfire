@@ -1,10 +1,10 @@
 #!/bin/bash
 
-CLOUDFIRE_VER=${CLOUDFIRE_VER:-2023.0515}
+CLOUDFIRE_VER=${CLOUDFIRE_VER:-2024.0909}
 ZONAL_STATS=$CLOUDFIRE_BASE_DIR/code/linux/bin/zonal_stats_$CLOUDFIRE_VER
 
 PATTERN=`basename $(pwd) | cut -d- -f2`
-DATADIR=$(pwd)/out
+DATADIR=$(pwd)/post
 OUTDIR=$(pwd)/polygon_zonal_stats
 SCRATCH=$ELMFIRE_SCRATCH_BASE/scratch_elmfire_zonal_$PATTERN
 POLYGONS=$ELMFIRE_BASE_DIR/config/polygons/${PATTERN}_polygons.shp
@@ -13,7 +13,7 @@ TR_NATIVE='150 150'
 TR_RESAMPLED='150 150'
 NUM_FORECAST_HOURS_TO_PROCESS=108
 
-f=`ls ./out/times-burned*.tif | head -n1`
+f=`ls ./post/times-burned*.tif | head -n1`
 XMIN=`gdalinfo $f | grep "Lower Left" | cut -d'(' -f2 | cut -d')' -f1 | cut -d, -f1 | xargs`
 YMIN=`gdalinfo $f | grep "Lower Left" | cut -d'(' -f2 | cut -d')' -f1 | cut -d, -f2 | xargs`
 XMAX=`gdalinfo $f | grep "Upper Right" | cut -d'(' -f2 | cut -d')' -f1 | cut -d, -f1 | xargs`
@@ -21,9 +21,9 @@ YMAX=`gdalinfo $f | grep "Upper Right" | cut -d'(' -f2 | cut -d')' -f1 | cut -d,
 TE="$XMIN $YMIN $XMAX $YMAX"
 
 HAVE_PLIGNRATE=no
-if [ "$PATTERN" = "$UTILITY01" ] || [ "$PATTERN" = "$UTILITY02" ]; then
-   HAVE_PLIGNRATE=yes
-fi
+#if [ "$PATTERN" = "$UTILITY01" ] || [ "$PATTERN" = "$UTILITY02" ]; then
+#   HAVE_PLIGNRATE=yes
+#fi
 
 if [ "$HAVE_PLIGNRATE" = "yes" ]; then
    NUM_QUANTITIES=4
