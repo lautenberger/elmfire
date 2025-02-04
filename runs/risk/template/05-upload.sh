@@ -82,7 +82,8 @@ if [ "$UPLOAD_PSPS_ZONAL_STATS" = "yes" ]; then
    done
 
    ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $FULLPATH; sudo chown -R 'sig-app:domain users' $FULLPATH"
-
 fi
+
+ssh $REMOTE_USER@$REMOTE_HOST "/opt/geosync-scripts/$REMOTE_HOST/sync-layers.sh -s fire_risk_forecast -f 2 -t 2"
 
 exit 0
