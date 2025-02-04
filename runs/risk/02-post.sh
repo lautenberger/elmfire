@@ -19,7 +19,10 @@ if [ -z "$DATADIR" ]; then
    exit 1
 fi
 
-USE_SLURM=yes
+# Configuration
+USE_SLURM=no
+PUSH_TO_GCS=no
+PUSH_TO_GEOSERVER=yes
 
 # Parameters for no slurm
 CPUS_PER_TASK_MAX=112
@@ -54,6 +57,9 @@ if [ "$PATTERN" = "all" ]; then
 else
    cp -f ./template/03-zonal.sh $DATADIR
    cp -f ./template/04-attribute_table.sh $DATADIR
+fi
+if [ "$PUSH_TO_GEOSERVER" = "yes" ]; then
+   cp -f ./template/05-upload.sh $DATADIR
 fi
 
 cd $DATADIR
@@ -96,6 +102,12 @@ if [ "$USE_SLURM" = "yes" ]; then
 fi
 
 # Push to storage bucket
-gcloud storage rsync ./post/ gs://shasta/fire_risk_forecast/$RUN_ID/ --recursive
+if [ "$PUSH_TO_GCS" = "yes" ]; then
+   gcloud storage rsync ./post/ gs://shasta/fire_risk_forecast/$RUN_ID/ --recursive
+fi
+
+if [ "$PUSH_TO_GEOSERVER" = "yes" ]; then
+   ./05-upload.sh
+fi
 
 exit 0
