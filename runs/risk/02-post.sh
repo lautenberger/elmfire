@@ -51,13 +51,11 @@ PATTERN=`echo $RUN_ID | cut -d'-' -f2`
 mkdir -p $OUTDIR $DATADIR/log
 
 # Copy post-processing scripts
-cp -f ./template/02-post.sh $DATADIR
-if [ "$PATTERN" = "all" ]; then
-   cp -f ./template/0304-rasterize.sh $DATADIR
-else
-   cp -f ./template/03-zonal.sh $DATADIR
-   cp -f ./template/04-attribute_table.sh $DATADIR
-fi
+cp -f ./template/02-post.sh            $DATADIR
+cp -f ./template/0304-rasterize.sh     $DATADIR
+cp -f ./template/03-zonal.sh           $DATADIR
+cp -f ./template/04-attribute_table.sh $DATADIR
+
 if [ "$PUSH_TO_GEOSERVER" = "yes" ]; then
    cp -f ./template/05-upload.sh $DATADIR
 fi
@@ -78,7 +76,7 @@ else
 fi
 
 # Create rasters from point data
-if [ "$PATTERN" = "all" ]; then
+if [ "$PATTERN" != "tlines" ]; then
    if [ "$USE_SLURM" = "yes" ]; then
       for i in `seq 1 16`; do
          JOB_ID2[i]=$(sbatch --job-name=0304rasterize${i}_$PATTERN --chdir=$DATADIR \
@@ -88,7 +86,7 @@ if [ "$PATTERN" = "all" ]; then
                              ./0304-rasterize.sh | awk '{print $4}')
       done
    else
-      ./0304-rasterize.sh $DATADIR $CPUS_PER_TASK_MAX "$FHS"
+      ./0304-rasterize.sh $DATADIR $CPUS_PER_TASK_MAX "$FHS" >& $DATADIR/log/0304-rasterize.txt
    fi
 fi
 
@@ -99,6 +97,11 @@ if [ "$USE_SLURM" = "yes" ]; then
          wait_for_slurm ${JOB_ID2[i]}
       fi
    done
+fi
+
+if [ "$PATTERN" != "tlines" ] && [ "$PATTERN" != "all" ]; then
+   ./03-zonal.sh           >& $DATADIR/log/log_03-zonal.txt
+   ./04-attribute_table.sh >& $DATADIR/log/log_04-attribute_table.txt
 fi
 
 # Push to storage bucket
