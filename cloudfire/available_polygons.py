@@ -22,7 +22,7 @@ if "CLOUDFIRE_SERVER" in os.environ:
 else:
     cloudfire_server='worldgen.cloudfire.io'
 
-valid_historical_years_years = ["2014", "2015", "2016", "2017", "2018", "2019", "2020"]
+valid_historical_years_years = ["2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"]
 
 def printerr(msg):
   print(msg)
@@ -40,7 +40,7 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--active", required = False, default=True, nargs='?' )
-parser.add_argument("--year", required = False, default='2022', nargs='?' )
+parser.add_argument("--year", required = False, default='2024', nargs='?' )
 parser.add_argument("--list", required = True, default='fires', nargs='?' )
 parser.add_argument("--firename", required = False, default='null', nargs='?' )
 parser.add_argument("--debug", required = False, default=False, nargs='?' )
