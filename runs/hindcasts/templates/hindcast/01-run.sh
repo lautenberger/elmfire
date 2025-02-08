@@ -16,9 +16,6 @@ FIRE_NAME=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f1`
 DATE_START=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f2`
 TIME_START=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f3`
 TIMESTAMP_START="${DATE_START}_${TIME_START}"
-#HINDCAST_DIR=$ELMFIRE_BASE_DIR/runs/hindcasts/runs/$FIRE_NAME/${FIRE_NAME}_$TIMESTAMP_START
-#rm -f -r $HINDCAST_DIR
-#mkdir -p $HINDCAST_DIR 2> /dev/null
 
 SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
 CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
@@ -33,9 +30,6 @@ progress_message "ELMFIRE complete, starting .bin->.bil conversion"
 progress_message "Postprocessing complete, cleaning up"
 
 rm -f *.aux.xml *.bsq *.hdr *.aux.xml
-
-#cp -f -r * $HINDCAST_DIR
-#cd $HINDCAST_DIR
 
 progress_message "Calculating fitness"
 ./04-fitness.sh >& fitness.log
