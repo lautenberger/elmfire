@@ -1,0 +1,43 @@
+#!/bin/bash
+
+YEAR=2023
+FUEL_SOURCE=landfire
+FUEL_VERSION=2.3.0
+RUN_TEMPLATE=hindcast
+
+export USE_SLURM=no
+export CALC_FITNESS=yes
+
+ACTIVE_FIRE_TIMESTAMP_NUM=1
+ALREADY_BURNED_TIMESTAMP_NUM=null
+WEST_BUFFER=30
+SOUTH_BUFFER=30
+EAST_BUFFER=30
+NORTH_BUFFER=30
+NUM_ENSEMBLE_MEMBERS=100
+RUN_HOURS=24
+
+TEMPLATE=$ELMFIRE_BASE_DIR/validation/template.sh
+
+AVAILABLE_POLYGONS_CLI=$ELMFIRE_BASE_DIR/cloudfire/available_polygons.py
+
+FIRENAMES=`$AVAILABLE_POLYGONS_CLI --active False --year $YEAR --list fires`
+
+CWD=$(pwd)
+for FIRENAME in $FIRENAMES; do
+   cd $CWD
+   rm -f -r $FIRENAME
+   mkdir -p $FIRENAME
+   cd $FIRENAME
+   cp -f $TEMPLATE ./00-run.sh
+   cp -f $ELMFIRE_BASE_DIR/runs/hindcasts/* ./ 2> /dev/null
+   cp -f -r $ELMFIRE_BASE_DIR/runs/hindcasts/templates ./
+
+   ./00-run.sh $YEAR $FIRENAME $ACTIVE_FIRE_TIMESTAMP_NUM \
+               $ALREADY_BURNED_TIMESTAMP_NUM \
+               $WEST_BUFFER $SOUTH_BUFFER $EAST_BUFFER $NORTH_BUFFER \
+               $NUM_ENSEMBLE_MEMBERS $RUN_HOURS $FUEL_SOURCE $FUEL_VERSION \
+               $RUN_TEMPLATE
+done
+
+exit 0
