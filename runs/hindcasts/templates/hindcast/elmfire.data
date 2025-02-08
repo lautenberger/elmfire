@@ -71,7 +71,7 @@ WIND_DIRECTION_FLUCTUATION_INTENSITY = 0.1
 UNTAG_CELLS_TIMESTEP_INTERVAL        = 5
 UNTAG_TYPE_2                         = .TRUE.
 UNTAG_TYPE_3                         = .TRUE.
-DEBUG_LEVEL                          = 1
+DEBUG_LEVEL                          = 0
 ESTIMATE_URBAN_LOSSES                = .FALSE.
 RANDOMIZE_RANDOM_SEED                = .TRUE.
 /
@@ -80,7 +80,7 @@ RANDOMIZE_RANDOM_SEED                = .TRUE.
 METEOROLOGY_BAND_START              = 1
 METEOROLOGY_BAND_STOP               = 1
 METEOROLOGY_BAND_SKIP_INTERVAL      = 1
-NUM_METEOROLOGY_TIMES               = 49
+NUM_METEOROLOGY_TIMES               = 25
 EDGEBUFFER                          = 30.
 RANDOM_IGNITIONS = .FALSE.
 USE_IGNITION_MASK = .FALSE.
