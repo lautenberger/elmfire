@@ -71,15 +71,15 @@ START_HH=`basename $(pwd) | cut -d- -f1 | cut -d_ -f2`
 FORECAST_CYCLE=${START_YYYYMMDD}_$START_HH
 
 echo "Processing $FORECAST_CYCLE"
-
 for fh in $fhs; do
    FH=`printf %03d $fh`
    date -u -d "$START_YYYYMMDD $START_HH:00 UTC + $fh hours" +"%Y-%m-%d %H:%M" >> $SCRATCH/timestamps.txt
    TIMESTAMP=`date -u -d "$START_YYYYMMDD $START_HH:00 UTC + $fh hours" +"%Y%m%d_%H%M00"`
    for QUANTITY in $QUANTITIES; do
-      ln -fs $DATADIR/${QUANTITY}_$TIMESTAMP.tif $SCRATCH/${FORECAST_CYCLE}_${FH}_$QUANTITY.tif
+      gdal_translate -ot Float32 $DATADIR/${QUANTITY}_$TIMESTAMP.tif $SCRATCH/${FORECAST_CYCLE}_${FH}_$QUANTITY.tif &
    done
 done
+wait
 
 echo "&ZONAL_STATS_INPUTS"                                             > $SCRATCH/zonal_stats_inputs.data
 echo "RASTER_DIRECTORY = '"$SCRATCH"/'"                               >> $SCRATCH/zonal_stats_inputs.data
@@ -94,6 +94,8 @@ echo "PATH_TO_GDAL = '/usr/bin/'"                                     >> $SCRATC
 echo "SCRATCH = '"$SCRATCH"/'"                                        >> $SCRATCH/zonal_stats_inputs.data
 echo "/"                                                              >> $SCRATCH/zonal_stats_inputs.data
 $ZONAL_STATS $SCRATCH/zonal_stats_inputs.data
+
+#cp $SCRATCH/zonal_stats_inputs.data ./
 
 for QUANTITY in $QUANTITIES; do
    for FID in $(eval echo "{0..$NFM1}"); do
