@@ -51,10 +51,13 @@ PATTERN=`echo $RUN_ID | cut -d'-' -f2`
 mkdir -p $OUTDIR $DATADIR/log
 
 # Copy post-processing scripts
-cp -f ./template/02-post.sh            $DATADIR
-cp -f ./template/0304-rasterize.sh     $DATADIR
-cp -f ./template/03-zonal.sh           $DATADIR
-cp -f ./template/04-attribute_table.sh $DATADIR
+cp -f ./template/02-post.sh               $DATADIR
+if [ "$PATTERN" = "all" ]; then
+   cp -f ./template/0304-rasterize.sh     $DATADIR
+else
+   cp -f ./template/03-zonal.sh           $DATADIR
+   cp -f ./template/04-attribute_table.sh $DATADIR
+fi
 
 if [ "$PUSH_TO_GEOSERVER" = "yes" ]; then
    cp -f ./template/05-upload.sh $DATADIR
@@ -76,7 +79,7 @@ else
 fi
 
 # Create rasters from point data
-if [ "$PATTERN" != "tlines" ]; then
+if [ "$PATTERN" = "all" ]; then
    if [ "$USE_SLURM" = "yes" ]; then
       for i in `seq 1 16`; do
          JOB_ID2[i]=$(sbatch --job-name=0304rasterize${i}_$PATTERN --chdir=$DATADIR \
@@ -99,7 +102,7 @@ if [ "$USE_SLURM" = "yes" ]; then
    done
 fi
 
-if [ "$PATTERN" != "tlines" ] && [ "$PATTERN" != "all" ]; then
+if [ "$PATTERN" != "all" ]; then
    ./03-zonal.sh           >& $DATADIR/log/log_03-zonal.txt
    ./04-attribute_table.sh >& $DATADIR/log/log_04-attribute_table.txt
 fi
