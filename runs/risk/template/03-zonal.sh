@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CLOUDFIRE_VER=${CLOUDFIRE_VER:-2024.0909}
+CLOUDFIRE_VER=${CLOUDFIRE_VER:-2025.0209}
 ZONAL_STATS=$CLOUDFIRE_BASE_DIR/code/linux/bin/zonal_stats_$CLOUDFIRE_VER
 
 PATTERN=`basename $(pwd) | cut -d- -f2`
