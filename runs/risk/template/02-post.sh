@@ -36,11 +36,8 @@ function merge_forecast_hour {
       let "jm1 = j - 1"
       let "jp1 = j + 1"
 
-# Sum times burned
+# Sum times burned and build FNLIST[k]
       for k in $KS; do
-         if [ "${CALC_TYPE[k]}" != "sum" ]; then
-            continue
-         fi
 
          mkdir $SCRATCH/$k 2> /dev/null
          COUNT=0
