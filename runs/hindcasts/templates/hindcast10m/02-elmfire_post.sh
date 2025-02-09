@@ -1,7 +1,9 @@
 #!/bin/bash
 
 CWD=$(pwd)
-ELMFIRE_POST=/home/clauten/elmfire/build/linux/bin/elmfire_post_2025.0209
+
+ELMFIRE_VER=${ELMFIRE_VER:-2025.0209}
+ELMFIRE_POST=$ELMFIRE_BASE_DIR/build/linux/bin/elmfire_post_$ELMFIRE_VER
 NPARALLEL=32
 QUANTITIES='crown-fire flame-length spread-rate time-of-arrival'
 
