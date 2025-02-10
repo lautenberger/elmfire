@@ -50,11 +50,12 @@ FULLPATH=$PARTIALPATH/elmfire/landfire
 ssh $REMOTE_USER@$REMOTE_HOST "sudo mkdir -p $FULLPATH"
 ssh $REMOTE_USER@$REMOTE_HOST "sudo chmod -R 775 $PARTIALPATH; sudo chown -R 'sig-app:domain users' $PARTIALPATH"
 
-if [ "$PATTERN_OUT" != "all" ]; then
-   rm -f ./post/fire*.tif ./post/impacted*.tif ./post/crown*.tif ./post/plign*.tif
+if [ "$PATTERN_OUT" = "all" ]; then
+   FNLIST=`ls ./post/*.tif ./post/*.shp ./post/*.dbf ./post/*.prj ./post/*.shx`
+else
+   FNLIST=`ls ./post/times*.tif ./post/*.shp ./post/*.dbf ./post/*.prj ./post/*.shx`
 fi
 
-FNLIST=`ls ./post/*.tif ./post/*.shp ./post/*.dbf ./post/*.prj ./post/*.shx`
 GO=yes
 while [ "$GO" = "yes" ]; do
    rsync -rv --timeout=10 $FNLIST $REMOTE_USER@$REMOTE_HOST:$FULLPATH/

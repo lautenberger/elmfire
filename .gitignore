@@ -41,3 +41,4 @@ log.txt
 runs/hindcasts/runs
 runs/forecasts/archive
 **/.DS_Store
+validation/02-multi-fire/2*

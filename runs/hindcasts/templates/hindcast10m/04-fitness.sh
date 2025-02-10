@@ -9,9 +9,9 @@ NCASES=`tail -n +2 fire_size_stats.csv | wc -l`
 NPARALLEL=$NCASES
 declare -a SUMFIT
 
-AVAILABLE_POLYGONS_CLI=$CLOUDFIRE_BASE_DIR/microservices-dev/available_polygons/available_polygons.py
-GET_POLYGON_CLI=$CLOUDFIRE_BASE_DIR/microservices-dev/get_polygon/get_polygon.py
-BUFFERSCRIPT=$CLOUDFIRE_BASE_DIR/code/buffer.py
+AVAILABLE_POLYGONS_CLI=$ELMFIRE_BASE_DIR/cloudfire/available_polygons.py
+GET_POLYGON_CLI=$ELMFIRE_BASE_DIR/cloudfire/get_polygon.py
+BUFFERSCRIPT=$ELMFIRE_BASE_DIR/etc/buffer.py
 
 rm -f -r $SCRATCH
 mkdir $SCRATCH

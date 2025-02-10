@@ -4,7 +4,7 @@
 #SBATCH --exclusive
 #SBATCH --exclude=
 #SBATCH --mem=250G
-#SBATCH -t 12:00:00
+#SBATCH -t 30:00:00
 
 function wait_for_slurm_jobs {
    local JOB_IDS="$1"
@@ -38,8 +38,9 @@ echo "CLOUDFIRE_SERVER:         $CLOUDFIRE_SERVER"
 echo "ELMFIRE_SCRATCH_BASE:     $ELMFIRE_SCRATCH_BASE"
 
 # Configuration parameters
-DATA_COPY_METHOD=scp # cp, scp, wget
+DATA_COPY_METHOD=cp # cp, scp, wget
 USE_SNODAS=yes
+CP_TIMEOUT=10
 
 # Directories and files
 CWD=$(pwd)
@@ -121,24 +122,34 @@ while read TILE; do
    echo "$TILES_FCST_CLI $PATTERN $FORECAST_CYCLE $LFMDATE $TILE $DATA_COPY_METHOD"
    read -d '' WXLOC FUELLOC TOPOLOC STRUCTDENSLOC IGNLOC LFMLOC SNODASLOC <<<$($TILES_FCST_CLI $PATTERN $FORECAST_CYCLE $LFMDATE $TILE $DATA_COPY_METHOD)
 
-echo "WXLOC        : $WXLOC"
-echo "FUELLOC      : $FUELLOC"
-echo "TOPOLOC      : $TOPOLOC"
-echo "STRUCTDENSLOC: $STRUCTDENSLOC"
-echo "IGNLOC       : $IGNLOC"
-echo "LFMLOC       : $LFMLOC"
-echo "SNODASLOC    : $SNODASLOC"
+#echo "WXLOC        : $WXLOC"
+#echo "FUELLOC      : $FUELLOC"
+#echo "TOPOLOC      : $TOPOLOC"
+#echo "STRUCTDENSLOC: $STRUCTDENSLOC"
+#echo "IGNLOC       : $IGNLOC"
+#echo "LFMLOC       : $LFMLOC"
+#echo "SNODASLOC    : $SNODASLOC"
 
    case $DATA_COPY_METHOD in
 
       'cp')
-         cp -f $WXLOC/*         $RUNDIR/inputs/$TILE/
-         cp -f $FUELLOC/*       $RUNDIR/inputs/$TILE/
-         cp -f $TOPOLOC/*       $RUNDIR/inputs/$TILE/
-         cp -f $STRUCTDENSLOC/* $RUNDIR/inputs/$TILE/
-         cp -f $IGNLOC/*        $RUNDIR/inputs/$TILE/
-         cp -f $LFMLOC/*        $RUNDIR/inputs/$TILE/
-         cp -f $SNODASLOC/*     $RUNDIR/inputs/$TILE/
+         DONE=no
+         while [ "$DONE" = "no" ]; do
+            DONE=yes
+            for LOC in $WXLOC $FUELLOC $TOPOLOC $STRUCTDENSLOC $IGNLOC $LFMLOC $SNODASLOC; do
+               timeout $CP_TIMEOUT cp -f $LOC/* $RUNDIR/inputs/$TILE/
+               if [ "$?" != "0" ]; then
+                  DONE=no
+               fi
+            done
+         done
+#         cp -f $WXLOC/*         $RUNDIR/inputs/$TILE/
+#         cp -f $FUELLOC/*       $RUNDIR/inputs/$TILE/
+#         cp -f $TOPOLOC/*       $RUNDIR/inputs/$TILE/
+#         cp -f $STRUCTDENSLOC/* $RUNDIR/inputs/$TILE/
+#         cp -f $IGNLOC/*        $RUNDIR/inputs/$TILE/
+#         cp -f $LFMLOC/*        $RUNDIR/inputs/$TILE/
+#         cp -f $SNODASLOC/*     $RUNDIR/inputs/$TILE/
          ;;
 
       'scp')
@@ -211,7 +222,7 @@ fi
 
 # Run post-processing
 cd $ELMFIRE_BASE_DIR/runs/risk
-./02-post.sh $RUNDIR
+./02-post.sh $RUNDIR >& $RUNDIR/log/02-post.sh
 
 # Clean up
 rm -f -r $SCRATCH
