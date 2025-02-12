@@ -12,7 +12,7 @@ if [ -z "$NP" ]; then
    let "NP = SOCKETS * CORES_PER_SOCKET"
 fi
 
-CLOUDFIRE_VER=${CLOUDFIRE_VER:-2025.0212}
+CLOUDFIRE_VER=${CLOUDFIRE_VER:-2025.0209}
 IGNITION_DENSITY_GRID=$CLOUDFIRE_BASE_DIR/code/linux/bin/ignition_density_grid_$CLOUDFIRE_VER
 
 XLLCORNER=`gdalinfo times_burned.bil | grep "Lower Left" | cut -d'(' -f2 | cut -d')' -f1 | cut -d, -f1 | xargs`
