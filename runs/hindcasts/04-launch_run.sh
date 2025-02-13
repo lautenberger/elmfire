@@ -2,10 +2,9 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=64
-#SBATCH --priority=4000000000
-#SBATCH --exclusive
-#SBATCH --exclude=
+#SBATCH --cpus-per-task=112
+#SBATCH --mem=250G
+#SBATCH -t 12:00:00
 
 echo "In 04-launch_run.sh"
 
