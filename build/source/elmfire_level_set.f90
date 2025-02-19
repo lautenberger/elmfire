@@ -371,7 +371,7 @@ IF (.NOT. RANDOM_IGNITIONS) THEN
          LIST_BURNED%TAIL%WS20_NOW               = WS20_LO(ICOL,IROW) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(ICOL,IROW)
          LIST_BURNED%TAIL%TAU_EMBERGEN           = 0.
          LIST_BURNED%TAIL%BURNED                 = .FALSE.
-         LIST_BURNED%TAIL%IBLDGFM =  BLDG_FUEL_MODEL%I2(IX,IY,1)
+         IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM =BLDG_FUEL_MODEL%I2(IX,IY,1)
 
          IF (USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(ICOL,IROW,1)
 
@@ -918,8 +918,9 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                   CALL TAG_BAND(NX, NY, IX, IY, T+DT)
                   PHIP           (IX,IY) = -1.0
                   ! Record firebrand ignited cells
-                  WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
+                  IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
                   CALL DELETE_NODE(LIST_EMBER_DEPOSITED, C)
+
                ENDIF
             ENDIF
             C => C%NEXT
@@ -963,7 +964,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
             CALL TAG_BAND(NX, NY, IX, IY, T)
             TIME_OF_ARRIVAL(IX,IY) = T
             PHIP           (IX,IY) = -1.0
-            WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
+            IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
          ENDIF
       ENDDO
    ENDIF

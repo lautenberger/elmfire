@@ -32,6 +32,7 @@ MLW_FILENAME                   = 'lw'
 USE_CONSTANT_FMC               = .TRUE.
 FOLIAR_MOISTURE_CONTENT        = 110.0
 USE_TILED_IO                   = .TRUE.
+ROTATE_WD                      = .TRUE.
 GRID_DECLINATION               = 0.0
 /
 
@@ -98,7 +99,7 @@ USE_IGNITION_MASK                        = .TRUE.
 IGNITION_MASK_SCALE_FACTOR               = 1.0
 RANDOM_IGNITIONS                         = .TRUE.
 RANDOM_IGNITIONS_TYPE                    = 2
-PERCENT_OF_PIXELS_TO_IGNITE              = 15.0
+PERCENT_OF_PIXELS_TO_IGNITE              = 7.5
 SEED                                     = 2023
 /
 IGNITION_MASK_SCALE_FACTOR               = 0.002

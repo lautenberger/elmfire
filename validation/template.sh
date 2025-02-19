@@ -59,15 +59,12 @@ ARGS='{
 "fuelSource": "'$FUEL_SOURCE'",
 "fuelVersion": "'$FUEL_VERSION'",
 "scpInputDeck": "'none'",
-"returnAfterQueue": "'no'",
+"returnAfterQueue": "'yes'",
 "runTemplate": "'$RUN_TEMPLATE'"
 }'
 
-cd $ELMFIRE_BASE_DIR/runs/hindcasts
-rm -f -r ./runs/$FIRENAME/${FIRENAME}_$ACTIVE_FIRE_TIMESTAMP
+rm -f -r ${FIRENAME}_$ACTIVE_FIRE_TIMESTAMP
 
 ./01-crs.sh "$ARGS"
-
-mv $(pwd)/runs/$FIRENAME/${FIRENAME}_$ACTIVE_FIRE_TIMESTAMP $CWD/
 
 exit 0

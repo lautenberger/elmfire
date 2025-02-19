@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SEC_START=`date +%s`
+
 if [ ! -d $CLOUDFIRE_BASE_DIR/inputs/wx ]; then
    echo "Exiting because raw wx data are not available"
    exit 1
@@ -180,5 +182,9 @@ done
 wait
 
 rm -f -r $SCRATCH
+
+SEC_NOW=`date +%s`
+let "ELAPSED = SEC_NOW - SEC_START"
+echo "Elapsed time: $ELAPSED"
 
 exit 0

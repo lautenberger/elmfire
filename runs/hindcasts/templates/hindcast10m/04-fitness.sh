@@ -9,9 +9,9 @@ NCASES=`tail -n +2 fire_size_stats.csv | wc -l`
 NPARALLEL=$NCASES
 declare -a SUMFIT
 
-AVAILABLE_POLYGONS_CLI=$CLOUDFIRE_BASE_DIR/microservices-dev/available_polygons/available_polygons.py
-GET_POLYGON_CLI=$CLOUDFIRE_BASE_DIR/microservices-dev/get_polygon/get_polygon.py
-BUFFERSCRIPT=$CLOUDFIRE_BASE_DIR/code/buffer.py
+AVAILABLE_POLYGONS_CLI=$ELMFIRE_BASE_DIR/cloudfire/available_polygons.py
+GET_POLYGON_CLI=$ELMFIRE_BASE_DIR/cloudfire/get_polygon.py
+BUFFERSCRIPT=$ELMFIRE_BASE_DIR/etc/buffer.py
 
 rm -f -r $SCRATCH
 mkdir $SCRATCH
@@ -116,6 +116,7 @@ f=`ls $DATADIR/time-of-arrival_001.tif | head -n 1`
 SRS=`gdalsrsinfo $f | grep PROJ.4 | cut -d: -f2 | xargs`
 cp -f $f $SCRATCH/dummy.tif
 cp -f $DATADIR/burning.tif $SCRATCH/
+#cp -f $DATADIR/fuel/burning.tif $SCRATCH/
 gdal_edit.py -unsetnodata $SCRATCH/dummy.tif
 gdal_calc.py -A $SCRATCH/dummy.tif --NoDataValue=-9999 --calc="0.0+(A*0.0)" --outfile=$SCRATCH/template.tif
 rm -f $SCRATCH/dummy.tif
@@ -126,11 +127,12 @@ for TIMESTAMP in $CALIBRATION_TIMESTAMPS; do
    $GET_POLYGON_CLI --firename="$FIRENAME" --timestamp="$TIMESTAMP" --transfer_mode='wget' --outdir="$SCRATCH"
    ogr2ogr -t_srs "$SRS" $SCRATCH/intermediate.shp $SCRATCH/${FIRENAME}_$TIMESTAMP.shp
 
-   $BUFFERSCRIPT $SCRATCH/intermediate.shp $SCRATCH/intermediate_posbuff.shp 500.0
-   cp -f $SCRATCH/intermediate.prj $SCRATCH/intermediate_posbuff.prj
-
-   $BUFFERSCRIPT $SCRATCH/intermediate_posbuff.shp $SCRATCH/target_$ELAPSED.shp -500.0
-   cp -f $SCRATCH/intermediate_posbuff.prj $SCRATCH/target_$ELAPSED.prj
+#   $BUFFERSCRIPT $SCRATCH/intermediate.shp $SCRATCH/intermediate_posbuff.shp 500.0
+#   cp -f $SCRATCH/intermediate.prj $SCRATCH/intermediate_posbuff.prj
+#
+#   $BUFFERSCRIPT $SCRATCH/intermediate_posbuff.shp $SCRATCH/target_$ELAPSED.shp -500.0
+#   cp -f $SCRATCH/intermediate_posbuff.prj $SCRATCH/target_$ELAPSED.prj
+   ogr2ogr $SCRATCH/target_$ELAPSED.shp $SCRATCH/intermediate.shp
 
    cp -f $SCRATCH/template.tif $SCRATCH/target_$ELAPSED.tif
    gdal_rasterize -burn 1 $SCRATCH/target_$ELAPSED.shp $SCRATCH/target_$ELAPSED.tif

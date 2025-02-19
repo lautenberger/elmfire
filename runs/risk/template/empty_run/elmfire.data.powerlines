@@ -32,6 +32,7 @@ MLW_FILENAME                   = 'lw'
 USE_CONSTANT_FMC               = .TRUE.
 FOLIAR_MOISTURE_CONTENT        = 110.0
 USE_TILED_IO                   = .TRUE.
+ROTATE_WD                      = .TRUE.
 GRID_DECLINATION               = 0.0
 /
 
