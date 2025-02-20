@@ -745,6 +745,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          LIST_BURNED%TAIL%IBLDGFM                = C%IBLDGFM 
          LIST_BURNED%TAIL%WS20_NOW               = C%WS20_NOW
          LIST_BURNED%TAIL%WD20_NOW               = C%WD20_NOW
+         LIST_BURNED%TAIL%LOCAL_EMBERGEN_DURATION= C%LOCAL_EMBERGEN_DURATION
 
          IF (ENABLE_SMOKE_OUTPUTS) THEN
             LIST_BURNED%TAIL%TIME_IGNITED = T
@@ -1817,7 +1818,7 @@ IF (ISTEP .EQ. 1) THEN
 ELSE !ISTEP .EQ. 2
 
    DO I = 1, L%NUM_NODES
-      IF (.NOT. C%BURNED) THEN
+      IF (.NOT. C%BURNED) THEN ! This condition is not functioning. C%BURNED are only assigned to LIST_BURNED but not to LIST_TAGGED
          CONTINUE
 
 ! We can get sin(theta - dms) and cos(theta - dms) directly:
@@ -1853,11 +1854,14 @@ ELSE !ISTEP .EQ. 2
 
          IF (CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) C%FLIN_CANOPY = C%HPUA_CANOPY * C%VELOCITY * 5.08E-3
 
-         IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) C%LOCAL_EMBERGEN_DURATION = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR*60.0 ! min to second
+         IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) THEN
+            IF(ABS(C%UX)> 1E-3 .AND. ABS(C%UY)> 1E-3) C%LOCAL_EMBERGEN_DURATION = ANALYSIS_CELLSIZE/MIN(ABS(C%UX), ABS(C%UY)) ! seconds
+            IF(ABS(C%UX)> 1E-3 .AND. ABS(C%UY)<=1E-3) C%LOCAL_EMBERGEN_DURATION = ANALYSIS_CELLSIZE/ABS(C%UX) ! seconds
+            IF(ABS(C%UX)<=1E-3 .AND. ABS(C%UY)> 1E-3) C%LOCAL_EMBERGEN_DURATION = ANALYSIS_CELLSIZE/ABS(C%UY) ! seconds
+            IF(ABS(C%UX)<=1E-3 .AND. ABS(C%UY)<=1E-3) C%LOCAL_EMBERGEN_DURATION = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR * 60 ! seconds
+         ENDIF
          
-              
          IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2 .AND. C%IFBFM .EQ. 91) THEN
-            ! C%FLIN_SURFACE = 0.0 ! kW/m
             C%FLIN_SURFACE = C%HRR_TRANSIENT*ANALYSIS_CELLSIZE ! kW/m
          ENDIF
          IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 1 .AND. C%IFBFM .EQ. 91) THEN
@@ -1871,14 +1875,6 @@ ELSE !ISTEP .EQ. 2
       !    ENDIF
 
       ENDIF
-      ! IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) THEN
-      !    IF (C%IFBFM .EQ. 91) THEN
-      !       ! This is to account the emitting duration of structures
-      !       STRUCTURE_AREA = CC%CELLSIZE * CC%CELLSIZE * C%BLDG_FOOTPRINT_FRAC
-      !       ! This subroutine locates in module "elmfire_spotting"
-      !       CALL STRUCTURE_DESIGN_FIRE_CURVE(C, STRUCTURE_AREA, T_ELMFIRE)
-      !    ENDIF
-      ! ENDIF
 
       ! This is the best place to retrieve C%HRR_TRANSIENT for the output raster
       
