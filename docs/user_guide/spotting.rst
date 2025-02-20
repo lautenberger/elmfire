@@ -113,7 +113,7 @@ conventional US system):
 
    SURFACE_FIRE_SPOTTING_PERCENT(  1:140) = 0.0
    SURFACE_FIRE_SPOTTING_PERCENT(141:149) = 1.0
-   SURFACE_FIRE_SPOTTING_PERCENT(150:256) = 1.0
+   SURFACE_FIRE_SPOTTING_PERCENT(150:256) = 0.0
 
 The keyword ``CRITICAL_SPOTTING_FIRELINE_INTENSITY`` (default value of 
 0.0) is the fireline intensity in units of kW/m below which surface fire 
