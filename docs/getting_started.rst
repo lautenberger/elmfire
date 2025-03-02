@@ -39,7 +39,7 @@ Alternatively, `virtualenv` can be used to prevent forcing a system-wide install
    virtualenv $HOME/virtualenv/elmfire
    source $HOME/virtualenv/elmfire/bin/activate
    /$HOME/virtualenv/elmfire/bin/pip3 install google-api-python-client grpcio grpcio-tools \
-                                              python-dateutil
+                                              python-dateutil pytz
 
 .. _clone-repo:
 
