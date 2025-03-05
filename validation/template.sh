@@ -59,7 +59,7 @@ ARGS='{
 "fuelSource": "'$FUEL_SOURCE'",
 "fuelVersion": "'$FUEL_VERSION'",
 "scpInputDeck": "'none'",
-"returnAfterQueue": "'no'",
+"returnAfterQueue": "'yes'",
 "runTemplate": "'$RUN_TEMPLATE'"
 }'
 

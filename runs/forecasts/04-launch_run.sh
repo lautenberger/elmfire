@@ -29,7 +29,7 @@ parse_control_file $CONTROL_FILE
 SIMULATION_START_TIME=`date -u -d "$INITIALIZATION_TIME" +"%Y-%m-%d %H:%M"`
 INITIALIZATION_TIMESTAMP=`date -u -d "$INITIALIZATION_TIME" +%Y%m%d_%H%M00`
 YYYY_START=`echo $SIMULATION_START_TIME | cut -d- -f1`
-if [ "$YYYY_START" -lt 2023 ]; then
+if [ "$YYYY_START" -lt 2025 ]; then
    WX_TYPE='historical'
 else
    WX_TYPE='forecast'
