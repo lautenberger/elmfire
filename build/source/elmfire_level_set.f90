@@ -919,7 +919,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                   CALL TAG_BAND(NX, NY, IX, IY, T+DT)
                   PHIP           (IX,IY) = -1.0
                   ! Record firebrand ignited cells
-                  IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
+                  IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, FBFM%I2(IX,IY,1)
                   CALL DELETE_NODE(LIST_EMBER_DEPOSITED, C)
 
                ENDIF
@@ -965,7 +965,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
             CALL TAG_BAND(NX, NY, IX, IY, T)
             TIME_OF_ARRIVAL(IX,IY) = T
             PHIP           (IX,IY) = -1.0
-            IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, IFBFM
+            IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, FBFM%I2(IX,IY,1)
          ENDIF
       ENDDO
    ENDIF
