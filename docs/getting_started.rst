@@ -39,7 +39,7 @@ Alternatively, `virtualenv` can be used to prevent forcing a system-wide install
    virtualenv $HOME/virtualenv/elmfire
    source $HOME/virtualenv/elmfire/bin/activate
    /$HOME/virtualenv/elmfire/bin/pip3 install google-api-python-client grpcio grpcio-tools \
-                                              python-dateutil
+                                              python-dateutil pytz
 
 .. _clone-repo:
 
@@ -58,7 +58,7 @@ latest stable release / branch instead, i.e.:
 
 .. code-block:: console
 
-   git clone --branch 2025.0224 --single-branch https://github.com/lautenberger/elmfire.git
+   git clone --branch 2025.0302 --single-branch https://github.com/lautenberger/elmfire.git
 
 .. _set-env-vars:
 
@@ -108,6 +108,6 @@ ELMFIRE and its postprocessing tool can be built as follows:
 
 Unless an error occurs, this will build the executables 
 ``elmfire_VERSION`` and ``elmfire_post_VERSION`` (where version is, for 
-example, 2025.0224) and copy them to ``$ELMFIRE_INSTALL_DIR``. If 
+example, 2025.0302) and copy them to ``$ELMFIRE_INSTALL_DIR``. If 
 this directory is not in the user's ``$PATH`` it should be added at this 
 time. Note that two debug executables are also built.
