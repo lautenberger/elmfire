@@ -3,6 +3,7 @@ MODULE ELMFIRE_SPREAD_RATE
 ! *****************************************************************************
 
 USE ELMFIRE_VARS
+USE ELMFIRE_SUBS
 
 IMPLICIT NONE
 
