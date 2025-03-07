@@ -78,6 +78,9 @@ fi
 progress_message "Setting up ELMFIRE run"
 cp -f -r ./templates/$RUN_TEMPLATE/* $SCRATCH
 cp -f $ELMFIRE_BASE_DIR/build/source/fuel_models.csv $SCRATCH/
+if [ "$DO_WUI" = "yes" ]; then
+   cp -f $ELMFIRE_BASE_DIR/build/source/building_fuel_models.csv $SCRATCH/
+fi
 cp -f $CONTROL_FILE $SCRATCH
 cd $SCRATCH
 tar -xf $RUN_NAME.tar && rm $RUN_NAME.tar
@@ -130,7 +133,14 @@ else
    replace_line USE_IGNITION_MASK .FALSE. no
 fi
 
+if [ "$DO_WUI" = "yes" ] ; then
+   replace_line USE_BLDG_SPREAD_MODEL .TRUE. no
+else
+   replace_line USE_BLDG_SPREAD_MODEL .FALSE. no
+fi
+
 progress_message "Done setting up, tarring up input deck"
+mkdir -p $CWD/input_decks
 tar -cf $CWD/input_decks/$RUN_NAME.tar ./*
 
 progress_message "Launching ELMFIRE run"
