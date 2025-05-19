@@ -77,11 +77,14 @@ elmfire_$ELMFIRE_VER ./inputs/elmfire.data
 
 # Postprocess
 for f in ./outputs/*.bil; do
-   gdal_translate -a_srs "$A_SRS" -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" $f ./outputs/`basename $f | cut -d. -f1`.tif
+   if [ -f "$f" ]; then
+      gdal_translate -a_srs "$A_SRS" -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" $f ./outputs/`basename $f | cut -d. -f1`.tif
+   fi
 done
 gdal_contour -i 3600 `ls ./outputs/time_of_arrival*.tif` ./outputs/hourly_isochrones.shp
 
-# Clean up and exit:
+## Clean up and exit:
+#echo "Cleaning up and exiting"
 #rm -f -r ./outputs/*.csv ./outputs/*.bil ./outputs/*.hdr $SCRATCH
 
 exit 0
