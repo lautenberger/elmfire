@@ -1067,7 +1067,7 @@ END IF
  
 ! Add new element ot the end
 DL2%NUM_NODES = DL2%NUM_NODES + 1
-N = DL2%NUM_NODES  ! Store the new count DWI_SU
+N = SIZE(DL2%NODE_POINTERS)+1  ! Store the new count DWI_SU + YIREN DEBUG
 
 NP => DL2%TAIL
 ALLOCATE(DL2%TAIL)
