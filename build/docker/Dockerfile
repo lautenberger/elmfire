@@ -39,7 +39,7 @@ RUN apt-get purge -y build-essential && \
 
 WORKDIR /
 
-ENV ELMFIRE_VER=2025.0429
+ENV ELMFIRE_VER=2025.0522
 ENV ELMFIRE_BASE_DIR=/elmfire/elmfire
 ENV ELMFIRE_SCRATCH_BASE=/scratch/elmfire
 ENV ELMFIRE_INSTALL_DIR=$ELMFIRE_BASE_DIR/build/linux/bin

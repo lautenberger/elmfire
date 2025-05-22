@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ELMFIRE version:
-ELMFIRE_VER=2025.0429
+ELMFIRE_VER=2025.0522
 
 # ELMFIRE uses several environment variables for compilation. If the default
 # values specified on lines 14 - 16 below are not appropriate for your system,
