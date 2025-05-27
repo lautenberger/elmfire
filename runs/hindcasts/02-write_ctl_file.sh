@@ -23,6 +23,7 @@ ALREADY_BURNED_TIMESTAMP=`echo $2 | cut -d, -f11`
 FUEL_SOURCE=`echo $2 | cut -d, -f12`
 FUEL_VERSION=`echo $2 | cut -d, -f13`
 RUN_TEMPLATE=`echo $2 | cut -d, -f14`
+DO_WUI=`echo $2 | cut -d, -f15`
 
 mkdir ./control_files ./control_files/$FIRENAME 2> /dev/null
 CONTROL_FILE=./control_files/$FIRENAME/${FIRENAME}_$START_TIME_FOR_FILENAME.ctl
@@ -49,5 +50,6 @@ echo "ALREADY_BURNED_TIMESTAMP   = $ALREADY_BURNED_TIMESTAMP" >> $CONTROL_FILE
 echo "FUEL_SOURCE                = $FUEL_SOURCE"              >> $CONTROL_FILE
 echo "FUEL_VERSION               = $FUEL_VERSION"             >> $CONTROL_FILE
 echo "RUN_TEMPLATE               = $RUN_TEMPLATE"             >> $CONTROL_FILE
+echo "DO_WUI                     = $DO_WUI"                   >> $CONTROL_FILE
 
 exit 0
