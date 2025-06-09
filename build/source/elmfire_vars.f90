@@ -536,6 +536,7 @@ TYPE NODE
    REAL      :: TANSLP2
    REAL      :: PHIP_OLD
    REAL      :: DUMPME
+   REAL      :: HRRPUA = 0.
 
 ! Suppression
    REAL    :: SUPPRESSION_ADJUSTMENT_FACTOR = 1.0
@@ -546,7 +547,6 @@ TYPE NODE
 ! Smoke
    REAL :: TIME_IGNITED      = 0.
    REAL :: TIME_EXTINGUISHED = 0.
-   REAL :: HRRPUA            = 0.
    REAL :: SMOKE_TFRAC       = 0.
    REAL :: QDOT_AVG          = 0.
 ! End code block for smoke

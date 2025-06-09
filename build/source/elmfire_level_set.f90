@@ -367,7 +367,9 @@ IF (.NOT. RANDOM_IGNITIONS) THEN
          IROW = IROW_ANALYSIS_F2C(IY)
          LIST_BURNED%TAIL%TIME_OF_ARRIVAL        = T
          LIST_BURNED%TAIL%WS20_NOW               = WS20_LO(ICOL,IROW) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(ICOL,IROW)
-         LIST_BURNED%TAIL%TAU_EMBERGEN           = 0.
+! Start code block for umd_spotting
+         IF (USE_UMD_SPOTTING_MODEL) LIST_BURNED%TAIL%TAU_EMBERGEN = 0.
+! End code block for umd_spotting
          LIST_BURNED%TAIL%BURNED                 = .FALSE.
 ! Start code block for wui
          IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM =BLDG_FUEL_MODEL%I2(IX,IY,1)
@@ -740,12 +742,18 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          LIST_BURNED%TAIL%CRITICAL_FLIN          = C%CRITICAL_FLIN
          LIST_BURNED%TAIL%CROWN_FIRE             = C%CROWN_FIRE
          LIST_BURNED%TAIL%BURNED                 = .TRUE.
-         LIST_BURNED%TAIL%TAU_EMBERGEN           = 0.
          
          LIST_BURNED%TAIL%IFBFM                  = C%IFBFM
-         LIST_BURNED%TAIL%IBLDGFM                = C%IBLDGFM 
          LIST_BURNED%TAIL%WS20_NOW               = C%WS20_NOW
          LIST_BURNED%TAIL%WD20_NOW               = C%WD20_NOW
+
+! Start code block for wui
+         IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM = C%IBLDGFM 
+! End code block for wui
+
+! Start code block for umd_spotting
+         LIST_BURNED%TAIL%TAU_EMBERGEN = 0.
+! End code block for umd_spotting
 
 ! Start code block for smoke
          IF (ENABLE_SMOKE_OUTPUTS) THEN
@@ -811,6 +819,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
 
    ENDDO ! I = 1, LIST_TAGGED%NUM_NODES
 
+! Start code block for umd_spotting
    IF (ENABLE_SPOTTING .AND. USE_UMD_SPOTTING_MODEL) THEN
       C => LIST_BURNED%HEAD
       DO I = 1, LIST_BURNED%NUM_NODES
@@ -872,6 +881,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          C => C%NEXT
       ENDDO
    ENDIF
+! End code block for umd_spotting
 
    CALL ACCUMULATE_CPU_USAGE(46, IT1, IT2)
 
@@ -1851,9 +1861,10 @@ ELSE !ISTEP .EQ. 2
 
          IF (CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) C%FLIN_CANOPY = C%HPUA_CANOPY * C%VELOCITY * 5.08E-3
 
+! Start code block for umd_spotting
          IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) C%LOCAL_EMBERGEN_DURATION = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR*60.0 ! min to second
-         
-              
+! End code block for umd_spotting
+                  
          IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2 .AND. C%IFBFM .EQ. 91) THEN
             C%FLIN_SURFACE = 0.0 ! kW/m
          ENDIF
