@@ -281,6 +281,7 @@ NUM_TRACKED_EMBERS          = 0 ! Only used if USE_UMD_SPOTTING_MODEL = T
 
 CALL ACCUMULATE_CPU_USAGE(32, IT1, IT2)
 
+! Start code block for suppression
 IF (ENABLE_EXTENDED_ATTACK) THEN
    DO IT_EA = 0, 1000
       SUPP(IT_EA)%NCELLS(:)=0
@@ -300,6 +301,7 @@ IF (ENABLE_EXTENDED_ATTACK) THEN
       SUPP(IT_EA)%IYCEN=0
    ENDDO
 ENDIF
+! End code block for suppression
 IT_EA=0
 
 CALL ACCUMULATE_CPU_USAGE(33, IT1, IT2)
@@ -415,8 +417,9 @@ IF (.NOT. RANDOM_IGNITIONS) THEN
       C => C%NEXT
    ENDDO
    ! End call relevant functions, assign values to FLIN_SURFACE and FLIN_CANOPY
-
+! Start code block for suppression
    IF (ENABLE_EXTENDED_ATTACK) SUPP(0)%ACRES = ACRES
+! End code block for suppression
 
    ICOUNT = 0
    DO IY = 1, NY
@@ -1078,9 +1081,10 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
       ENDDO
    ENDIF
 777 FORMAT (I7, ',', F8.1, ',', F7.2, ',', F8.3)
-   
+
 ! Extended attack model
    IF (ITIMESTEP .EQ. 1) T_LAST_EXTENDED_ATTACK = T
+! Start code block for suppression   
    IF (ENABLE_EXTENDED_ATTACK .AND. T - T_LAST_EXTENDED_ATTACK .GT. DT_EXTENDED_ATTACK .AND. LIST_BURNED%NUM_NODES .GT. 0) THEN
       IT_EA = IT_EA + 1
       DT_DAY = (T - T_LAST_EXTENDED_ATTACK) / 86400.
@@ -1121,6 +1125,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
 
       CONTINUE
    ENDIF
+! End code block for suppression   
 
    CALL ACCUMULATE_CPU_USAGE(52, IT1, IT2)
 
@@ -1472,7 +1477,9 @@ IF (LIST_SUPPRESSED%NUM_NODES .GT. 0) THEN
 ENDIF
 
 IF (SIMULATION_TSTOP_HOURS .LT. 0. ) STATS_SIMULATION_TSTOP_HOURS(ICASE) = T / 3600.
+! Start code block for suppression   
 IF (ENABLE_EXTENDED_ATTACK .AND. STATS_FINAL_CONTAINMENT_FRAC(ICASE) .LT. 0.) STATS_FINAL_CONTAINMENT_FRAC(ICASE) = SUPP(IT_EA)%TARGET_CONTAINMENT
+! End code block for suppression   
 
 CALL ACCUMULATE_CPU_USAGE(62, IT1, IT2)
 

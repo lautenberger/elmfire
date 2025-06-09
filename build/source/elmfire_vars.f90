@@ -383,6 +383,7 @@ TYPE :: BUILDING_FUEL_MODEL_TABLE_TYPE
 END TYPE
 TYPE(BUILDING_FUEL_MODEL_TABLE_TYPE), DIMENSION(0:NUM_BUILDING_FUEL_MODELS) :: BUILDING_FUEL_MODEL_TABLE
 
+! Start code block for suppression
 ! Suppression
 TYPE SUPPRESSION_TRACKER
    INTEGER :: NCELLS(0:359)
@@ -402,6 +403,7 @@ TYPE SUPPRESSION_TRACKER
    INTEGER :: IYCEN
 END TYPE SUPPRESSION_TRACKER
 TYPE(SUPPRESSION_TRACKER), ALLOCATABLE, DIMENSION (:) :: SUPP
+! End code block for suppression
 
 ! Spotting
 TYPE SPOTTING_TRACKER
@@ -508,7 +510,6 @@ TYPE NODE
    REAL :: PHIW_SURFACE                  = 0.
    REAL :: TIME_ADDED                    = -1.0
    REAL :: TIME_OF_ARRIVAL               = -1.0
-   REAL :: TIME_SUPPRESSED               = -1.0
    REAL :: UX                            = 0.
    REAL :: UY                            = 0.
    REAL :: VELOCITY                      = 0.
@@ -538,10 +539,13 @@ TYPE NODE
    REAL      :: DUMPME
    REAL      :: HRRPUA = 0.
 
+! Start code block for suppression
 ! Suppression
    REAL    :: SUPPRESSION_ADJUSTMENT_FACTOR = 1.0
    INTEGER :: SUPPRESSION_IDEG              = 9999
    REAL    :: SDI                           = 0.
+   REAL    :: TIME_SUPPRESSED               = -1.0
+! End code block for suppression
 
 ! Start code block for smoke
 ! Smoke
