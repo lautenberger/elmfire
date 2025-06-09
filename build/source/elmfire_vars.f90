@@ -471,17 +471,13 @@ TYPE :: UCB_ELLIPSE
    REAL     :: ELLIPSE_MINOR ! Semiminor (A) [m]
    REAL     :: ELLIPSE_MAJOR ! Semimajor (B) [m]
    REAL     :: ELLIPSE_ECCENTRICITY ! Eccentricity (E) [m]
-
 END TYPE UCB_ELLIPSE
-
 
 ! Doubly linked list variables
 TYPE NODE
    TYPE(NODE), POINTER :: NEXT => NULL()
    TYPE(NODE), POINTER :: PREV => NULL()
-   TYPE(UCB_ELLIPSE) :: ELLIPSE_PARAMETERS
 
-   INTEGER   :: BLDG_FUEL_MODEL = 0
    INTEGER*1 :: CROWN_FIRE =  0
    INTEGER   :: IX         = -1
    INTEGER   :: IY         = -1
@@ -489,10 +485,6 @@ TYPE NODE
    LOGICAL :: BURNED            = .FALSE.
    LOGICAL :: JUST_TAGGED       = .TRUE.
 
-   REAL :: BLDG_AREA                     = 0. ! Was HAMADA_A
-   REAL :: BLDG_NONBURNABLE_FRAC         = 0. ! Was HAMADA_FB
-   REAL :: BLDG_SEPARATION_DIST          = 0. ! Was HAMADA_D
-   REAL :: BLDG_FOOTPRINT_FRAC           = 0.
    REAL :: CRITICAL_FLIN                 = 9E9
    REAL :: DPHIDX_LIMITED                = 0.
    REAL :: DPHIDY_LIMITED                = 0.
@@ -514,8 +506,6 @@ TYPE NODE
    REAL :: PHIS_SURFACE                  = 0.
    REAL :: PHIW_CROWN                    = 0.
    REAL :: PHIW_SURFACE                  = 0.
-   REAL :: SUPPRESSION_ADJUSTMENT_FACTOR = 1.0
-   INTEGER :: SUPPRESSION_IDEG           = 9999
    REAL :: TIME_ADDED                    = -1.0
    REAL :: TIME_OF_ARRIVAL               = -1.0
    REAL :: TIME_SUPPRESSED               = -1.0
@@ -529,10 +519,7 @@ TYPE NODE
    REAL :: WS20_INTERP                   = 0.
    REAL :: WS20_NOW                      = 0.
    REAL :: WSMF                          = 0.
-   REAL :: SDI                           = 0.
-   REAL :: TAU_EMBERGEN                  = 0.
    REAL :: VELOCITY_DMS_SURFACE          = 0.
-   REAL :: LOCAL_EMBERGEN_DURATION       = 0.
 
 ! For optimization purposes
    LOGICAL   :: NEED_SLOPE_CALC = .TRUE.
@@ -550,29 +537,47 @@ TYPE NODE
    REAL      :: PHIP_OLD
    REAL      :: DUMPME
 
-! For smoke
+! Suppression
+   REAL    :: SUPPRESSION_ADJUSTMENT_FACTOR = 1.0
+   INTEGER :: SUPPRESSION_IDEG              = 9999
+   REAL    :: SDI                           = 0.
+
+! Start code block for smoke
+! Smoke
    REAL :: TIME_IGNITED      = 0.
    REAL :: TIME_EXTINGUISHED = 0.
    REAL :: HRRPUA            = 0.
    REAL :: SMOKE_TFRAC       = 0.
    REAL :: QDOT_AVG          = 0.
-   
-! UCB parameters
-   REAL    :: RAD_DIST           = 100.
-   INTEGER :: IBLDGFM            = 1
-   INTEGER :: SIGN_X             = 1
-   INTEGER :: SIGN_Y             = 1
-   REAL    :: WIND_PROP          = 1.
-   REAL    :: HEAT_VALUE         = 0.
-   REAL    :: HRR_TRANSIENT      = 0.
-   REAL    :: ABSOLUTE_U         = 0.
-   REAL    :: TOTAL_DFC_RECEIVED = 0.
-   REAL    :: TOTAL_RAD_RECEIVED = 0.
+! End code block for smoke
 
+! Start code block for wui
+! WUI model parameters
+   TYPE(UCB_ELLIPSE) :: ELLIPSE_PARAMETERS
+   INTEGER :: BLDG_FUEL_MODEL       = 0
+   INTEGER :: IBLDGFM               = 1
+   INTEGER :: SIGN_X                = 1
+   INTEGER :: SIGN_Y                = 1
+   REAL    :: BLDG_AREA             = 0. ! Was HAMADA_A
+   REAL    :: BLDG_NONBURNABLE_FRAC = 0. ! Was HAMADA_FB
+   REAL    :: BLDG_SEPARATION_DIST  = 0. ! Was HAMADA_D
+   REAL    :: BLDG_FOOTPRINT_FRAC   = 0.
+   REAL    :: RAD_DIST              = 100.
+   REAL    :: WIND_PROP             = 1.
+   REAL    :: HEAT_VALUE            = 0.
+   REAL    :: HRR_TRANSIENT         = 0.
+   REAL    :: ABSOLUTE_U            = 0.
+   REAL    :: TOTAL_DFC_RECEIVED    = 0.
+   REAL    :: TOTAL_RAD_RECEIVED    = 0.
+! End code block for wui
+
+! Start code block for umd_spotting
 ! UMD spotting parameters
-   REAL    :: T_START_SPOTTING = -1. 
-   REAL    :: T_END_SPOTTING   = -1. 
-
+   REAL :: TAU_EMBERGEN            = 0.
+   REAL :: LOCAL_EMBERGEN_DURATION = 0.
+   REAL :: T_START_SPOTTING        = -1. 
+   REAL :: T_END_SPOTTING          = -1. 
+! End code block for umd_spotting
 END TYPE NODE
  
 TYPE DLL
