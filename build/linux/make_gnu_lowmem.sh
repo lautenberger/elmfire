@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ELMFIRE version:
-ELMFIRE_VER=2025.0526
+ELMFIRE_VER=2025.0609
 
 # Begin by pre-processing source code files to comment out specific code blocks
 SOURCE_FILES='elmfire elmfire_level_set elmfire_subs elmfire_vars elmfire_spread_rate elmfire_io'
