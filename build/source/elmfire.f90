@@ -38,8 +38,9 @@ TYPE(RASTER_TYPE) SPREAD_RATE_TO_DUMP, FLAME_LENGTH_TO_DUMP, CROWN_FIRE_TO_DUMP
 TYPE(DLL) :: LIST_FIRE_POTENTIAL
 TYPE(NODE), POINTER :: C, DUMMY_NODE => NULL()
 
-! Should move this elsewhere:
+! Start code block for suppression
 ALLOCATE (SUPP (0:1000))
+! End code block for suppression
 
 ! Initialize system clock for later use in profiling sections of code
 CALL SYSTEM_CLOCK(COUNT_RATE=CLOCK_COUNT_RATE)

@@ -539,12 +539,13 @@ TYPE NODE
    REAL      :: DUMPME
    REAL      :: HRRPUA = 0.
 
+   REAL    :: TIME_SUPPRESSED = -1.0 ! Used outside of suppression algorithm
+
 ! Start code block for suppression
 ! Suppression
    REAL    :: SUPPRESSION_ADJUSTMENT_FACTOR = 1.0
    INTEGER :: SUPPRESSION_IDEG              = 9999
    REAL    :: SDI                           = 0.
-   REAL    :: TIME_SUPPRESSED               = -1.0
 ! End code block for suppression
 
 ! Start code block for smoke

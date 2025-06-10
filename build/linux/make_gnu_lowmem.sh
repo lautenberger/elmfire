@@ -5,10 +5,11 @@ ELMFIRE_VER=2025.0526
 
 # Begin by pre-processing source code files to comment out specific code blocks
 SOURCE_FILES='elmfire elmfire_level_set elmfire_subs elmfire_vars elmfire_spread_rate elmfire_io'
-NUM_CODE_BLOCK_TYPES_TO_PREPROCESS=3
+NUM_CODE_BLOCK_TYPES_TO_PREPROCESS=4
 CODE_BLOCK_TYPE[1]=smoke
 CODE_BLOCK_TYPE[2]=wui
 CODE_BLOCK_TYPE[3]=umd_spotting
+CODE_BLOCK_TYPE[4]=suppression
 
 for SOURCE_FILE in $SOURCE_FILES; do
    cp -f ../source/$SOURCE_FILE.f90 ../source/${SOURCE_FILE}_lowmem.f90

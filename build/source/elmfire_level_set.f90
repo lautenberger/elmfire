@@ -6,7 +6,9 @@ USE ELMFIRE_SPOTTING
 USE ELMFIRE_SPOTTING_SUPERSEDED
 USE ELMFIRE_IO
 USE ELMFIRE_SUBS
+! Start code block for suppression
 USE ELMFIRE_SUPPRESSION
+! End code block for suppression
 USE ELMFIRE_SPREAD_RATE
 USE ELMFIRE_VARS
 
@@ -376,7 +378,9 @@ IF (.NOT. RANDOM_IGNITIONS) THEN
 ! Start code block for wui
          IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM =BLDG_FUEL_MODEL%I2(IX,IY,1)
 ! End code block for wui
-         IF (USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(ICOL,IROW,1)
+! Start code block for suppression
+         IF (ENABLE_EXTENDED_ATTACK .AND. USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(ICOL,IROW,1)
+! End code block for suppression
 
 !         IF (ENABLE_SMOKE_OUTPUTS) THEN
 !            LIST_BURNED%TAIL%TIME_IGNITED = T
@@ -706,11 +710,15 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
       IF (PHIP(IX,IY) .LE. 0. .AND. SURFACE_FIRE(IX,IY) .EQ. 0) THEN
       
          ACRES = ACRES + ACRES_PER_PIXEL
-         IF (USE_SDI) THEN
-            ACRES_SDI = ACRES_SDI + ACRES_PER_PIXEL * (1.0 + C%SDI )
-         ELSE
-            ACRES_SDI = ACRES
+! Start code block for suppression
+         IF (ENABLE_EXTENDED_ATTACK) THEN
+            IF (USE_SDI) THEN
+               ACRES_SDI = ACRES_SDI + ACRES_PER_PIXEL * (1.0 + C%SDI )
+            ELSE
+               ACRES_SDI = ACRES
+            ENDIF
          ENDIF
+! End code block for suppression
 
          C%BURNED               = .TRUE.
          C%TIME_OF_ARRIVAL      = T
@@ -1002,7 +1010,9 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          CALL INTERP_WD_RASTER_SINGLE(C, WD20_LO(:,:), WD20_HI(:,:), F_METEOROLOGY)
          CALL SURFACE_SPREAD_RATE(LIST_TAGGED,C)
          IF (CROWN_FIRE_MODEL .GT. 0) CALL CROWN_SPREAD_RATE(LIST_TAGGED,C)
-         IF (USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(C%IX,C%IY,1)
+! Start code block for suppression
+         IF (ENABLE_EXTENDED_ATTACK .AND. USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(C%IX,C%IY,1)
+! End code block for suppression
       ENDIF
       C => C%NEXT
    ENDDO
