@@ -6,9 +6,9 @@ USE ELMFIRE_SPOTTING
 USE ELMFIRE_SPOTTING_SUPERSEDED
 USE ELMFIRE_IO
 USE ELMFIRE_SUBS
-! Start code block for suppression
+#ifdef _SUPPRESSION
 USE ELMFIRE_SUPPRESSION
-! End code block for suppression
+#endif
 USE ELMFIRE_SPREAD_RATE
 USE ELMFIRE_VARS
 
@@ -288,7 +288,7 @@ NUM_TRACKED_EMBERS          = 0 ! Only used if USE_UMD_SPOTTING_MODEL = T
 
 CALL ACCUMULATE_CPU_USAGE(32, IT1, IT2)
 
-! Start code block for suppression
+#ifdef _SUPPRESSION
 IF (ENABLE_EXTENDED_ATTACK) THEN
    DO IT_EA = 0, 1000
       SUPP(IT_EA)%NCELLS(:)=0
@@ -308,7 +308,7 @@ IF (ENABLE_EXTENDED_ATTACK) THEN
       SUPP(IT_EA)%IYCEN=0
    ENDDO
 ENDIF
-! End code block for suppression
+#endif
 IT_EA=0
 
 CALL ACCUMULATE_CPU_USAGE(33, IT1, IT2)
@@ -376,16 +376,16 @@ IF (.NOT. RANDOM_IGNITIONS) THEN
          IROW = IROW_ANALYSIS_F2C(IY)
          LIST_BURNED%TAIL%TIME_OF_ARRIVAL        = T
          LIST_BURNED%TAIL%WS20_NOW               = WS20_LO(ICOL,IROW) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(ICOL,IROW)
-! Start code block for umd_spotting
+#ifdef _UMDSPOTTING
          IF (USE_UMD_SPOTTING_MODEL) LIST_BURNED%TAIL%TAU_EMBERGEN = 0.
-! End code block for umd_spotting
+#endif
          LIST_BURNED%TAIL%BURNED                 = .FALSE.
-! Start code block for wui
+#ifdef _WUI
          IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM =BLDG_FUEL_MODEL%I2(IX,IY,1)
-! End code block for wui
-! Start code block for suppression
+#endif
+#ifdef _SUPPRESSION
          IF (ENABLE_EXTENDED_ATTACK .AND. USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(ICOL,IROW,1)
-! End code block for suppression
+#endif
 
 !         IF (ENABLE_SMOKE_OUTPUTS) THEN
 !            LIST_BURNED%TAIL%TIME_IGNITED = T
@@ -426,9 +426,9 @@ IF (.NOT. RANDOM_IGNITIONS) THEN
       C => C%NEXT
    ENDDO
    ! End call relevant functions, assign values to FLIN_SURFACE and FLIN_CANOPY
-! Start code block for suppression
+#ifdef _SUPPRESSION
    IF (ENABLE_EXTENDED_ATTACK) SUPP(0)%ACRES = ACRES
-! End code block for suppression
+#endif
 
    ICOUNT = 0
    DO IY = 1, NY
@@ -463,13 +463,13 @@ ENDIF
 
 CALL ACCUMULATE_CPU_USAGE(34, IT1, IT2)
 
-! Start code block for smoke
+#ifdef _SMOKE
 IF (ENABLE_SMOKE_OUTPUTS) THEN
    DUMP_SMOKE_OUTPUTS = .FALSE.
    CALL RANDOM_NUMBER(R0)
    IF (R0 .LE. 0.01*SMOKE_OUTPUTS_DUMP_PERCENT) DUMP_SMOKE_OUTPUTS = .TRUE.
 ENDIF
-! End code block for smoke
+#endif
 
 IF (NUM_TIME_AT_BURNED_ACRES .GT. 0) ALREADY_REACHED_BURNED_ACRES(:) = .FALSE.
    
@@ -715,7 +715,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
       IF (PHIP(IX,IY) .LE. 0. .AND. SURFACE_FIRE(IX,IY) .EQ. 0) THEN
       
          ACRES = ACRES + ACRES_PER_PIXEL
-! Start code block for suppression
+#ifdef _SUPPRESSION
          IF (ENABLE_EXTENDED_ATTACK) THEN
             IF (USE_SDI) THEN
                ACRES_SDI = ACRES_SDI + ACRES_PER_PIXEL * (1.0 + C%SDI )
@@ -723,7 +723,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                ACRES_SDI = ACRES
             ENDIF
          ENDIF
-! End code block for suppression
+#endif
 
          C%BURNED               = .TRUE.
          C%TIME_OF_ARRIVAL      = T
@@ -763,15 +763,15 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          LIST_BURNED%TAIL%WS20_NOW               = C%WS20_NOW
          LIST_BURNED%TAIL%WD20_NOW               = C%WD20_NOW
 
-! Start code block for wui
+#ifdef _WUI
          IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM = C%IBLDGFM 
-! End code block for wui
+#endif
 
-! Start code block for umd_spotting
+#ifdef _UMDSPOTTING
          LIST_BURNED%TAIL%TAU_EMBERGEN = 0.
-! End code block for umd_spotting
+#endif
 
-! Start code block for smoke
+#ifdef _SMOKE
          IF (ENABLE_SMOKE_OUTPUTS) THEN
             LIST_BURNED%TAIL%TIME_IGNITED = T
             IF (C%VELOCITY .GT. 0.) THEN
@@ -783,7 +783,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
             LIST_BURNED%TAIL%TIME_EXTINGUISHED = T + TBURN
             LIST_BURNED%TAIL%HRRPUA = (C%FLIN_SURFACE + C%FLIN_CANOPY) / ASP%CELLSIZE
          ENDIF
-! End code block for smoke
+#endif
 
          IF (DUMP_BINARY_OUTPUTS) THEN
             BINARY_OUTPUTS_IX           (LIST_BURNED%NUM_NODES) = IX
@@ -837,7 +837,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
 
    ENDDO ! I = 1, LIST_TAGGED%NUM_NODES
 
-! Start code block for umd_spotting
+#ifdef _UMDSPOTTING
    IF (ENABLE_SPOTTING .AND. USE_UMD_SPOTTING_MODEL) THEN
       C => LIST_BURNED%HEAD
       DO I = 1, LIST_BURNED%NUM_NODES
@@ -899,7 +899,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          C => C%NEXT
       ENDDO
    ENDIF
-! End code block for umd_spotting
+#endif
 
    CALL ACCUMULATE_CPU_USAGE(46, IT1, IT2)
 
@@ -1017,9 +1017,9 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          CALL INTERP_WD_RASTER_SINGLE(C, WD20_LO(:,:), WD20_HI(:,:), F_METEOROLOGY)
          CALL SURFACE_SPREAD_RATE(LIST_TAGGED,C)
          IF (CROWN_FIRE_MODEL .GT. 0) CALL CROWN_SPREAD_RATE(LIST_TAGGED,C)
-! Start code block for suppression
+#ifdef _SUPPRESSION
          IF (ENABLE_EXTENDED_ATTACK .AND. USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(C%IX,C%IY,1)
-! End code block for suppression
+#endif
       ENDIF
       C => C%NEXT
    ENDDO
@@ -1101,7 +1101,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
 
 ! Extended attack model
    IF (ITIMESTEP .EQ. 1) T_LAST_EXTENDED_ATTACK = T
-! Start code block for suppression   
+#ifdef _SUPPRESSION   
    IF (ENABLE_EXTENDED_ATTACK .AND. T - T_LAST_EXTENDED_ATTACK .GT. DT_EXTENDED_ATTACK .AND. LIST_BURNED%NUM_NODES .GT. 0) THEN
       IT_EA = IT_EA + 1
       DT_DAY = (T - T_LAST_EXTENDED_ATTACK) / 86400.
@@ -1142,11 +1142,11 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
 
       CONTINUE
    ENDIF
-! End code block for suppression   
+#endif   
 
    CALL ACCUMULATE_CPU_USAGE(52, IT1, IT2)
 
-! Start code block for smoke
+#ifdef _SMOKE
    IF (ENABLE_SMOKE_OUTPUTS .AND. T - T_LAST_SMOKE_OUTPUT .GE. DT_SMOKE_OUTPUTS ) THEN
       QDOTNOW = 0.
       MDOTNOW = 0.
@@ -1216,7 +1216,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
       ENDIF
       
    ENDIF ! ENABLE_SMOKE_OUTPUTS
-! End code block for smoke
+#endif
 
 998 FORMAT(I9.1,',',I9.1,',',I9.1,',',I9.1,',',F12.2,',',F12.2)
 999 FORMAT(F9.2,',',A,',',F10.1,',',F10.1,',',E12.5,',',E12.5,',',E12.5)
@@ -1448,7 +1448,7 @@ ENDDO
 CALL ACCUMULATE_CPU_USAGE(60, IT1, IT2)
 
 ! Close smoke file
-! Start code block for smoke
+#ifdef _SMOKE
 IF (ENABLE_SMOKE_OUTPUTS .AND. DUMP_SMOKE_OUTPUTS) THEN
    INQUIRE(UNIT=LUSMOKE+IRANK_WORLD,OPENED=LOPEN)
    IF (STATS_PM2P5_RELEASE(ICASE) .LT. PM2P5_RELEASE_MIN_FOR_OUTPUT) THEN
@@ -1457,7 +1457,7 @@ IF (ENABLE_SMOKE_OUTPUTS .AND. DUMP_SMOKE_OUTPUTS) THEN
       IF (LOPEN) CLOSE(LUSMOKE+IRANK_WORLD)
    ENDIF
 ENDIF
-! End code block for smoke
+#endif
 
 ! Close virtual station file
 IF (NUM_VIRTUAL_STATIONS .GT. 0) THEN
@@ -1494,9 +1494,9 @@ IF (LIST_SUPPRESSED%NUM_NODES .GT. 0) THEN
 ENDIF
 
 IF (SIMULATION_TSTOP_HOURS .LT. 0. ) STATS_SIMULATION_TSTOP_HOURS(ICASE) = T / 3600.
-! Start code block for suppression   
+#ifdef _SUPPRESSION   
 IF (ENABLE_EXTENDED_ATTACK .AND. STATS_FINAL_CONTAINMENT_FRAC(ICASE) .LT. 0.) STATS_FINAL_CONTAINMENT_FRAC(ICASE) = SUPP(IT_EA)%TARGET_CONTAINMENT
-! End code block for suppression   
+#endif   
 
 CALL ACCUMULATE_CPU_USAGE(62, IT1, IT2)
 
@@ -1713,7 +1713,7 @@ REAL, PARAMETER :: KWPM2_TO_BTUPFT2MIN = 60. * 0.3048 * 0.3048 / 1.055, FTPMIN_T
 LOGICAL :: DONE, CROWN_FIRE_AT_START, CROWN_FIRE_AT_END
 
 C => L%HEAD
-! Start code block for wui
+#ifdef _WUI
 IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2)) THEN
    LB_P => LB%HEAD
 
@@ -1724,7 +1724,7 @@ IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2)) THEN
       LB_P => LB_P%NEXT
    ENDDO
 ENDIF
-! End code block for wui
+#endif
 
 IF (ISTEP .EQ. 1) THEN
    DO I = 1, L%NUM_NODES
@@ -1791,14 +1791,14 @@ IF (ISTEP .EQ. 1) THEN
                BOH = (C%LOW - SQRT_LOW2_M1) / (C%LOW + SQRT_LOW2_M1 )
             ENDIF
             C%VBACK = BOH * C%VELOCITY_DMS
-! Start code block for wui
+#ifdef _WUI
             IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 91) THEN
                CONTINUE
                IF (BLDG_SPREAD_MODEL_TYPE .EQ. 1) CALL HAMADA(C) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
                IF (BLDG_SPREAD_MODEL_TYPE .EQ. 2) CALL UMD_UCB_BLDG_SPREAD(C, LB, T_ELMFIRE) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
                CONTINUE
             ENDIF
-! End code block for wui
+#endif
 
 ! We can get sin(theta - dms) and cos(theta - dms) directly:
             COSANG   = C%NORMVECTORY*C%NORMVECTORY_DMS + C%NORMVECTORX*C%NORMVECTORX_DMS
@@ -1885,9 +1885,9 @@ ELSE !ISTEP .EQ. 2
 
          IF (CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) C%FLIN_CANOPY = C%HPUA_CANOPY * C%VELOCITY * 5.08E-3
 
-! Start code block for umd_spotting
+#ifdef _UMDSPOTTING
          IF (USE_UMD_SPOTTING_MODEL .AND. USE_PHYSICAL_SPOTTING_DURATION) C%LOCAL_EMBERGEN_DURATION = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR*60.0 ! min to second
-! End code block for umd_spotting
+#endif
                   
          IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2 .AND. C%IFBFM .EQ. 91) THEN
             C%FLIN_SURFACE = 0.0 ! kW/m

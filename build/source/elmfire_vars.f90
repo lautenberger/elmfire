@@ -383,7 +383,7 @@ TYPE :: BUILDING_FUEL_MODEL_TABLE_TYPE
 END TYPE
 TYPE(BUILDING_FUEL_MODEL_TABLE_TYPE), DIMENSION(0:NUM_BUILDING_FUEL_MODELS) :: BUILDING_FUEL_MODEL_TABLE
 
-! Start code block for suppression
+#ifdef _SUPPRESSION
 ! Suppression
 TYPE SUPPRESSION_TRACKER
    INTEGER :: NCELLS(0:359)
@@ -403,7 +403,7 @@ TYPE SUPPRESSION_TRACKER
    INTEGER :: IYCEN
 END TYPE SUPPRESSION_TRACKER
 TYPE(SUPPRESSION_TRACKER), ALLOCATABLE, DIMENSION (:) :: SUPP
-! End code block for suppression
+#endif
 
 ! Spotting
 TYPE SPOTTING_TRACKER
@@ -541,22 +541,22 @@ TYPE NODE
 
    REAL    :: TIME_SUPPRESSED = -1.0 ! Used outside of suppression algorithm
 
-! Start code block for suppression
+#ifdef _SUPPRESSION
 ! Suppression
    REAL    :: SUPPRESSION_ADJUSTMENT_FACTOR = 1.0
    INTEGER :: SUPPRESSION_IDEG              = 9999
    REAL    :: SDI                           = 0.
-! End code block for suppression
+#endif
 
-! Start code block for smoke
+#ifdef _SMOKE
 ! Smoke
    REAL :: TIME_IGNITED      = 0.
    REAL :: TIME_EXTINGUISHED = 0.
    REAL :: SMOKE_TFRAC       = 0.
    REAL :: QDOT_AVG          = 0.
-! End code block for smoke
+#endif
 
-! Start code block for wui
+#ifdef _WUI
 ! WUI model parameters
    TYPE(UCB_ELLIPSE) :: ELLIPSE_PARAMETERS
    INTEGER :: BLDG_FUEL_MODEL       = 0
@@ -574,15 +574,15 @@ TYPE NODE
    REAL    :: ABSOLUTE_U            = 0.
    REAL    :: TOTAL_DFC_RECEIVED    = 0.
    REAL    :: TOTAL_RAD_RECEIVED    = 0.
-! End code block for wui
+#endif
 
-! Start code block for umd_spotting
+#ifdef _UMDSPOTTING
 ! UMD spotting parameters
    REAL :: TAU_EMBERGEN            = 0.
    REAL :: LOCAL_EMBERGEN_DURATION = 0.
    REAL :: T_START_SPOTTING        = -1. 
    REAL :: T_END_SPOTTING          = -1. 
-! End code block for umd_spotting
+#endif
 END TYPE NODE
  
 TYPE DLL
