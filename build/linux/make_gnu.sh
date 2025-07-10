@@ -44,25 +44,32 @@ cp -f elmfire_debug $ELMFIRE_INSTALL_DIR/elmfire_debug_$ELMFIRE_VER
 ln -fs $ELMFIRE_INSTALL_DIR/elmfire_debug_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_debug$ELMFIRE_BIN_SUFFIX
 rm -f *.o *.mod elmfire_debug
 
-echo "Making elmfire_post"
-cd ..
-mkdir elmfire_post 2> /dev/null
-cd elmfire_post
-rm -f *.o *.mod elmfire_post
-make -f ../Makefile_elmfire_post gnu_linux
-cp -f elmfire_post $ELMFIRE_INSTALL_DIR/elmfire_post_$ELMFIRE_VER
-ln -fs $ELMFIRE_INSTALL_DIR/elmfire_post_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_post$ELMFIRE_BIN_SUFFIX
+if [ -z ${NOBUILD_ELMFIRE_POST} ]; then
+    echo "Making elmfire_post"
+    cd ..
+    mkdir elmfire_post 2> /dev/null
+    cd elmfire_post
+    rm -f *.o *.mod elmfire_post
+    make -f ../Makefile_elmfire_post gnu_linux
+    cp -f elmfire_post $ELMFIRE_INSTALL_DIR/elmfire_post_$ELMFIRE_VER
+    ln -fs $ELMFIRE_INSTALL_DIR/elmfire_post_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_post$ELMFIRE_BIN_SUFFIX
 
-echo "Making elmfire_post_gnu_debug_linux"
-rm -f *.o *.mod elmfire_post_debug
-make -f ../Makefile_elmfire_post gnu_debug_linux
-cp -f elmfire_post_debug $ELMFIRE_INSTALL_DIR/elmfire_post_debug_$ELMFIRE_VER
-ln -fs $ELMFIRE_INSTALL_DIR/elmfire_post_debug_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_post_debug$ELMFIRE_BIN_SUFFIX
+    echo "Making elmfire_post_gnu_debug_linux"
+    rm -f *.o *.mod elmfire_post_debug
+    make -f ../Makefile_elmfire_post gnu_debug_linux
+    cp -f elmfire_post_debug $ELMFIRE_INSTALL_DIR/elmfire_post_debug_$ELMFIRE_VER
+    ln -fs $ELMFIRE_INSTALL_DIR/elmfire_post_debug_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_post_debug$ELMFIRE_BIN_SUFFIX
 
-rm -f *.o *.mod
+    rm -f *.o *.mod
+fi
 
 echo "Cleaning up"
 cd ..
-rm -f -r elmfire elmfire_post
+
+if [ -z ${NOBUILD_ELMFIRE_POST} ]; then
+    rm -f -r elmfire elmfire_post
+else
+    rm -f -r elmfire
+fi
 
 exit 0
