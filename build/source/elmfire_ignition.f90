@@ -360,6 +360,10 @@ DO IWX_BAND = IWX_BAND_START, IWX_BAND_STOP, IWX_BAND_SKIP
    ENDDO
 ENDDO
 
+! Determine lowest and highest IWX_BAND
+IGN_IWX_BAND_LO = MINVAL(CSV_IBANDARR(:))
+IGN_IWX_BAND_HI = MAXVAL(CSV_IBANDARR(:)) + NUM_METEOROLOGY_TIMES + 1 ! CEILING(MAXVAL(CSV_TSTOP(:)) / 3600.)
+
 ! *****************************************************************************
 END SUBROUTINE DETERMINE_NUM_CASES_TOTAL_CSV
 ! *****************************************************************************
