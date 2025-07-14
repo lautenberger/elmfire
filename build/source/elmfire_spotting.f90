@@ -326,7 +326,7 @@ OFFSET(3) = 0.
 
 ! Find the maximum spotting distance accoring to criterion P_EPS (P_EPS=0.001 by default)
 IF (USE_UMD_SPOTTING_MODEL) THEN
-   QUANTILE=SQRT_2*ERFINV(2.0*P_EPS-1.0)
+   QUANTILE=SQRT_2*ERFINV_LOCAL(2.0*P_EPS-1.0)
    LNORM_QUANTILE = EXP(MU_DIST + SIGMA_DIST * QUANTILE)
    K_MAX = NINT(LNORM_QUANTILE/CELLSIZE_ELM)
    X_MAX = K_MAX*CELLSIZE_ELM
@@ -344,13 +344,13 @@ DO IEMBER = 1, NUM_EMBERS
       LOW  = SARDOY_PDFINV(0.0, MU_DIST, SIGMA_DIST)
       HIGH = SARDOY_PDFINV(X_MAX+CELLSIZE_ELM*0.5, MU_DIST, SIGMA_DIST)
       R0   = R0 * (HIGH - LOW) + LOW
-      SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV(2.*R0-1.) + MU_DIST)
+      SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV_LOCAL(2.*R0-1.) + MU_DIST)
       SPOTTING_DISTANCE = NINT(SPOTTING_DISTANCE/CELLSIZE_ELM)*CELLSIZE_ELM
    ELSE !Lognormal
       IF (R0 .GT. 0.5) THEN
          SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV(2.*R0-1.) + MU_DIST)
       ELSE
-         SPOTTING_DISTANCE = EXP(MU_DIST - SQRT(2.) * SIGMA_DIST * ERFINV(1.-2.*R0))
+         SPOTTING_DISTANCE = EXP(MU_DIST - SQRT(2.) * SIGMA_DIST * ERFINV_LOCAL(1.-2.*R0))
       ENDIF      
    ENDIF
 
@@ -476,7 +476,7 @@ DO IEMBER = 1, NUM_EMBERS
       ! Add spanwise distribution
       IF (USE_UMD_SPOTTING_MODEL) THEN
          CALL RANDOM_NUMBER(R0)
-         SPANWISE_DEVIATION = SQRT_2 * ERFINV(2.0*R0-1.0) * SIGMA_SPANWISE + MU_SPANWISE
+         SPANWISE_DEVIATION = SQRT_2 * ERFINV_LOCAL(2.0*R0-1.0) * SIGMA_SPANWISE + MU_SPANWISE
 
          UWIND_ABS = NORM2(UWIND(1:2))
          INV_UWIND_TIMES_SPANWISE_DEVIATION = SPANWISE_DEVIATION/MAX(1E-6,UWIND_ABS)
@@ -610,7 +610,7 @@ OFFSET(3) = 0.
 
 ! Find the maximum spotting distance accoring to criterion P_EPS (P_EPS=0.001 by default)
 IF (USE_UMD_SPOTTING_MODEL) THEN
-   QUANTILE=SQRT_2*ERFINV(2.0*(1.0-P_EPS)-1.0)
+   QUANTILE=SQRT_2*ERFINV_LOCAL(2.0*(1.0-P_EPS)-1.0)
    LNORM_QUANTILE = EXP(MU_DIST + SIGMA_DIST * QUANTILE)
    NORM_QUANTILE  = MU_SPANWISE + SIGMA_SPANWISE * QUANTILE
    K_MAX = NINT(LNORM_QUANTILE/CELLSIZE_ELM)
@@ -915,6 +915,11 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
       V_AIR = UWIND*COEF_WIND*0.447
       IGNITION_CRITERION = HARDENING_FACTOR*PSI*(V_AIR-0.003)*(V_AIR-4.017)+0.188 ! UMD Fitted curve at P_IGN = 0.5
 
+      ! This change corresponds to the ignition model publication, per comments of editors
+      IF(DIFF_WILDLAND_IGNITION) THEN 
+         IF(IFBFM .LT. 180 .AND. IFBFM .GT. 99) IGNITION_CRITERION = -1.0 ! Assume for vegetative fuels, firebrands can always ignite the fuels (smoldering-to-flaming transition).
+      ENDIF
+
       IF(IGNITION_CRITERION .LT. 0)THEN
          P_IGN = 0.90
       ELSE
@@ -932,8 +937,10 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
             T_DEVELOP = 300.0 ! Assume a medium fire growth rate for not defined structural fuels
          ENDIF
       ELSE
-         TAU_IGN = 42.1 ! Value derived from ThermaKin simulation for WRC.
-         T_DEVELOP = 75.0 ! Assume a ultrafast fire growth rate for non-structural fuels
+         ! TAU_IGN = LOCAL_IGNITION_TIME ! Value derived from ThermaKin simulation for WRC.
+         ! T_DEVELOP = CELL_IGNITION_DELAY ! Assume a ultrafast fire growth rate for non-structural fuels
+         TAU_IGN = TAU_IGN_INPUT
+         T_DEVELOP = T_DEVELOP_INPUT
       ENDIF
 
    ENDIF ! IF(.NOT. USE_SIMPLE_IGNITION_MODEL)THEN
@@ -1049,6 +1056,31 @@ EMBER_FLUX%R4(IX,IY,IT_IGN_LO) = EMBER_FLUX%R4(IX,IY,IT_IGN_LO) - DT_ELMFIRE * D
 
 ! *****************************************************************************
 END SUBROUTINE EMBER_CONSUMPTION
+! *****************************************************************************
+
+! *****************************************************************************
+FUNCTION ERFINV_LOCAL(X) RESULT(Y)
+! *****************************************************************************
+! This function serves in substitution for the ERFINV function in elmfire_subs.f90 for the superceded spotting model.
+IMPLICIT NONE
+REAL(4), INTENT(IN) :: X
+REAL(4) :: Y, A, LN_EXPR, PI_VAL, TERM1, TERM2
+
+IF (ABS(X) >= 1.0E0) THEN
+  PRINT *, 'ERROR: ERFINV_LOCAL(X) domain is |X| < 1. Received:', X
+  STOP
+END IF
+
+A = 0.147E0
+PI_VAL = 3.1415927E0
+LN_EXPR = LOG(1.0E0 - X*X)
+
+TERM1 = 2.0E0 / (PI_VAL * A) + LN_EXPR / 2.0E0
+TERM2 = SQRT(TERM1**2 - LN_EXPR / A)
+
+Y = SIGN(1.0E0, X) * SQRT(TERM2 - TERM1)
+! *****************************************************************************
+END FUNCTION ERFINV_LOCAL
 ! *****************************************************************************
 
 ! *****************************************************************************
