@@ -108,14 +108,14 @@ TANSLP2(:)=TANSLP2(:)*TANSLP2(:)
 DO I=0,360
    ABSSINASP(I)=ABS(SIN(REAL(I)*PIO180))
    ABSCOSASP(I)=ABS(COS(REAL(I)*PIO180))
-   SINASPM180(I)=SIN((REAL(I) - 180.)*PIO180)
-   COSASPM180(I)=COS((REAL(I) - 180.)*PIO180)
+   SINASPM180(I)=-SIN(REAL(I)*PIO180)        ! Used trig identities to rewrite cleaner
+   COSASPM180(I)=-COS(REAL(I)*PIO180)
 ENDDO
 
 ! Sine and Cosine of wind direction minus pi, used in UX_AND_UY routines
 DO I = 0, 3600
-   SINWDMPI(I) = SIN( (REAL(I)*0.1 - 180.) * PIO180)
-   COSWDMPI(I) = COS( (REAL(I)*0.1 - 180.) * PIO180)
+   SINWDMPI(I) = -SIN(REAL(I)*0.1*PIO180)    ! Used trig identities to rewrite cleaner
+   COSWDMPI(I) = -COS(REAL(I)*0.1*PIO180)
 ENDDO
 
 ! Set up sheltered wind adjustment factor table
