@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{E88F18CF-BD14-803D-4C78-0B970259886F}">
+	<Platforms>
+		<Platform Name="Win32"/>
+		<Platform Name="x64"/>
+	</Platforms>
+	<Configurations>
+		<Configuration Name="Debug|Win32" UseCompiler="ifortCompiler">
+			<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" WarnInterfaces="true" Traceback="true" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebugDLL"/>
+			<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole"/>
+			<Tool Name="VFResourceCompilerTool"/>
+			<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+			<Tool Name="VFCustomBuildTool"/>
+			<Tool Name="VFPreLinkEventTool"/>
+			<Tool Name="VFPreBuildEventTool"/>
+			<Tool Name="VFPostBuildEventTool"/>
+			<Tool Name="VFManifestTool" SuppressStartupBanner="true"/>
+		</Configuration>
+		<Configuration Name="Debug|x64" UseCompiler="ifxCompiler">
+			<Tool Name="VFFortranCompilerTool" AdditionalOptions="/fpe:0 /traceback /heap-arrays /assume:byterecl" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files (x86)\Intel\oneAPI\2025.1\include\mpi" Diagnostics="diagnosticsShowAll" WarnInterfaces="true" LocalSavedScalarsSNaN="true" InitArrays="true" FloatingPointExceptionHandling="fpe0" Traceback="true" RuntimeChecks="rtChecksAll" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+			<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\Program Files (x86)\Intel\oneAPI\2025.1\lib\mpi\debug;C:\Program Files (x86)\Intel\oneAPI\2025.1\lib" GenerateDebugInformation="true" SubSystem="subSystemConsole" HeapReserveSize="327680000" HeapCommitSize="327680000" StackReserveSize="327680000" StackCommitSize="327680000" LargeAddressAware="addrAwareLarge" InterproceduralOptimizations="false" AdditionalDependencies="impi.lib"/>
+			<Tool Name="VFResourceCompilerTool"/>
+			<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
+			<Tool Name="VFCustomBuildTool"/>
+			<Tool Name="VFPreLinkEventTool"/>
+			<Tool Name="VFPreBuildEventTool"/>
+			<Tool Name="VFPostBuildEventTool"/>
+			<Tool Name="VFManifestTool" SuppressStartupBanner="true"/>
+		</Configuration>
+		<Configuration Name="Release|Win32" UseCompiler="ifortCompiler">
+			<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" RuntimeLibrary="rtMultiThreadedDLL"/>
+			<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
+			<Tool Name="VFResourceCompilerTool"/>
+			<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+			<Tool Name="VFCustomBuildTool"/>
+			<Tool Name="VFPreLinkEventTool"/>
+			<Tool Name="VFPreBuildEventTool"/>
+			<Tool Name="VFPostBuildEventTool"/>
+			<Tool Name="VFManifestTool" SuppressStartupBanner="true"/>
+		</Configuration>
+		<Configuration Name="Release|x64" UseCompiler="ifxCompiler">
+			<Tool Name="VFFortranCompilerTool" AdditionalOptions="/fpe:0 /traceback /heap-arrays /assume:byterecl" SuppressStartupBanner="true" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\Program Files (x86)\Intel\oneAPI\2025.1\include\mpi" Diagnostics="diagnosticsDisableAll" RuntimeChecks="rtChecksNone" RuntimeLibrary="rtMultiThreadedDLL"/>
+			<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\Program Files (x86)\Intel\oneAPI\2025.1\lib\mpi\debug;C:\Program Files (x86)\Intel\oneAPI\2025.1\lib" SubSystem="subSystemConsole" HeapReserveSize="327680000" HeapCommitSize="327680000" StackReserveSize="327680000" StackCommitSize="327680000" LargeAddressAware="addrAwareLarge"/>
+			<Tool Name="VFResourceCompilerTool"/>
+			<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64"/>
+			<Tool Name="VFCustomBuildTool"/>
+			<Tool Name="VFPreLinkEventTool"/>
+			<Tool Name="VFPreBuildEventTool"/>
+			<Tool Name="VFPostBuildEventTool"/>
+			<Tool Name="VFManifestTool" SuppressStartupBanner="true"/>
+		</Configuration>
+	</Configurations>
+	<Files>
+		<File RelativePath="..\..\source\elmfire.f90"/>
+		<File RelativePath="..\..\source\elmfire_calibration.f90"/>
+		<File RelativePath="..\..\source\elmfire_ignition.f90"/>
+		<File RelativePath="..\..\source\elmfire_init.f90"/>
+		<File RelativePath="..\..\source\elmfire_io.f90"/>
+		<File RelativePath="..\..\source\elmfire_level_set.f90"/>
+		<File RelativePath="..\..\source\elmfire_namelists.f90"/>
+		<File RelativePath="..\..\source\elmfire_spotting.f90"/>
+		<File RelativePath="..\..\source\elmfire_spotting_superseded.f90"/>
+		<File RelativePath="..\..\source\elmfire_spread_rate.f90"/>
+		<File RelativePath="..\..\source\elmfire_subs.f90"/>
+		<File RelativePath="..\..\source\elmfire_vars.f90"/>
+		<File RelativePath="..\..\source\sort.for"/>
+	</Files>
+	<Globals/>
+</VisualStudioProject>

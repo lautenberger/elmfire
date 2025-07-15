@@ -105,7 +105,8 @@ function check_args {
 
 # Check $WEST_BUFFER_KM
    if [ -z "$WEST_BUFFER_KM" ]; then
-      STATUS=11 # No west buffer
+      STATUS=1 # No west buffer
+      MESSAGE="No west buffer"
    fi
    ISLO=`echo "$WEST_BUFFER_KM < 1.2" | bc`
    if [ "$ISLO" = "1" ]; then

@@ -113,7 +113,11 @@ DO I = 1, NUM_NODES
    PHIS_MAX = FMT%PHIWTERM * WS_LIMIT**FMT%B_COEFF
    C%PHIS_SURFACE = MIN(FMT%PHISTERM * C%TANSLP2, PHIS_MAX)
 
-   C%VS0 = (C%ADJ + PERTURB_ADJ) * C%SUPPRESSION_ADJUSTMENT_FACTOR * DIURNAL_ADJUSTMENT_FACTOR * C%IR * FMT%XI / RHOBEPSQIG !ft/min
+#ifdef _SUPPRESSION
+   IF (ENABLE_EXTENDED_ATTACK) C%VS0 = (C%ADJ + PERTURB_ADJ) * C%SUPPRESSION_ADJUSTMENT_FACTOR * DIURNAL_ADJUSTMENT_FACTOR * C%IR * FMT%XI / RHOBEPSQIG !ft/min
+#endif
+   IF (.NOT. ENABLE_EXTENDED_ATTACK) C%VS0 = (C%ADJ + PERTURB_ADJ) * DIURNAL_ADJUSTMENT_FACTOR * C%IR * FMT%XI / RHOBEPSQIG !ft/min
+
    C%VELOCITY_DMS_SURFACE = C%VS0 * (1.0 + C%PHIS_SURFACE + C%PHIW_SURFACE) !ft/min
 
 ! Convert reaction intensity to SI:
@@ -207,6 +211,7 @@ ENDDO ! I = 1, L%NUM_NODES
 END SUBROUTINE CROWN_SPREAD_RATE
 ! *****************************************************************************
 
+#ifdef _WUI
 ! *****************************************************************************
 SUBROUTINE HAMADA(C)
 ! *****************************************************************************
@@ -633,6 +638,7 @@ BURNING_NODES%HRR_TRANSIENT = AMAX1(0.0, BURNING_NODES%HRR_TRANSIENT)
 ! *****************************************************************************
 END SUBROUTINE HRR_TRANSIENT
 ! *****************************************************************************
+#endif
 
 ! *****************************************************************************
 SUBROUTINE BURNED_FILTER(DYNAMIC_ARRAY, ZERO_FILTERED, INDEX_FILTERED, IX_LOW_BORDER, IY_LOW_BORDER, IX_HIGH_BORDER, IY_HIGH_BORDER)

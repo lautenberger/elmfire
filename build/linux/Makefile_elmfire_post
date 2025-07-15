@@ -19,39 +19,39 @@ setup_win:
 .SUFFIXES: .f90 .for .o .obj
 
 .f90.o:
-	$(FCOMPL) -c $(FFLAGS) $<
+	$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
 .f90.obj:
-	$(FCOMPL) -c $(FFLAGS) $<
+	$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
 .for.o:
-	$(FCOMPL) -c $(FFLAGS) $<
+	$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
 .for.obj:
-	$(FCOMPL) -c $(FFLAGS) $<
+	$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
 
 #Gnu compiler:
 gnu_linux : FFLAGS = -O3 -unroll -frecord-marker=4 -ffree-line-length-none -cpp -march=native -fopenmp -ffpe-summary=none
 gnu_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
 gnu_linux : obj = elmfire_post
 gnu_linux : setup $(obj_mpi)
-	$(FCOMPL) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
 gnu_debug_linux : FFLAGS = -O0 -g -Wall -fcheck=all -fbacktrace -fdump-core -ffpe-trap=zero,overflow -frecord-marker=4 -ffree-line-length-none -cpp -Wno-character-truncation -Wno-conversion -fopenmp
 gnu_debug_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
 gnu_debug_linux : obj = elmfire_post_debug
 gnu_debug_linux : setup $(obj_mpi)
-	$(FCOMPL) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
 # Intel compiler:
 intel_linux : FFLAGS = -O2 -ipo -no-prec-div -axCORE-AVX2 -fpp -assume byterecl -qopenmp
 intel_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_INTEL)
 intel_linux : obj = elmfire_post
 intel_linux : setup $(obj_mpi)
-	$(FCOMPL) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
 intel_debug_linux : FFLAGS = -O0 -traceback -g -debug all -gen-interfaces -warn interfaces -check noarg_temp_created -ftrapuv -fpe3 -fpp -assume byterecl -qopenmp
 intel_debug_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_INTEL)
 intel_debug_linux : obj = elmfire_post_debug
 intel_debug_linux : setup $(obj_mpi)
-	$(FCOMPL) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
 #*** End Compiler Specific Rules ***
 
