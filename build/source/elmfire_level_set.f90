@@ -1972,7 +1972,7 @@ DO I = 1, LIST_TAGGED%NUM_NODES
       UY=ABS(C%UY)
       U=MAX(UX,UY)
       ! APPLY WIND-BASED CFL
-      U=MAX(U, C%WS20_NOW*0.447)
+      ! U=MAX(U, C%WS20_NOW*0.447)
       IF (U .GT. UMAX) UMAX = U
    ENDIF
    C => C%NEXT
