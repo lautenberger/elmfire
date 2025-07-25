@@ -811,7 +811,7 @@ I2 = MAX ( MIN(I1 + 1, NCOL_WX), 1 )
 
 J1 = 1 + NINT( (CY - YLL_WX) / CELLSIZE_WX )
 J1 = MAX ( MIN(J1,     NROW_WX), 1 )
-J2 = MAX ( MIN(J2 + 1, NROW_WX), 1 )
+J2 = MAX ( MIN(J1 + 1, NROW_WX), 1 )
 
 X1 = XLL_WX + (REAL(I1) - 0.5) * CELLSIZE_WX
 X2 = XLL_WX + (REAL(I2) - 0.5) * CELLSIZE_WX
