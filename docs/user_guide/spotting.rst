@@ -39,7 +39,7 @@ related to fireline intensity (:math:`{\dot{Q}'}`) and 20-ft wind speed
 
 .. math::
 
-   m = a{\dot{Q}'^b}u^c_{20}
+   m = a{\dot{Q}'^b}u^c_{20} \\
    v = md
 
 The empirical parameters :math:`{a}`, :math:`{b}`, :math:`{c}`, and 
@@ -61,9 +61,7 @@ The normalized mean (:math:`{\mu}`) and standard deviation
 
 .. math::
 
-   \mu = ln(\frac{m^2}{\sqrt{v + m^2}})
-
-.. math::
+   \mu = ln(\frac{m^2}{\sqrt{v + m^2}}) \\
    \sigma = \sqrt{ln(1 + \frac{v}{m^2})}
 
 Spotting distance (:math:`{x}`) is calculated probabilistically from a 
