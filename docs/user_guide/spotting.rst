@@ -62,6 +62,8 @@ The normalized mean (:math:`{\mu}`) and standard deviation
 .. math::
 
    \mu = ln(\frac{m^2}{\sqrt{v + m^2}})
+
+.. math::
    \sigma = \sqrt{ln(1 + \frac{v}{m^2})}
 
 Spotting distance (:math:`{x}`) is calculated probabilistically from a 
@@ -69,7 +71,7 @@ lognormal distribution:
 
 .. math::
 
-   f(x) = \frac{1}{\sqrt{{2\pi}\sigma x}}exp(-\frac{1}{2}(\frac{lnx-\mu}{\sigma})^2)
+   f(x) = \frac{1}{\sqrt{{2\pi}}\sigma x}exp(-\frac{1}{2}(\frac{lnx-\mu}{\sigma})^2)
 
 By default, when ``ENABLE_SPOTTING = .TRUE.``, only pixels that burn as 
 passive or active crown fire trigger the spotting algorithm. The keyword 
