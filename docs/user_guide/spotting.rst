@@ -69,7 +69,7 @@ lognormal distribution:
 
 .. math::
 
-   f(x) = \frac{1}{\sqrt{{2\pi}}\sigma x}exp(-\frac{1}{2}(\frac{lnx-\mu}{\sigma})^2)
+   f(x) = \frac{1}{x \sigma\sqrt{{2\pi}}}exp(-\frac{1}{2}(\frac{lnx-\mu}{\sigma})^2)
 
 By default, when ``ENABLE_SPOTTING = .TRUE.``, only pixels that burn as 
 passive or active crown fire trigger the spotting algorithm. The keyword 
