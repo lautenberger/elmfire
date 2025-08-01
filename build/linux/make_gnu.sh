@@ -37,6 +37,27 @@ cp -f elmfire $ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER
 ln -fs $ELMFIRE_INSTALL_DIR/elmfire_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire$ELMFIRE_BIN_SUFFIX
 rm -f *.o *.mod elmfire
 
+echo "Making elmfire_gnu_mpi_gprof_linux"
+rm -f *.o *.mod elmfire_gprof
+make -f ../Makefile_elmfire gnu_mpi_gprof_linux
+cp -f elmfire_gprof $ELMFIRE_INSTALL_DIR/elmfire_gprof_$ELMFIRE_VER
+ln -fs $ELMFIRE_INSTALL_DIR/elmfire_gprof_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_gprof$ELMFIRE_BIN_SUFFIX
+rm -f *.o *.mod elmfire_gprof
+
+echo "Making elmfire_gnu_mpi_block_linux"
+rm -f *.o *.mod elmfire_block
+make -f ../Makefile_elmfire gnu_mpi_block_linux
+cp -f elmfire_block $ELMFIRE_INSTALL_DIR/elmfire_block_$ELMFIRE_VER
+ln -fs $ELMFIRE_INSTALL_DIR/elmfire_block_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_block$ELMFIRE_BIN_SUFFIX
+rm -f *.o *.mod elmfire_block
+
+echo "Making elmfire_gnu_mpi_perf_linux"
+rm -f *.o *.mod elmfire_perf
+make -f ../Makefile_elmfire gnu_mpi_perf_linux
+cp -f elmfire_perf $ELMFIRE_INSTALL_DIR/elmfire_perf_$ELMFIRE_VER
+ln -fs $ELMFIRE_INSTALL_DIR/elmfire_perf_$ELMFIRE_VER $ELMFIRE_INSTALL_DIR/elmfire_perf$ELMFIRE_BIN_SUFFIX
+rm -f *.o *.mod elmfire_perf
+
 echo "Making elmfire_gnu_mpi_debug_linux"
 rm -f *.o *.mod elmfire_debug
 make -f ../Makefile_elmfire gnu_mpi_debug_linux

@@ -34,6 +34,24 @@ gnu_mpi_linux : obj = elmfire
 gnu_mpi_linux : setup $(obj_mpi)
 	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
+gnu_mpi_gprof_linux : FFLAGS = -O2 -pg -g -Wall -frecord-marker=4 -ffree-line-length-none -cpp -march=native -ffpe-summary=none
+gnu_mpi_gprof_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
+gnu_mpi_gprof_linux : obj = elmfire_gprof
+gnu_mpi_gprof_linux : setup $(obj_mpi)
+	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+
+gnu_mpi_block_linux : FFLAGS = -O2 -pg -g -Wall -frecord-marker=4 -ffree-line-length-none -cpp -march=native -ffpe-summary=none
+gnu_mpi_block_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
+gnu_mpi_block_linux : obj = elmfire_block
+gnu_mpi_block_linux : setup $(obj_mpi)
+	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+
+gnu_mpi_perf_linux : FFLAGS = -O2 -g -Wall -frecord-marker=4 -ffree-line-length-none -cpp -march=native
+gnu_mpi_perf_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
+gnu_mpi_perf_linux : obj = elmfire_perf
+gnu_mpi_perf_linux : setup $(obj_mpi)
+	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+
 gnu_mpi_debug_linux : FFLAGS = -O0 -g -Wall -fcheck=all -fbounds-check -fbacktrace -fdump-core -ffpe-trap=invalid,zero,overflow -frecord-marker=4 -ffree-line-length-none -cpp -Wno-character-truncation -Wno-conversion -finit-real=snan -finit-integer=-99999999
 gnu_mpi_debug_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
 gnu_mpi_debug_linux : obj = elmfire_debug
