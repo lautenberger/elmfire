@@ -159,13 +159,13 @@ REAL, PARAMETER :: RHO_INF = 1.1 ! Air density, kg/m^2
 REAL, PARAMETER :: C_PG    = 1.0 ! Air heat capacity, kJ/kg-K
 REAL, PARAMETER :: T_INF   = 300.0 ! Ambient temperature, K
 REAL, PARAMETER :: G       = 9.81! Gravitional acceleration, m^2/s
-REAL :: I, U_WIND, LC, FR, MU_DIST, SIGMA_DIST, MU_SPANWISE, SIGMA_SPANWISE, RHO_P, D_P, Q, B_STAR
+REAL :: I, U_WIND, LC, FR, MU_DIST, SIGMA_DIST, MU_X, SIGMA_X, MU_SPANWISE, SIGMA_SPANWISE, RHO_P, D_P, Q, B_STAR
 REAL, DIMENSION(4) :: SARDOY_PDF_PARAMETERS
 U_WIND = 0.447 * MAX(1E-3,ABS(WS)) / 0.87 ! Wind speed in m/s, Use 10-m wind speed
 I  = MAX(FI,1E-6) / 1000.0 ! Fireline intensity in MW/m
 
 IF (IFBFM .EQ. 91) THEN
-   ! Hamda's model for firebrand deposition distribution
+   ! Himoto's model for firebrand deposition distribution
    LC     = 10.0  ! Characteristic length scale, use 10 m for now as typical dimension of buildings
    RHO_P  = 100.0       ! Particle density, kg/m^2
    D_P    = 5E-3      ! Thickness of disk ember, m
@@ -174,13 +174,13 @@ IF (IFBFM .EQ. 91) THEN
    B_STAR = U_WIND/SQRT(G*LC)*(RHO_P/RHO_INF)**(-3.0/4.0)* &
             (D_P/LC)**(-3.0/4.0)*(Q/(RHO_INF*C_PG*T_INF*G**0.5*LC**2.5))**0.5
 
-   MU_DIST    = 0.47 * B_STAR**(2.0/3.0) * LC
-   SIGMA_DIST = 0.88 * B_STAR**(1.0/3.0) * LC
+   MU_X    = 0.47 * B_STAR**(2.0/3.0) * LC
+   SIGMA_X = 0.88 * B_STAR**(1.0/3.0) * LC
 
-   MU_DIST = MAX(MU_DIST, 1E-5)
-   SIGMA_DIST = MAX(SIGMA_DIST, 1E-5)
-   MU_DIST    = LOG(MU_DIST / SQRT((SIGMA_DIST/MU_DIST)**2.0 + 1))
-   SIGMA_DIST = SQRT(LOG(1. + (SIGMA_DIST/MU_DIST)**2.0))
+   MU_X = MAX(MU_X, 1E-5)
+   SIGMA_X = MAX(SIGMA_X, 1E-5)
+   MU_DIST    = LOG(MU_X / SQRT((SIGMA_X/MU_X)**2.0 + 1))
+   SIGMA_DIST = SQRT(LOG(1. + (SIGMA_X/MU_X)**2.0))
 ELSE
    ! Sardoy's model for firebrand deposition distribution
    LC = (I*1000.0 / (RHO_INF * C_PG * T_INF * SQRT(G))) ** 0.67  ! Characteristic length scale
