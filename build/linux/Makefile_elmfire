@@ -1,6 +1,7 @@
 VPATH = ../../source ../../source/elmfire
 
 # Definition of object variables
+
 obj_mpi = $(ELMFIRE_OBJECTS)
 
 objwin_mpi = $(obj_mpi:.o=.obj)
