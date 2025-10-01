@@ -42,3 +42,8 @@ runs/hindcasts/runs
 runs/forecasts/archive
 **/.DS_Store
 validation/02-multi-fire/2*
+.webui_secret_key
+.rag_db
+ask_rag.py
+index_repo.py
+rag_db
