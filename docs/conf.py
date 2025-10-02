@@ -9,7 +9,7 @@
 project = 'ELMFIRE'
 copyright = '2025, Chris Lautenberger'
 author = 'Chris Lautenberger'
-release = '2025.1001'
+release = '2025.1002'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
