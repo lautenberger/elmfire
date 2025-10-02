@@ -29,7 +29,7 @@ REAL :: APHIW, COSASPMPI, PHIMAG, PHIWX, PHIWY, PHIX, PHIY, SINASPMPI
 
 CHARACTER(3) :: THREE_IWX_BAND
 CHARACTER(4) :: FOUR_IWX_BAND
-CHARACTER(60) :: VERSIONSTRING='ELMFIRE 2025.0717'
+CHARACTER(60) :: VERSIONSTRING='ELMFIRE 2025.1002'
 CHARACTER(400) :: FN, MESSAGESTR
 
 TYPE (RASTER_TYPE), POINTER :: R
@@ -706,6 +706,9 @@ IF (MODE .NE. 2) THEN
                DO I = 1, N
                   IX = BINARY_OUTPUTS_IX(I)
                   IY = BINARY_OUTPUTS_IY(I)
+                  IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
+                  IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
+
                   TIMES_BURNED%R4(IX,IY,1) = TIMES_BURNED%R4(IX,IY,1) + 1.
                ENDDO
             ENDIF
@@ -714,6 +717,8 @@ IF (MODE .NE. 2) THEN
                DO I = 1, N
                   IX = BINARY_OUTPUTS_IX(I)
                   IY = BINARY_OUTPUTS_IY(I)
+                  IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
+                  IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
                   FLAME_LENGTH_SUM%R4(IX,IY,1) = FLAME_LENGTH_SUM%R4(IX,IY,1) + BINARY_OUTPUTS_FLAME_LENGTH(I)
                   IF (BINARY_OUTPUTS_FLAME_LENGTH(I) .GT. FLAME_LENGTH_MAX%R4(IX,IY,1) ) THEN
                      FLAME_LENGTH_MAX%R4(IX,IY,1) = BINARY_OUTPUTS_FLAME_LENGTH(I)
@@ -724,6 +729,9 @@ IF (MODE .NE. 2) THEN
                   DO I = 1, N
                      IX = BINARY_OUTPUTS_IX(I)
                      IY = BINARY_OUTPUTS_IY(I)
+                     IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
+                     IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
+
                      DO IBIN = 1, NUM_FLAME_LENGTH_BINS
                         IF (BINARY_OUTPUTS_FLAME_LENGTH(I) .GE. FLAME_LENGTH_BIN_LO(IBIN) ) THEN
                            IF (BINARY_OUTPUTS_FLAME_LENGTH(I) .LT. FLAME_LENGTH_BIN_HI(IBIN) ) THEN
@@ -758,6 +766,8 @@ IF (MODE .NE. 2) THEN
                IF (EMBER_OUTPUTS_COUNT(I) .GT. 0) THEN
                   IX = EMBER_OUTPUTS_IX(I)
                   IY = EMBER_OUTPUTS_IY(I)
+                  IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
+                  IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
                   DO IBIN = 1, NUM_EMBER_COUNT_BINS
                      IF (EMBER_OUTPUTS_COUNT(I) .GT. EMBER_COUNT_BIN_LO(IBIN) ) THEN
                         IF (EMBER_OUTPUTS_COUNT(I) .LE. EMBER_COUNT_BIN_HI(IBIN) ) THEN

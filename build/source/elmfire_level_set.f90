@@ -256,7 +256,7 @@ IF (.NOT. RUN) THEN
    STATS_SIMULATION_TSTOP_HOURS     (ICASE) = -9999.
    STATS_PM2P5_RELEASE              (ICASE) = 0.
    STATS_HRR_PEAK                   (ICASE) = 0.
-   RETURN
+   TSTOP = SIMULATION_TSTART + 0.01
 ENDIF
 
 CALL ACCUMULATE_CPU_USAGE(31, IT1, IT2)
@@ -771,13 +771,13 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          LIST_BURNED%TAIL%IFBFM                  = C%IFBFM
          LIST_BURNED%TAIL%WS20_NOW               = C%WS20_NOW
          LIST_BURNED%TAIL%WD20_NOW               = C%WD20_NOW
-         LIST_BURNED%TAIL%LOCAL_EMBERGEN_DURATION= C%LOCAL_EMBERGEN_DURATION
 
 #ifdef _WUI
          IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM = C%IBLDGFM 
 #endif
 
 #ifdef _UMDSPOTTING
+         LIST_BURNED%TAIL%LOCAL_EMBERGEN_DURATION= C%LOCAL_EMBERGEN_DURATION
          LIST_BURNED%TAIL%TAU_EMBERGEN = 0.
 #endif
 
@@ -959,7 +959,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
                   CALL TAG_BAND(NX, NY, IX, IY, T+DT)
                   PHIP           (IX,IY) = -1.0
                   ! Record firebrand ignited cells
-                  IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, FBFM%I2(IX,IY,1)
+!                  IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, FBFM%I2(IX,IY,1)
                   CALL DELETE_NODE(LIST_EMBER_DEPOSITED, C)
 
                ENDIF
@@ -1005,7 +1005,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
             CALL TAG_BAND(NX, NY, IX, IY, T)
             TIME_OF_ARRIVAL(IX,IY) = T
             PHIP           (IX,IY) = -1.0
-            IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, FBFM%I2(IX,IY,1)
+!            IF (DEBUG_LEVEL .GT. 0) WRITE(*,*) 'Firebrand Ignited', IX, IY, FBFM%I2(IX,IY,1)
          ENDIF
       ENDDO
    ENDIF
@@ -1438,7 +1438,7 @@ IF (USE_EMBER_COUNT_BINS) THEN
    DO IY = 1, NY
    DO IX = 1, NX
       IF (EMBER_COUNT(IX,IY) .GT. 0) THEN
-         ICOUNT = ICOUNT + 1
+         ICOUNT = MIN(ICOUNT + 1, INT(STATS_NEMBERS(ICASE)))
          EMBER_OUTPUTS_IX   (ICOUNT) = IX
          EMBER_OUTPUTS_IY   (ICOUNT) = IY
          EMBER_OUTPUTS_COUNT(ICOUNT) = EMBER_COUNT(IX,IY)
@@ -1919,7 +1919,8 @@ ELSE !ISTEP .EQ. 2
             IF(ABS(C%UX)<=1E-3 .AND. ABS(C%UY)<=1E-3) C%LOCAL_EMBERGEN_DURATION = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR * 60 ! seconds
          ENDIF
 #endif
-                  
+
+#ifdef _WUI                  
          IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2 .AND. C%IFBFM .EQ. 91) THEN
             C%FLIN_SURFACE = C%HRR_TRANSIENT*ANALYSIS_CELLSIZE ! kW/m
             ! C%FLIN_SURFACE = 0.0 ! kW/m
@@ -1929,6 +1930,7 @@ ELSE !ISTEP .EQ. 2
             CALL HRR_TRANSIENT(C, T_ELMFIRE)
             C%FLIN_SURFACE = C%HRR_TRANSIENT*ANALYSIS_CELLSIZE ! kW/m
          ENDIF
+#endif
 
       ! ELSE
       !    IF (USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2) .AND. (C%IFBFM .EQ. 91)) THEN
@@ -1996,7 +1998,7 @@ INTEGER, INTENT(IN) :: ISTEP, ITIMESTEP
 REAL, INTENT(INOUT) :: DT
 
 ! Locals
-REAL :: CFL, COND, UMAX, PHIEAST, PHIWEST, PHINORTH, PHISOUTH
+REAL :: CFL, COND, UMAX
 REAL, PARAMETER :: EPSILON = 1E-30, CEILING = 1E3
 INTEGER :: I
 TYPE(NODE), POINTER :: C
