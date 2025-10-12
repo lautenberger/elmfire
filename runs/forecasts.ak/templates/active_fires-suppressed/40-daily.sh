@@ -97,7 +97,7 @@ ogr2ogr $OUTDIR/${FIRENAME}_$STARTING_TIMESTAMP.gpkg $SCRATCH/merged.gpkg
 ogr2ogr -f CSV $OUTDIR/${FIRENAME}_$STARTING_TIMESTAMP.csv $OUTDIR/${FIRENAME}_$STARTING_TIMESTAMP.gpkg
 
 tar -cvzf $OUTDIR.tgz $OUTDIR
-cp -f $OUTDIR.tgz $ELMFIRE_BASE_DIR/runs/forecasts/rsync/
+cp -f $OUTDIR.tgz $ELMFIRE_BASE_DIR/runs/forecasts.ak/rsync/
 scp $OUTDIR/${FIRENAME}_$STARTING_TIMESTAMP.gpkg $MURRELET:/srv/gis/fire_spread_polygons/
 ssh $MURRELET "sudo chmod 775 /srv/gis/fire_spread_polygons/${FIRENAME}_$STARTING_TIMESTAMP.gpkg"
 
