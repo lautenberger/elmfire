@@ -14,7 +14,7 @@ FIRE_NAME=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f1`
 DATE_START=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f2`
 TIME_START=`echo $LOCAL_SCRATCH | rev | cut -d/ -f1 | rev | cut -d_ -f3`
 TIMESTAMP_START="${DATE_START}_${TIME_START}"
-FORECAST_DIR=$ELMFIRE_BASE_DIR/runs/forecasts/runs/$FIRE_NAME/${FIRE_NAME}_$TIMESTAMP_START
+FORECAST_DIR=$ELMFIRE_BASE_DIR/runs/forecasts.ak/runs/$FIRE_NAME/${FIRE_NAME}_$TIMESTAMP_START
 mkdir -p $FORECAST_DIR 2> /dev/null
 
 SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`

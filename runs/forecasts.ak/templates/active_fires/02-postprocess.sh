@@ -4,7 +4,7 @@
 
 progress_message "Starting 02-postprocess.sh"
 
-CREATE_FIREMAP_OUTPUTS=yes
+CREATE_FIREMAP_OUTPUTS=no
 CREATE_DAILY_OUTPUTS=no
 LIMIT_TO_SEVEN_DAYS=yes
 UPLOAD_TO_PYRECAST="${UPLOAD_TO_PYRECAST:-no}"
@@ -43,17 +43,20 @@ PHIMIN=`gdalinfo -stats ./phi.tif  | grep STATISTICS_MINIMUM | cut -d= -f2 | xar
 ISLT0=`echo "$PHIMIN < 0" | bc`
 if [ "$ISLT0" = "1" ]; then
    READ_PHI=yes
+   gdal_translate -of ENVI -co "INTERLEAVE=BSQ" ./phi.tif $SCRATCH/phi.bsq &
    gdal_calc.py -A ./phi.tif --type=Int16 --calc="0+(A<0)*-1" --NoDataValue=0 --outfile=$SCRATCH/burning.tif 1>& /dev/null && \
    gdal_polygonize.py $SCRATCH/burning.tif $SCRATCH/burning.shp 1>& /dev/null &
 else
    READ_PHI=no
 fi
 
-HOSTS=`printf "$(hostname),%.0s" {1..128}`
+echo "READ_PHI $READ_PHI"
+
 SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
 CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
 let "NP = SOCKETS * CORES_PER_SOCKET"
 echo "NP: $NP"
+HOSTS=`printf "$(hostname),%.0s" {1..$NP}`
 
 CELLSIZE=`cat ./elmfire.data | grep COMPUTATIONAL_DOMAIN_CELLSIZE | cut -d= -f2 | xargs`
 XLLCORNER=`cat ./elmfire.data | grep COMPUTATIONAL_DOMAIN_XLLCORNER | cut -d= -f2 | xargs`
@@ -305,7 +308,7 @@ wait
 progress_message "Zipping up"
 for days in 7 14; do
    DAYS=`printf %02d $days`
-   zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}*_elm* 1>& /dev/null
+   zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts.ak/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}*_elm* 1>& /dev/null
 done
 
 if [ "$CREATE_DAILY_OUTPUTS" = "yes" ]; then
