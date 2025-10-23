@@ -17,7 +17,7 @@ GEOSERVER_INCOMINGDIR="${GEOSERVER_INCOMINGDIR:-/incoming}"
 OWNERSHIP="${OWNERSHIP:-'elmfire:domain users'}"
 BUFFER_SCRIPT=$ELMFIRE_BASE_DIR/etc/buffer.py
 ELMFIRE_INSTALL_DIR=${ELMFIRE_INSTALL_DIR:-$ELMFIRE_BASE_DIR/build/linux/bin}
-ELMFIRE_VER=${ELMFIRE_VER:-2025.0609}
+ELMFIRE_VER=${ELMFIRE_VER:-2025.1002}
 
 HRS_IN_FORECAST[7]=168  # 7-day forecast
 HRS_IN_FORECAST[14]=336 #14-day forecast
@@ -49,11 +49,11 @@ else
    READ_PHI=no
 fi
 
-HOSTS=`printf "$(hostname),%.0s" {1..128}`
 SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
 CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
 let "NP = SOCKETS * CORES_PER_SOCKET"
 echo "NP: $NP"
+HOSTS=`printf "$(hostname),%.0s" {1..$NP}`
 
 CELLSIZE=`cat ./elmfire.data | grep COMPUTATIONAL_DOMAIN_CELLSIZE | cut -d= -f2 | xargs`
 XLLCORNER=`cat ./elmfire.data | grep COMPUTATIONAL_DOMAIN_XLLCORNER | cut -d= -f2 | xargs`
@@ -305,7 +305,7 @@ wait
 progress_message "Zipping up"
 for days in 7 14; do
    DAYS=`printf %02d $days`
-   zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}*_elm* 1>& /dev/null
+   zip -9 -j $ELMFIRE_BASE_DIR/runs/forecasts.ak/rsync/${FIRE_NAME}_${MDT}_${DAYS}_elmfire.zip $SCRATCH/${FIRE_NAME}_${MDT}_${DAYS}*_elm* 1>& /dev/null
 done
 
 if [ "$CREATE_DAILY_OUTPUTS" = "yes" ]; then

@@ -70,7 +70,7 @@ IF (USE_UMD_SPOTTING_MODEL) THEN
 
    ! CALCULATE DISTRIBUTION PARAMETERS FROM LOCAL WIND SPEED & FIRELINE INTENSITY FROM SARDOY'S MODEL
    IF (.NOT. USE_CUSTOMIZED_PDF) THEN
-      SARDOY_PARAMETERS= SARDOY_PDF_PARAMETERS(WS20_NOW, FLIN)
+      SARDOY_PARAMETERS= SARDOY_PDF_PARAMETERS(WS20_NOW, FLIN, IFBFM)
       MU_DIST          = SARDOY_PARAMETERS(1)
       SIGMA_DIST       = SARDOY_PARAMETERS(2)
       MU_SPANWISE      = SARDOY_PARAMETERS(3)
@@ -87,6 +87,7 @@ IF (USE_UMD_SPOTTING_MODEL) THEN
       ! NEMBERS_REAL = EMBER_TO_EMIT_PER_CELL(WS20_NOW, EMBER_SAMPLING_FACTOR, CC%CELLSIZE, &
       !                   BLDG_FOOTPRINT_FRAC_LOCAL, FMC, WN_FUEL, IFBFM, TAU_EMBERGEN, FLIN)
       NEMBERS_REAL = EMBER_TO_EMIT_PER_CELL(CC%CELLSIZE, IFBFM, FLIN, EMBER_GR_PER_MW_BLDG, EMBER_GR_PER_MW_VEGE)
+      NEMBERS_REAL = NEMBERS_REAL * DT
    ELSE
       EMBERGEN_DT = MAX(MIN(DT, TAU_EMBERGEN - TAU),0.)
       NEMBERS_REAL = EMBER_GR * CC%CELLSIZE * CC%CELLSIZE * EMBERGEN_DT
@@ -148,37 +149,58 @@ ENDIF
 CONTAINS
 
 ! *****************************************************************************
-FUNCTION SARDOY_PDF_PARAMETERS(WS, FI)
+FUNCTION SARDOY_PDF_PARAMETERS(WS, FI, IFBFM)
 ! *****************************************************************************
-! FUNCTION CALCULATES THE SPOTTING DISTANCE DISTRIBUTION BASED ON THE SARDOY'S MODEL
+! FUNCTION CALCULATES THE SPOTTING DISTANCE DISTRIBUTION (HAS TO BE LOGNORMAL)
 ! TAKE THE INPUTS LOCAL WIND SPEED AND FIRELINE INTENSITY, RETURE MU AND SIGMA
 REAL, INTENT(IN) :: WS, FI
+INTEGER*2, INTENT(IN) :: IFBFM
 REAL, PARAMETER :: RHO_INF = 1.1 ! Air density, kg/m^2
 REAL, PARAMETER :: C_PG    = 1.0 ! Air heat capacity, kJ/kg-K
 REAL, PARAMETER :: T_INF   = 300.0 ! Ambient temperature, K
 REAL, PARAMETER :: G       = 9.81! Gravitional acceleration, m^2/s
-REAL :: I, U_WIND, LC, FR, MU_DIST, SIGMA_DIST, MU_SPANWISE, SIGMA_SPANWISE
+REAL :: I, U_WIND, LC, FR, MU_DIST, SIGMA_DIST, MU_X, SIGMA_X, MU_SPANWISE, SIGMA_SPANWISE, RHO_P, D_P, Q, B_STAR
 REAL, DIMENSION(4) :: SARDOY_PDF_PARAMETERS
-U_WIND = 0.447 * WS / 0.87 ! Wind speed in m/s, Use 10-m wind speed
+U_WIND = 0.447 * MAX(1E-3,ABS(WS)) / 0.87 ! Wind speed in m/s, Use 10-m wind speed
 I  = MAX(FI,1E-6) / 1000.0 ! Fireline intensity in MW/m
-LC = (I*1000.0 / (RHO_INF * C_PG * T_INF * SQRT(G))) ** 0.67  ! Characteristic length scale
-FR = U_WIND / SQRT(G * LC) ! Froude number
 
-IF (FR .LE. 1.0) THEN
-   MU_DIST    = (I ** 0.54) / MAX(U_WIND ** 0.55,1.0E-5)
-   MU_DIST    = 1.47 * MU_DIST + 1.14
-   SIGMA_DIST = (U_WIND ** 0.44) / MAX(I ** 0.21,1.0E-5) 
-   SIGMA_DIST = 0.86 * SIGMA_DIST + 0.19
+IF (IFBFM .EQ. 91) THEN
+   ! Himoto's model for firebrand deposition distribution
+   LC     = 10.0  ! Characteristic length scale, use 10 m for now as typical dimension of buildings
+   RHO_P  = 100.0       ! Particle density, kg/m^2
+   D_P    = 5E-3      ! Thickness of disk ember, m
+   Q      = I*LC*1000.0 ! Heat release rate, kW
+
+   B_STAR = U_WIND/SQRT(G*LC)*(RHO_P/RHO_INF)**(-3.0/4.0)* &
+            (D_P/LC)**(-3.0/4.0)*(Q/(RHO_INF*C_PG*T_INF*G**0.5*LC**2.5))**0.5
+
+   MU_X    = 0.47 * B_STAR**(2.0/3.0) * LC
+   SIGMA_X = 0.88 * B_STAR**(1.0/3.0) * LC
+
+   MU_X = MAX(MU_X, 1E-5)
+   SIGMA_X = MAX(SIGMA_X, 1E-5)
+   MU_DIST    = LOG(MU_X / SQRT((SIGMA_X/MU_X)**2.0 + 1))
+   SIGMA_DIST = SQRT(LOG(1. + (SIGMA_X/MU_X)**2.0))
 ELSE
-   MU_DIST    = I ** 0.26 * U_WIND ** 0.11
-   MU_DIST    = 1.32 * MU_DIST - 0.02
-   SIGMA_DIST = 1.0 / MAX(I ** 0.01,1.0E-5) / MAX(U_WIND ** 0.02,1.0E-5)
-   SIGMA_DIST = 4.95 * SIGMA_DIST - 3.48
+   ! Sardoy's model for firebrand deposition distribution
+   LC = (I*1000.0 / (RHO_INF * C_PG * T_INF * SQRT(G))) ** 0.67  ! Characteristic length scale
+   FR = U_WIND / SQRT(G * LC) ! Froude number
+   IF (FR .LE. 1.0) THEN
+      MU_DIST    = (I ** 0.54) / MAX(U_WIND ** 0.55,1.0E-5)
+      MU_DIST    = 1.47 * MU_DIST + 1.14
+      SIGMA_DIST = (U_WIND ** 0.44) / MAX(I ** 0.21,1.0E-5) 
+      SIGMA_DIST = 0.86 * SIGMA_DIST + 0.19
+   ELSE
+      MU_DIST    = I ** 0.26 * U_WIND ** 0.11
+      MU_DIST    = 1.32 * MU_DIST - 0.02
+      SIGMA_DIST = 1.0 / MAX(I ** 0.01,1.0E-5) / MAX(U_WIND ** 0.02,1.0E-5)
+      SIGMA_DIST = 4.95 * SIGMA_DIST - 3.48
+   ENDIF
 ENDIF
 
 MU_SPANWISE = 0.0
 SIGMA_SPANWISE = 0.92 * LC
-SARDOY_PDF_PARAMETERS(1) = MU_DIST
+SARDOY_PDF_PARAMETERS(1) = MIN(MU_DIST,5.0)
 SARDOY_PDF_PARAMETERS(2) = SIGMA_DIST
 SARDOY_PDF_PARAMETERS(3) = MU_SPANWISE
 SARDOY_PDF_PARAMETERS(4) = SIGMA_SPANWISE
@@ -231,10 +253,10 @@ INTEGER*2, INTENT(IN) :: IFBFM
 REAL :: EMBER_TO_EMIT_PER_CELL, N_EMBER
 
 IF (IFBFM .EQ. 91) THEN
-    N_EMBER = FLIN * CELLSIZE_ELM * EMBER_GR_PER_MW_BLDG
+    N_EMBER = FLIN * CELLSIZE_ELM * EMBER_GR_PER_MW_BLDG / 1000
 ELSE
     ! Ju et al, 2023, ember from vegetation
-    N_EMBER = FLIN * CELLSIZE_ELM * EMBER_GR_PER_MW_VEGE
+    N_EMBER = FLIN * CELLSIZE_ELM * EMBER_GR_PER_MW_VEGE / 1000
 ENDIF
 
 EMBER_TO_EMIT_PER_CELL = N_EMBER
@@ -304,7 +326,7 @@ OFFSET(3) = 0.
 
 ! Find the maximum spotting distance accoring to criterion P_EPS (P_EPS=0.001 by default)
 IF (USE_UMD_SPOTTING_MODEL) THEN
-   QUANTILE=SQRT_2*ERFINV(2.0*P_EPS-1.0)
+   QUANTILE=SQRT_2*ERFINV_LOCAL(2.0*P_EPS-1.0)
    LNORM_QUANTILE = EXP(MU_DIST + SIGMA_DIST * QUANTILE)
    K_MAX = NINT(LNORM_QUANTILE/CELLSIZE_ELM)
    X_MAX = K_MAX*CELLSIZE_ELM
@@ -322,13 +344,13 @@ DO IEMBER = 1, NUM_EMBERS
       LOW  = SARDOY_PDFINV(0.0, MU_DIST, SIGMA_DIST)
       HIGH = SARDOY_PDFINV(X_MAX+CELLSIZE_ELM*0.5, MU_DIST, SIGMA_DIST)
       R0   = R0 * (HIGH - LOW) + LOW
-      SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV(2.*R0-1.) + MU_DIST)
+      SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV_LOCAL(2.*R0-1.) + MU_DIST)
       SPOTTING_DISTANCE = NINT(SPOTTING_DISTANCE/CELLSIZE_ELM)*CELLSIZE_ELM
    ELSE !Lognormal
       IF (R0 .GT. 0.5) THEN
          SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV(2.*R0-1.) + MU_DIST)
       ELSE
-         SPOTTING_DISTANCE = EXP(MU_DIST - SQRT(2.) * SIGMA_DIST * ERFINV(1.-2.*R0))
+         SPOTTING_DISTANCE = EXP(MU_DIST - SQRT(2.) * SIGMA_DIST * ERFINV_LOCAL(1.-2.*R0))
       ENDIF      
    ENDIF
 
@@ -454,7 +476,7 @@ DO IEMBER = 1, NUM_EMBERS
       ! Add spanwise distribution
       IF (USE_UMD_SPOTTING_MODEL) THEN
          CALL RANDOM_NUMBER(R0)
-         SPANWISE_DEVIATION = SQRT_2 * ERFINV(2.0*R0-1.0) * SIGMA_SPANWISE + MU_SPANWISE
+         SPANWISE_DEVIATION = SQRT_2 * ERFINV_LOCAL(2.0*R0-1.0) * SIGMA_SPANWISE + MU_SPANWISE
 
          UWIND_ABS = NORM2(UWIND(1:2))
          INV_UWIND_TIMES_SPANWISE_DEVIATION = SPANWISE_DEVIATION/MAX(1E-6,UWIND_ABS)
@@ -588,7 +610,7 @@ OFFSET(3) = 0.
 
 ! Find the maximum spotting distance accoring to criterion P_EPS (P_EPS=0.001 by default)
 IF (USE_UMD_SPOTTING_MODEL) THEN
-   QUANTILE=SQRT_2*ERFINV(2.0*(1.0-P_EPS)-1.0)
+   QUANTILE=SQRT_2*ERFINV_LOCAL(2.0*(1.0-P_EPS)-1.0)
    LNORM_QUANTILE = EXP(MU_DIST + SIGMA_DIST * QUANTILE)
    NORM_QUANTILE  = MU_SPANWISE + SIGMA_SPANWISE * QUANTILE
    K_MAX = NINT(LNORM_QUANTILE/CELLSIZE_ELM)
@@ -727,9 +749,11 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
       P_LAND_SPANWISE = 0.5*(ERF((CELLSIZE_ELM*0.5-MU_SPANWISE)/SQRT_2/SIGMA_SPANWISE)- &
                              ERF((-CELLSIZE_ELM*0.5-MU_SPANWISE)/SQRT_2/SIGMA_SPANWISE))/NORM_FACTOR_SPANWISE
       EMBER_FLUX%R4(IX,IY,IT_IGN) = EMBER_FLUX%R4(IX,IY,IT_IGN) + NUM_EMBERS*P_LAND*P_LAND_SPANWISE
+
       ! If probability of ignition is 100%, EMBER_TIGN will be used, avoid allocating a big array of EMBER_ACCUMULATION_RATE
       IF(T+TIME_NOW .LT. EMBER_TIGN(IX,IY) .OR. EMBER_TIGN(IX,IY) .LT. 0.0) THEN
          EMBER_TIGN(IX,IY) = T+TIME_NOW
+         CALL APPEND(LIST_EMBER_DEPOSITED, IX, IY, T+TIME_NOW)
       ENDIF
       DO I=2, (K_MAX_SPANWISE+1)
          P_LAND_SPANWISE = 0.5*(ERF((CELLSIZE_ELM*(I-1+0.5)-MU_SPANWISE)/SQRT_2/SIGMA_SPANWISE)- &
@@ -747,9 +771,11 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
          IY_SPANWISE = MAX(IY_SPANWISE,1) ; IY_SPANWISE = MIN (IY_SPANWISE,NY_ELM)
 
          EMBER_FLUX%R4(IX_SPANWISE,IY_SPANWISE,IT_IGN) = EMBER_FLUX%R4(IX_SPANWISE,IY_SPANWISE,IT_IGN) + NUM_EMBERS*P_LAND*P_LAND_SPANWISE
+
          ! If probability of ignition is 100%, EMBER_TIGN will be used, avoid allocating a big array of EMBER_ACCUMULATION_RATE
          IF(T+TIME_NOW .LT. EMBER_TIGN(IX_SPANWISE,IY_SPANWISE) .OR. EMBER_TIGN(IX_SPANWISE,IY_SPANWISE) .LT. 0.0) THEN
             EMBER_TIGN(IX_SPANWISE,IY_SPANWISE) = T+TIME_NOW
+            CALL APPEND(LIST_EMBER_DEPOSITED, IX_SPANWISE,IY_SPANWISE, T+TIME_NOW)
          ENDIF
          ! Side-2
          INV_UWIND_TIMES_SPANWISE_DEVIATION = -CELLSIZE_ELM*(I-1)/MAX(1E-6,UWIND_ABS)
@@ -765,6 +791,7 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
          EMBER_FLUX%R4(IX_SPANWISE,IY_SPANWISE,IT_IGN) = EMBER_FLUX%R4(IX_SPANWISE,IY_SPANWISE,IT_IGN) + NUM_EMBERS*P_LAND*P_LAND_SPANWISE
          IF(T+TIME_NOW .LT. EMBER_TIGN(IX_SPANWISE,IY_SPANWISE) .OR. EMBER_TIGN(IX_SPANWISE,IY_SPANWISE) .LT. 0.0) THEN
             EMBER_TIGN(IX_SPANWISE,IY_SPANWISE) = T+TIME_NOW
+            CALL APPEND(LIST_EMBER_DEPOSITED, IX_SPANWISE,IY_SPANWISE, T+TIME_NOW)
          ENDIF
       ENDDO
    ELSE
@@ -772,6 +799,7 @@ DO WHILE (T .LT. TSTOP .AND. DIST .LT. X_MAX )
       ! If probability of ignition is 100%, EMBER_TIGN will be used, avoid allocating a big array of EMBER_ACCUMULATION_RATE
       IF(T+TIME_NOW .LT. EMBER_TIGN(IX,IY) .OR. EMBER_TIGN(IX,IY) .LT. 0.0) THEN
          EMBER_TIGN(IX,IY) = T+TIME_NOW
+         CALL APPEND(LIST_EMBER_DEPOSITED, IX, IY, T+TIME_NOW)
       ENDIF
    ENDIF
 
@@ -800,67 +828,6 @@ END FUNCTION SARDOY_CDF
 ! *****************************************************************************
 END SUBROUTINE EMBER_TRAJECTORY_EULERIAN
 ! *****************************************************************************
-
-! The following model was substituted by the UCB model
-! ! *****************************************************************************
-! SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE(C, STRUCTURE_AREA, T_ELMFIRE)
-! ! *****************************************************************************
-! ! This is to calculate the fireline intensity of a structural pixel since its iginition
-! ! The fireline intensity will be used to determine the ember emitting duration
-! USE ELMFIRE_VARS
-
-! ! T_ALPHA(1:256) ! Time needed to reach the heat release of 1000 KW
-! ! Q_F(1:256) ! Fire load
-! ! HRR_F! is the thermal heat energy release per unite of gross floor area. Appendix E.4 of Eurocode 1 UNI EN 1991-1-2 
-!        ! shows some values of HHRf for different occupancies [kW/sqm];
-! ! HRR_MAX = HRR_F*A_F ! kW
-
-! TYPE(NODE), POINTER, INTENT(INOUT) :: C
-
-! REAL, INTENT(IN) :: STRUCTURE_AREA, T_ELMFIRE
-
-! REAL, PARAMETER :: T_ALPHA = 300.0, Q_F = 1000000.0
-
-! REAL :: TIME_SINCE_IGNITION, T_MAX, T_DECAY, T_TOTAL, HRR_MAX, HRR, &
-!         T_EMBERGEN_START, T_EMBERGEN_END
-
-! TIME_SINCE_IGNITION = T_ELMFIRE-C%TIME_OF_ARRIVAL
-
-! ! Use Q_dot = Q_dot0*t^2 for growth
-! HRR_MAX = 400.0*STRUCTURE_AREA ! kW
-! T_MAX   = SQRT(HRR_MAX*T_ALPHA**2.0/1000.0)
-! T_DECAY = T_MAX+(0.7*Q_F*STRUCTURE_AREA - 1000.0/3.0/T_ALPHA/T_ALPHA*T_MAX**3.0)/HRR_MAX
-! T_TOTAL = T_DECAY+2*0.3*Q_F*STRUCTURE_AREA/HRR_MAX
-
-! T_EMBERGEN_START = SQRT(CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/1000.0)*T_ALPHA
-! T_EMBERGEN_START = MIN(T_EMBERGEN_START,T_MAX)
-! T_EMBERGEN_START = MAX(T_EMBERGEN_START,0.0)
-
-! T_EMBERGEN_END = T_TOTAL-CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/HRR_MAX*(T_TOTAL-T_DECAY);
-! T_EMBERGEN_END = MAX(T_EMBERGEN_END,T_DECAY)
-! T_EMBERGEN_END = MIN(T_EMBERGEN_END,T_TOTAL)
-
-! C%LOCAL_EMBERGEN_DURATION   = T_EMBERGEN_END-T_EMBERGEN_START
-
-! IF (C%TIME_OF_ARRIVAL .LT. 0.0) THEN
-!     C%FLIN_SURFACE = 0.0
-! ELSE
-!     IF (TIME_SINCE_IGNITION .LT. T_MAX .AND. TIME_SINCE_IGNITION .GE. 0.0) THEN
-!         HRR = 1000.0*(TIME_SINCE_IGNITION/T_ALPHA)**2.0
-!         C%FLIN_SURFACE = HRR/CC%CELLSIZE
-!     ELSEIF (TIME_SINCE_IGNITION .GE. T_MAX .AND. TIME_SINCE_IGNITION .LT. T_DECAY) THEN
-!         HRR = HRR_MAX
-!         C%FLIN_SURFACE = HRR/CC%CELLSIZE
-!     ELSE
-!         HRR = HRR_MAX*(T_TOTAL-TIME_SINCE_IGNITION)/(T_TOTAL-T_DECAY)
-!         IF (HRR .LE. 0) HRR = 0.0
-!         C%FLIN_SURFACE = HRR/CC%CELLSIZE
-!     ENDIF
-! ENDIF
-
-! ! *****************************************************************************
-! END SUBROUTINE STRUCTURE_DESIGN_FIRE_CURVE
-! ! *****************************************************************************
 
 ! *****************************************************************************
 SUBROUTINE CLEAR_USED_EMBER(T_ELMFIRE)
@@ -934,7 +901,10 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
             HFT = FUEL_MODEL_TABLE_2D(IFBFM,30)%DELTA
             F = 0.05
          ENDIF
+         HFT = MAX(1E-5, HFT)
+         F = MAX(1E-5, F)
          COEF_WIND = 0.555/SQRT(F*HFT)/LOG((HFT+20-0.64*HFT)/(0.13*HFT))
+         COEF_WIND = MIN(COEF_WIND,1.0)
       ELSE
          F = 0.3 !30% volume filling percentage
          HFT = 25.23 ! ft, z_0=1 m=3.28 ft, HFT=z_0(ft)/0.13
@@ -944,6 +914,11 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
       PSI = NUM_ACCUMULATED_EMBERS_PUA * M_EMBER/1E4 ! Firebrand coverage density (mass load, g/cm2) 
       V_AIR = UWIND*COEF_WIND*0.447
       IGNITION_CRITERION = HARDENING_FACTOR*PSI*(V_AIR-0.003)*(V_AIR-4.017)+0.188 ! UMD Fitted curve at P_IGN = 0.5
+
+      ! This change corresponds to the ignition model publication, per comments of editors
+      IF(DIFF_WILDLAND_IGNITION) THEN 
+         IF(IFBFM .LT. 180 .AND. IFBFM .GT. 99) IGNITION_CRITERION = -1.0 ! Assume for vegetative fuels, firebrands can always ignite the fuels (smoldering-to-flaming transition).
+      ENDIF
 
       IF(IGNITION_CRITERION .LT. 0)THEN
          P_IGN = 0.90
@@ -956,15 +931,16 @@ IF (.NOT. LOCAL_IGNITION(IX, IY)) THEN
          IF(USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2) THEN
             IBLDGFM = BLDG_FUEL_MODEL%I2(IX,IY,1)
             TAU_IGN = BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%TAU_IGN ! Value derived from ThermaKin simulation for WRC.
-            ! T_DEVELOP = 80.0 * BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%T_EARLY / BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%HRRPUA_PEAK ! 80 kW/m2 is an estimated HRRPUA at the ignition by firebrands
-            T_DEVELOP = BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%T_EARLY !
+            T_DEVELOP = BUILDING_FUEL_MODEL_TABLE(IBLDGFM)%T_1MW !
          ELSE
             TAU_IGN = 42.1 ! Value derived from ThermaKin simulation for WRC.
             T_DEVELOP = 300.0 ! Assume a medium fire growth rate for not defined structural fuels
          ENDIF
       ELSE
-         TAU_IGN = 42.1 ! Value derived from ThermaKin simulation for WRC.
-         T_DEVELOP = 75.0 ! Assume a ultrafast fire growth rate for non-structural fuels
+         ! TAU_IGN = LOCAL_IGNITION_TIME ! Value derived from ThermaKin simulation for WRC.
+         ! T_DEVELOP = CELL_IGNITION_DELAY ! Assume a ultrafast fire growth rate for non-structural fuels
+         TAU_IGN = TAU_IGN_INPUT
+         T_DEVELOP = T_DEVELOP_INPUT
       ENDIF
 
    ENDIF ! IF(.NOT. USE_SIMPLE_IGNITION_MODEL)THEN
@@ -988,6 +964,123 @@ ENDIF
 
 ! *****************************************************************************
 END FUNCTION EMBER_IGNITION
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE EMBER_CONSUMPTION(IX,IY,T_ELMFIRE, DT_ELMFIRE)
+! *****************************************************************************
+! Firebrand ignition model, based on the ember accumulation history
+USE ELMFIRE_VARS
+
+REAL, INTENT(IN) :: T_ELMFIRE, DT_ELMFIRE
+INTEGER, INTENT(IN) :: IX,IY
+
+REAL :: NUM_ACCUMULATED_EMBERS_PUA, V_AIR, COEF_WIND, PSI, M_EMBER, HFT, F, &
+        MIN_LIFETIME, T_RISE, HF_RISE, HF_DECAY, HF_T0, HF_MAX, HF_CRIT, &
+        T_HALFMAX_1, T_HALFMAX_2, T_LIFETIME, DNPP_FIREBRAND_DT, F_WIND, WS20
+INTEGER :: IT_IGN_HI, IT_IGN_LO, IFBFM, ITLO_METEOROLOGY, ITHI_METEOROLOGY, ICOL, IROW
+REAL, POINTER, DIMENSION(:,:), SAVE :: WS20_LO_SPOTTING, WS20_HI_SPOTTING
+
+M_EMBER      = 0.2  ! g, firebrand particle mass
+MIN_LIFETIME = 1E9  ! s, minimum firebrand life time
+
+IT_IGN_HI = CEILING(T_ELMFIRE/DT_DUMP_EMBER_FLUX)
+IT_IGN_HI = MIN(IT_IGN_HI,EMBER_FLUX_TABLE_LEN)
+IT_IGN_HI = MAX(IT_IGN_HI,1)
+IT_IGN_LO = MAX(IT_IGN_HI-1, 1)
+
+NUM_ACCUMULATED_EMBERS_PUA = SUM(EMBER_FLUX%R4(IX,IY,1:IT_IGN_LO:1))
+NUM_ACCUMULATED_EMBERS_PUA = NUM_ACCUMULATED_EMBERS_PUA + EMBER_FLUX%R4(IX,IY,IT_IGN_LO) + &
+                              (EMBER_FLUX%R4(IX,IY,IT_IGN_HI) - EMBER_FLUX%R4(IX,IY,IT_IGN_LO))/DT_DUMP_EMBER_FLUX * &
+                              (T_ELMFIRE-IT_IGN_LO*DT_DUMP_EMBER_FLUX)
+NUM_ACCUMULATED_EMBERS_PUA = NUM_ACCUMULATED_EMBERS_PUA/ANALYSIS_CELLSIZE/ANALYSIS_CELLSIZE
+PSI = NUM_ACCUMULATED_EMBERS_PUA * M_EMBER / 1E4    ! g/cm2
+
+ITLO_METEOROLOGY = MAX(1 + FLOOR((T_ELMFIRE / DT_METEOROLOGY)),1)
+ITLO_METEOROLOGY = MIN(ITLO_METEOROLOGY, NUM_METEOROLOGY_TIMES)
+ITHI_METEOROLOGY = MIN(ITLO_METEOROLOGY + 1, NUM_METEOROLOGY_TIMES)
+F_WIND = (T_ELMFIRE - REAL(ITLO_METEOROLOGY-1) * DT_METEOROLOGY) / DT_METEOROLOGY
+IF (ITLO_METEOROLOGY .EQ. ITHI_METEOROLOGY) F_WIND = 1.
+
+WS20_LO_SPOTTING => WSP   (:,:,ITLO_METEOROLOGY)
+WS20_HI_SPOTTING => WSP   (:,:,ITHI_METEOROLOGY)
+
+ICOL = ICOL_ANALYSIS_F2C(IX)
+IROW = IROW_ANALYSIS_F2C(IY)
+
+WS20 = WS20_LO_SPOTTING(ICOL,IROW) * (1. - F_WIND) + F_WIND * WS20_HI_SPOTTING(ICOL,IROW) 
+WS20 = 0.447 * WS20
+
+IFBFM = FBFM%I2(IX,IY,1)
+IF(IFBFM .NE. 91) THEN
+   IF (CC%R4(IX,IY, 1) .GT. 1E-4 .AND. CH%R4(IX,IY, 1) .GT. 1E-4) THEN !Canopy is present
+      HFT = CH%R4(IX,IY, 1) / 0.3048
+      F = 0.3333 * CC%R4(IX,IY, 1) * CROWN_RATIO !Same as BEHAVE
+   ELSE !Canopy is not present
+      HFT = FUEL_MODEL_TABLE_2D(IFBFM,30)%DELTA
+      F = 0.05
+   ENDIF
+   HFT = MAX(1E-5, HFT)
+   F = MAX(1E-5, F)
+   COEF_WIND = 0.555/SQRT(F*HFT)/LOG((HFT+20-0.64*HFT)/(0.13*HFT))
+   COEF_WIND = MIN(COEF_WIND,1.0)
+ELSE
+   F = 0.3     !30% volume filling percentage
+   HFT = 25.23 ! ft, z_0=1 m=3.28 ft, HFT=z_0(ft)/0.13
+   COEF_WIND = 0.555/SQRT(F*HFT)/LOG((HFT+20-0.64*HFT)/(0.13*HFT))
+ENDIF
+V_AIR = WS20*COEF_WIND
+
+! Firebrand pile heat flux profile derived form Jacque Debeer's model
+T_RISE   = MAX(-1.02*V_AIR**2+9.08*V_AIR+35    ,0.0)    !s
+HF_RISE  = MAX(-0.32*V_AIR**2+1.59*V_AIR+0.1   ,0.0)*TANH(12.0*PSI)
+HF_RISE  = MAX(HF_RISE, 1E-6)
+HF_DECAY = MAX(1E-6,-0.05*V_AIR**2 + 0.02*V_AIR-0.01)*TANH(12.0*PSI)
+HF_DECAY = MAX(HF_DECAY, 1E-6)
+
+HF_RISE = (0.13*2.4+0.65)*HF_RISE
+HF_T0   = HF_RISE*12.0    !kW/m2
+HF_MAX  = HF_T0+HF_RISE*T_RISE
+! Assuming minimum HF value for a effectively burning pile
+HF_CRIT = 10.0
+
+T_HALFMAX_1 = MAX((HF_CRIT-HF_T0)/HF_RISE,0.0)
+T_HALFMAX_2 = (T_RISE+(HF_CRIT-HF_MAX)/HF_DECAY)
+T_LIFETIME  = MAX(T_HALFMAX_2-T_HALFMAX_1,0.0)
+! t_lifetime=min_lifetime;
+
+! Assuming linear firebrand pile mass consumption rate dN''/dt = - N''/t_lifetime
+DNPP_FIREBRAND_DT = NUM_ACCUMULATED_EMBERS_PUA/MAX(T_LIFETIME,MIN_LIFETIME)    ! pcs/s
+
+EMBER_FLUX%R4(IX,IY,IT_IGN_LO) = EMBER_FLUX%R4(IX,IY,IT_IGN_LO) - DT_ELMFIRE * DNPP_FIREBRAND_DT
+
+! *****************************************************************************
+END SUBROUTINE EMBER_CONSUMPTION
+! *****************************************************************************
+
+! *****************************************************************************
+FUNCTION ERFINV_LOCAL(X) RESULT(Y)
+! *****************************************************************************
+! This function serves in substitution for the ERFINV function in elmfire_subs.f90 for the superceded spotting model.
+IMPLICIT NONE
+REAL(4), INTENT(IN) :: X
+REAL(4) :: Y, A, LN_EXPR, PI_VAL, TERM1, TERM2
+
+IF (ABS(X) >= 1.0E0) THEN
+  PRINT *, 'ERROR: ERFINV_LOCAL(X) domain is |X| < 1. Received:', X
+  STOP
+END IF
+
+A = 0.147E0
+PI_VAL = 3.1415927E0
+LN_EXPR = LOG(1.0E0 - X*X)
+
+TERM1 = 2.0E0 / (PI_VAL * A) + LN_EXPR / 2.0E0
+TERM2 = SQRT(TERM1**2 - LN_EXPR / A)
+
+Y = SIGN(1.0E0, X) * SQRT(TERM2 - TERM1)
+! *****************************************************************************
+END FUNCTION ERFINV_LOCAL
 ! *****************************************************************************
 
 ! *****************************************************************************

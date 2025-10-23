@@ -58,8 +58,10 @@ function unsetnodata {
 
 CWD=$(pwd)
 DATADIR=$CWD
-NPARALLEL=128
-ELMFIRE_VER=${ELMFIRE_VER:-2025.0609}
+SOCKETS=`lscpu | grep 'Socket(s)' | cut -d: -f2 | xargs`
+CORES_PER_SOCKET=`lscpu | grep 'Core(s) per socket' | cut -d: -f2 | xargs`
+let "NPARALLEL = SOCKETS * CORES_PER_SOCKET"
+ELMFIRE_VER=${ELMFIRE_VER:-2025.1002}
 ELMFIRE_POST=$ELMFIRE_BASE_DIR/build/linux/bin/elmfire_post_$ELMFIRE_VER
 HOURS=`seq 1 120`
 SCRATCH=$CLOUDFIRE_SCRATCH_BASE/wifire_probabilistic
@@ -137,7 +139,7 @@ wait
 cd $CWD
 
 tar -cvzf ./burn_probability_`basename $DATADIR`.tgz ./burn_probability_`basename $DATADIR`
-cp -f ./burn_probability_`basename $DATADIR`.tgz $ELMFIRE_BASE_DIR/runs/forecasts/rsync
+cp -f ./burn_probability_`basename $DATADIR`.tgz $ELMFIRE_BASE_DIR/runs/forecasts.ak/rsync
 
 rm -f -r $SCRATCH ./burn_probability_`basename $DATADIR`
 

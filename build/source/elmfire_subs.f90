@@ -1054,15 +1054,22 @@ INTEGER, INTENT(IN)      :: IX, IY
 REAL, INTENT(IN) :: T
  
 TYPE(NODE), POINTER :: NP
+TYPE(NODE_WRAPPER), ALLOCATABLE :: TEMP(:)  ! Temporary array for resizing DWI_SU
+INTEGER :: N  ! Store the new count DWI_SU
 
 ! If the list is empty
 IF (DL2%NUM_NODES == 0) THEN
    CALL INIT(DL2, IX, IY, T)
+   ALLOCATE(DL2%NODE_POINTERS(1))      ! DWI_SU
+   DL2%NODE_POINTERS(1)%PTR => DL2%HEAD   ! DWI_SU
    RETURN
 END IF
  
 ! Add new element ot the end
 DL2%NUM_NODES = DL2%NUM_NODES + 1
+N = SIZE(DL2%NODE_POINTERS)+1  ! Store the new count DWI_SU + YIREN DEBUG
+
+
 NP => DL2%TAIL
 ALLOCATE(DL2%TAIL)
 DL2%TAIL%IX         =  IX
@@ -1078,10 +1085,63 @@ DL2%TAIL%TANSLP2 =  TANSLP2(MAX(MIN(NINT(SLP%R4(IX,IY,1)),90),0))
 
 DL2%TAIL%PREV       => NP
 DL2%TAIL%PREV%NEXT  => DL2%TAIL
+
+#ifdef _WUI
+! Resize NODE_POINTERS array dynamically DWI_SU
+ALLOCATE(TEMP(N-1))
+TEMP = DL2%NODE_POINTERS
+DEALLOCATE(DL2%NODE_POINTERS)
+ALLOCATE(DL2%NODE_POINTERS(N))
+DL2%NODE_POINTERS(1:N-1) = TEMP
+DEALLOCATE(TEMP) 
+
+! Store the new node in the array DWI_SU
+NULLIFY(DL2%NODE_POINTERS(N)%PTR)
+DL2%NODE_POINTERS(N)%PTR => DL2%TAIL
+#endif
    
 ! *****************************************************************************   
 END SUBROUTINE APPEND
 ! *****************************************************************************
+
+
+! *****************************************************************************
+SUBROUTINE APPEND_TO_DYNAMIC_ARRAY(IX, IY, N_ROWS, DYNAMIC_ARRAY)
+! *****************************************************************************
+
+    INTEGER, INTENT(IN) :: IX, IY                         ! NEW_VALUES_TO_APPEND
+    INTEGER, INTENT(INOUT) :: N_ROWS   
+    REAL, ALLOCATABLE, INTENT(INOUT), DIMENSION(:,:) :: DYNAMIC_ARRAY  ! Dynamic 2D array to store IX and IY
+
+
+    ! Local temporary array for resizing
+    INTEGER, ALLOCATABLE, DIMENSION(:,:) :: TEMP_ARRAY
+
+    ! Handle the case where the array is unallocated
+    IF (N_ROWS .LE. 1) THEN
+        ALLOCATE(DYNAMIC_ARRAY(1, 2))           ! Allocate first column
+        DYNAMIC_ARRAY(1, 1) = IX
+        DYNAMIC_ARRAY(1, 2) = IY
+        N_ROWS = 1                              ! Set number of rows to 1
+    ELSE
+        ! Allocate a temporary array with one additional column
+        ALLOCATE(TEMP_ARRAY(N_ROWS, 2))
+        TEMP_ARRAY(1:N_ROWS-1, :) = DYNAMIC_ARRAY  ! Copy existing data
+        TEMP_ARRAY(N_ROWS, 1) = IX           ! Add new IX value
+        TEMP_ARRAY(N_ROWS, 2) = IY           ! Add new IY value
+
+        ! Replace the old array with the resized one
+        DEALLOCATE(DYNAMIC_ARRAY)
+        ALLOCATE(DYNAMIC_ARRAY(N_ROWS, 2))
+        DYNAMIC_ARRAY = TEMP_ARRAY
+    END IF
+
+
+! *****************************************************************************
+END SUBROUTINE APPEND_TO_DYNAMIC_ARRAY
+! *****************************************************************************
+
+
 
 ! *****************************************************************************
 ELEMENTAL SUBROUTINE INIT(DL2, IX, IY, T)
@@ -1113,32 +1173,33 @@ TYPE(DLL), INTENT(INOUT) :: DL2
 TYPE(NODE), POINTER, INTENT(INOUT) :: CURRENT
 TYPE(NODE), POINTER :: NP
 
-CONTINUE
-IF (.NOT. ASSOCIATED(CURRENT)) THEN
-   WRITE(*,*) 'EXITING BECAUSE CURRENT NOT ASSOCIATED'
-   RETURN
-ENDIF
+!IF (.NOT. ASSOCIATED(CURRENT)) THEN
+!   WRITE(*,*) 'EXITING BECAUSE CURRENT NOT ASSOCIATED'
+!   RETURN
+!ENDIF
 
 NP => CURRENT
+CONTINUE
 IF (ASSOCIATED(CURRENT%PREV) .AND. ASSOCIATED(CURRENT%NEXT)) THEN !Deleting intermediate node
    CURRENT%PREV%NEXT => CURRENT%NEXT
    CURRENT%NEXT%PREV => CURRENT%PREV
    CURRENT => CURRENT%PREV
+CONTINUE
 ELSE IF (ASSOCIATED(CURRENT%PREV) .AND. (.NOT. ASSOCIATED(CURRENT%NEXT))) THEN ! Deleting tail node
    CURRENT%PREV%NEXT => NULL()
    CURRENT => CURRENT%PREV
    DL2%TAIL => CURRENT
+CONTINUE
 ELSE IF (.NOT. ASSOCIATED(CURRENT%PREV) .AND. ASSOCIATED(CURRENT%NEXT)) THEN ! Deleting head node
    DL2%HEAD => CURRENT%NEXT
    CURRENT => DL2%HEAD
-   NULLIFY(CURRENT%PREV)
-ELSE
-   CONTINUE
+   CURRENT%PREV => NULL()
+CONTINUE
+!ELSE
+!   CONTINUE
 ENDIF
 
-IF ( ASSOCIATED(NP%PREV) .OR. ASSOCIATED(NP%NEXT) ) THEN
-   DEALLOCATE(NP)
-ENDIF
+DEALLOCATE(NP)
 DL2%NUM_NODES = DL2%NUM_NODES - 1
 
 ! *****************************************************************************
@@ -1152,9 +1213,9 @@ SUBROUTINE TIDY(DL2)
 TYPE(DLL), INTENT(INOUT) :: DL2
 TYPE(NODE), POINTER :: CURRENT, LAST
 
-INTEGER :: COUNT
+!INTEGER :: COUNT
 
-COUNT = 0 
+!COUNT = 0 
 
 IF (DL2%NUM_NODES .EQ. 1) THEN
    DEALLOCATE(DL2%HEAD)
@@ -1164,11 +1225,11 @@ ELSE
       LAST => CURRENT
       CURRENT => CURRENT%NEXT
       IF (ASSOCIATED(LAST)) THEN
-         COUNT = COUNT + 1
+!         COUNT = COUNT + 1
          DEALLOCATE(LAST)
       END IF
       IF (ASSOCIATED(CURRENT, DL2%TAIL)) THEN
-         COUNT = COUNT + 1
+!         COUNT = COUNT + 1
          DEALLOCATE(CURRENT)
          EXIT
       ENDIF
@@ -1331,6 +1392,7 @@ IF (NPROC .GT. 1) THEN
    CALL MPI_WIN_FREE(WIN_STATS_AFFECTED_LAND_VALUE       )
    CALL MPI_WIN_FREE(WIN_STATS_FINAL_CONTAINMENT_FRAC    )
    CALL MPI_WIN_FREE(WIN_STATS_NEMBERS                   )
+   CALL MPI_WIN_FREE(WIN_STATS_ICASE                     )
    CALL MPI_WIN_FREE(WIN_STATS_IWX_BAND_START            )
    CALL MPI_WIN_FREE(WIN_STATS_IWX_SERIAL_BAND           )
    CALL MPI_WIN_FREE(WIN_STATS_SIMULATION_TSTOP_HOURS    )
