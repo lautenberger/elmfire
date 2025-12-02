@@ -42,6 +42,8 @@ TYPE(NODE), POINTER :: C, DUMMY_NODE => NULL()
 ALLOCATE (SUPP (0:1000))
 #endif
 
+!-----------------------------------------------------------------------------------------------------------------
+
 ! Initialize system clock for later use in profiling sections of code
 CALL SYSTEM_CLOCK(COUNT_RATE=CLOCK_COUNT_RATE)
 CALL SYSTEM_CLOCK(COUNT_MAX=CLOCK_COUNT_MAX)
@@ -98,6 +100,8 @@ IF (IRANK_HOST .EQ. 0) TIMINGS(:,:) = 0.
 ! Print version number:
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) TRIM(VERSIONSTRING)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 !Get input file name:
 CALL GET_COMMAND_ARGUMENT(1,NAMELIST_FN)
 IF (NAMELIST_FN(1:1)==' ') THEN
@@ -146,6 +150,8 @@ IF (IRANK_WORLD .EQ. 0) THEN
    IF (.NOT. GOOD_INPUTS) CALL SHUTDOWN()
 ENDIF
 
+!-----------------------------------------------------------------------------------------------------------------
+
 ! Initialize random number generator - this has to be done after inputs are read in
 ! because both SEED and RANDOMIZE_RANDOM_SEED are user-specified
 CALL RANDOM_SEED(SIZE=M)
@@ -162,6 +168,8 @@ CALL SUNRISE_SUNSET_CALCS (LONGITUDE, LATITUDE, CURRENT_YEAR, HOUR_OF_YEAR)
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(2, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Build lookup tables for trigonometric arrays, wind adjustment factor, nonburnable mask, etc.
 CALL INIT_LOOKUP_TABLES
@@ -211,6 +219,8 @@ CALL SETUP_SHARED_MEMORY_1
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(4, IT1, IT2)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading weather, fuel, and topography rasters'
 
 IF (USE_TILED_IO) THEN
@@ -223,6 +233,8 @@ IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER_FUEL_TOPOGRAPHY
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(5, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Determining number of cases to run'
 
@@ -249,10 +261,14 @@ IF (RANDOM_IGNITIONS .AND. MODE .NE. 2) THEN
    IF (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS) IWX_BAND_OFFSET = IGN_IWX_BAND_LO - 1
 ENDIF
 
+!-----------------------------------------------------------------------------------------------------------------
+
 IF (ABS(GRID_DECLINATION) .GT. 0.1 .AND. IRANK_HOST .EQ. 0) THEN
    IF (ROTATE_ASP) CALL ROTATE_ASP_AND_WD(1)
    IF (ROTATE_WD ) CALL ROTATE_ASP_AND_WD(2)
 ENDIF
+
+!-----------------------------------------------------------------------------------------------------------------
 
 WHERE(FBFM%I2(:,:,1) .GT. 303) FBFM%I2(:,:,1) = 256
 WHERE(FBFM%I2(:,:,1) .LT.   0) FBFM%I2(:,:,1) =  99
@@ -273,10 +289,14 @@ ENDIF
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(6, IT1, IT2)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 ! Now that weather, fuel, topography are read in map fine inputs to coarse inputs
 ALLOCATE(ICOL_ANALYSIS_F2C(1:ANALYSIS_NCOLS))
 ALLOCATE(IROW_ANALYSIS_F2C(1:ANALYSIS_NROWS))
 CALL MAP_FINE_TO_COARSE(WS, ASP, ICOL_ANALYSIS_F2C, IROW_ANALYSIS_F2C)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Allocate additional rasters
 IF (MODE .EQ. 1 .OR. MODE .EQ. 3) THEN
@@ -304,6 +324,8 @@ IF (IRANK_HOST .EQ. 0) CALL INIT_RASTERS
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(7, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 !CALL ALLOCATE_IGNITION_ARRAYS
 ! 
