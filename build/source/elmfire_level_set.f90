@@ -491,9 +491,11 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
    T = T + DT
    IF (T .LT. SIMULATION_TSTART) CYCLE
 
-   write(*,'(A)', advance='no') char(13)   ! carriage return
-   write(*,'(A,F0.1,A,F0.1)', advance='no') 'Current Timestep: ', T, ' of ', TSTOP
-   call flush(6)
+   if (DEBUG_LEVEL .GT. 0) THEN
+      write(*,'(A)', advance='no') char(13)   ! carriage return
+      write(*,'(A,F0.1,A,F0.1)', advance='no') 'Current Timestep: ', T, ' of ', TSTOP
+      call flush(6)
+   END IF
 
    ITIMESTEP = ITIMESTEP + 1
 
