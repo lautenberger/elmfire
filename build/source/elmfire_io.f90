@@ -2110,7 +2110,7 @@ END SUBROUTINE FIRE_SIZE_STATS_TO_RASTERS_HOURLY
 ! *****************************************************************************
 
 ! *****************************************************************************
-!> Save simulation statistics as csv and rasterise (according to inpur booleans)
+!> Save simulation statistics as csv and rasterise (according to input booleans)
 SUBROUTINE POSTPROCESS
 ! *****************************************************************************
 

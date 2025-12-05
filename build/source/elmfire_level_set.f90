@@ -381,37 +381,37 @@ IF (.NOT. RANDOM_IGNITIONS) THEN
          IROW = IROW_ANALYSIS_F2C(IY)
          LIST_BURNED%TAIL%TIME_OF_ARRIVAL        = T
          LIST_BURNED%TAIL%WS20_NOW               = WS20_LO(ICOL,IROW) * (1. - F_METEOROLOGY) + F_METEOROLOGY * WS20_HI(ICOL,IROW)
-#ifdef _UMDSPOTTING
-         IF (USE_UMD_SPOTTING_MODEL) LIST_BURNED%TAIL%TAU_EMBERGEN = 0.
-#endif
-         LIST_BURNED%TAIL%BURNED                 = .FALSE.
-#ifdef _WUI
-         IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM =BLDG_FUEL_MODEL%I2(IX,IY,1)
-#endif
-#ifdef _SUPPRESSION
-         IF (ENABLE_EXTENDED_ATTACK .AND. USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(ICOL,IROW,1)
-#endif
+         #ifdef _UMDSPOTTING
+            IF (USE_UMD_SPOTTING_MODEL) LIST_BURNED%TAIL%TAU_EMBERGEN = 0.
+         #endif
+            LIST_BURNED%TAIL%BURNED                 = .FALSE.
+         #ifdef _WUI
+            IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM =BLDG_FUEL_MODEL%I2(IX,IY,1)
+         #endif
+         #ifdef _SUPPRESSION
+            IF (ENABLE_EXTENDED_ATTACK .AND. USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(ICOL,IROW,1)
+         #endif
 
-!         IF (ENABLE_SMOKE_OUTPUTS) THEN
-!            LIST_BURNED%TAIL%TIME_IGNITED = T
-!            IF (C%VELOCITY .GT. 0.) THEN
-!               TBURN = ASP%CELLSIZE / (C%VELOCITY * 0.3048 / 60.)
-!            ELSE
-!               TBURN = 30.0
-!            ENDIF
-!            TBURN = MIN(MAX(TBURN,1.),10800.0)
-!            LIST_BURNED%TAIL%TIME_EXTINGUISHED = T + TBURN
-!            LIST_BURNED%TAIL%HRRPUA = (C%FLIN_SURFACE + C%FLIN_CANOPY) / ASP%CELLSIZE ! Yiren: FLIN_SURFACE and FLIN_CANOPY seems asigned no value(0 and 0)
-!         ENDIF
+         !         IF (ENABLE_SMOKE_OUTPUTS) THEN
+         !            LIST_BURNED%TAIL%TIME_IGNITED = T
+         !            IF (C%VELOCITY .GT. 0.) THEN
+         !               TBURN = ASP%CELLSIZE / (C%VELOCITY * 0.3048 / 60.)
+         !            ELSE
+         !               TBURN = 30.0
+         !            ENDIF
+         !            TBURN = MIN(MAX(TBURN,1.),10800.0)
+         !            LIST_BURNED%TAIL%TIME_EXTINGUISHED = T + TBURN
+         !            LIST_BURNED%TAIL%HRRPUA = (C%FLIN_SURFACE + C%FLIN_CANOPY) / ASP%CELLSIZE ! Yiren: FLIN_SURFACE and FLIN_CANOPY seems asigned no value(0 and 0)
+         !         ENDIF
 
       ENDIF
    ENDDO
    ENDDO
 
    ! Call relevant functions, assign values to FLIN_SURFACE and FLIN_CANOPY
-continue
+   continue
    IF (ASSOCIATED(C)) DEALLOCATE(C)
-continue
+      continue
    CALL SURFACE_SPREAD_RATE(LIST_BURNED, C)
 
    ! Adjust spread rate for passive and active crown fire (Cruz):
@@ -433,9 +433,9 @@ continue
       C => C%NEXT
    ENDDO
    ! End call relevant functions, assign values to FLIN_SURFACE and FLIN_CANOPY
-#ifdef _SUPPRESSION
-   IF (ENABLE_EXTENDED_ATTACK) SUPP(0)%ACRES = ACRES
-#endif
+   #ifdef _SUPPRESSION
+      IF (ENABLE_EXTENDED_ATTACK) SUPP(0)%ACRES = ACRES
+   #endif
 
    ICOUNT = 0
    DO IY = 1, NY
@@ -490,6 +490,12 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
    CALL SYSTEM_CLOCK(IT1)
    T = T + DT
    IF (T .LT. SIMULATION_TSTART) CYCLE
+
+   if (DEBUG_LEVEL .GT. 0) THEN
+      write(*,'(A)', advance='no') char(13)   ! carriage return
+      write(*,'(A,F0.1,A,F0.1)', advance='no') 'Current Timestep: ', T, ' of ', TSTOP
+      call flush(6)
+   END IF
 
    ITIMESTEP = ITIMESTEP + 1
 
@@ -723,15 +729,15 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
       IF (PHIP(IX,IY) .LE. 0. .AND. SURFACE_FIRE(IX,IY) .EQ. 0) THEN
       
          ACRES = ACRES + ACRES_PER_PIXEL
-#ifdef _SUPPRESSION
-         IF (ENABLE_EXTENDED_ATTACK) THEN
-            IF (USE_SDI) THEN
-               ACRES_SDI = ACRES_SDI + ACRES_PER_PIXEL * (1.0 + C%SDI )
-            ELSE
-               ACRES_SDI = ACRES
+         #ifdef _SUPPRESSION
+            IF (ENABLE_EXTENDED_ATTACK) THEN
+               IF (USE_SDI) THEN
+                  ACRES_SDI = ACRES_SDI + ACRES_PER_PIXEL * (1.0 + C%SDI )
+               ELSE
+                  ACRES_SDI = ACRES
+               ENDIF
             ENDIF
-         ENDIF
-#endif
+         #endif
 
          C%BURNED               = .TRUE.
          C%TIME_OF_ARRIVAL      = T
@@ -847,68 +853,68 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
 
    ENDDO ! I = 1, LIST_TAGGED%NUM_NODES
 
-#ifdef _UMDSPOTTING
-   IF (ENABLE_SPOTTING .AND. USE_UMD_SPOTTING_MODEL) THEN
-      C => LIST_BURNED%HEAD
-      DO I = 1, LIST_BURNED%NUM_NODES
-         CALL_SPOTTING = .FALSE.
-         IF (USE_PHYSICAL_SPOTTING_DURATION) THEN
-            IF (C%T_START_SPOTTING .LT. 0.0) THEN
-               IF (C%IFBFM .EQ. 91 ) THEN
-                  IF(USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2)) THEN
-                     HRRPUA_CRIT_LOCAL = CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/ANALYSIS_CELLSIZE
-                     IF (C%HRR_TRANSIENT .GE. HRRPUA_CRIT_LOCAL) THEN
-                        ! Assumed fire curve with linear growth and decay phases
-                        HRRPUA_PEAK_LOCAL = BUILDING_FUEL_MODEL_TABLE(C%IBLDGFM)%HRRPUA_PEAK
-                        T_EARLY_LOCAL = BUILDING_FUEL_MODEL_TABLE(C%IBLDGFM)%T_EARLY
-                        T_DECAY_LOCAL = BUILDING_FUEL_MODEL_TABLE(C%IBLDGFM)%T_DECAY
-                        T_FULLDEV_LOCAL = BUILDING_FUEL_MODEL_TABLE(C%IBLDGFM)%T_FULLDEV
-                        C%T_START_SPOTTING = T
-                        C%T_END_SPOTTING = C%T_START_SPOTTING + (HRRPUA_PEAK_LOCAL-HRRPUA_CRIT_LOCAL) * &
-                              (T_EARLY_LOCAL/HRRPUA_PEAK_LOCAL  + (T_DECAY_LOCAL - T_FULLDEV_LOCAL)/HRRPUA_PEAK_LOCAL) + &
-                              T_FULLDEV_LOCAL - T_EARLY_LOCAL
-                     ENDIF
+   #ifdef _UMDSPOTTING
+      IF (ENABLE_SPOTTING .AND. USE_UMD_SPOTTING_MODEL) THEN
+         C => LIST_BURNED%HEAD
+         DO I = 1, LIST_BURNED%NUM_NODES
+            CALL_SPOTTING = .FALSE.
+            IF (USE_PHYSICAL_SPOTTING_DURATION) THEN
+               IF (C%T_START_SPOTTING .LT. 0.0) THEN
+                  IF (C%IFBFM .EQ. 91 ) THEN
+                     IF(USE_BLDG_SPREAD_MODEL .AND. (BLDG_SPREAD_MODEL_TYPE .EQ. 2)) THEN
+                        HRRPUA_CRIT_LOCAL = CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))/ANALYSIS_CELLSIZE
+                        IF (C%HRR_TRANSIENT .GE. HRRPUA_CRIT_LOCAL) THEN
+                           ! Assumed fire curve with linear growth and decay phases
+                           HRRPUA_PEAK_LOCAL = BUILDING_FUEL_MODEL_TABLE(C%IBLDGFM)%HRRPUA_PEAK
+                           T_EARLY_LOCAL = BUILDING_FUEL_MODEL_TABLE(C%IBLDGFM)%T_EARLY
+                           T_DECAY_LOCAL = BUILDING_FUEL_MODEL_TABLE(C%IBLDGFM)%T_DECAY
+                           T_FULLDEV_LOCAL = BUILDING_FUEL_MODEL_TABLE(C%IBLDGFM)%T_FULLDEV
+                           C%T_START_SPOTTING = T
+                           C%T_END_SPOTTING = C%T_START_SPOTTING + (HRRPUA_PEAK_LOCAL-HRRPUA_CRIT_LOCAL) * &
+                                 (T_EARLY_LOCAL/HRRPUA_PEAK_LOCAL  + (T_DECAY_LOCAL - T_FULLDEV_LOCAL)/HRRPUA_PEAK_LOCAL) + &
+                                 T_FULLDEV_LOCAL - T_EARLY_LOCAL
+                        ENDIF
+                     ELSE
+                        C%T_START_SPOTTING = C%TIME_OF_ARRIVAL
+                        C%T_END_SPOTTING = C%T_START_SPOTTING+TAU_EMBERGEN
+                     ENDIF ! IF(USE_BLDG_SPREAD_MODEL)
                   ELSE
                      C%T_START_SPOTTING = C%TIME_OF_ARRIVAL
-                     C%T_END_SPOTTING = C%T_START_SPOTTING+TAU_EMBERGEN
-                  ENDIF ! IF(USE_BLDG_SPREAD_MODEL)
-               ELSE
+                     C%T_END_SPOTTING = C%T_START_SPOTTING+C%LOCAL_EMBERGEN_DURATION
+                  ENDIF ! IF (C%T_START_SPOTTING .LT. 1E-3) THEN
+               ENDIF ! IF (USE_PHYSICAL_SPOTTING_DURATION) THEN
+            ELSE
+               IF (C%T_START_SPOTTING .LT. 0.0) THEN
                   C%T_START_SPOTTING = C%TIME_OF_ARRIVAL
-                  C%T_END_SPOTTING = C%T_START_SPOTTING+C%LOCAL_EMBERGEN_DURATION
-               ENDIF ! IF (C%T_START_SPOTTING .LT. 1E-3) THEN
-            ENDIF ! IF (USE_PHYSICAL_SPOTTING_DURATION) THEN
-         ELSE
-            IF (C%T_START_SPOTTING .LT. 0.0) THEN
-               C%T_START_SPOTTING = C%TIME_OF_ARRIVAL
-               C%T_END_SPOTTING = C%T_START_SPOTTING+TAU_EMBERGEN
-            ENDIF
-         ENDIF
-         IF (T .GE. C%T_START_SPOTTING .AND. T .LE. C%T_END_SPOTTING) THEN
-            IF (C%FLIN_SURFACE .GE. CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))) THEN
-               CALL RANDOM_NUMBER(R0)
-               IF (R0 .LT. 0.01*SURFACE_FIRE_SPOTTING_PERCENT(FBFM%I2(C%IX,C%IY,1))) CALL_SPOTTING = .TRUE. 
-               CONTINUE
-            ENDIF
-            IF (CALL_SPOTTING) THEN
-               ILH = MAX(MIN(NINT(100.*C%MLH),120),30)
-               FMT = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)
-               WN_FUEL = FMT%WN_DEAD+FMT%WN_LIVE
-               IF (USE_SUPERSEDED_SPOTTING) THEN
-                  CALL SPOTTING_SUPERSEDED ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
-                                  N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
-                                  SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)) )
-               ELSE
-                  CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,&
-                                  ICASE,DT,T, C%TAU_EMBERGEN,SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)),&
-                                  BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+                  C%T_END_SPOTTING = C%T_START_SPOTTING+TAU_EMBERGEN
                ENDIF
             ENDIF
-         ENDIF
-         C%TAU_EMBERGEN = MIN (TAU_EMBERGEN, C%TAU_EMBERGEN + DT)
-         C => C%NEXT
-      ENDDO
-   ENDIF
-#endif
+            IF (T .GE. C%T_START_SPOTTING .AND. T .LE. C%T_END_SPOTTING) THEN
+               IF (C%FLIN_SURFACE .GE. CRITICAL_SPOTTING_FIRELINE_INTENSITY(FBFM%I2(C%IX,C%IY,1))) THEN
+                  CALL RANDOM_NUMBER(R0)
+                  IF (R0 .LT. 0.01*SURFACE_FIRE_SPOTTING_PERCENT(FBFM%I2(C%IX,C%IY,1))) CALL_SPOTTING = .TRUE. 
+                  CONTINUE
+               ENDIF
+               IF (CALL_SPOTTING) THEN
+                  ILH = MAX(MIN(NINT(100.*C%MLH),120),30)
+                  FMT = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)
+                  WN_FUEL = FMT%WN_DEAD+FMT%WN_LIVE
+                  IF (USE_SUPERSEDED_SPOTTING) THEN
+                     CALL SPOTTING_SUPERSEDED ( IX,IY,C%WS20_NOW,C%FLIN_SURFACE,F_METEOROLOGY,WS20_LO,WS20_HI, WD20_LO, WD20_HI, &
+                                    N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,ICASE,DT, T,0., &
+                                    SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)) )
+                  ELSE
+                     CALL SPOTTING ( C%IX,C%IY,C%WS20_NOW,C%FLIN_SURFACE,N_SPOT_FIRES,IX_SPOT_FIRE,IY_SPOT_FIRE,&
+                                    ICASE,DT,T, C%TAU_EMBERGEN,SOURCE_FUEL_IGN_MULT (FBFM%I2(C%IX,C%IY,1)),&
+                                    BLDG_FOOTPRINT_FRAC%R4(C%IX,C%IY,1), C%FMC, C%IFBFM, WN_FUEL) ! Parameters added to calculate number of physical embers
+                  ENDIF
+               ENDIF
+            ENDIF
+            C%TAU_EMBERGEN = MIN (TAU_EMBERGEN, C%TAU_EMBERGEN + DT)
+            C => C%NEXT
+         ENDDO
+      ENDIF
+   #endif
 
    CALL ACCUMULATE_CPU_USAGE(45, IT1, IT2)
 
