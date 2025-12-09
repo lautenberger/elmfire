@@ -1546,5 +1546,64 @@ END FUNCTION HOUR_OF_YEAR_TO_TIMESTAMP
 ! *****************************************************************************
 
 ! *****************************************************************************
+SUBROUTINE XY_TO_LATLON(X, Y, LAT, LON)
+! *****************************************************************************
+REAL, INTENT(IN)  :: X, Y              ! projected coordinates (meters)
+REAL, INTENT(OUT) :: LAT, LON          ! output lat, lon in degrees
+
+INTEGER :: Z
+CHARACTER(256) :: SHELLSTR
+CHARACTER(256) :: TMPIN, TMPOUT
+INTEGER :: LUIN, LUOUT, IOS
+
+! Create simple temp file names (you can do something fancier if needed)
+TMPIN  = TRIM(SCRATCH) // 'gdal_xy_to_ll_in.txt'
+TMPOUT = TRIM(SCRATCH) // 'gdal_xy_to_ll_out.txt'
+
+! 1. Write (x, y) to input file for gdaltransform
+OPEN(NEWUNIT=LUIN, FILE=TMPIN, STATUS='REPLACE', ACTION='WRITE', IOSTAT=IOS)
+IF (IOS /= 0) THEN
+   WRITE(*,*) 'Error opening temp input file for gdaltransform, IOSTAT=', IOS
+   RETURN
+END IF
+WRITE(LUIN,'(F24.8,1X,F24.8)') X, Y
+CLOSE(LUIN)
+
+! 2. Build gdaltransform command:
+!    gdaltransform -s_srs SRC_SRS -t_srs EPSG:4326 < TMPIN > TMPOUT
+SHELLSTR = TRIM(PATH_TO_GDAL) // 'gdaltransform -s_srs "' // TRIM(A_SRS) // '"' // &
+            ' -t_srs EPSG:4326 < ' // TRIM(TMPIN) // ' > ' // TRIM(TMPOUT)
+
+! WRITE(*,*) 'Running: ', TRIM(SHELLSTR)
+CALL EXECUTE_COMMAND_LINE(TRIM(SHELLSTR), EXITSTAT=IOS)
+
+IF (IOS /= 0) THEN
+   WRITE(*,*) 'gdaltransform failed, EXITSTAT=', IOS
+   RETURN
+END IF
+
+! 3. Read lon, lat, z from output file
+OPEN(NEWUNIT=LUOUT, FILE=TMPOUT, STATUS='OLD', ACTION='READ', IOSTAT=IOS)
+IF (IOS /= 0) THEN
+   WRITE(*,*) 'Error opening temp output file from gdaltransform, IOSTAT=', IOS
+   RETURN
+END IF
+
+! gdaltransform outputs: lon lat z
+READ(LUOUT,*,IOSTAT=IOS) LON, LAT, Z
+CLOSE(LUOUT)
+
+IF (IOS .NE. 0) THEN
+   WRITE(*,*) 'Error reading gdaltransform output, IOSTAT=', IOS
+   RETURN
+END IF
+
+! 4. (Optional) clean up temp files
+CALL EXECUTE_COMMAND_LINE('rm -f ' // TRIM(TMPIN)  // ' ' // TRIM(TMPOUT))
+! *****************************************************************************
+END SUBROUTINE XY_TO_LATLON
+! *****************************************************************************
+
+! *****************************************************************************
 END MODULE ELMFIRE_SUBS
 ! *****************************************************************************
