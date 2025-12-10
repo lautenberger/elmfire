@@ -1574,7 +1574,7 @@ CLOSE(LUIN)
 SHELLSTR = TRIM(PATH_TO_GDAL) // 'gdaltransform -s_srs "' // TRIM(A_SRS) // '"' // &
             ' -t_srs EPSG:4326 < ' // TRIM(TMPIN) // ' > ' // TRIM(TMPOUT)
 
-! WRITE(*,*) 'Running: ', TRIM(SHELLSTR)
+!WRITE(*,*) 'Running: ', TRIM(SHELLSTR)
 CALL EXECUTE_COMMAND_LINE(TRIM(SHELLSTR), EXITSTAT=IOS)
 
 IF (IOS /= 0) THEN
