@@ -1002,6 +1002,9 @@ DO I = 1, NLINES
    IF (ISNODATA == 'NoDataValue') THEN
       READ(LINENOW(18:38),*) TEMPSTR
 !      TEMPSTR = STRIP_NON_NUMBERS(TEMPSTR)
+      if (tempstr(1:1) /= '-') then !fix issue with positive NODATA values
+         tempstr = tempstr(1:20) ! alternative: shorten through assignment
+      endif
       READ(TEMPSTR,*) RASTER%NODATA_VALUE
       CONTINUE
    ENDIF
