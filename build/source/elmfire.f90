@@ -409,7 +409,7 @@ CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(11, IT1, IT2)
 
 IF (MODE .NE. 1) THEN
-
+   IF (DEBUG_LEVEL .GE. 20) PRINT *, "Mode 2: Calculation started"
    CALL SYSTEM_CLOCK(IT1)
 
    R=>ASP
@@ -421,8 +421,16 @@ IF (MODE .NE. 1) THEN
    CROWN_FIRE_TO_DUMP%R4(:,:,:)  = CROWN_FIRE_TO_DUMP%NODATA_VALUE
 
    LIST_FIRE_POTENTIAL = NEW_DLL()
+   IF (DEBUG_LEVEL .GE. 20) PRINT *, "Mode 2: Output rasters allocated"
 
    DO IY = 1, ANALYSIS_NROWS
+      IF (DEBUG_LEVEL .GT. 20) THEN
+         WRITE(*,'(A)', advance='no') char(13)   ! carriage return
+            WRITE(*,'(A,I0,A,F5.1,A)', ADVANCE='NO')  &
+            "Mode 2: Total fire potential points: ", LIST_FIRE_POTENTIAL%NUM_NODES,  &
+            ". Progress: ", 100.0*IY/ANALYSIS_NROWS, "%."
+            CALL flush(6)
+      END IF
       IF (REAL(IY                    ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
       IF (REAL(ANALYSIS_NROWS+1 - IY ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
       DO IX = 1, ANALYSIS_NCOLS
@@ -432,6 +440,8 @@ IF (MODE .NE. 1) THEN
          CALL APPEND(LIST_FIRE_POTENTIAL, IX, IY, 0.)
       ENDDO
    ENDDO
+
+   IF (DEBUG_LEVEL .GE. 20) PRINT *, "Mode 2: Fire potential list compiled"
 
    I = -1
    DO IWX_BAND = METEOROLOGY_BAND_START, METEOROLOGY_BAND_STOP
@@ -447,6 +457,8 @@ IF (MODE .NE. 1) THEN
       WRITE(*,*) 'IWX_BAND: ', IWX_BAND
 
       C => LIST_FIRE_POTENTIAL%HEAD
+
+      IF (DEBUG_LEVEL .GE. 20) PRINT *, "TOTAL FIRE NODES: ", LIST_FIRE_POTENTIAL%NUM_NODES
       DO I = 1, LIST_FIRE_POTENTIAL%NUM_NODES
          IX               = C%IX
          IY               = C%IY
