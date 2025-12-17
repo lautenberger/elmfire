@@ -1048,62 +1048,80 @@ END FUNCTION NEW_DLL
 ! *****************************************************************************
 SUBROUTINE APPEND(DL2, IX, IY, T)
 ! *****************************************************************************
+   TYPE(DLL), INTENT(INOUT) :: DL2
+   INTEGER,  INTENT(IN)     :: IX, IY
+   REAL,     INTENT(IN)     :: T
 
-TYPE(DLL), INTENT(INOUT) :: DL2
-INTEGER, INTENT(IN)      :: IX, IY
-REAL, INTENT(IN) :: T
- 
-TYPE(NODE), POINTER :: NP
-TYPE(NODE_WRAPPER), ALLOCATABLE :: TEMP(:)  ! Temporary array for resizing DWI_SU
-INTEGER :: N  ! Store the new count DWI_SU
-
-! If the list is empty
-IF (DL2%NUM_NODES == 0) THEN
-   CALL INIT(DL2, IX, IY, T)
-   ALLOCATE(DL2%NODE_POINTERS(1))      ! DWI_SU
-   DL2%NODE_POINTERS(1)%PTR => DL2%HEAD   ! DWI_SU
-   RETURN
-END IF
- 
-! Add new element ot the end
-DL2%NUM_NODES = DL2%NUM_NODES + 1
-N = SIZE(DL2%NODE_POINTERS)+1  ! Store the new count DWI_SU + YIREN DEBUG
-
-
-NP => DL2%TAIL
-ALLOCATE(DL2%TAIL)
-DL2%TAIL%IX         =  IX
-DL2%TAIL%IY         =  IY
-DL2%TAIL%TIME_ADDED =  T
-
-DL2%TAIL%IFBFM   =  FBFM%I2(IX,IY,1)
+   TYPE(NODE), POINTER :: NP, NEW_NODE
 #ifdef _WUI
-IF (USE_BLDG_SPREAD_MODEL) DL2%TAIL%IBLDGFM =  BLDG_FUEL_MODEL%I2(IX,IY,1)
+   TYPE(NODE_WRAPPER), ALLOCATABLE :: TMP(:)
+   INTEGER :: old_cap, new_cap
 #endif
-DL2%TAIL%ADJ     =  ADJ%R4(IX,IY,1)
-DL2%TAIL%TANSLP2 =  TANSLP2(MAX(MIN(NINT(SLP%R4(IX,IY,1)),90),0))
 
-DL2%TAIL%PREV       => NP
-DL2%TAIL%PREV%NEXT  => DL2%TAIL
+   ! If the list is empty
+   IF (DL2%NUM_NODES == 0) THEN
+      CALL INIT(DL2, IX, IY, T)
+      DL2%NUM_NODES = 1
+#ifdef _WUI
+      ! Initial capacity
+      IF (.NOT. ALLOCATED(DL2%NODE_POINTERS)) THEN
+         ALLOCATE(DL2%NODE_POINTERS(16))
+      END IF
+      NULLIFY(DL2%NODE_POINTERS(1)%PTR)
+      DL2%NODE_POINTERS(1)%PTR => DL2%HEAD
+#endif
+      RETURN
+   END IF
+
+   NP => DL2%TAIL
+
+   ALLOCATE(NEW_NODE)
+
+   NEW_NODE%IX         = IX
+   NEW_NODE%IY         = IY
+   NEW_NODE%TIME_ADDED = T
+
+   NEW_NODE%IFBFM   = FBFM%I2(IX,IY,1)
+#ifdef _WUI
+   IF (USE_BLDG_SPREAD_MODEL) NEW_NODE%IBLDGFM = BLDG_FUEL_MODEL%I2(IX,IY,1)
+#endif
+   NEW_NODE%ADJ     = ADJ%R4(IX,IY,1)
+   NEW_NODE%TANSLP2 = TANSLP2(MAX(MIN(NINT(SLP%R4(IX,IY,1)),90),0))
+
+   NEW_NODE%PREV => NP
+   NEW_NODE%NEXT => NULL()
+   NP%NEXT       => NEW_NODE
+   DL2%TAIL      => NEW_NODE
+
+   DL2%NUM_NODES = DL2%NUM_NODES + 1
 
 #ifdef _WUI
-! Resize NODE_POINTERS array dynamically DWI_SU
-ALLOCATE(TEMP(N-1))
-TEMP = DL2%NODE_POINTERS
-DEALLOCATE(DL2%NODE_POINTERS)
-ALLOCATE(DL2%NODE_POINTERS(N))
-DL2%NODE_POINTERS(1:N-1) = TEMP
-DEALLOCATE(TEMP) 
+   !---------------------------------------------------------------------------
+   ! Grow NODE_POINTERS *only when needed*, was very slow otherwise
+   !---------------------------------------------------------------------------
+   IF (.NOT. ALLOCATED(DL2%NODE_POINTERS)) THEN
+      ! Shouldn't happen if INIT handled correctly, but be defensive
+      ALLOCATE(DL2%NODE_POINTERS(MAX(16, DL2%NUM_NODES)))
+   ELSE
+      old_cap = SIZE(DL2%NODE_POINTERS)
 
-! Store the new node in the array DWI_SU
-NULLIFY(DL2%NODE_POINTERS(N)%PTR)
-DL2%NODE_POINTERS(N)%PTR => DL2%TAIL
+      IF (DL2%NUM_NODES > old_cap) THEN
+         ! Grow capacity, e.g. double it (tunable)
+         new_cap = MAX(2*old_cap, DL2%NUM_NODES)
+         ALLOCATE(TMP(new_cap))
+         TMP(1:DL2%NUM_NODES-1) = DL2%NODE_POINTERS(1:DL2%NUM_NODES-1)
+         CALL MOVE_ALLOC(TMP, DL2%NODE_POINTERS)
+      END IF
+   END IF
+
+   ! Store pointer to the new node
+   NULLIFY(DL2%NODE_POINTERS(DL2%NUM_NODES)%PTR)
+   DL2%NODE_POINTERS(DL2%NUM_NODES)%PTR => DL2%TAIL
 #endif
-   
-! *****************************************************************************   
+
+! *****************************************************************************
 END SUBROUTINE APPEND
 ! *****************************************************************************
-
 
 ! *****************************************************************************
 SUBROUTINE APPEND_TO_DYNAMIC_ARRAY(IX, IY, N_ROWS, DYNAMIC_ARRAY)
@@ -1543,6 +1561,65 @@ HOUR_OF_YEAR_TO_TIMESTAMP = TIMESTAMP
 
 ! *****************************************************************************
 END FUNCTION HOUR_OF_YEAR_TO_TIMESTAMP
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE XY_TO_LATLON(X, Y, LAT, LON)
+! *****************************************************************************
+REAL, INTENT(IN)  :: X, Y              ! projected coordinates (meters)
+REAL, INTENT(OUT) :: LAT, LON          ! output lat, lon in degrees
+
+INTEGER :: Z
+CHARACTER(256) :: SHELLSTR
+CHARACTER(256) :: TMPIN, TMPOUT
+INTEGER :: LUIN, LUOUT, IOS
+
+! Create simple temp file names (you can do something fancier if needed)
+TMPIN  = TRIM(SCRATCH) // 'gdal_xy_to_ll_in.txt'
+TMPOUT = TRIM(SCRATCH) // 'gdal_xy_to_ll_out.txt'
+
+! 1. Write (x, y) to input file for gdaltransform
+OPEN(NEWUNIT=LUIN, FILE=TMPIN, STATUS='REPLACE', ACTION='WRITE', IOSTAT=IOS)
+IF (IOS /= 0) THEN
+   WRITE(*,*) 'Error opening temp input file for gdaltransform, IOSTAT=', IOS
+   RETURN
+END IF
+WRITE(LUIN,'(F24.8,1X,F24.8)') X, Y
+CLOSE(LUIN)
+
+! 2. Build gdaltransform command:
+!    gdaltransform -s_srs SRC_SRS -t_srs EPSG:4326 < TMPIN > TMPOUT
+SHELLSTR = TRIM(PATH_TO_GDAL) // 'gdaltransform -s_srs "' // TRIM(A_SRS) // '"' // &
+            ' -t_srs EPSG:4326 < ' // TRIM(TMPIN) // ' > ' // TRIM(TMPOUT)
+
+!WRITE(*,*) 'Running: ', TRIM(SHELLSTR)
+CALL EXECUTE_COMMAND_LINE(TRIM(SHELLSTR), EXITSTAT=IOS)
+
+IF (IOS /= 0) THEN
+   WRITE(*,*) 'gdaltransform failed, EXITSTAT=', IOS
+   RETURN
+END IF
+
+! 3. Read lon, lat, z from output file
+OPEN(NEWUNIT=LUOUT, FILE=TMPOUT, STATUS='OLD', ACTION='READ', IOSTAT=IOS)
+IF (IOS /= 0) THEN
+   WRITE(*,*) 'Error opening temp output file from gdaltransform, IOSTAT=', IOS
+   RETURN
+END IF
+
+! gdaltransform outputs: lon lat z
+READ(LUOUT,*,IOSTAT=IOS) LON, LAT, Z
+CLOSE(LUOUT)
+
+IF (IOS .NE. 0) THEN
+   WRITE(*,*) 'Error reading gdaltransform output, IOSTAT=', IOS
+   RETURN
+END IF
+
+! 4. (Optional) clean up temp files
+CALL EXECUTE_COMMAND_LINE('rm -f ' // TRIM(TMPIN)  // ' ' // TRIM(TMPOUT))
+! *****************************************************************************
+END SUBROUTINE XY_TO_LATLON
 ! *****************************************************************************
 
 ! *****************************************************************************

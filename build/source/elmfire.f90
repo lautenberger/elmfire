@@ -29,7 +29,7 @@ REAL :: APHIW, COSASPMPI, PHIMAG, PHIWX, PHIWY, PHIX, PHIY, SINASPMPI
 
 CHARACTER(3) :: THREE_IWX_BAND
 CHARACTER(4) :: FOUR_IWX_BAND
-CHARACTER(60) :: VERSIONSTRING='ELMFIRE 2025.1002'
+CHARACTER(60) :: VERSIONSTRING='ELMFIRE 2025.1003'
 CHARACTER(400) :: FN, MESSAGESTR
 
 TYPE (RASTER_TYPE), POINTER :: R
@@ -41,6 +41,8 @@ TYPE(NODE), POINTER :: C, DUMMY_NODE => NULL()
 #ifdef _SUPPRESSION
 ALLOCATE (SUPP (0:1000))
 #endif
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Initialize system clock for later use in profiling sections of code
 CALL SYSTEM_CLOCK(COUNT_RATE=CLOCK_COUNT_RATE)
@@ -98,6 +100,8 @@ IF (IRANK_HOST .EQ. 0) TIMINGS(:,:) = 0.
 ! Print version number:
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) TRIM(VERSIONSTRING)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 !Get input file name:
 CALL GET_COMMAND_ARGUMENT(1,NAMELIST_FN)
 IF (NAMELIST_FN(1:1)==' ') THEN
@@ -146,6 +150,8 @@ IF (IRANK_WORLD .EQ. 0) THEN
    IF (.NOT. GOOD_INPUTS) CALL SHUTDOWN()
 ENDIF
 
+!-----------------------------------------------------------------------------------------------------------------
+
 ! Initialize random number generator - this has to be done after inputs are read in
 ! because both SEED and RANDOMIZE_RANDOM_SEED are user-specified
 CALL RANDOM_SEED(SIZE=M)
@@ -162,6 +168,8 @@ CALL SUNRISE_SUNSET_CALCS (LONGITUDE, LATITUDE, CURRENT_YEAR, HOUR_OF_YEAR)
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(2, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Build lookup tables for trigonometric arrays, wind adjustment factor, nonburnable mask, etc.
 CALL INIT_LOOKUP_TABLES
@@ -211,6 +219,8 @@ CALL SETUP_SHARED_MEMORY_1
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(4, IT1, IT2)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading weather, fuel, and topography rasters'
 
 IF (USE_TILED_IO) THEN
@@ -223,6 +233,8 @@ IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER_FUEL_TOPOGRAPHY
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(5, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Determining number of cases to run'
 
@@ -249,10 +261,14 @@ IF (RANDOM_IGNITIONS .AND. MODE .NE. 2) THEN
    IF (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS) IWX_BAND_OFFSET = IGN_IWX_BAND_LO - 1
 ENDIF
 
+!-----------------------------------------------------------------------------------------------------------------
+
 IF (ABS(GRID_DECLINATION) .GT. 0.1 .AND. IRANK_HOST .EQ. 0) THEN
    IF (ROTATE_ASP) CALL ROTATE_ASP_AND_WD(1)
    IF (ROTATE_WD ) CALL ROTATE_ASP_AND_WD(2)
 ENDIF
+
+!-----------------------------------------------------------------------------------------------------------------
 
 WHERE(FBFM%I2(:,:,1) .GT. 303) FBFM%I2(:,:,1) = 256
 WHERE(FBFM%I2(:,:,1) .LT.   0) FBFM%I2(:,:,1) =  99
@@ -273,10 +289,14 @@ ENDIF
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(6, IT1, IT2)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 ! Now that weather, fuel, topography are read in map fine inputs to coarse inputs
 ALLOCATE(ICOL_ANALYSIS_F2C(1:ANALYSIS_NCOLS))
 ALLOCATE(IROW_ANALYSIS_F2C(1:ANALYSIS_NROWS))
 CALL MAP_FINE_TO_COARSE(WS, ASP, ICOL_ANALYSIS_F2C, IROW_ANALYSIS_F2C)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Allocate additional rasters
 IF (MODE .EQ. 1 .OR. MODE .EQ. 3) THEN
@@ -304,6 +324,8 @@ IF (IRANK_HOST .EQ. 0) CALL INIT_RASTERS
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(7, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 !CALL ALLOCATE_IGNITION_ARRAYS
 ! 
@@ -387,7 +409,7 @@ CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(11, IT1, IT2)
 
 IF (MODE .NE. 1) THEN
-
+   IF (DEBUG_LEVEL .GE. 20) PRINT *, "Mode 2: Calculation started"
    CALL SYSTEM_CLOCK(IT1)
 
    R=>ASP
@@ -399,8 +421,16 @@ IF (MODE .NE. 1) THEN
    CROWN_FIRE_TO_DUMP%R4(:,:,:)  = CROWN_FIRE_TO_DUMP%NODATA_VALUE
 
    LIST_FIRE_POTENTIAL = NEW_DLL()
+   IF (DEBUG_LEVEL .GE. 20) PRINT *, "Mode 2: Output rasters allocated"
 
    DO IY = 1, ANALYSIS_NROWS
+      IF (DEBUG_LEVEL .GT. 20) THEN
+         WRITE(*,'(A)', advance='no') char(13)   ! carriage return
+            WRITE(*,'(A,I0,A,F5.1,A)', ADVANCE='NO')  &
+            "Mode 2: Total fire potential points: ", LIST_FIRE_POTENTIAL%NUM_NODES,  &
+            ". Progress: ", 100.0*IY/ANALYSIS_NROWS, "%."
+            CALL flush(6)
+      END IF
       IF (REAL(IY                    ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
       IF (REAL(ANALYSIS_NROWS+1 - IY ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
       DO IX = 1, ANALYSIS_NCOLS
@@ -410,6 +440,8 @@ IF (MODE .NE. 1) THEN
          CALL APPEND(LIST_FIRE_POTENTIAL, IX, IY, 0.)
       ENDDO
    ENDDO
+
+   IF (DEBUG_LEVEL .GE. 20) PRINT *, "Mode 2: Fire potential list compiled"
 
    I = -1
    DO IWX_BAND = METEOROLOGY_BAND_START, METEOROLOGY_BAND_STOP
@@ -425,6 +457,8 @@ IF (MODE .NE. 1) THEN
       WRITE(*,*) 'IWX_BAND: ', IWX_BAND
 
       C => LIST_FIRE_POTENTIAL%HEAD
+
+      IF (DEBUG_LEVEL .GE. 20) PRINT *, "TOTAL FIRE NODES: ", LIST_FIRE_POTENTIAL%NUM_NODES
       DO I = 1, LIST_FIRE_POTENTIAL%NUM_NODES
          IX               = C%IX
          IY               = C%IY
@@ -614,7 +648,7 @@ IF (MODE .NE. 2) THEN
 
       CALL ACCUMULATE_CPU_USAGE(14, IT1, IT2)
       
-      IF (ENABLE_SPOTTING) CALL SET_SPOTTING_PARAMETERS(COEFFS(:))
+      IF (ENABLE_SPOTTING .AND. STOCHASTIC_SPOTTING) CALL SET_SPOTTING_PARAMETERS(COEFFS(:))
 
       IF (NUM_PARAMETERS_MISC .GT. 0) CALL SET_MISC_PARAMETERS(COEFFS(:))
 
