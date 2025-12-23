@@ -757,6 +757,7 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          LIST_BURNED%TAIL%HPUA_CANOPY            = C%HPUA_CANOPY
          LIST_BURNED%TAIL%UX                     = C%UX
          LIST_BURNED%TAIL%UY                     = C%UY
+         LIST_BURNED%TAIL%SPREAD_DIRECTION       = C%SPREAD_DIRECTION
          LIST_BURNED%TAIL%TIME_OF_ARRIVAL        = C%TIME_OF_ARRIVAL
          LIST_BURNED%TAIL%CRITICAL_FLIN          = C%CRITICAL_FLIN
          LIST_BURNED%TAIL%CROWN_FIRE             = C%CROWN_FIRE
@@ -1934,6 +1935,7 @@ ELSE !ISTEP .EQ. 2
          C%VELOCITY = SQRT(DXDT_ROTATED*DXDT_ROTATED + DYDT_ROTATED*DYDT_ROTATED) ! ft/min, parallel to slope
          if (ABS(C%UX) + ABS(C%UY) .gt. 1.0e-20) then
                C%SPREAD_DIRECTION = ATAN2(C%UX, C%UY) * 180.0 / ACOS(-1.0)
+               
                if (C%SPREAD_DIRECTION .lt. 0.0) C%SPREAD_DIRECTION = C%SPREAD_DIRECTION + 360.0
          else
             C%SPREAD_DIRECTION = 0.0
