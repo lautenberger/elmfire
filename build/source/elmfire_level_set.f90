@@ -1874,6 +1874,12 @@ IF (ISTEP .EQ. 1) THEN
             C%UY = DYDT_ROTATED * C%UYOUSY * FTPMIN_TO_MPS !m/s, projected
             
             C%VELOCITY = SQRT(DXDT_ROTATED*DXDT_ROTATED + DYDT_ROTATED*DYDT_ROTATED) ! ft/min, parallel to slope
+            if (ABS(C%UX) + ABS(C%UY) .gt. 1.0e-20) then
+               C%SPREAD_DIRECTION = ATAN2(C%UX, C%UY) * 180.0 / ACOS(-1.0)
+               if (C%SPREAD_DIRECTION .lt. 0.0) C%SPREAD_DIRECTION = C%SPREAD_DIRECTION + 360.0
+            else
+               C%SPREAD_DIRECTION = 0.0
+            end if
 
             ILH = MAX(MIN(NINT(100.*C%MLH),120),30)
             C%FLIN_SURFACE = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR * C%IR * C%VELOCITY * 0.3048 ! kW/m
@@ -1926,6 +1932,12 @@ ELSE !ISTEP .EQ. 2
          C%UY = DYDT_ROTATED * C%UYOUSY * FTPMIN_TO_MPS !m/s, projected
 
          C%VELOCITY = SQRT(DXDT_ROTATED*DXDT_ROTATED + DYDT_ROTATED*DYDT_ROTATED) ! ft/min, parallel to slope
+         if (ABS(C%UX) + ABS(C%UY) .gt. 1.0e-20) then
+               C%SPREAD_DIRECTION = ATAN2(C%UX, C%UY) * 180.0 / ACOS(-1.0)
+               if (C%SPREAD_DIRECTION .lt. 0.0) C%SPREAD_DIRECTION = C%SPREAD_DIRECTION + 360.0
+         else
+            C%SPREAD_DIRECTION = 0.0
+         end if
 
          ILH = MAX(MIN(NINT(100.*C%MLH),120),30)
          C%FLIN_SURFACE = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR * C%IR * C%VELOCITY * 0.3048 ! kW/m

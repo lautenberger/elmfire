@@ -334,6 +334,7 @@ TYPE NODE
    REAL :: PHIS_SURFACE                  = 0.
    REAL :: PHIW_CROWN                    = 0.
    REAL :: PHIW_SURFACE                  = 0.
+   REAL :: SPREAD_DIRECTION              = 0.
    REAL :: TIME_ADDED                    = -1.0
    REAL :: TIME_OF_ARRIVAL               = -1.0
    REAL :: UX                            = 0.
