@@ -8,6 +8,7 @@ IMPLICIT NONE
 CONTAINS
 
 ! *****************************************************************************
+!> Distribute IO jobs equally among available cores (via round robin)
 SUBROUTINE SETUP_PARALLEL_IO
 ! *****************************************************************************
 
@@ -165,6 +166,7 @@ END SUBROUTINE SETUP_PARALLEL_IO
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Read Weather, Fuel, Topography, Building inputs (constant or raster) in parallel.
 SUBROUTINE READ_WEATHER_FUEL_TOPOGRAPHY
 ! *****************************************************************************
 
@@ -408,6 +410,7 @@ END SUBROUTINE READ_WEATHER_FUEL_TOPOGRAPHY
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Read split .bsq Weather, Fuel, Topography, Building inputs (constant or raster) in parallel.
 SUBROUTINE READ_WEATHER_FUEL_TOPOGRAPHY_TILED
 ! *****************************************************************************
 
@@ -701,6 +704,7 @@ END SUBROUTINE READ_WEATHER_FUEL_TOPOGRAPHY_TILED
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Export RASTER to INDIR/STUB.bil and accompanying metadata files.Can convert to Geotiff and delete original .bil files. Optionally compress.
 RECURSIVE SUBROUTINE WRITE_BIL_RASTER(RASTER, INDIR, STUB, CONVERT_TO_GEOTIFF_LOCAL, COMPRESS, THREADNUM)
 ! *****************************************************************************
 
@@ -866,7 +870,7 @@ SELECT CASE (TRIM(RASTER%PIXELTYPE))
       ENDIF
 
    CASE DEFAULT
-      WRITE(*,*) 'DEFAULT SO NOTHING HAPPENS'
+      WRITE(*,*) 'FILE', TRIM(FNHDR), ': PIXELTYPE (', RASTER%PIXELTYPE, ') SET TO DEFAULT SO NOTHING HAPPENS'
       CONTINUE
 
 END SELECT
@@ -882,6 +886,7 @@ END SUBROUTINE WRITE_BIL_RASTER
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Parse .xml metadata of INDIR/FN.bsq raster file, save as RASTER metadata. Can delete files after use.
 SUBROUTINE READ_BSQ_XML_HEADER(RASTER,INDIR,FN,DELETE_INTERMEDIATE_FILES)
 ! *****************************************************************************
 
@@ -997,6 +1002,9 @@ DO I = 1, NLINES
    IF (ISNODATA == 'NoDataValue') THEN
       READ(LINENOW(18:38),*) TEMPSTR
 !      TEMPSTR = STRIP_NON_NUMBERS(TEMPSTR)
+      if (tempstr(1:1) /= '-') then !fix issue with positive NODATA values
+         tempstr = tempstr(1:20) ! alternative: shorten through assignment
+      endif
       READ(TEMPSTR,*) RASTER%NODATA_VALUE
       CONTINUE
    ENDIF
@@ -1046,6 +1054,7 @@ END SUBROUTINE READ_BSQ_XML_HEADER
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Read header .hdr file accompanying INDIR/FN.bsq file. Fill RASTER metadata. Can delete files after use.
 SUBROUTINE READ_BSQ_HDR_HEADER(RASTER,INDIR,FN,DELETE_INTERMEDIATE_FILES)
 ! *****************************************************************************
 
@@ -1146,6 +1155,7 @@ END SUBROUTINE READ_BSQ_HDR_HEADER
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Read .xml metadata of existing split FNIN.bsq raster. Save metadata in RASTER.
 SUBROUTINE READ_BSQ_HEADER_EXISTING_TILED(RASTER,FNIN)
 ! *****************************************************************************
 
@@ -1238,6 +1248,7 @@ END SUBROUTINE READ_BSQ_HEADER_EXISTING_TILED
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Read raster contained in .bsq file FN in directory INDIR and save it to RASTER.
 SUBROUTINE READ_BSQ_RASTER(RASTER,INDIR,FN)
 ! *****************************************************************************
 
@@ -1428,6 +1439,7 @@ END SUBROUTINE READ_BSQ_RASTER
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Read split raster contained in FNIN.bsq file and save it to RASTER.
 SUBROUTINE READ_BSQ_RASTER_EXISTING_TILED(RASTER,FNIN)
 ! *****************************************************************************
 
@@ -1692,6 +1704,7 @@ END SUBROUTINE READ_BSQ_RASTER_EXISTING_TILED
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Write QUANTITY of raster of linked list L at time TIMENOW with name PREFIX_ICASE_TIMENOW.bil (formatted)
 SUBROUTINE LL_DUMP_ROUTINE(L,PREFIX,TIMENOW,QUANTITY,ICASE)
 ! *****************************************************************************
 
@@ -1764,6 +1777,7 @@ END SUBROUTINE LL_DUMP_ROUTINE
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Write all specified raster files to .bil files at time T for ICASE case. Also includes transient ACRES output. Output final rasters only for some values (when IDUMPCOUNT == NDUMPS)
 SUBROUTINE MAIN_DUMP_ROUTINE(IDUMPCOUNT, NDUMPS, ICASE, T, ACRES)
 ! *****************************************************************************
 
@@ -1842,11 +1856,29 @@ ENDIF
 IF (DUMP_SPREAD_RATE .AND. IDUMPCOUNT .EQ. NDUMPS) THEN
    RDUMPME%R4(:,:,1) = RDUMPME%NODATA_VALUE
    C => LIST_BURNED%HEAD
+   if (SPREAD_RATE_IN_M) then
+      DO I = 1, LIST_BURNED%NUM_NODES
+         RDUMPME%R4(C%IX,C%IY,1) = C%VELOCITY * 0.3048
+         C => C%NEXT
+      ENDDO
+   else
+      DO I = 1, LIST_BURNED%NUM_NODES
+         RDUMPME%R4(C%IX,C%IY,1) = C%VELOCITY
+         C => C%NEXT
+      ENDDO
+   endif
+   FN = 'vs_' // SEVEN // '_' // CTSEC
+   CALL WRITE_BIL_RASTER(RDUMPME,OUTPUTS_DIRECTORY,FN,CONVERT_TO_GEOTIFF,.TRUE.,IRANK_WORLD)
+ENDIF
+
+IF (DUMP_SPREAD_DIRECTION .AND. IDUMPCOUNT .EQ. NDUMPS) THEN
+   RDUMPME%R4(:,:,1) = RDUMPME%NODATA_VALUE
+   C => LIST_BURNED%HEAD
    DO I = 1, LIST_BURNED%NUM_NODES
-      RDUMPME%R4(C%IX,C%IY,1) = C%VELOCITY
+      RDUMPME%R4(C%IX,C%IY,1) = C%SPREAD_DIRECTION
       C => C%NEXT
    ENDDO
-   FN = 'vs_' // SEVEN // '_' // CTSEC
+   FN = 'spread_dir_' // SEVEN // '_' // CTSEC
    CALL WRITE_BIL_RASTER(RDUMPME,OUTPUTS_DIRECTORY,FN,CONVERT_TO_GEOTIFF,.TRUE.,IRANK_WORLD)
 ENDIF
 
@@ -2004,6 +2036,7 @@ END SUBROUTINE MAIN_DUMP_ROUTINE
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Rasterise fire size statistics per case and hour and save them as PREFIX(_WX_Bandno).tif
 SUBROUTINE FIRE_SIZE_STATS_TO_RASTERS(PREFIX, VALS)
 ! *****************************************************************************
 
@@ -2049,6 +2082,7 @@ END SUBROUTINE FIRE_SIZE_STATS_TO_RASTERS
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Rasterise fire size statistics per case and save them as PREFIX(_WX_Bandno).tif for a single hour / weather band.
 SUBROUTINE FIRE_SIZE_STATS_TO_RASTERS_HOURLY(PREFIX, VALS, IWX_BAND_TO_DUMP)
 ! *****************************************************************************
 
@@ -2097,6 +2131,7 @@ END SUBROUTINE FIRE_SIZE_STATS_TO_RASTERS_HOURLY
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Save simulation statistics as csv and rasterise (according to input booleans)
 SUBROUTINE POSTPROCESS
 ! *****************************************************************************
 
@@ -2300,6 +2335,7 @@ END SUBROUTINE POSTPROCESS
 ! *****************************************************************************
 
 ! *****************************************************************************
+!> Write weather data at point C as virtual weather station at time T.
 SUBROUTINE WRITE_STATION(C,IRANK,ICASE,T)
 ! *****************************************************************************
 

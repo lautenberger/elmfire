@@ -524,6 +524,8 @@ ENDIF
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 
+iF (DEBUG_LEVEL .GE. 20) PRINT *, "Shared memory (2) setup finished"
+
 ! *****************************************************************************
 END SUBROUTINE SETUP_SHARED_MEMORY_2
 ! *****************************************************************************
@@ -592,7 +594,14 @@ INTEGER :: IBAND, IROW, ICOL
 
 SELECT CASE (ITYPE)
    CASE (1) ! Aspect
-      CONTINUE 
+      DO IROW = 1, ASP%NROWS
+      DO ICOL = 1, ASP%NCOLS
+         ASP%R4(ICOL,IROW,1) = ASP%R4(ICOL,IROW,1) - GRID_DECLINATION
+         IF (ASP%R4(ICOL,IROW,1) .GT. 360.) ASP%R4(ICOL,IROW,IBAND) = ASP%R4(ICOL,IROW,IBAND) - 360.
+         IF (ASP%R4(ICOL,IROW,1) .LT.   0.) ASP%R4(ICOL,IROW,IBAND) = ASP%R4(ICOL,IROW,IBAND) + 360.
+         CONTINUE
+      ENDDO
+      ENDDO
    CASE (2) ! Wind direction
       DO IBAND = 1, WD%NBANDS
       DO IROW = 1, WD%NROWS

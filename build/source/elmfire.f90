@@ -29,18 +29,20 @@ REAL :: APHIW, COSASPMPI, PHIMAG, PHIWX, PHIWY, PHIX, PHIY, SINASPMPI
 
 CHARACTER(3) :: THREE_IWX_BAND
 CHARACTER(4) :: FOUR_IWX_BAND
-CHARACTER(60) :: VERSIONSTRING='ELMFIRE 2025.1002'
+CHARACTER(60) :: VERSIONSTRING='ELMFIRE 2025.1003'
 CHARACTER(400) :: FN, MESSAGESTR
 
 TYPE (RASTER_TYPE), POINTER :: R
 
-TYPE(RASTER_TYPE) SPREAD_RATE_TO_DUMP, FLAME_LENGTH_TO_DUMP, CROWN_FIRE_TO_DUMP
+TYPE(RASTER_TYPE) SPREAD_RATE_TO_DUMP, SPREAD_DIRECTION_TO_DUMP, FLAME_LENGTH_TO_DUMP, CROWN_FIRE_TO_DUMP
 TYPE(DLL) :: LIST_FIRE_POTENTIAL
 TYPE(NODE), POINTER :: C, DUMMY_NODE => NULL()
 
 #ifdef _SUPPRESSION
 ALLOCATE (SUPP (0:1000))
 #endif
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Initialize system clock for later use in profiling sections of code
 CALL SYSTEM_CLOCK(COUNT_RATE=CLOCK_COUNT_RATE)
@@ -98,6 +100,8 @@ IF (IRANK_HOST .EQ. 0) TIMINGS(:,:) = 0.
 ! Print version number:
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) TRIM(VERSIONSTRING)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 !Get input file name:
 CALL GET_COMMAND_ARGUMENT(1,NAMELIST_FN)
 IF (NAMELIST_FN(1:1)==' ') THEN
@@ -146,6 +150,8 @@ IF (IRANK_WORLD .EQ. 0) THEN
    IF (.NOT. GOOD_INPUTS) CALL SHUTDOWN()
 ENDIF
 
+!-----------------------------------------------------------------------------------------------------------------
+
 ! Initialize random number generator - this has to be done after inputs are read in
 ! because both SEED and RANDOMIZE_RANDOM_SEED are user-specified
 CALL RANDOM_SEED(SIZE=M)
@@ -162,6 +168,8 @@ CALL SUNRISE_SUNSET_CALCS (LONGITUDE, LATITUDE, CURRENT_YEAR, HOUR_OF_YEAR)
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(2, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Build lookup tables for trigonometric arrays, wind adjustment factor, nonburnable mask, etc.
 CALL INIT_LOOKUP_TABLES
@@ -210,8 +218,10 @@ IF (.NOT. (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS)) THEN !
    IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Setting up shared memory, part 1'
    CALL SETUP_SHARED_MEMORY_1
 
-   CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
-   CALL ACCUMULATE_CPU_USAGE(4, IT1, IT2)
+CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
+CALL ACCUMULATE_CPU_USAGE(4, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
    IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading weather, fuel, and topography rasters'
 
@@ -223,9 +233,10 @@ IF (.NOT. (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS)) THEN !
 
    IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER_FUEL_TOPOGRAPHY
 
-   CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
-   CALL ACCUMULATE_CPU_USAGE(5, IT1, IT2)
-ENDIF ! End 12/10/25 conditional
+CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
+CALL ACCUMULATE_CPU_USAGE(5, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Determining number of cases to run'
 
@@ -252,33 +263,14 @@ IF (RANDOM_IGNITIONS .AND. MODE .NE. 2) THEN
    IF (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS) IWX_BAND_OFFSET = IGN_IWX_BAND_LO - 1
 ENDIF
 
-! Begin 12/10/25 addition
-IF (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS) THEN
-   IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Setting up shared memory, part 1'
-   CALL SETUP_SHARED_MEMORY_1
-
-   CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
-   CALL ACCUMULATE_CPU_USAGE(4, IT1, IT2)
-
-   IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading weather, fuel, and topography rasters'
-
-   IF (USE_TILED_IO) THEN
-      CALL READ_WEATHER_FUEL_TOPOGRAPHY_TILED
-   ELSE
-      CALL READ_WEATHER_FUEL_TOPOGRAPHY
-   ENDIF
-
-   CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
-   CALL ACCUMULATE_CPU_USAGE(5, IT1, IT2)
-
-   IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER_FUEL_TOPOGRAPHY
-ENDIF
-! End 12/10/25 addition
+!-----------------------------------------------------------------------------------------------------------------
 
 IF (ABS(GRID_DECLINATION) .GT. 0.1 .AND. IRANK_HOST .EQ. 0) THEN
    IF (ROTATE_ASP) CALL ROTATE_ASP_AND_WD(1)
    IF (ROTATE_WD ) CALL ROTATE_ASP_AND_WD(2)
 ENDIF
+
+!-----------------------------------------------------------------------------------------------------------------
 
 WHERE(FBFM%I2(:,:,1) .GT. 303) FBFM%I2(:,:,1) = 256
 WHERE(FBFM%I2(:,:,1) .LT.   0) FBFM%I2(:,:,1) =  99
@@ -299,10 +291,14 @@ ENDIF
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(6, IT1, IT2)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 ! Now that weather, fuel, topography are read in map fine inputs to coarse inputs
 ALLOCATE(ICOL_ANALYSIS_F2C(1:ANALYSIS_NCOLS))
 ALLOCATE(IROW_ANALYSIS_F2C(1:ANALYSIS_NROWS))
 CALL MAP_FINE_TO_COARSE(WS, ASP, ICOL_ANALYSIS_F2C, IROW_ANALYSIS_F2C)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Allocate additional rasters
 IF (MODE .EQ. 1 .OR. MODE .EQ. 3) THEN
@@ -330,6 +326,8 @@ IF (IRANK_HOST .EQ. 0) CALL INIT_RASTERS
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(7, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 !CALL ALLOCATE_IGNITION_ARRAYS
 ! 
@@ -413,20 +411,30 @@ CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(11, IT1, IT2)
 
 IF (MODE .NE. 1) THEN
-
+   IF (DEBUG_LEVEL .GE. 20) PRINT *, "Mode 2: Calculation started"
    CALL SYSTEM_CLOCK(IT1)
 
    R=>ASP
    CALL ALLOCATE_EMPTY_RASTER(FLAME_LENGTH_TO_DUMP, R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
    CALL ALLOCATE_EMPTY_RASTER(SPREAD_RATE_TO_DUMP , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
+   CALL ALLOCATE_EMPTY_RASTER(SPREAD_DIRECTION_TO_DUMP , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
    CALL ALLOCATE_EMPTY_RASTER(CROWN_FIRE_TO_DUMP  , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
    FLAME_LENGTH_TO_DUMP%R4(:,:,:) = FLAME_LENGTH_TO_DUMP%NODATA_VALUE
    SPREAD_RATE_TO_DUMP%R4(:,:,:)  = SPREAD_RATE_TO_DUMP%NODATA_VALUE
+   SPREAD_DIRECTION_TO_DUMP%R4(:,:,:)  = SPREAD_DIRECTION_TO_DUMP%NODATA_VALUE
    CROWN_FIRE_TO_DUMP%R4(:,:,:)  = CROWN_FIRE_TO_DUMP%NODATA_VALUE
 
    LIST_FIRE_POTENTIAL = NEW_DLL()
+   IF (DEBUG_LEVEL .GE. 20) PRINT *, "Mode 2: Output rasters allocated"
 
    DO IY = 1, ANALYSIS_NROWS
+      IF (DEBUG_LEVEL .GT. 20) THEN
+         WRITE(*,'(A)', advance='no') char(13)   ! carriage return
+            WRITE(*,'(A,I0,A,F5.1,A)', ADVANCE='NO')  &
+            "Mode 2: Total fire potential points: ", LIST_FIRE_POTENTIAL%NUM_NODES,  &
+            ". Progress: ", 100.0*IY/ANALYSIS_NROWS, "%."
+            CALL flush(6)
+      END IF
       IF (REAL(IY                    ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
       IF (REAL(ANALYSIS_NROWS+1 - IY ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
       DO IX = 1, ANALYSIS_NCOLS
@@ -436,6 +444,8 @@ IF (MODE .NE. 1) THEN
          CALL APPEND(LIST_FIRE_POTENTIAL, IX, IY, 0.)
       ENDDO
    ENDDO
+
+   IF (DEBUG_LEVEL .GE. 20) PRINT *, "Mode 2: Fire potential list compiled"
 
    I = -1
    DO IWX_BAND = METEOROLOGY_BAND_START, METEOROLOGY_BAND_STOP
@@ -451,6 +461,8 @@ IF (MODE .NE. 1) THEN
       WRITE(*,*) 'IWX_BAND: ', IWX_BAND
 
       C => LIST_FIRE_POTENTIAL%HEAD
+
+      IF (DEBUG_LEVEL .GE. 20) PRINT *, "TOTAL FIRE NODES: ", LIST_FIRE_POTENTIAL%NUM_NODES
       DO I = 1, LIST_FIRE_POTENTIAL%NUM_NODES
          IX               = C%IX
          IY               = C%IY
@@ -514,7 +526,14 @@ IF (MODE .NE. 1) THEN
             C%FLIN_SURFACE = TR(C%IFBFM) * C%IR * C%VELOCITY_DMS * 0.3048 ! kW/m
             IF (J .EQ. 2) THEN
                SPREAD_RATE_TO_DUMP%R4(IX,IY,1) = C%VELOCITY_DMS
-
+               if (PHIMAG .gt. 1.0e-20) then
+                  SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) = ATAN2(PHIX, PHIY) * 180.0 / ACOS(-1.0)
+                  if (SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) .lt. 0.0) then
+                     SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) = SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) + 360.0
+                  end if
+               else
+                  SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) = 0.0
+               end if
                CROWN_FIRE_TO_DUMP%R4(IX,IY,1) = REAL(C%CROWN_FIRE)
  
                IF (C%FLIN_SURFACE .GT. 0.) THEN
@@ -545,6 +564,15 @@ IF (MODE .NE. 1) THEN
             FN = 'head_fire_spread_rate_' // THREE_IWX_BAND
          ENDIF
          CALL WRITE_BIL_RASTER(SPREAD_RATE_TO_DUMP,OUTPUTS_DIRECTORY,FN,CONVERT_TO_GEOTIFF,.TRUE.,IWX_BAND)
+      ENDIF
+
+      IF (DUMP_SPREAD_DIRECTION) THEN
+         IF (USE_FOUR_DIGITS_IN_IWX_BAND) THEN
+            FN = 'head_fire_spread_direction_' // FOUR_IWX_BAND
+         ELSE
+            FN = 'head_fire_spread_direction_' // THREE_IWX_BAND
+         ENDIF
+         CALL WRITE_BIL_RASTER(SPREAD_DIRECTION_TO_DUMP,OUTPUTS_DIRECTORY,FN,CONVERT_TO_GEOTIFF,.TRUE.,IWX_BAND)
       ENDIF
 
       IF (DUMP_CROWN_FIRE) THEN
@@ -640,7 +668,7 @@ IF (MODE .NE. 2) THEN
 
       CALL ACCUMULATE_CPU_USAGE(14, IT1, IT2)
       
-      IF (ENABLE_SPOTTING) CALL SET_SPOTTING_PARAMETERS(COEFFS(:))
+      IF (ENABLE_SPOTTING .AND. STOCHASTIC_SPOTTING) CALL SET_SPOTTING_PARAMETERS(COEFFS(:))
 
       IF (NUM_PARAMETERS_MISC .GT. 0) CALL SET_MISC_PARAMETERS(COEFFS(:))
 
