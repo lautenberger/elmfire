@@ -212,26 +212,24 @@ ENDIF
 
 CALL ACCUMULATE_CPU_USAGE(3, IT1, IT2)
 
-IF (.NOT. (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS)) THEN ! Begin 12/10/25 conditional
-
 ! Rearranged code for randomized ignition, first read the ignition mask then determine the total ignition numbers
-   IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Setting up shared memory, part 1'
-   CALL SETUP_SHARED_MEMORY_1
+IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Setting up shared memory, part 1'
+CALL SETUP_SHARED_MEMORY_1
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(4, IT1, IT2)
 
 !-----------------------------------------------------------------------------------------------------------------
 
-   IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading weather, fuel, and topography rasters'
+IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading weather, fuel, and topography rasters'
 
-   IF (USE_TILED_IO) THEN
-      CALL READ_WEATHER_FUEL_TOPOGRAPHY_TILED
-   ELSE
-      CALL READ_WEATHER_FUEL_TOPOGRAPHY
-   ENDIF
+IF (USE_TILED_IO) THEN
+   CALL READ_WEATHER_FUEL_TOPOGRAPHY_TILED
+ELSE
+   CALL READ_WEATHER_FUEL_TOPOGRAPHY
+ENDIF
 
-   IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER_FUEL_TOPOGRAPHY
+IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER_FUEL_TOPOGRAPHY
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(5, IT1, IT2)
