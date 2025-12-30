@@ -400,6 +400,10 @@ TYPE NODE
    REAL    :: ABSOLUTE_U            = 0.
    REAL    :: TOTAL_DFC_RECEIVED    = 0.
    REAL    :: TOTAL_RAD_RECEIVED    = 0.
+   ! BLDG_SPREAD_MODEL_TYPE = 3 fields:
+   REAL    :: ACCUMULATED_HEAT      = 0.   ! Total heat received from neighbors [kJ/m²]
+   REAL    :: T_BLDG_IGNITION       = -1.  ! Time when building ignition threshold reached [s]
+   LOGICAL :: BLDG_IGNITED          = .FALSE. ! Has building ignited?
 #endif
 
 #ifdef _UMDSPOTTING

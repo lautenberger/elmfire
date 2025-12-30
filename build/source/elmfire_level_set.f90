@@ -732,6 +732,16 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          C%TIME_OF_ARRIVAL      = T
          SURFACE_FIRE   (IX,IY) = 1
          TIME_OF_ARRIVAL(IX,IY) = T
+         
+#ifdef _WUI
+         ! For model type 3: mark urban cells as ignited when they burn
+         IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 3) THEN
+            IF (C%IFBFM .EQ. 91 .AND. .NOT. C%BLDG_IGNITED) THEN
+               C%BLDG_IGNITED = .TRUE.
+               C%T_BLDG_IGNITION = T
+            ENDIF
+         ENDIF
+#endif
          IF (C%CROWN_FIRE .LT. 0) C%CROWN_FIRE = 0
          
 ! Note that per Thomas (1963) and Rothermel (1991), crown fire flame length is Lf=0.2*I^2/3
@@ -773,7 +783,13 @@ DO WHILE (T .LE. TSTOP .OR. IDUMPCOUNT .LE. NDUMPS)
          LIST_BURNED%TAIL%WD20_NOW               = C%WD20_NOW
 
 #ifdef _WUI
-         IF (USE_BLDG_SPREAD_MODEL) LIST_BURNED%TAIL%IBLDGFM = C%IBLDGFM 
+         IF (USE_BLDG_SPREAD_MODEL) THEN
+            LIST_BURNED%TAIL%IBLDGFM = C%IBLDGFM
+            ! For model type 3, accumulate heat to adjacent urban cells
+            IF (BLDG_SPREAD_MODEL_TYPE .EQ. 3) THEN
+               CALL BLDG_ACCUMULATE_HEAT_FROM_NEIGHBORS(LIST_BURNED%TAIL, LIST_TAGGED, SIMULATION_DT)
+            ENDIF
+         ENDIF
 #endif
 
 #ifdef _UMDSPOTTING
@@ -1852,10 +1868,13 @@ IF (ISTEP .EQ. 1) THEN
             C%VBACK = BOH * C%VELOCITY_DMS
 #ifdef _WUI
             IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 91) THEN
-               CONTINUE
                IF (BLDG_SPREAD_MODEL_TYPE .EQ. 1) CALL HAMADA(C) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
                IF (BLDG_SPREAD_MODEL_TYPE .EQ. 2) CALL UMD_UCB_BLDG_SPREAD(C, LB, T_ELMFIRE, DYNAMIC_ARRAY) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
-               CONTINUE
+               IF (BLDG_SPREAD_MODEL_TYPE .EQ. 3) THEN
+                  ! Check ignition for unburned cells, then compute spread
+                  IF (.NOT. C%BLDG_IGNITED) CALL BLDG_CHECK_IGNITION(C, T_ELMFIRE)
+                  CALL BLDG_SPREAD_MODEL_3(C, T_ELMFIRE) ! GET C%VELOCITY_DMS, C%VBACK & C%LOW
+               ENDIF
             ENDIF
 #endif
 
@@ -1970,13 +1989,12 @@ ELSE !ISTEP .EQ. 2
 #ifdef _WUI                  
          IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2 .AND. C%IFBFM .EQ. 91) THEN
             C%FLIN_SURFACE = C%HRR_TRANSIENT*ANALYSIS_CELLSIZE ! kW/m
-            ! C%FLIN_SURFACE = 0.0 ! kW/m
          ENDIF
          IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 1 .AND. C%IFBFM .EQ. 91) THEN
-            ! C%FLIN_SURFACE = 4000.0 ! kW/m
             CALL HRR_TRANSIENT(C, T_ELMFIRE)
             C%FLIN_SURFACE = C%HRR_TRANSIENT*ANALYSIS_CELLSIZE ! kW/m
          ENDIF
+         ! Model type 3: FLIN_SURFACE is already set in BLDG_SPREAD_MODEL_3
 #endif
 
       ! ELSE
