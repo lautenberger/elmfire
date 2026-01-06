@@ -110,7 +110,6 @@ IF (FIRSTCALL) THEN
       Y(IY) = Y(IY-1) + ANALYSIS_CELLSIZE
    ENDDO
 
-
    ALLOCATE(TIME_OF_ARRIVAL (1:NX,1:NY)); TIME_OF_ARRIVAL(:,:) = -1.
    ALLOCATE(TAGGED          (1:NX,1:NY)); TAGGED(:,:) = .FALSE.
    ALLOCATE(PHIP            (1:NX,1:NY)); PHIP(:,:) = 1
@@ -167,7 +166,8 @@ IF (FIRSTCALL) THEN
 
 ENDIF !FIRSTCALL
 
-T = 0.
+! Determine when to dump:
+   T = 0.
    IDUMPCOUNT = 0
    DUMPTIMES(:) = 9E9
    DUMPTIMES(0) = 0.
