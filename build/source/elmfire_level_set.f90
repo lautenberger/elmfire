@@ -110,17 +110,6 @@ IF (FIRSTCALL) THEN
       Y(IY) = Y(IY-1) + ANALYSIS_CELLSIZE
    ENDDO
 
-! Determine when to dump:
-   T = 0.
-   IDUMPCOUNT = 0
-   DUMPTIMES(:) = 9E9
-   DUMPTIMES(0) = 0.
-   DO WHILE (T .LE. TSTOP)
-      T                     = T + DTDUMP
-      IDUMPCOUNT            = IDUMPCOUNT + 1
-      DUMPTIMES(IDUMPCOUNT) = T
-   ENDDO
-   NDUMPS = IDUMPCOUNT
 
    ALLOCATE(TIME_OF_ARRIVAL (1:NX,1:NY)); TIME_OF_ARRIVAL(:,:) = -1.
    ALLOCATE(TAGGED          (1:NX,1:NY)); TAGGED(:,:) = .FALSE.
@@ -177,6 +166,18 @@ IF (FIRSTCALL) THEN
    ENDIF
 
 ENDIF !FIRSTCALL
+
+! Determine when to dump:
+T = 0.
+IDUMPCOUNT = 0
+DUMPTIMES(:) = 9E9
+DUMPTIMES(0) = 0.
+DO WHILE (T .LE. TSTOP)
+   T                     = T + DTDUMP
+   IDUMPCOUNT            = IDUMPCOUNT + 1
+   DUMPTIMES(IDUMPCOUNT) = T
+ENDDO
+NDUMPS = IDUMPCOUNT
 
 CALL ACCUMULATE_CPU_USAGE(30, IT1, IT2)
 
