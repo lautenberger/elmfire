@@ -4,12 +4,6 @@ Verification
 ============
 
 ASTM E1355 *Standard Guide for Evaluating the Predictive Capability of 
-Deterministic Fire Models* (2018) defines *model validation* as "the 
-process of determining the degree to which a calculation method is an 
-accurate representation of the real-world from the perspective of the 
-intended uses of the calculation method."
-
-ASTM E1355 *Standard Guide for Evaluating the Predictive Capability of 
 Deterministic Fire Models* (2018) defines *model verification* as "the 
 process of determining that the implementation of a calculation method 
 accurately represents the developer's conceptual description of the 
