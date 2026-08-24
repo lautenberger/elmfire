@@ -1,13 +1,6 @@
 &INPUTS
 FUELS_AND_TOPOGRAPHY_DIRECTORY = './inputs'
-ASP_FILENAME                   = 'asp'
-CBD_FILENAME                   = 'cbd'
-CBH_FILENAME                   = 'cbh'
-CC_FILENAME                    = 'cc'
-CH_FILENAME                    = 'ch'
-DEM_FILENAME                   = 'dem'
-FBFM_FILENAME                  = 'fbfm40'
-SLP_FILENAME                   = 'slp'
+LANDSCAPE_FILENAME             = 'landscape'
 ADJ_FILENAME                   = 'adj'
 PHI_FILENAME                   = 'new_phi'
 DT_METEOROLOGY                 = 3600.0
@@ -31,13 +24,6 @@ CONVERT_TO_GEOTIFF   = .FALSE.
 DUMP_SPOTTING_OUTPUTS= .TRUE.
 /
 
-&COMPUTATIONAL_DOMAIN
-A_SRS = 'EPSG: 32610'
-COMPUTATIONAL_DOMAIN_CELLSIZE = 30
-COMPUTATIONAL_DOMAIN_XLLCORNER = -6000.00
-COMPUTATIONAL_DOMAIN_YLLCORNER = -6000.00
-/
-
 &TIME_CONTROL
 SIMULATION_DT    = 30.0
 SIMULATION_TSTOP = 21600.0
@@ -56,18 +42,20 @@ PIGN                                      = 100.0 !Percent
 PIGN_MAX                                  = 100.0
 PIGN_MIN                                  = 100.0
 TAU_EMBERGEN                              = 10.0
-USE_UMD_SPOTTING_MODEL                    = .TRUE.
+USE_SUPERSEDED_SPOTTING                   = .FALSE.
 P_EPS                                     = 0.001 
 USE_PHYSICAL_SPOTTING_DURATION            = .FALSE.
-USE_PHYSICAL_EMBER_NUMBER                 = .FALSE.
+GENERATION_MODEL                          = 'RANDOM' 
+SPOTTING_DISTANCE_MODEL                   = 'UNIFORM' 
+ACCUMULATION_MODEL                        = 'LAGRANGIAN' 
+IGNITION_MODEL                            = 'DIRECT' 
 EMBER_SAMPLING_FACTOR                     = 50.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MAX  = 100.0
 GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MIN  = 100.0
-USE_SUPERSEDED_SPOTTING                   = .FALSE.
 /
 
 &MISCELLANEOUS
-PATH_TO_GDAL                   = '/usr/bin'
+PATH_TO_GDAL                   = 'auto'
 SCRATCH                        = './scratch'
 /
-PATH_TO_GDAL                   = '/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin'
+PATH_TO_GDAL                   = 'auto'

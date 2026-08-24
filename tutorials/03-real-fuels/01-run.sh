@@ -12,9 +12,10 @@ WX_INPUTS_FILE=wx.csv
 
 # End specifing inputs - no need to edit from here down
 
-ELMFIRE_VER=${ELMFIRE_VER:-2025.1002}
-
+# ELMFIRE_VER defaults to the repo-root VERSION file (resolved by
+# set_elmfire_version below); export ELMFIRE_VER to override.
 . ../functions/functions.sh
+set_elmfire_version
 
 SCRATCH=./scratch
 INPUTS=./inputs
@@ -27,14 +28,17 @@ cp elmfire.data.in $INPUTS/elmfire.data
 tar -xvf ./fuel/tutorial03.tar -C $INPUTS
 rm -f $INPUTS/m*.tif $INPUTS/w*.tif $INPUTS/l*.tif $INPUTS/ignition*.tif $INPUTS/forecast_cycle.txt
 
-XMIN=`gdalinfo $INPUTS/fbfm40.tif | grep 'Lower Left'  | cut -d'(' -f2 | cut -d, -f1 | xargs`
-YMIN=`gdalinfo $INPUTS/fbfm40.tif | grep 'Lower Left'  | cut -d'(' -f2 | cut -d, -f2 | cut -d')' -f1 | xargs`
-XMAX=`gdalinfo $INPUTS/fbfm40.tif | grep 'Upper Right' | cut -d'(' -f2 | cut -d, -f1 | xargs`
-YMAX=`gdalinfo $INPUTS/fbfm40.tif | grep 'Upper Right' | cut -d'(' -f2 | cut -d, -f2 | cut -d')' -f1 | xargs`
+# Combine the topography/fuel layers into a single multiband landscape file
+create_landscape $INPUTS fbfm40
+
+XMIN=`gdalinfo $INPUTS/landscape.tif | grep 'Lower Left'  | cut -d'(' -f2 | cut -d, -f1 | xargs`
+YMIN=`gdalinfo $INPUTS/landscape.tif | grep 'Lower Left'  | cut -d'(' -f2 | cut -d, -f2 | cut -d')' -f1 | xargs`
+XMAX=`gdalinfo $INPUTS/landscape.tif | grep 'Upper Right' | cut -d'(' -f2 | cut -d, -f1 | xargs`
+YMAX=`gdalinfo $INPUTS/landscape.tif | grep 'Upper Right' | cut -d'(' -f2 | cut -d, -f2 | cut -d')' -f1 | xargs`
 XCEN=`echo "0.5*($XMIN + $XMAX)" | bc`
 YCEN=`echo "0.5*($YMIN + $YMAX)" | bc`
-A_SRS=`gdalsrsinfo $INPUTS/fbfm40.tif | grep PROJ.4 | cut -d: -f2 | xargs` # Spatial reference system
-CELLSIZE=`gdalinfo $INPUTS/fbfm40.tif | grep 'Pixel Size' | cut -d'(' -f2 | cut -d, -f1` # Grid size in meters
+A_SRS=`gdalsrsinfo $INPUTS/landscape.tif | grep PROJ.4 | cut -d: -f2 | xargs` # Spatial reference system
+CELLSIZE=`gdalinfo $INPUTS/landscape.tif | grep 'Pixel Size' | cut -d'(' -f2 | cut -d, -f1` # Grid size in meters
 #TR="$CELLSIZE $CELLSIZE"
 #TE="$XMIN $YMIN $XMAX $YMAX"
 
@@ -63,12 +67,8 @@ for QUANTITY in $COLS; do
 done
 
 # Set inputs in elmfire.data
-replace_line COMPUTATIONAL_DOMAIN_XLLCORNER $XMIN no
-replace_line COMPUTATIONAL_DOMAIN_YLLCORNER $YMIN no
-replace_line COMPUTATIONAL_DOMAIN_CELLSIZE $CELLSIZE no
 replace_line SIMULATION_TSTOP $SIMULATION_TSTOP no
 replace_line DTDUMP $SIMULATION_TSTOP no
-replace_line A_SRS "$A_SRS" yes
 replace_line 'X_IGN(1)' $XCEN no
 replace_line 'Y_IGN(1)' $YCEN no
 

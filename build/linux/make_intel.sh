@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# ELMFIRE version:
-ELMFIRE_VER=2025.1002
+# ELMFIRE version: the repo-root VERSION file is the single source of truth.
+# Override at build time by exporting ELMFIRE_VER. The compiled-in banner
+# (VERSIONSTRING in ../source/elmfire.f90) is kept in sync below.
+ELMFIRE_VER=${ELMFIRE_VER:-$(tr -d '[:space:]' < ../../VERSION)}
+sed -i "s/VERSIONSTRING='ELMFIRE [^']*'/VERSIONSTRING='ELMFIRE $ELMFIRE_VER'/" ../source/elmfire.f90
 
 # ELMFIRE uses several environment variables for compilation. If the default
 # values specified on lines 14 - 16 below are not appropriate for your system,

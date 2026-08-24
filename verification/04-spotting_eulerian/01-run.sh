@@ -6,7 +6,9 @@ CELLSIZE=30.0 # Grid size in meters
 
 # End inputs specification
 
-ELMFIRE_VER=${ELMFIRE_VER:-2023.1015}
+# ELMFIRE_VER defaults to the repo-root VERSION file; export ELMFIRE_VER to override.
+. ../../tutorials/functions/functions.sh
+set_elmfire_version
 
 SCRATCH=./scratch
 INPUTS=./inputs
@@ -20,6 +22,9 @@ cp $ELMFIRE_BASE_DIR/build/source/fuel_models.csv $MISC
 
 echo $CELLSIZE | python3 input_generator.py
 cp elmfire.data.in $INPUTS/elmfire.data
+
+# Combine the topography/fuel layers into a single multiband landscape file
+create_landscape $INPUTS fbfm40
 cp $ELMFIRE_BASE_DIR/build/source/fuel_models.csv $MISC
 cp $ELMFIRE_BASE_DIR/build/source/building_fuel_models.csv $MISC
 A_SRS="EPSG: 32610" # Spatial reference system - UTM Zone 10

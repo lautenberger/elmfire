@@ -9,9 +9,10 @@ $ELMFIRE_BASE_DIR/cloudfire/fuel_wx_ign.py \
 
 WX_INPUTS_FILE=wx.csv
 
-ELMFIRE_VER=${ELMFIRE_VER:-2025.1002}
-
+# ELMFIRE_VER defaults to the repo-root VERSION file (resolved by
+# set_elmfire_version below); export ELMFIRE_VER to override.
 . ../functions/functions.sh
+set_elmfire_version
 
 SCRATCH=./scratch
 INPUTS=./inputs
@@ -24,10 +25,13 @@ cp elmfire.data.in $INPUTS/elmfire.data
 tar -xvf ./fuel/tutorial04.tar -C $INPUTS
 rm -f $INPUTS/m*.tif $INPUTS/w*.tif $INPUTS/l*.tif $INPUTS/ignition*.tif $INPUTS/forecast_cycle.txt
 
-XMIN=`gdalinfo $INPUTS/fbfm40.tif | grep 'Lower Left'  | cut -d'(' -f2 | cut -d, -f1 | xargs`
-YMIN=`gdalinfo $INPUTS/fbfm40.tif | grep 'Lower Left'  | cut -d'(' -f2 | cut -d, -f2 | cut -d')' -f1 | xargs`
-A_SRS=`gdalsrsinfo $INPUTS/fbfm40.tif | grep PROJ.4 | cut -d: -f2 | xargs` # Spatial reference system
-CELLSIZE=`gdalinfo $INPUTS/fbfm40.tif | grep 'Pixel Size' | cut -d'(' -f2 | cut -d, -f1` # Grid size in meters
+# Combine the topography/fuel layers into a single multiband landscape file
+create_landscape $INPUTS fbfm40
+
+XMIN=`gdalinfo $INPUTS/landscape.tif | grep 'Lower Left'  | cut -d'(' -f2 | cut -d, -f1 | xargs`
+YMIN=`gdalinfo $INPUTS/landscape.tif | grep 'Lower Left'  | cut -d'(' -f2 | cut -d, -f2 | cut -d')' -f1 | xargs`
+A_SRS=`gdalsrsinfo $INPUTS/landscape.tif | grep PROJ.4 | cut -d: -f2 | xargs` # Spatial reference system
+CELLSIZE=`gdalinfo $INPUTS/landscape.tif | grep 'Pixel Size' | cut -d'(' -f2 | cut -d, -f1` # Grid size in meters
 
 gdalwarp -multi -dstnodata -9999 -tr 300 300 $INPUTS/adj.tif $SCRATCH/dummy.tif
 gdal_calc.py -A $SCRATCH/dummy.tif --NoDataValue=-9999 --type=Float32 --outfile="$SCRATCH/float.tif" --calc="A*0.0"
@@ -52,12 +56,6 @@ for QUANTITY in $COLS; do
    wait
    gdal_merge.py -separate -n -9999 -init -9999 -a_nodata -9999 -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" -o $INPUTS/$QUANTITY.tif $FNLIST
 done
-
-# Set inputs in elmfire.data
-replace_line COMPUTATIONAL_DOMAIN_XLLCORNER $XMIN no
-replace_line COMPUTATIONAL_DOMAIN_YLLCORNER $YMIN no
-replace_line COMPUTATIONAL_DOMAIN_CELLSIZE $CELLSIZE no
-replace_line A_SRS "$A_SRS" yes
 
 # Execute ELMFIRE
 elmfire_$ELMFIRE_VER ./inputs/elmfire.data

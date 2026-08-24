@@ -1,6 +1,13 @@
 ! *****************************************************************************
 PROGRAM ELMFIRE
 ! *****************************************************************************
+! Main driver for the ELMFIRE wildfire spread model. Initializes MPI and shared
+! memory, reads namelists, fuel/topography and weather rasters, sets up random or
+! CSV-specified ignitions, then distributes Monte Carlo cases across ranks. For each
+! case it runs level-set fire propagation (with optional spotting/suppression) and
+! accumulates outputs (times-burned, flame-length and ember statistics) on rank 0.
+! MODE 2 instead computes and dumps per-weather-band head-fire potential rasters.
+! Finishes by postprocessing and shutting down.
 
 USE ELMFIRE_CALIBRATION
 USE ELMFIRE_IGNITION
@@ -16,31 +23,43 @@ USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_PTR, C_F_POINTER
 
 IMPLICIT NONE
 
-INTEGER :: COLOR, I, IASP, IBAND, IBIN, ICASE, ICASE_RECV, ICOL, IDEST=0, IERR=0, IOS, &
-           IRANK_TO_RUN_METEOROLOGY_BAND(0:10000)=-1,  IWX_BAND, IWX_BAND_LAST=-9999, &
-           IRANK_FROM, IROW, J, IT1, IT2, IX, IY, IWD20_TIMES10, M, N, &
-           NTIMESTEPS, TOTALCASESRUN
+INTEGER :: COLOR, I, IASP, IBAND, IBIN, ICASE, ICASE_RECV, ICOL, IERR=0, IOS, &
+           IRANK_TO_RUN_METEOROLOGY_BAND(0:10000)=-1,  IWX_BAND, &
+           IRANK_FROM, IROW, IT1, IT2, IX, IY, IWD20_TIMES10, M, N, &
+           NTIMESTEPS, TOTALCASESRUN, IWX_MEM_BAND, DONE_CASES, DONE_CASES_LOCAL, &
+           DONE_CASES_PREV, IENS, N_ENS_MODE2, J, LU_COEFF, IWORK
+
+! Mode 2 Monte Carlo coefficient log (per weather band x ensemble member):
+REAL, ALLOCATABLE, DIMENSION(:,:,:) :: COEFFS_MODE2, COEFFS_MODE2_GLOBAL
+CHARACTER(2000) :: COEFF_HEADER
 
 INTEGER, ALLOCATABLE, DIMENSION(:) :: K
 
-LOGICAL :: GOOD_INPUTS
+LOGICAL :: GOOD_INPUTS, IS_VIRTUAL_RUN
 
 REAL :: APHIW, COSASPMPI, PHIMAG, PHIWX, PHIWY, PHIX, PHIY, SINASPMPI
 
 CHARACTER(3) :: THREE_IWX_BAND
 CHARACTER(4) :: FOUR_IWX_BAND
-CHARACTER(60) :: VERSIONSTRING='ELMFIRE 2025.1002'
+CHARACTER(7) :: SEVEN_IENS
+CHARACTER(20) :: ENS_TAG
+! VERSIONSTRING is kept in sync with the repo-root VERSION file by the build
+! scripts (make_gnu.sh / make_intel.sh); edit VERSION, not this literal.
+CHARACTER(60) :: VERSIONSTRING='ELMFIRE 1.1'
 CHARACTER(400) :: FN, MESSAGESTR
 
 TYPE (RASTER_TYPE), POINTER :: R
 
-TYPE(RASTER_TYPE) SPREAD_RATE_TO_DUMP, FLAME_LENGTH_TO_DUMP, CROWN_FIRE_TO_DUMP
+TYPE(RASTER_TYPE) SPREAD_RATE_TO_DUMP, SPREAD_DIRECTION_TO_DUMP, FLAME_LENGTH_TO_DUMP, CROWN_FIRE_TO_DUMP, FLIN_TO_DUMP, &
+                  CRITICAL_FLIN_TO_DUMP, DEBUG_CFFDRS_TO_DUMP, REACTION_INTENSITY_TO_DUMP
 TYPE(DLL) :: LIST_FIRE_POTENTIAL
 TYPE(NODE), POINTER :: C, DUMMY_NODE => NULL()
 
 #ifdef _SUPPRESSION
 ALLOCATE (SUPP (0:1000))
 #endif
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Initialize system clock for later use in profiling sections of code
 CALL SYSTEM_CLOCK(COUNT_RATE=CLOCK_COUNT_RATE)
@@ -98,6 +117,8 @@ IF (IRANK_HOST .EQ. 0) TIMINGS(:,:) = 0.
 ! Print version number:
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) TRIM(VERSIONSTRING)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 !Get input file name:
 CALL GET_COMMAND_ARGUMENT(1,NAMELIST_FN)
 IF (NAMELIST_FN(1:1)==' ') THEN
@@ -118,7 +139,6 @@ ENDIF
 CALL READ_MISC
 REWIND(LUINPUT); CALL READ_INPUTS
 REWIND(LUINPUT); CALL READ_OUTPUTS
-REWIND(LUINPUT); CALL READ_COMPUTATIONAL_DOMAIN
 REWIND(LUINPUT); CALL READ_TIME_CONTROL
 REWIND(LUINPUT); CALL READ_SIMULATOR
 REWIND(LUINPUT); CALL READ_WUI
@@ -128,23 +148,43 @@ REWIND(LUINPUT); CALL READ_SPOTTING
 REWIND(LUINPUT); CALL READ_SMOKE
 REWIND(LUINPUT); CALL READ_MONTE_CARLO ; NUM_ENSEMBLE_MEMBERS0 = NUM_ENSEMBLE_MEMBERS
 CLOSE(LUINPUT)
-IF (IRANK_WORLD .EQ. 0) CALL WRITE_FUEL_MODEL_TABLE
+
+!check selected surface spread model is valid
+GOOD_INPUTS = any(VALID_SURFACE_MODELS .eq. trim(SURFACE_SPREAD_MODEL))
+if (.not. GOOD_INPUTS) then 
+   print *, "ERROR: SURFACE_SPREAD_MODEL specified (", trim(SURFACE_SPREAD_MODEL), ") not a valid selection."
+   print *, "  Valid selections:"
+   do i = 1, size(VALID_SURFACE_MODELS)
+      print *, "     ", trim(VALID_SURFACE_MODELS(i)) 
+   enddo
+   CALL SHUTDOWN()
+endif
+
+CALL WRITE_FUEL_MODEL_TABLE
+CALL read_geotiff_meta_gdalinfo()
 IF (TRIM(FUEL_MODEL_FILE) .EQ. 'null') FUEL_MODEL_FILE='fuel_models.csv'
 IF (TRIM(MISCELLANEOUS_INPUTS_DIRECTORY) .EQ. 'null' // PATH_SEPARATOR) MISCELLANEOUS_INPUTS_DIRECTORY=TRIM(FUELS_AND_TOPOGRAPHY_DIRECTORY) // PATH_SEPARATOR
 IF (TRIM(MISCELLANEOUS_INPUTS_DIRECTORY) .EQ. 'null'                  ) MISCELLANEOUS_INPUTS_DIRECTORY=TRIM(FUELS_AND_TOPOGRAPHY_DIRECTORY) // PATH_SEPARATOR
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL READ_FUEL_MODEL_TABLE
 
+if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+   CALL READ_WEATHER
+   DC_prev = START_DC
+   DMC_prev = START_DMC
+   daily_bui(1) = 0.8*START_DMC*START_DC/(START_DMC+0.4*START_DC)
+   DO I = 2 , size(daily_bui)
+      daily_bui(I) = BUI(I-1, MOD( weather_day(I-1) / 100, 100 ))
+   enddo
+endif 
+
 #ifdef _WUI
-IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .NE. 1) CALL READ_BUILDING_FUEL_MODEL_TABLE
+IF (USE_BLDG_SPREAD_MODEL) CALL READ_BUILDING_FUEL_MODEL_TABLE
 #endif
 
 CALL READ_CALIBRATION_BY_PYROME
 
-IF (IRANK_WORLD .EQ. 0) THEN
-   CALL CHECK_INPUTS(GOOD_INPUTS)
-   IF (.NOT. GOOD_INPUTS) CALL SHUTDOWN()
-ENDIF
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Initialize random number generator - this has to be done after inputs are read in
 ! because both SEED and RANDOMIZE_RANDOM_SEED are user-specified
@@ -158,10 +198,13 @@ ELSE
 ENDIF
 CALL RANDOM_SEED(PUT=K(1:M))
 
-CALL SUNRISE_SUNSET_CALCS (LONGITUDE, LATITUDE, CURRENT_YEAR, HOUR_OF_YEAR)
+! Only need to calculate sunrise and sunset hours if the user has not set them manually
+if (SUNRISE_HOUR .lt. 0 .or. SUNSET_HOUR .lt. 0) CALL SUNRISE_SUNSET_CALCS
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(2, IT1, IT2)
+
+!-----------------------------------------------------------------------------------------------------------------
 
 ! Build lookup tables for trigonometric arrays, wind adjustment factor, nonburnable mask, etc.
 CALL INIT_LOOKUP_TABLES
@@ -170,6 +213,8 @@ CALL SETUP_PARALLEL_IO
 
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading headers for fuels/topography and weather rasters'
 
+! Check that necessary files have been defined before attempting to read them. 
+CALL CHECK_INPUT_FILEPATHS_SET
 IF (USE_TILED_IO) THEN
    IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(1)) THEN
       FN = TRIM(FUELS_AND_TOPOGRAPHY_DIRECTORY) // TRIM(ASP_FILENAME)
@@ -181,10 +226,21 @@ IF (USE_TILED_IO) THEN
    ENDIF
 ELSE
    IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(1)) THEN
-      IF (USE_BSQ_XML_HEADER) THEN
-         CALL READ_BSQ_XML_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, ASP_FILENAME, .FALSE.)
+   ! The reference analysis grid is taken from the aspect raster's header. In
+   ! landscape-file mode the individual aspect file does not exist, so read the
+   ! header from the (same-grid) landscape file instead.
+      IF (USE_LANDSCAPE_FILE) THEN
+         IF (USE_BSQ_XML_HEADER) THEN
+            CALL READ_BSQ_XML_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, LANDSCAPE_FILENAME, .FALSE.)
+         ELSE
+            CALL READ_BSQ_HDR_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, LANDSCAPE_FILENAME, .FALSE.)
+         ENDIF
       ELSE
-         CALL READ_BSQ_HDR_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, ASP_FILENAME, .FALSE.)
+         IF (USE_BSQ_XML_HEADER) THEN
+            CALL READ_BSQ_XML_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, ASP_FILENAME, .FALSE.)
+         ELSE
+            CALL READ_BSQ_HDR_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, ASP_FILENAME, .FALSE.)
+         ENDIF
       ENDIF
    ENDIF
 
@@ -204,31 +260,46 @@ ENDIF
 
 CALL ACCUMULATE_CPU_USAGE(3, IT1, IT2)
 
-IF (.NOT. (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS)) THEN ! Begin 12/10/25 conditional
-
 ! Rearranged code for randomized ignition, first read the ignition mask then determine the total ignition numbers
-   IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Setting up shared memory, part 1'
-   CALL SETUP_SHARED_MEMORY_1
+IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Setting up shared memory, part 1'
+CALL SETUP_SHARED_MEMORY_1
 
-   CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
-   CALL ACCUMULATE_CPU_USAGE(4, IT1, IT2)
+CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
+CALL ACCUMULATE_CPU_USAGE(4, IT1, IT2)
 
-   IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading weather, fuel, and topography rasters'
+!-----------------------------------------------------------------------------------------------------------------
 
-   IF (USE_TILED_IO) THEN
-      CALL READ_WEATHER_FUEL_TOPOGRAPHY_TILED
-   ELSE
-      CALL READ_WEATHER_FUEL_TOPOGRAPHY
-   ENDIF
+IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading weather, fuel, and topography rasters'
 
-   IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER_FUEL_TOPOGRAPHY
+IF (METEOROLOGY_BAND_STOP .le. 0) METEOROLOGY_BAND_STOP = WS%NBANDS
+IF (NUM_METEOROLOGY_TIMES .le. 0) NUM_METEOROLOGY_TIMES = WS%NBANDS
+
+IF (USE_TILED_IO) THEN
+   CALL READ_FUEL_TOPOGRAPHY_TILED
+ELSE
+   CALL READ_FUEL_TOPOGRAPHY
+ENDIF
+CALL UPDATE_WEATHER_SLICE(1,min(METEOROLOGY_BAND_STOP,WX_BANDS_KEPT_IN_MEM))
+
+IF (MULTIPLE_HOSTS) THEN
+   IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Broadcasting weather, fuel, and topography rasters' 
+   CALL BCAST_FUEL_TOPOGRAPHY
+   CALL BCAST_WEATHER
+ENDIF
 
    CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
    CALL ACCUMULATE_CPU_USAGE(5, IT1, IT2)
-ENDIF ! End 12/10/25 conditional
+
+IF (IRANK_WORLD .EQ. 0) THEN
+   CALL CHECK_INPUTS(GOOD_INPUTS)
+   IF (.NOT. GOOD_INPUTS) CALL SHUTDOWN()
+ENDIF
+
+!-----------------------------------------------------------------------------------------------------------------
 
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Determining number of cases to run'
 
+CALL LINE_IGN_TO_POINT_IGN
 CALL ALLOCATE_IGNITION_ARRAYS
 
 IF (RANDOM_IGNITIONS .AND. MODE .NE. 2) THEN
@@ -239,6 +310,7 @@ IF (RANDOM_IGNITIONS .AND. MODE .NE. 2) THEN
       ELSE
          CALL DETERMINE_NUM_CASES_TOTAL
       ENDIF
+      WRITE(*,*) 'NUM_CASES_TOTAL: ', NUM_CASES_TOTAL
    ENDIF
    IF (NPROC .GT. 1) THEN
       CALL MPI_BCAST(NUM_CASES_TOTAL,       1 , MPI_INTEGER, 0, MPI_COMM_WORLD, IERR)
@@ -252,36 +324,12 @@ IF (RANDOM_IGNITIONS .AND. MODE .NE. 2) THEN
    IF (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS) IWX_BAND_OFFSET = IGN_IWX_BAND_LO - 1
 ENDIF
 
-! Begin 12/10/25 addition
-IF (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS) THEN
-   IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Setting up shared memory, part 1'
-   CALL SETUP_SHARED_MEMORY_1
+!-----------------------------------------------------------------------------------------------------------------
 
-   CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
-   CALL ACCUMULATE_CPU_USAGE(4, IT1, IT2)
-
-   IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Reading weather, fuel, and topography rasters'
-
-   IF (USE_TILED_IO) THEN
-      CALL READ_WEATHER_FUEL_TOPOGRAPHY_TILED
-   ELSE
-      CALL READ_WEATHER_FUEL_TOPOGRAPHY
-   ENDIF
-
-   CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
-   CALL ACCUMULATE_CPU_USAGE(5, IT1, IT2)
-
-   IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER_FUEL_TOPOGRAPHY
+if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") THEN
+   WHERE(FBFM%I2(:,:,1) .GT. 303) FBFM%I2(:,:,1) = 256
+   WHERE(FBFM%I2(:,:,1) .LT.   0) FBFM%I2(:,:,1) =  99
 ENDIF
-! End 12/10/25 addition
-
-IF (ABS(GRID_DECLINATION) .GT. 0.1 .AND. IRANK_HOST .EQ. 0) THEN
-   IF (ROTATE_ASP) CALL ROTATE_ASP_AND_WD(1)
-   IF (ROTATE_WD ) CALL ROTATE_ASP_AND_WD(2)
-ENDIF
-
-WHERE(FBFM%I2(:,:,1) .GT. 303) FBFM%I2(:,:,1) = 256
-WHERE(FBFM%I2(:,:,1) .LT.   0) FBFM%I2(:,:,1) =  99
 
 IF (USE_PYROMES .AND. ADJUSTMENT_FACTORS_BY_PYROME) THEN
    DO IY = 1, FBFM%NROWS
@@ -299,31 +347,36 @@ ENDIF
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(6, IT1, IT2)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 ! Now that weather, fuel, topography are read in map fine inputs to coarse inputs
 ALLOCATE(ICOL_ANALYSIS_F2C(1:ANALYSIS_NCOLS))
 ALLOCATE(IROW_ANALYSIS_F2C(1:ANALYSIS_NROWS))
 CALL MAP_FINE_TO_COARSE(WS, ASP, ICOL_ANALYSIS_F2C, IROW_ANALYSIS_F2C)
 
+!-----------------------------------------------------------------------------------------------------------------
+
 ! Allocate additional rasters
 IF (MODE .EQ. 1 .OR. MODE .EQ. 3) THEN
    IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Allocating additional rasters'
    R=>ASP
-   IF (DUMP_EMBER_FLUX) THEN
-      CALL ALLOCATE_EMPTY_RASTER(EMBER_FLUX, R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, 0., 'FLOAT     ')
-   ENDIF
-
-   IF (ENABLE_SPOTTING .AND. USE_UMD_SPOTTING_MODEL .AND. USE_EULERIAN_SPOTTING) THEN
-      IF (BUILD_EMBER_FLUX_TABLE) THEN
-         EMBER_FLUX_TABLE_LEN = CEILING((SIMULATION_TSTOP-SIMULATION_TSTART)/DT_DUMP_EMBER_FLUX)
-      ELSE
-         EMBER_FLUX_TABLE_LEN = 1
+   IF (ENABLE_SPOTTING) THEN
+      IF (DUMP_EMBER_FLUX .OR. &
+         (TRIM(ACCUMULATION_MODEL) .EQ. 'EULERIAN') .OR. &
+         (TRIM(IGNITION_MODEL) .NE. 'DIRECT')) THEN
+         CALL ALLOCATE_EMPTY_RASTER(EMBER_FLUX, R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, 0., 'FLOAT     ')
       ENDIF
-      CALL ALLOCATE_EMPTY_RASTER(EMBER_FLUX, R%NCOLS, R%NROWS, EMBER_FLUX_TABLE_LEN, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, 0., 'FLOAT     ')
+
+      IF (DUMP_EMBER_FLUX_TRANSIENT) THEN
+         CALL ALLOCATE_EMPTY_RASTER(EMBER_FLUX_TRANSIENT, R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, 0., 'FLOAT     ')
+      ENDIF
+
+      IF (DUMP_EMBER_IGNITION) THEN
+         CALL ALLOCATE_EMPTY_RASTER(EMBER_IGNITION_MAP, R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'SIGNEDINT ')
+      ENDIF
    ENDIF
 
-   IF (IRANK_WORLD .GT. 0 .OR. (IRANK_WORLD .EQ. 0 .AND. NPROC .EQ. 1)) THEN
-      CALL ALLOCATE_EMPTY_RASTER(ANALYSIS_SURFACE_FIRE, R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'SIGNEDINT ')
-   ENDIF
+   CALL ALLOCATE_EMPTY_RASTER(ANALYSIS_SURFACE_FIRE, R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'SIGNEDINT ')
 ENDIF
 
 IF (IRANK_HOST .EQ. 0) CALL INIT_RASTERS
@@ -331,28 +384,8 @@ IF (IRANK_HOST .EQ. 0) CALL INIT_RASTERS
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(7, IT1, IT2)
 
-!CALL ALLOCATE_IGNITION_ARRAYS
-! 
-!IF (RANDOM_IGNITIONS .AND. MODE .NE. 2) THEN
-!   IF (IRANK_WORLD .EQ. 0) THEN
-!      WRITE(*,*) 'Calculating NUM_CASES_TOTAL'
-!      IF (CSV_FIXED_IGNITION_LOCATIONS) THEN
-!         CALL DETERMINE_NUM_CASES_TOTAL_CSV
-!      ELSE
-!         CALL DETERMINE_NUM_CASES_TOTAL
-!      ENDIF
-!   ENDIF
-!   IF (NPROC .GT. 1) THEN
-!      CALL MPI_BCAST(NUM_CASES_TOTAL,       1 , MPI_INTEGER, 0, MPI_COMM_WORLD, IERR)
-!      CALL MPI_BCAST(NUM_STARTING_WX_BANDS, 1 , MPI_INTEGER, 0, MPI_COMM_WORLD, IERR)
-!      CALL MPI_BCAST(NUM_CASES_PER_STARTING_WX_BAND(IWX_BAND_START:IWX_BAND_STOP), 1+(IWX_BAND_STOP-IWX_BAND_START) , MPI_INTEGER, 0, MPI_COMM_WORLD, IERR)
-!      IF (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS) THEN
-!         IWX_BAND_OFFSET = IGN_IWX_BAND_LO - 1
-!         CALL MPI_BCAST(IGN_IWX_BAND_LO,       1 , MPI_INTEGER, 0, MPI_COMM_WORLD, IERR)
-!         CALL MPI_BCAST(IGN_IWX_BAND_HI,       1 , MPI_INTEGER, 0, MPI_COMM_WORLD, IERR)
-!      ENDIF
-!   ENDIF
-!ENDIF
+!-----------------------------------------------------------------------------------------------------------------
+
 IF (MODE .NE. 2 .AND. NUM_MONTE_CARLO_VARIABLES .GT. 0) ALLOCATE(COEFFS_UNSCALED_BY_CASE(1:NUM_CASES_TOTAL,1:NUM_MONTE_CARLO_VARIABLES))
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
@@ -413,150 +446,243 @@ CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(11, IT1, IT2)
 
 IF (MODE .NE. 1) THEN
-
+   IF (FEEDBACK_LEVEL .GE. 2) PRINT *, "Mode 2: Calculation started"
    CALL SYSTEM_CLOCK(IT1)
 
    R=>ASP
    CALL ALLOCATE_EMPTY_RASTER(FLAME_LENGTH_TO_DUMP, R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
    CALL ALLOCATE_EMPTY_RASTER(SPREAD_RATE_TO_DUMP , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
+   CALL ALLOCATE_EMPTY_RASTER(SPREAD_DIRECTION_TO_DUMP , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
    CALL ALLOCATE_EMPTY_RASTER(CROWN_FIRE_TO_DUMP  , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
+   CALL ALLOCATE_EMPTY_RASTER(FLIN_TO_DUMP  , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
+   CALL ALLOCATE_EMPTY_RASTER(CRITICAL_FLIN_TO_DUMP  , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
+   CALL ALLOCATE_EMPTY_RASTER(DEBUG_CFFDRS_TO_DUMP  , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
+   CALL ALLOCATE_EMPTY_RASTER(REACTION_INTENSITY_TO_DUMP  , R%NCOLS, R%NROWS, 1, R%XLLCORNER, R%YLLCORNER, R%CELLSIZE, R%NODATA_VALUE, 'FLOAT     ')
+
    FLAME_LENGTH_TO_DUMP%R4(:,:,:) = FLAME_LENGTH_TO_DUMP%NODATA_VALUE
    SPREAD_RATE_TO_DUMP%R4(:,:,:)  = SPREAD_RATE_TO_DUMP%NODATA_VALUE
+   SPREAD_DIRECTION_TO_DUMP%R4(:,:,:)  = SPREAD_DIRECTION_TO_DUMP%NODATA_VALUE
    CROWN_FIRE_TO_DUMP%R4(:,:,:)  = CROWN_FIRE_TO_DUMP%NODATA_VALUE
-
+   FLIN_TO_DUMP%R4(:,:,:)  = FLIN_TO_DUMP%NODATA_VALUE
+   CRITICAL_FLIN_TO_DUMP%R4(:,:,:)  = CRITICAL_FLIN_TO_DUMP%NODATA_VALUE
+   DEBUG_CFFDRS_TO_DUMP%R4(:,:,:) = DEBUG_CFFDRS_TO_DUMP%NODATA_VALUE
+   REACTION_INTENSITY_TO_DUMP%R4(:,:,:) = REACTION_INTENSITY_TO_DUMP%NODATA_VALUE
+   
    LIST_FIRE_POTENTIAL = NEW_DLL()
+   IF (FEEDBACK_LEVEL .GE. 2 .AND. IRANK_WORLD .EQ. 0) PRINT *, "Mode 2: Output rasters allocated"
 
    DO IY = 1, ANALYSIS_NROWS
+      IF (FEEDBACK_LEVEL .GT. 2 .AND. IRANK_WORLD .EQ. 0) THEN
+         WRITE(*,'(A)', advance='no') char(13)   ! carriage return
+            WRITE(*,'(A,I0,A,F5.1,A)', ADVANCE='NO')  &
+            "Mode 2: Total fire potential points: ", LIST_FIRE_POTENTIAL%NUM_NODES,  &
+            ". Progress: ", 100.0*IY/ANALYSIS_NROWS, "%."
+            CALL flush(6)
+      END IF
       IF (REAL(IY                    ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
       IF (REAL(ANALYSIS_NROWS+1 - IY ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
       DO IX = 1, ANALYSIS_NCOLS
          IF (REAL(IX                    ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
          IF (REAL(ANALYSIS_NCOLS+1 - IX ) * R%CELLSIZE .LT. EDGEBUFFER) CYCLE
          IF (ISNONBURNABLE(IX,IY) ) CYCLE
-         CALL APPEND(LIST_FIRE_POTENTIAL, IX, IY, 0.)
+         CALL APPEND(LIST_FIRE_POTENTIAL, IX, IY, 0.0_8)
       ENDDO
    ENDDO
 
-   I = -1
-   DO IWX_BAND = METEOROLOGY_BAND_START, METEOROLOGY_BAND_STOP
-      I = I + 1
-      IF (I .EQ. NPROC) I = 0
-      IRANK_TO_RUN_METEOROLOGY_BAND(IWX_BAND) = I
+   IF (FEEDBACK_LEVEL .GE. 2 .AND. IRANK_WORLD .EQ. 0) PRINT *, "Mode 2: Fire potential list compiled"
+
+   IF (NUM_MONTE_CARLO_VARIABLES .GT. 0) THEN
+      ALLOCATE(COEFFS_MODE2(NUM_MONTE_CARLO_VARIABLES, MAX(NUM_ENSEMBLE_MEMBERS,1), &
+                            METEOROLOGY_BAND_START:METEOROLOGY_BAND_STOP))
+      COEFFS_MODE2 = 0.
+   ENDIF
+
+   IRANK_TO_RUN_METEOROLOGY_BAND(:) = -1
+   DO IWX_BAND = METEOROLOGY_BAND_START, METEOROLOGY_BAND_STOP, METEOROLOGY_BAND_SKIP_INTERVAL
+      IRANK_TO_RUN_METEOROLOGY_BAND(IWX_BAND) = 0
    ENDDO
-   DO IWX_BAND = METEOROLOGY_BAND_START, METEOROLOGY_BAND_STOP
-      IF (IRANK_WORLD .NE. IRANK_TO_RUN_METEOROLOGY_BAND(IWX_BAND)) CYCLE
 
-      WRITE(THREE_IWX_BAND, '(I3.3)') IWX_BAND
-      WRITE(FOUR_IWX_BAND,  '(I4.4)') IWX_BAND
-      WRITE(*,*) 'IWX_BAND: ', IWX_BAND
+   IWORK = -1
+   DO IWX_MEM_BAND = METEOROLOGY_BAND_START, METEOROLOGY_BAND_STOP, WX_BANDS_KEPT_IN_MEM
+      CALL UPDATE_WEATHER_SLICE(IWX_MEM_BAND, min(IWX_MEM_BAND+WX_BANDS_KEPT_IN_MEM-1, METEOROLOGY_BAND_STOP))
+      DO IWX_BAND = 1, min(WX_BANDS_KEPT_IN_MEM, METEOROLOGY_BAND_STOP - IWX_MEM_BAND +1)
+         IF (IRANK_TO_RUN_METEOROLOGY_BAND(IWX_BAND + IWX_MEM_BAND - 1) .eq. -1) CYCLE
 
-      C => LIST_FIRE_POTENTIAL%HEAD
-      DO I = 1, LIST_FIRE_POTENTIAL%NUM_NODES
-         IX               = C%IX
-         IY               = C%IY
-         ICOL             = ICOL_ANALYSIS_F2C(IX)
-         IROW             = IROW_ANALYSIS_F2C(IY)
-         C%M1             = M1%R4   (ICOL,IROW,IWX_BAND)
-         C%M10            = M10%R4  (ICOL,IROW,IWX_BAND)
-         C%M100           = M100%R4 (ICOL,IROW,IWX_BAND)
-         C%MLH            = MLH%R4  (ICOL,IROW,IWX_BAND)
-         C%MLW            = MLW%R4  (ICOL,IROW,IWX_BAND)
-         C%FMC            = MFOL%R4 (ICOL,IROW,IWX_BAND)
-         C%WS20_NOW       = WS%R4   (ICOL,IROW,IWX_BAND)
-         C%WD20_NOW       = WD%R4   (ICOL,IROW,IWX_BAND)
-         C%WSMF           = C%WS20_NOW * WAF%R4(IX,IY,1) * 5280./60.
-         C%PHIW_CROWN     = 0.
-         C%FLIN_SURFACE   = 0.
-         C%FLIN_CANOPY    = 0.
-         C%CRITICAL_FLIN  = 9E9
-         C%CROWN_FIRE     = 0
-         C => C%NEXT
-      ENDDO
+         WRITE(THREE_IWX_BAND, '(I3.3)') IWX_BAND + IWX_MEM_BAND -1
+         WRITE(FOUR_IWX_BAND,  '(I4.4)') IWX_BAND + IWX_MEM_BAND -1
+         IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'IWX_BAND: ', IWX_BAND + IWX_MEM_BAND -1
 
-      DO J = 1, 2
-         IF (J .EQ. 1) CALL SURFACE_SPREAD_RATE(LIST_FIRE_POTENTIAL, DUMMY_NODE)
-         IF (J .EQ. 2 .AND. CROWN_FIRE_MODEL .GT. 0) CALL CROWN_SPREAD_RATE  (LIST_FIRE_POTENTIAL, DUMMY_NODE)
+         N_ENS_MODE2 = 1
+         IF (NUM_MONTE_CARLO_VARIABLES .GT. 0) N_ENS_MODE2 = MAX(NUM_ENSEMBLE_MEMBERS, 1)
 
-         C => LIST_FIRE_POTENTIAL%HEAD
-         DO I = 1, LIST_FIRE_POTENTIAL%NUM_NODES
-            IX = C%IX
-            IY = C%IY
+         IF (FEEDBACK_LEVEL .GE. 2) PRINT *, "TOTAL FIRE NODES: ", LIST_FIRE_POTENTIAL%NUM_NODES
 
-            IF ( J .EQ. 1) THEN 
-               IASP = MIN(MAX(NINT(ASP%R4(C%IX,C%IY,1)),0),360)
-               SINASPMPI = SINASPM180(IASP)
-               COSASPMPI = COSASPM180(IASP) 
-               C%PHISX   = C%PHIS_SURFACE * SINASPMPI
-               C%PHISY   = C%PHIS_SURFACE * COSASPMPI
+         DO IENS = 1, N_ENS_MODE2
+            IF (N_ENS_MODE2 .GT. 1) THEN
+               WRITE(SEVEN_IENS,'(I7.7)') IENS
+               ENS_TAG = '_mc' // SEVEN_IENS
+            ELSE
+               ENS_TAG = ''
+            ENDIF
+            IF (NUM_MONTE_CARLO_VARIABLES .GT. 0) CALL RANDOM_NUMBER(COEFFS(:))
+            IF (NUM_RASTERS_TO_PERTURB .GT. 0) CALL PERTURB_RASTERS(COEFFS(:))
+            
+            IWORK = IWORK + 1
+            IF (MOD(IWORK, NPROC) .NE. IRANK_WORLD) CYCLE
+
+            print '(A,I0,A,I0,A,I0,A,I0,A)', &
+               'Rank ', IRANK_WORLD, &
+               ' running ensemble case ', IENS, &
+               ' of ', N_ENS_MODE2, &
+               ' (weather band ', IWX_BAND + IWX_MEM_BAND - 1, &
+               ')'
+
+            ! Record this draw's unscaled coefficients for coeffs.csv.
+            IF (NUM_MONTE_CARLO_VARIABLES .GT. 0) &
+               COEFFS_MODE2(:, IENS, IWX_BAND + IWX_MEM_BAND - 1) = COEFFS_UNSCALED(:)
+
+            C => LIST_FIRE_POTENTIAL%HEAD
+            DO I = 1, LIST_FIRE_POTENTIAL%NUM_NODES
+               IX               = C%IX
+               IY               = C%IY
+               ICOL             = ICOL_ANALYSIS_F2C(IX)
+               IROW             = IROW_ANALYSIS_F2C(IY)
+               C%M1             = MAX(M1%R4   (ICOL,IROW,IWX_BAND) + PERTURB_M1  , 0.01)
+               C%M10            = MAX(M10%R4  (ICOL,IROW,IWX_BAND) + PERTURB_M10 , 0.01)
+               C%M100           = MAX(M100%R4 (ICOL,IROW,IWX_BAND) + PERTURB_M100, 0.01)
+               C%MLH            = MAX(MLH%R4  (ICOL,IROW,IWX_BAND) + PERTURB_MLH , 0.2)
+               C%MLW            = MAX(MLW%R4  (ICOL,IROW,IWX_BAND) + PERTURB_MLW , 0.4)
+               C%FMC            = MFOL%R4 (ICOL,IROW,IWX_BAND) + PERTURB_FMC
+               C%WS20_NOW       = MAX(WS%R4   (ICOL,IROW,IWX_BAND) + PERTURB_WS, 0.0)
+               C%WD20_NOW       = WD%R4   (ICOL,IROW,IWX_BAND) + PERTURB_WD
+               C%WSMF           = C%WS20_NOW * MAX((WAF%R4(IX,IY,1) + PERTURB_WAF), 0.) * 5280./60.
+               C%PHIW_CROWN     = 0.
+               C%FLIN_SURFACE   = 0.
+               C%FLIN_CANOPY    = 0.
+               C%CRITICAL_FLIN  = 9E9
+               C%CROWN_FIRE     = 0
+               if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+                  C%C = 100*min(1.0,max(0.0,1.33-1.11*MLH%R4(IX,IY,1)))
+                  C%PC = mod(C%IFBFM,100) / 100.0
+                  C%PDF = C%PC
+               endif
+               C => C%NEXT
+            ENDDO
+
+            if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+               CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_FIRE_POTENTIAL, DUMMY_NODE)
+            else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+               CALL CFFDRS_SPREAD_RATE(LIST_FIRE_POTENTIAL, DUMMY_NODE, daily_bui(ceiling((12 + mod(HOUR_OF_YEAR, 24) + IWX_BAND + IWX_MEM_BAND - 2)/24.0)))
             ENDIF
 
-            APHIW = C%PHIW_SURFACE
+            C => LIST_FIRE_POTENTIAL%HEAD
+            DO I = 1, LIST_FIRE_POTENTIAL%NUM_NODES
+               C%VELOCITY =  C%VELOCITY_DMS_SURFACE
+               C%FLIN_SURFACE = C%FLIN_DMS_SURFACE
+               C => C%NEXT
+            enddo
 
-            IF (J .EQ. 2. .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) THEN
-               APHIW = MAX(C%PHIW_SURFACE, C%PHIW_CROWN)
-            ENDIF
+            CALL UPDATE_LOCAL_SPREAD_PROPERTIES(LIST_FIRE_POTENTIAL, DUMMY_NODE)
 
-            IWD20_TIMES10 = INT(10. * C%WD20_NOW)
-            IF (IWD20_TIMES10 .GT. 3600) IWD20_TIMES10 = 3600
-            IF (IWD20_TIMES10 .LT.    0) IWD20_TIMES10 =    0
+            C => LIST_FIRE_POTENTIAL%HEAD
+            DO I = 1, LIST_FIRE_POTENTIAL%NUM_NODES
+               IX = C%IX
+               IY = C%IY
+               if (FBFM%I2(IX,IY,1) .eq. FBFM%NODATA_VALUE) C%VELOCITY = FBFM%NODATA_VALUE
 
-            PHIWX = APHIW * SINWDMPI(IWD20_TIMES10)
-
-            PHIX  = C%PHISX + PHIWX
-
-            PHIWY = APHIW * COSWDMPI(IWD20_TIMES10)
-            PHIY  = C%PHISY + PHIWY
-
-            PHIMAG = MAX(SQRT(PHIX*PHIX+PHIY*PHIY),1E-20)
-
-            C%VELOCITY_DMS = C%VS0 * PHIMAG
-
-            C%FLIN_SURFACE = TR(C%IFBFM) * C%IR * C%VELOCITY_DMS * 0.3048 ! kW/m
-            IF (J .EQ. 2) THEN
-               SPREAD_RATE_TO_DUMP%R4(IX,IY,1) = C%VELOCITY_DMS
-
+               FLIN_TO_DUMP%R4(IX,IY,1) = C%FLIN_SURFACE + C%FLIN_CANOPY
+               SPREAD_RATE_TO_DUMP%R4(IX,IY,1) = C%VELOCITY
                CROWN_FIRE_TO_DUMP%R4(IX,IY,1) = REAL(C%CROWN_FIRE)
- 
-               IF (C%FLIN_SURFACE .GT. 0.) THEN
-                  C%FLAME_LENGTH = (0.0775 / 0.3048) * (C%FLIN_SURFACE + C%FLIN_CANOPY) ** 0.46
-               ELSE
-                  C%FLAME_LENGTH = 0.
-               ENDIF
+               CRITICAL_FLIN_TO_DUMP%R4(Ix,IY,1) = C%CRITICAL_FLIN
                FLAME_LENGTH_TO_DUMP%R4(IX,IY,1) = C%FLAME_LENGTH
-            ENDIF
-            C => C%NEXT
+               DEBUG_CFFDRS_TO_DUMP%R4(IX,IY,1) = C%WSV
+               REACTION_INTENSITY_TO_DUMP%R4(IX,IY,1) = C%IR
 
-         ENDDO !I
-      ENDDO !J
+               if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+                  IASP = MIN(MAX(NINT(ASP%R4(C%IX,C%IY,1)),0),360)
+                  SINASPMPI = SINASPM180(IASP)
+                  COSASPMPI = COSASPM180(IASP)
+                  C%PHISX   = C%PHIS_SURFACE * SINASPMPI
+                  C%PHISY   = C%PHIS_SURFACE * COSASPMPI
 
-      IF (DUMP_FLAME_LENGTH) THEN
-         IF (USE_FOUR_DIGITS_IN_IWX_BAND) THEN
-            FN = 'head_fire_flame_length_' // FOUR_IWX_BAND
-         ELSE
-            FN = 'head_fire_flame_length_' // THREE_IWX_BAND
-         ENDIF
-         CALL WRITE_BIL_RASTER(FLAME_LENGTH_TO_DUMP,OUTPUTS_DIRECTORY,FN,CONVERT_TO_GEOTIFF,.TRUE.,IWX_BAND)
+                  APHIW = MAX(C%PHIW_SURFACE, C%PHIW_CROWN)
+
+                  IWD20_TIMES10 = INT(10. * C%WD20_NOW)
+                  IF (IWD20_TIMES10 .GT. 3600) IWD20_TIMES10 = 3600
+                  IF (IWD20_TIMES10 .LT.    0) IWD20_TIMES10 =    0
+
+                  PHIWX = APHIW * SINWDMPI(IWD20_TIMES10)
+
+                  PHIX  = C%PHISX + PHIWX
+
+                  PHIWY = APHIW * COSWDMPI(IWD20_TIMES10)
+                  PHIY  = C%PHISY + PHIWY
+
+                  PHIMAG = MAX(SQRT(PHIX*PHIX+PHIY*PHIY),1E-20)
+
+                  if (PHIMAG .gt. 1.0e-20) then
+                     SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) = ATAN2(PHIX, PHIY) * 180.0 / ACOS(-1.0)
+                     if (SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) .lt. 0.0) SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) = SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) + 360.0
+                  else
+                     SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) = 0.0
+                  end if
+               else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+                  SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) = C%RAZ
+               endif
+
+               C => C%NEXT
+
+            enddo
+
+            ! Per-member raster dumps. Filenames are <prefix><band-digits><ENS_TAG>;
+            ! DUMP_HEADFIRE_RASTER (contained below) builds the name and writes.
+            CALL DUMP_HEADFIRE_RASTER(DUMP_FLAME_LENGTH, FLAME_LENGTH_TO_DUMP,     'head_fire_flame_length_')
+            CALL DUMP_HEADFIRE_RASTER(DUMP_FLIN,         FLIN_TO_DUMP,             'head_flin_')
+
+            IF (DUMP_SPREAD_RATE .AND. SPREAD_RATE_IN_M) THEN
+               WHERE (SPREAD_RATE_TO_DUMP%R4(:,:,1) /= SPREAD_RATE_TO_DUMP%NODATA_VALUE)
+                  SPREAD_RATE_TO_DUMP%R4(:,:,1) = SPREAD_RATE_TO_DUMP%R4(:,:,1) * 0.3048
+               END WHERE
+            END IF
+            CALL DUMP_HEADFIRE_RASTER(DUMP_SPREAD_RATE,      SPREAD_RATE_TO_DUMP,      'head_fire_spread_rate_')
+            CALL DUMP_HEADFIRE_RASTER(DUMP_CFFDRS_DEBUG,     DEBUG_CFFDRS_TO_DUMP,     'cffdrs_debug_')
+            CALL DUMP_HEADFIRE_RASTER(DUMP_SPREAD_DIRECTION, SPREAD_DIRECTION_TO_DUMP, 'head_fire_spread_direction_')
+            CALL DUMP_HEADFIRE_RASTER(DUMP_CROWN_FIRE,       CROWN_FIRE_TO_DUMP,       'crown_fire_')
+            CALL DUMP_HEADFIRE_RASTER(DUMP_CRITICAL_FLIN,    CRITICAL_FLIN_TO_DUMP,    'critical_flin_')
+            CALL DUMP_HEADFIRE_RASTER(DUMP_REACTION_INTENSITY, REACTION_INTENSITY_TO_DUMP, 'reaction_intensity_')
+         ENDDO ! IENS (Mode 2 ensemble member)
+      ENDDO !IWX_BAND
+   ENDDO !IWX_MEM_BAND
+
+   ! Write coeffs.csv: one row per (weather band, ensemble member) with the unscaled
+   ! Monte Carlo offsets drawn for each perturbed raster. Each band was computed on a
+   ! single rank, so a sum-reduce onto rank 0 gathers the full table (unrun slots are 0).
+   IF (NUM_MONTE_CARLO_VARIABLES .GT. 0) THEN
+      ALLOCATE(COEFFS_MODE2_GLOBAL(NUM_MONTE_CARLO_VARIABLES, MAX(NUM_ENSEMBLE_MEMBERS,1), &
+                                   METEOROLOGY_BAND_START:METEOROLOGY_BAND_STOP))
+      COEFFS_MODE2_GLOBAL = 0.
+      CALL MPI_REDUCE(COEFFS_MODE2, COEFFS_MODE2_GLOBAL, SIZE(COEFFS_MODE2), MPI_REAL, MPI_SUM, 0, MPI_COMM_WORLD, IERR)
+
+      IF (IRANK_WORLD .EQ. 0) THEN
+         COEFF_HEADER = 'IWX_BAND,ENSEMBLE_MEMBER'
+         DO J = 1, NUM_RASTERS_TO_PERTURB
+            COEFF_HEADER = TRIM(COEFF_HEADER) // ',' // TRIM(RASTER_TO_PERTURB(J))
+         ENDDO
+
+         FN = TRIM(OUTPUTS_DIRECTORY) // 'coeffs.csv'
+         OPEN(NEWUNIT=LU_COEFF, FILE=TRIM(FN), FORM='FORMATTED', STATUS='REPLACE', IOSTAT=IOS)
+         WRITE(LU_COEFF,'(A)') TRIM(COEFF_HEADER)
+         DO IWX_BAND = METEOROLOGY_BAND_START, METEOROLOGY_BAND_STOP, METEOROLOGY_BAND_SKIP_INTERVAL
+            DO IENS = 1, MAX(NUM_ENSEMBLE_MEMBERS,1)
+               WRITE(LU_COEFF,'(I0,",",I0,25(",",F12.5))') IWX_BAND, IENS, &
+                  (COEFFS_MODE2_GLOBAL(J,IENS,IWX_BAND), J = 1, NUM_RASTERS_TO_PERTURB)
+            ENDDO
+         ENDDO
+         CLOSE(LU_COEFF)
       ENDIF
 
-      IF (DUMP_SPREAD_RATE) THEN
-         IF (USE_FOUR_DIGITS_IN_IWX_BAND) THEN
-            FN = 'head_fire_spread_rate_' // FOUR_IWX_BAND
-         ELSE
-            FN = 'head_fire_spread_rate_' // THREE_IWX_BAND
-         ENDIF
-         CALL WRITE_BIL_RASTER(SPREAD_RATE_TO_DUMP,OUTPUTS_DIRECTORY,FN,CONVERT_TO_GEOTIFF,.TRUE.,IWX_BAND)
-      ENDIF
-
-      IF (DUMP_CROWN_FIRE) THEN
-         IF (USE_FOUR_DIGITS_IN_IWX_BAND) THEN
-            FN = 'crown_fire_' // FOUR_IWX_BAND
-         ELSE
-            FN = 'crown_fire_' // THREE_IWX_BAND
-         ENDIF
-         CALL WRITE_BIL_RASTER(CROWN_FIRE_TO_DUMP,OUTPUTS_DIRECTORY,FN,CONVERT_TO_GEOTIFF,.TRUE.,IWX_BAND)
-      ENDIF
-
-   ENDDO !IWX_BAND
+      DEALLOCATE(COEFFS_MODE2, COEFFS_MODE2_GLOBAL)
+   ENDIF
 
 ENDIF ! (MODE .GT. 1)
 
@@ -597,236 +723,220 @@ IF (MODE .NE. 2) THEN
       WRITE(*,*) TRIM(MESSAGESTR)
    ENDIF
 
-   ICASE = 0
-   DO WHILE (ICASE .LT. NUM_CASES_TOTAL)
+   DONE_CASES = 0
+   DONE_CASES_LOCAL = 0
+   DO WHILE (DONE_CASES .LT. NUM_CASES_TOTAL)
 
+      ICASE = IRANK_WORLD + DONE_CASES + 1
+      if (ICASE .gt. NUM_CASES_TOTAL) then
+         IS_VIRTUAL_RUN = .TRUE.
+      else
+         IS_VIRTUAL_RUN = .FALSE.
+      endif
       CALL SYSTEM_CLOCK(IT1)
-
-      IF (IRANK_WORLD .EQ. 0 .AND. NPROC .GT. 1) ICASE = NUM_CASES_TOTAL + 1 !This, with the next line, kicks IRANK_WORLD = 0 out of this loop
-      IF (ICASE .GT. NUM_CASES_TOTAL) CYCLE
-
-      IF (NPROC .GT. 1) THEN
-         CALL MPI_RECV(ICASE, 1, MPI_INTEGER, 0, 1234, MPI_COMM_WORLD, ISTATUS)
-      ELSE
-         ICASE = ICASE + 1
-      ENDIF
-
       CALL ACCUMULATE_CPU_USAGE(12, IT1, IT2)
 
-      IF (ICASE .GT. NUM_CASES_TOTAL) CYCLE
+      IF (ICASE .LE. NUM_CASES_TOTAL) THEN 
+         IWX_BAND = STATS_IWX_BAND_START(ICASE)
+      ELSE
+         IWX_BAND = WS%NBANDS
+      ENDIF 
 
-      IWX_BAND = STATS_IWX_BAND_START(ICASE)
-
-      IF (IWX_BAND .NE. IWX_BAND_LAST) THEN
-         WSP  (1:,1:,1:) => WS%R4  (1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-         WDP  (1:,1:,1:) => WD%R4  (1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-         M1P  (1:,1:,1:) => M1%R4  (1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-         M10P (1:,1:,1:) => M10%R4 (1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-         M100P(1:,1:,1:) => M100%R4(1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-         MLHP (1:,1:,1:) => MLH%R4 (1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-         MLWP (1:,1:,1:) => MLW%R4 (1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-         MFOLP(1:,1:,1:) => MFOL%R4(1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-         IF (USE_ERC) THEN
-            ERCP   (1:,1:,1:) => ERC%R4   (1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-            IGNFACP(1:,1:,1:) => IGNFAC%R4(1:,1:,IWX_BAND-IWX_BAND_OFFSET:)
-         ENDIF
-      ENDIF
+      call MPI_Allreduce(IWX_BAND, MIN_IWX_BAND, 1, MPI_INTEGER, MPI_MIN, MPI_COMM_WORLD, ierr)
       
       CALL ACCUMULATE_CPU_USAGE(13, IT1, IT2)
    
       IF (NUM_MONTE_CARLO_VARIABLES .GT. 0 ) CALL RANDOM_NUMBER(COEFFS(:))
-
       IF (NUM_RASTERS_TO_PERTURB .GT. 0) CALL PERTURB_RASTERS(COEFFS(:))
 
       CALL ACCUMULATE_CPU_USAGE(14, IT1, IT2)
       
-      IF (ENABLE_SPOTTING) CALL SET_SPOTTING_PARAMETERS(COEFFS(:))
-
+      IF (ENABLE_SPOTTING .AND. STOCHASTIC_SPOTTING) CALL SET_SPOTTING_PARAMETERS(COEFFS(:))
       IF (NUM_PARAMETERS_MISC .GT. 0) CALL SET_MISC_PARAMETERS(COEFFS(:))
 
+      ! Record this rank's own Monte Carlo coefficients. Worker ranks (IRANK_WORLD /= 0) send
+      ! COEFFS_UNSCALED to rank 0 via tag 226 below, but rank 0 never sends to itself and in serial
+      ! runs (NPROC == 1) no send/recv happens at all - so without this, the cases run by rank 0
+      ! (i.e. ALL cases when serial) stay zero in COEFFS_UNSCALED_BY_CASE and coeffs.csv is all zeros.
+      IF (IRANK_WORLD .EQ. 0 .AND. NUM_MONTE_CARLO_VARIABLES .GT. 0 .AND. .NOT. IS_VIRTUAL_RUN) &
+         COEFFS_UNSCALED_BY_CASE(ICASE,:) = COEFFS_UNSCALED(:)
+
       CALL ACCUMULATE_CPU_USAGE(15, IT1, IT2)
-     
-! Main call to spread model
+   
       IT1_LSP = IT1
-      CALL LEVEL_SET_PROPAGATION(IWX_BAND,ICASE,NTIMESTEPS)
-      WRITE(*,'(A, I6, A, I7, A, F8.1, A)') "Meteorology band ", IWX_BAND, ": Case # ", ICASE, " complete.  Fire area: ", &
-                                             STATS_SURFACE_FIRE_AREA(ICASE), " acres."
-      CALL SYSTEM_CLOCK(IT2)
-      STATS_WALL_CLOCK_TIME(ICASE) = REAL(IT2 - IT1) / REAL(CLOCK_COUNT_RATE)
-      TIMINGS(IRANK_HOST+1,80) = TIMINGS(IRANK_HOST+1,80) + STATS_WALL_CLOCK_TIME(ICASE)
-      CALL SYSTEM_CLOCK(IT1)
+      CALL LEVEL_SET_PROPAGATION(IWX_BAND,ICASE,NTIMESTEPS, IS_VIRTUAL_RUN)
+      
+      ! Remember how many cases were complete before this round so we can compute exactly
+      ! how many worker ranks finished a real case this round (see rank-0 receive loop below).
+      DONE_CASES_PREV = DONE_CASES
 
-      IF (NPROC .GT. 1) THEN
-         CALL MPI_SEND(IRANK_WORLD, 1, MPI_INTEGER, 0, 210, MPI_COMM_WORLD, IERR) ! This tells IRANK_WORLD0 which rank just finished
-         CALL MPI_SEND(ICASE, 1, MPI_INTEGER, 0, 211, MPI_COMM_WORLD, IERR)
-         IF (NUM_MONTE_CARLO_VARIABLES .GT. 0) THEN
-            CALL MPI_SEND(COEFFS_UNSCALED(:), NUM_MONTE_CARLO_VARIABLES, MPI_REAL, 0, 226, MPI_COMM_WORLD, IERR)
-         ENDIF
-
-         IF (CALCULATE_TIMES_BURNED) THEN
-            N = LIST_BURNED%NUM_NODES_PREVIOUS
-            CALL MPI_SEND(N                     , 1, MPI_INTEGER, 0, 212, MPI_COMM_WORLD, IERR)
-            CALL MPI_SEND(BINARY_OUTPUTS_IX(1:N), N, MPI_SHORT  , 0, 213, MPI_COMM_WORLD, IERR)
-            CALL MPI_SEND(BINARY_OUTPUTS_IY(1:N), N, MPI_SHORT  , 0, 214, MPI_COMM_WORLD, IERR)
-            IF (CALCULATE_FLAME_LENGTH_STATS) CALL MPI_SEND(BINARY_OUTPUTS_FLAME_LENGTH(1:N), N, MPI_REAL  , 0, 215, MPI_COMM_WORLD, IERR)
-         ENDIF
-
-         IF (USE_EMBER_COUNT_BINS) THEN
-            N = INT(STATS_NEMBERS(ICASE))
-            CALL MPI_SEND(N                       , 1, MPI_INTEGER, 0, 222, MPI_COMM_WORLD, IERR)
-            CALL MPI_SEND(EMBER_OUTPUTS_IX   (1:N), N, MPI_SHORT  , 0, 223, MPI_COMM_WORLD, IERR)
-            CALL MPI_SEND(EMBER_OUTPUTS_IY   (1:N), N, MPI_SHORT  , 0, 224, MPI_COMM_WORLD, IERR)
-            CALL MPI_SEND(EMBER_OUTPUTS_COUNT(1:N), N, MPI_SHORT  , 0, 225, MPI_COMM_WORLD, IERR)
-         ENDIF
-
-      ENDIF
-
-      IWX_BAND_LAST = IWX_BAND
-
-      CALL ACCUMULATE_CPU_USAGE(16, IT1, IT2)
-
-   ENDDO
-
-! This part gets run by the master process so it can dole out jobs to the slave processes:
-   IF (IRANK_WORLD .EQ. 0 .AND. NPROC .GT. 1) THEN
-
-      TOTALCASESRUN = 0
-
-! Start by distributing case to run to all slave nodes
-      ICASE = 0
-      DO IDEST = 1, NPROC - 1
-         ICASE = ICASE + 1
-         CALL MPI_SEND(ICASE, 1, MPI_INTEGER, IDEST, 1234, MPI_COMM_WORLD, IERR)
-      ENDDO
-
-      DO WHILE (TOTALCASESRUN .LT. NUM_CASES_TOTAL)
-
+      if (.not. IS_VIRTUAL_RUN) DONE_CASES_LOCAL = DONE_CASES_LOCAL + 1
+      CALL MPI_ALLREDUCE(DONE_CASES_LOCAL, DONE_CASES, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, ierr)
+      
+      CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
+      
+      if (.not. IS_VIRTUAL_RUN) then
+         WRITE(*,'(A,I0,A, I6, A, I7, A, F8.1, A)') '[',ICASE,"] Meteorology band ", IWX_BAND, ": Case # ", ICASE, " complete.  Fire area: ", STATS_SURFACE_FIRE_AREA(ICASE), " acres."
+         TIMINGS(IRANK_HOST+1,80) = TIMINGS(IRANK_HOST+1,80) + STATS_WALL_CLOCK_TIME(ICASE)
          CALL SYSTEM_CLOCK(IT1)
-
-         CALL MPI_RECV(IRANK_FROM, 1, MPI_INTEGER, MPI_ANY_SOURCE, 210, MPI_COMM_WORLD, ISTATUS)
-
-         CALL ACCUMULATE_CPU_USAGE(17, IT1, IT2)
-
-         CALL MPI_RECV(ICASE_RECV, 1, MPI_INTEGER, IRANK_FROM, 211, MPI_COMM_WORLD, ISTATUS)
-         IF (NUM_MONTE_CARLO_VARIABLES .GT. 0) THEN
-            CALL MPI_RECV(COEFFS_UNSCALED, NUM_MONTE_CARLO_VARIABLES, MPI_REAL, IRANK_FROM, 226, MPI_COMM_WORLD, ISTATUS)
-            COEFFS_UNSCALED_BY_CASE(ICASE_RECV,:) = COEFFS_UNSCALED(:)
-         ENDIF
-
-         IF (CALCULATE_TIMES_BURNED) THEN
-            CALL MPI_RECV(N                     , 1, MPI_INTEGER, IRANK_FROM, 212, MPI_COMM_WORLD, ISTATUS)
-            CALL MPI_RECV(BINARY_OUTPUTS_IX(1:N), N, MPI_SHORT  , IRANK_FROM, 213, MPI_COMM_WORLD, ISTATUS)
-            CALL MPI_RECV(BINARY_OUTPUTS_IY(1:N), N, MPI_SHORT  , IRANK_FROM, 214, MPI_COMM_WORLD, ISTATUS)
-
-            IF (CALCULATE_FLAME_LENGTH_STATS) CALL MPI_RECV(BINARY_OUTPUTS_FLAME_LENGTH(1:N), N, MPI_REAL  , IRANK_FROM, 215, MPI_COMM_WORLD, ISTATUS)
-
-            IF (DUMP_HOURLY_RASTERS) THEN
-               DO I = 1, N
-                  IX = BINARY_OUTPUTS_IX(I)
-                  IY = BINARY_OUTPUTS_IY(I)
-                  IBAND = STATS_IWX_SERIAL_BAND(ICASE_RECV)
-                  TIMES_BURNED%R4(IX,IY,1) = TIMES_BURNED%R4(IX,IY,1) + 1.
-                  TIMES_BURNED_HOURLY%R4(IX,IY,IBAND) = TIMES_BURNED_HOURLY%R4(IX,IY,IBAND) + 1.
-               ENDDO
-            ELSE
-               DO I = 1, N
-                  IX = BINARY_OUTPUTS_IX(I)
-                  IY = BINARY_OUTPUTS_IY(I)
-                  IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
-                  IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
-
-                  TIMES_BURNED%R4(IX,IY,1) = TIMES_BURNED%R4(IX,IY,1) + 1.
-               ENDDO
+         IF (NPROC .GT. 1 .and. IRANK_WORLD .ne. 0) THEN
+            CALL MPI_SEND(IRANK_WORLD, 1, MPI_INTEGER, 0, 210, MPI_COMM_WORLD, IERR) ! This tells IRANK_WORLD0 which rank just finished
+            CALL MPI_SEND(ICASE, 1, MPI_INTEGER, 0, 211, MPI_COMM_WORLD, IERR)
+            IF (NUM_MONTE_CARLO_VARIABLES .GT. 0) THEN
+               CALL MPI_SEND(COEFFS_UNSCALED(:), NUM_MONTE_CARLO_VARIABLES, MPI_REAL, 0, 226, MPI_COMM_WORLD, IERR)
             ENDIF
 
-            IF (CALCULATE_FLAME_LENGTH_STATS) THEN
-               DO I = 1, N
-                  IX = BINARY_OUTPUTS_IX(I)
-                  IY = BINARY_OUTPUTS_IY(I)
-                  IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
-                  IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
-                  FLAME_LENGTH_SUM%R4(IX,IY,1) = FLAME_LENGTH_SUM%R4(IX,IY,1) + BINARY_OUTPUTS_FLAME_LENGTH(I)
-                  IF (BINARY_OUTPUTS_FLAME_LENGTH(I) .GT. FLAME_LENGTH_MAX%R4(IX,IY,1) ) THEN
-                     FLAME_LENGTH_MAX%R4(IX,IY,1) = BINARY_OUTPUTS_FLAME_LENGTH(I)
-                  ENDIF
-               ENDDO
+            IF (CALCULATE_TIMES_BURNED) THEN
+               N = LIST_BURNED%NUM_NODES_PREVIOUS
+               CALL MPI_SEND(N                     , 1, MPI_INTEGER, 0, 212, MPI_COMM_WORLD, IERR)
+               CALL MPI_SEND(BINARY_OUTPUTS_IX(1:N), N, MPI_SHORT  , 0, 213, MPI_COMM_WORLD, IERR)
+               CALL MPI_SEND(BINARY_OUTPUTS_IY(1:N), N, MPI_SHORT  , 0, 214, MPI_COMM_WORLD, IERR)
+               IF (CALCULATE_FLAME_LENGTH_STATS) CALL MPI_SEND(BINARY_OUTPUTS_FLAME_LENGTH(1:N), N, MPI_REAL  , 0, 215, MPI_COMM_WORLD, IERR)
+            ENDIF
 
-               IF (USE_FLAME_LENGTH_BINS) THEN
+            IF (USE_EMBER_COUNT_BINS) THEN
+               N = INT(STATS_NEMBERS(ICASE))
+               CALL MPI_SEND(N                       , 1, MPI_INTEGER, 0, 222, MPI_COMM_WORLD, IERR)
+               CALL MPI_SEND(EMBER_OUTPUTS_IX   (1:N), N, MPI_SHORT  , 0, 223, MPI_COMM_WORLD, IERR)
+               CALL MPI_SEND(EMBER_OUTPUTS_IY   (1:N), N, MPI_SHORT  , 0, 224, MPI_COMM_WORLD, IERR)
+               CALL MPI_SEND(EMBER_OUTPUTS_COUNT(1:N), N, MPI_SHORT  , 0, 225, MPI_COMM_WORLD, IERR)
+            ENDIF
+
+         ENDIF   
+      endif
+      IF (IRANK_WORLD .EQ. 0 .AND. NPROC .GT. 1) THEN
+         ! Receive exactly one message from every OTHER rank that completed a real (non-virtual)
+         ! case this round. That count is (cases completed this round) - 1, because rank 0 ran one
+         ! of those cases itself and never sends to itself. Using mod(DONE_CASES, NPROC) here was
+         ! wrong: in a fully-subscribed round it is 0 (rank 0 under-receives, leaking messages into
+         ! MPI's buffer), and when oversubscribed (NPROC > NUM_CASES_TOTAL) it exceeds the number of
+         ! senders by one, so the final MPI_RECV blocks forever and the run stalls.
+         TOTALCASESRUN = 0
+         DO WHILE (TOTALCASESRUN .LT. (DONE_CASES - DONE_CASES_PREV - 1))
+
+            CALL SYSTEM_CLOCK(IT1)
+
+            CALL MPI_RECV(IRANK_FROM, 1, MPI_INTEGER, MPI_ANY_SOURCE, 210, MPI_COMM_WORLD, ISTATUS)
+
+            CALL ACCUMULATE_CPU_USAGE(17, IT1, IT2)
+
+            CALL MPI_RECV(ICASE_RECV, 1, MPI_INTEGER, IRANK_FROM, 211, MPI_COMM_WORLD, ISTATUS)
+            IF (NUM_MONTE_CARLO_VARIABLES .GT. 0) THEN
+               CALL MPI_RECV(COEFFS_UNSCALED, NUM_MONTE_CARLO_VARIABLES, MPI_REAL, IRANK_FROM, 226, MPI_COMM_WORLD, ISTATUS)
+               COEFFS_UNSCALED_BY_CASE(ICASE_RECV,:) = COEFFS_UNSCALED(:)
+            ENDIF
+
+            IF (CALCULATE_TIMES_BURNED) THEN
+               CALL MPI_RECV(N                     , 1, MPI_INTEGER, IRANK_FROM, 212, MPI_COMM_WORLD, ISTATUS)
+               CALL MPI_RECV(BINARY_OUTPUTS_IX(1:N), N, MPI_SHORT  , IRANK_FROM, 213, MPI_COMM_WORLD, ISTATUS)
+               CALL MPI_RECV(BINARY_OUTPUTS_IY(1:N), N, MPI_SHORT  , IRANK_FROM, 214, MPI_COMM_WORLD, ISTATUS)
+
+               IF (CALCULATE_FLAME_LENGTH_STATS) CALL MPI_RECV(BINARY_OUTPUTS_FLAME_LENGTH(1:N), N, MPI_REAL  , IRANK_FROM, 215, MPI_COMM_WORLD, ISTATUS)
+
+               IF (DUMP_HOURLY_RASTERS) THEN
+                  DO I = 1, N
+                     IX = BINARY_OUTPUTS_IX(I)
+                     IY = BINARY_OUTPUTS_IY(I)
+                     IBAND = STATS_IWX_SERIAL_BAND(ICASE_RECV)
+                     TIMES_BURNED%R4(IX,IY,1) = TIMES_BURNED%R4(IX,IY,1) + 1.
+                     TIMES_BURNED_HOURLY%R4(IX,IY,IBAND) = TIMES_BURNED_HOURLY%R4(IX,IY,IBAND) + 1.
+                  ENDDO
+               ELSE
                   DO I = 1, N
                      IX = BINARY_OUTPUTS_IX(I)
                      IY = BINARY_OUTPUTS_IY(I)
                      IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
                      IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
 
-                     DO IBIN = 1, NUM_FLAME_LENGTH_BINS
-                        IF (BINARY_OUTPUTS_FLAME_LENGTH(I) .GE. FLAME_LENGTH_BIN_LO(IBIN) ) THEN
-                           IF (BINARY_OUTPUTS_FLAME_LENGTH(I) .LT. FLAME_LENGTH_BIN_HI(IBIN) ) THEN
-                              FLAME_LENGTH_BIN_COUNT%I2(IX,IY,IBIN) = FLAME_LENGTH_BIN_COUNT%I2(IX,IY,IBIN) + 1
+                     TIMES_BURNED%R4(IX,IY,1) = TIMES_BURNED%R4(IX,IY,1) + 1.
+                  ENDDO
+               ENDIF
+
+               IF (CALCULATE_FLAME_LENGTH_STATS) THEN
+                  DO I = 1, N
+                     IX = BINARY_OUTPUTS_IX(I)
+                     IY = BINARY_OUTPUTS_IY(I)
+                     IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
+                     IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
+                     FLAME_LENGTH_SUM%R4(IX,IY,1) = FLAME_LENGTH_SUM%R4(IX,IY,1) + BINARY_OUTPUTS_FLAME_LENGTH(I)
+                     IF (BINARY_OUTPUTS_FLAME_LENGTH(I) .GT. FLAME_LENGTH_MAX%R4(IX,IY,1) ) THEN
+                        FLAME_LENGTH_MAX%R4(IX,IY,1) = BINARY_OUTPUTS_FLAME_LENGTH(I)
+                     ENDIF
+                  ENDDO
+
+                  IF (USE_FLAME_LENGTH_BINS) THEN
+                     DO I = 1, N
+                        IX = BINARY_OUTPUTS_IX(I)
+                        IY = BINARY_OUTPUTS_IY(I)
+                        IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
+                        IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
+
+                        DO IBIN = 1, NUM_FLAME_LENGTH_BINS
+                           IF (BINARY_OUTPUTS_FLAME_LENGTH(I) .GE. FLAME_LENGTH_BIN_LO(IBIN) ) THEN
+                              IF (BINARY_OUTPUTS_FLAME_LENGTH(I) .LT. FLAME_LENGTH_BIN_HI(IBIN) ) THEN
+                                 FLAME_LENGTH_BIN_COUNT%I2(IX,IY,IBIN) = FLAME_LENGTH_BIN_COUNT%I2(IX,IY,IBIN) + 1
+                              ENDIF
+                           ENDIF
+                        ENDDO
+                     ENDDO
+                  ENDIF
+               ENDIF
+
+            ENDIF
+
+            IF (USE_EMBER_COUNT_BINS) THEN
+               IF (ALLOCATED(EMBER_OUTPUTS_IX)) THEN
+                  DEALLOCATE (EMBER_OUTPUTS_IX)
+                  DEALLOCATE (EMBER_OUTPUTS_IY)
+                  DEALLOCATE (EMBER_OUTPUTS_COUNT)
+               ENDIF
+
+               CALL MPI_RECV(N, 1, MPI_INTEGER, IRANK_FROM, 222, MPI_COMM_WORLD, ISTATUS)
+
+               ALLOCATE(EMBER_OUTPUTS_IX   (1:N))
+               ALLOCATE(EMBER_OUTPUTS_IY   (1:N))
+               ALLOCATE(EMBER_OUTPUTS_COUNT(1:N))
+
+               CALL MPI_RECV(EMBER_OUTPUTS_IX   (1:N), N, MPI_SHORT, IRANK_FROM, 223, MPI_COMM_WORLD, ISTATUS)
+               CALL MPI_RECV(EMBER_OUTPUTS_IY   (1:N), N, MPI_SHORT, IRANK_FROM, 224, MPI_COMM_WORLD, ISTATUS)
+               CALL MPI_RECV(EMBER_OUTPUTS_COUNT(1:N), N, MPI_SHORT, IRANK_FROM, 225, MPI_COMM_WORLD, ISTATUS)
+
+               DO I = 1, N
+                  IF (EMBER_OUTPUTS_COUNT(I) .GT. 0) THEN
+                     IX = EMBER_OUTPUTS_IX(I)
+                     IY = EMBER_OUTPUTS_IY(I)
+                     IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
+                     IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
+                     DO IBIN = 1, NUM_EMBER_COUNT_BINS
+                        IF (EMBER_OUTPUTS_COUNT(I) .GT. EMBER_COUNT_BIN_LO(IBIN) ) THEN
+                           IF (EMBER_OUTPUTS_COUNT(I) .LE. EMBER_COUNT_BIN_HI(IBIN) ) THEN
+                              EMBER_BIN_COUNT%I2(IX,IY,IBIN) = EMBER_BIN_COUNT%I2(IX,IY,IBIN) + 1
+                              CYCLE
                            ENDIF
                         ENDIF
                      ENDDO
-                  ENDDO
-               ENDIF
+                  ENDIF
+               ENDDO
+
             ENDIF
 
-         ENDIF
+            CALL ACCUMULATE_CPU_USAGE(18, IT1, IT2)
 
-         IF (USE_EMBER_COUNT_BINS) THEN
-            IF (ALLOCATED(EMBER_OUTPUTS_IX)) THEN
-               DEALLOCATE (EMBER_OUTPUTS_IX)
-               DEALLOCATE (EMBER_OUTPUTS_IY)
-               DEALLOCATE (EMBER_OUTPUTS_COUNT)
+            TOTALCASESRUN = TOTALCASESRUN + 1
+
+            IF (TOTALCASESRUN .LT. NUM_CASES_TOTAL) THEN
+               ICASE = ICASE + 1
+            ELSE
+               ICASE = NUM_CASES_TOTAL + 1
             ENDIF
+            CALL MPI_SEND(ICASE, 1, MPI_INTEGER, IRANK_FROM, 1234, MPI_COMM_WORLD, IERR)
 
-            CALL MPI_RECV(N, 1, MPI_INTEGER, IRANK_FROM, 222, MPI_COMM_WORLD, ISTATUS)
+         CALL ACCUMULATE_CPU_USAGE(19, IT1, IT2)
 
-            ALLOCATE(EMBER_OUTPUTS_IX   (1:N))
-            ALLOCATE(EMBER_OUTPUTS_IY   (1:N))
-            ALLOCATE(EMBER_OUTPUTS_COUNT(1:N))
-
-            CALL MPI_RECV(EMBER_OUTPUTS_IX   (1:N), N, MPI_SHORT, IRANK_FROM, 223, MPI_COMM_WORLD, ISTATUS)
-            CALL MPI_RECV(EMBER_OUTPUTS_IY   (1:N), N, MPI_SHORT, IRANK_FROM, 224, MPI_COMM_WORLD, ISTATUS)
-            CALL MPI_RECV(EMBER_OUTPUTS_COUNT(1:N), N, MPI_SHORT, IRANK_FROM, 225, MPI_COMM_WORLD, ISTATUS)
-
-            DO I = 1, N
-               IF (EMBER_OUTPUTS_COUNT(I) .GT. 0) THEN
-                  IX = EMBER_OUTPUTS_IX(I)
-                  IY = EMBER_OUTPUTS_IY(I)
-                  IF (IX .LT. 1 .OR. IX .GT. ANALYSIS_NCOLS) CYCLE
-                  IF (IY .LT. 1 .OR. IY .GT. ANALYSIS_NROWS) CYCLE
-                  DO IBIN = 1, NUM_EMBER_COUNT_BINS
-                     IF (EMBER_OUTPUTS_COUNT(I) .GT. EMBER_COUNT_BIN_LO(IBIN) ) THEN
-                        IF (EMBER_OUTPUTS_COUNT(I) .LE. EMBER_COUNT_BIN_HI(IBIN) ) THEN
-                           EMBER_BIN_COUNT%I2(IX,IY,IBIN) = EMBER_BIN_COUNT%I2(IX,IY,IBIN) + 1
-                           CYCLE
-                        ENDIF
-                     ENDIF
-                  ENDDO
-               ENDIF
-            ENDDO
-
-         ENDIF
-
-         CALL ACCUMULATE_CPU_USAGE(18, IT1, IT2)
-
-         TOTALCASESRUN = TOTALCASESRUN + 1
-
-         IF (TOTALCASESRUN .LT. NUM_CASES_TOTAL) THEN
-            ICASE = ICASE + 1
-         ELSE
-            ICASE = NUM_CASES_TOTAL + 1
-         ENDIF
-         CALL MPI_SEND(ICASE, 1, MPI_INTEGER, IRANK_FROM, 1234, MPI_COMM_WORLD, IERR)
-
-      CALL ACCUMULATE_CPU_USAGE(19, IT1, IT2)
-
-      ENDDO !TOTALCASESRUN .LT. NUM_CASES_TOTAL
-   
-   ENDIF ! End part that is run only by IRANK_WORLD = 0
-
-   CALL ACCUMULATE_CPU_USAGE(20, IT1, IT2)
-
-! Once we get here, all simulations are done and we have some post-processing to do
+         ENDDO
+      ENDIF
+      CALL ACCUMULATE_CPU_USAGE(16, IT1, IT2)
+   ENDDO
 
    CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 
@@ -841,6 +951,33 @@ ENDIF !MODE .NE. 2
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 
 CALL SHUTDOWN()
+
+CONTAINS
+
+! *****************************************************************************
+SUBROUTINE DUMP_HEADFIRE_RASTER(DOIT, RASTER, PREFIX)
+! *****************************************************************************
+! Mode-2 helper: if DOIT, build the output filename from PREFIX plus the
+! host-associated weather-band digits and ensemble-member tag (ENS_TAG), then
+! write RASTER. Collapses seven near-identical DUMP_* blocks into one call each.
+
+LOGICAL, INTENT(IN) :: DOIT
+TYPE(RASTER_TYPE), INTENT(INOUT) :: RASTER
+CHARACTER(*), INTENT(IN) :: PREFIX
+CHARACTER(400) :: FNL
+
+IF (.NOT. DOIT) RETURN
+
+IF (USE_FOUR_DIGITS_IN_IWX_BAND) THEN
+   FNL = TRIM(PREFIX) // FOUR_IWX_BAND // TRIM(ENS_TAG)
+ELSE
+   FNL = TRIM(PREFIX) // THREE_IWX_BAND // TRIM(ENS_TAG)
+ENDIF
+CALL WRITE_BIL_RASTER(RASTER, OUTPUTS_DIRECTORY, FNL, CONVERT_TO_GEOTIFF, .TRUE., IWX_BAND + IWX_MEM_BAND - 1)
+
+! *****************************************************************************
+END SUBROUTINE DUMP_HEADFIRE_RASTER
+! *****************************************************************************
 
 ! *****************************************************************************
 END PROGRAM ELMFIRE

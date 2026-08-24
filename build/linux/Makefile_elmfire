@@ -17,60 +17,68 @@ setup:
 setup_win:
 %.obj : %.mod
 
+# Quiet by default: print a short "FC <file>" line per source instead of the
+# full ~200-character compiler invocation. Run `make V=1 ...` to see the full
+# commands (useful when debugging flags). QUIET expands to '@' (suppress echo)
+# unless V=1 is passed on the command line.
+V ?= 0
+QUIET_0 = @
+QUIET = $(QUIET_$(V))
+
 .SUFFIXES: .f90 .for .o .obj
 
 .f90.o:
-	$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
+	$(QUIET)$(if $(QUIET),echo "  FC      $<";)$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
 .f90.obj:
-	$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
+	$(QUIET)$(if $(QUIET),echo "  FC      $<";)$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
 .for.o:
-	$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
+	$(QUIET)$(if $(QUIET),echo "  FC      $<";)$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
 .for.obj:
-	$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
+	$(QUIET)$(if $(QUIET),echo "  FC      $<";)$(FCOMPL) -c $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) $<
 
 #Gnu compiler:
 gnu_mpi_linux : FFLAGS = -O3 -unroll -frecord-marker=4 -ffree-line-length-none -cpp -march=native -ffpe-summary=none
 gnu_mpi_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
 gnu_mpi_linux : obj = elmfire
 gnu_mpi_linux : setup $(obj_mpi)
-	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(QUIET)$(if $(QUIET),echo "  LD      $(obj)";)$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
-gnu_mpi_gprof_linux : FFLAGS = -O2 -pg -g -Wall -frecord-marker=4 -ffree-line-length-none -cpp -march=native -ffpe-summary=none
+gnu_mpi_gprof_linux : FFLAGS = -O2 -pg -g -Wall -Wno-character-truncation -Wno-conversion -frecord-marker=4 -ffree-line-length-none -cpp -march=native -ffpe-summary=none
 gnu_mpi_gprof_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
 gnu_mpi_gprof_linux : obj = elmfire_gprof
 gnu_mpi_gprof_linux : setup $(obj_mpi)
-	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(QUIET)$(if $(QUIET),echo "  LD      $(obj)";)$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
-gnu_mpi_block_linux : FFLAGS = -O2 -pg -g -Wall -frecord-marker=4 -ffree-line-length-none -cpp -march=native -ffpe-summary=none
+gnu_mpi_block_linux : FFLAGS = -O2 -pg -g -Wall -Wno-character-truncation -Wno-conversion -frecord-marker=4 -ffree-line-length-none -cpp -march=native -ffpe-summary=none
 gnu_mpi_block_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
 gnu_mpi_block_linux : obj = elmfire_block
 gnu_mpi_block_linux : setup $(obj_mpi)
-	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(QUIET)$(if $(QUIET),echo "  LD      $(obj)";)$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
-gnu_mpi_perf_linux : FFLAGS = -O2 -g -Wall -frecord-marker=4 -ffree-line-length-none -cpp -march=native
+gnu_mpi_perf_linux : FFLAGS = -O2 -g -Wall -Wno-character-truncation -Wno-conversion -frecord-marker=4 -ffree-line-length-none -cpp -march=native
 gnu_mpi_perf_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
 gnu_mpi_perf_linux : obj = elmfire_perf
 gnu_mpi_perf_linux : setup $(obj_mpi)
-	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(QUIET)$(if $(QUIET),echo "  LD      $(obj)";)$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
 gnu_mpi_debug_linux : FFLAGS = -O0 -g -Wall -fcheck=all -fbounds-check -fbacktrace -fdump-core -ffpe-trap=invalid,zero,overflow -frecord-marker=4 -ffree-line-length-none -cpp -Wno-character-truncation -Wno-conversion -finit-real=snan -finit-integer=-99999999
 gnu_mpi_debug_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_GNU)
 gnu_mpi_debug_linux : obj = elmfire_debug
 gnu_mpi_debug_linux : setup $(obj_mpi)
-	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(QUIET)$(if $(QUIET),echo "  LD      $(obj)";)$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
 # Intel compiler:
 intel_mpi_linux : FFLAGS = -O2 -ipo -no-prec-div -axCORE-AVX2 -fpp -assume byterecl
 intel_mpi_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_INTEL)
 intel_mpi_linux : obj = elmfire
 intel_mpi_linux : setup $(obj_mpi)
-	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(QUIET)$(if $(QUIET),echo "  LD      $(obj)";)$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
 intel_mpi_debug_linux : FFLAGS = -O0 -traceback -g -debug all -gen-interfaces -warn interfaces -check noarg_temp_created -ftrapuv -fpe3 -fpp -assume byterecl
 intel_mpi_debug_linux : FCOMPL = $(ELMFIRE_FCOMPL_MPI_INTEL)
 intel_mpi_debug_linux : obj = elmfire_debug
 intel_mpi_debug_linux : setup $(obj_mpi)
-	$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
+	$(QUIET)$(if $(QUIET),echo "  LD      $(obj)";)$(FCOMPL) $(ELMFIRE_PRECOMPILER_FLAGS) $(FFLAGS) -o $(obj) $(obj_mpi)
 
 #*** End Compiler Specific Rules ***
 

@@ -26,9 +26,10 @@ WX_INPUTS_FILE=wx.csv
 
 # End inputs specification
 
-ELMFIRE_VER=${ELMFIRE_VER:-2025.1002}
-
+# ELMFIRE_VER defaults to the repo-root VERSION file (resolved by
+# set_elmfire_version below); export ELMFIRE_VER to override.
 . ../functions/functions.sh
+set_elmfire_version
 
 XMIN=`echo "0.0 - 0.5 * $DOMAINSIZE" | bc -l`
 XMAX=`echo "0.0 + 0.5 * $DOMAINSIZE" | bc -l`
@@ -63,6 +64,9 @@ for i in $(eval echo "{1..$NUM_INT_RASTERS}"); do
    gdal_calc.py -A $SCRATCH/int.tif --co="COMPRESS=DEFLATE" --co="ZLEVEL=9" --NoDataValue=-9999 --outfile="$INPUTS/${INT_RASTER[i]}.tif" --calc="A + ${INT_VAL[i]}"
 done
 
+# Combine the topography/fuel layers into a single multiband landscape file
+create_landscape $INPUTS fbfm40
+
 # Create transient float input rasters
 COLS=`head -n 1 $WX_INPUTS_FILE | tr ',' ' '`
 tail -n +2 $WX_INPUTS_FILE > $SCRATCH/wx.csv
@@ -84,12 +88,8 @@ for QUANTITY in $COLS; do
 done
 
 # Set inputs in elmfire.data
-replace_line COMPUTATIONAL_DOMAIN_XLLCORNER $XMIN no
-replace_line COMPUTATIONAL_DOMAIN_YLLCORNER $YMIN no
-replace_line COMPUTATIONAL_DOMAIN_CELLSIZE $CELLSIZE no
 replace_line SIMULATION_TSTOP $SIMULATION_TSTOP no
 replace_line DTDUMP $SIMULATION_TSTOP no
-replace_line A_SRS "$A_SRS" yes
 
 # Execute ELMFIRE
 elmfire_$ELMFIRE_VER ./inputs/elmfire.data

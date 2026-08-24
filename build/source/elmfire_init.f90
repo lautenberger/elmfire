@@ -1,6 +1,7 @@
 MODULE ELMFIRE_INIT
 
 USE ELMFIRE_VARS
+USE ELMFIRE_SUBS
 
 IMPLICIT NONE
 
@@ -9,6 +10,9 @@ CONTAINS
 ! *****************************************************************************
 SUBROUTINE SET_MISC_PARAMETERS(R1)
 ! *****************************************************************************
+! Sets non-raster perturbed Monte Carlo parameters (wind direction/speed
+! fluctuation intensities) from the normalized random vector R1, advancing the
+! parameter index and recording the unscaled values in COEFFS_UNSCALED.
 
 REAL, DIMENSION(:) :: R1
 INTEGER :: I
@@ -32,18 +36,269 @@ ENDIF
 END SUBROUTINE SET_MISC_PARAMETERS
 ! *****************************************************************************
 
+SUBROUTINE CHECK_INPUT_FILEPATHS_SET
+! Check necessary files exist
+logical :: GOOD_INPUTS = .TRUE.
+logical :: BLDG_GOOD_INPUTS = .FALSE. !small hack to get extra error message for building inputs
+
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(WEATHER_DIRECTORY, "WEATHER_DIRECTORY")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(FUELS_AND_TOPOGRAPHY_DIRECTORY, "FUELS_AND_TOPOGRAPHY_DIRECTORY")
+! A landscape file supplies elevation, slope, aspect, fuel, canopy cover, canopy
+! height, canopy base height, and canopy bulk density as bands of one GeoTIFF, so
+! the individual layer filenames are not required (and not used) in that mode.
+if (USE_LANDSCAPE_FILE) then
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(LANDSCAPE_FILENAME, "LANDSCAPE_FILENAME")
+else
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(DEM_FILENAME, "DEM_FILENAME")
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(SLP_FILENAME, "SLP_FILENAME")
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(ASP_FILENAME, "ASP_FILENAME")
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(FBFM_FILENAME, "FBFM_FILENAME")
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(CC_FILENAME, "CC_FILENAME")
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(CH_FILENAME, "CH_FILENAME")
+endif
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(PHI_FILENAME, "PHI_FILENAME")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(ADJ_FILENAME, "ADJ_FILENAME")
+if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(DAILY_WEATHER_FILENAME, "DAILY_WEATHER_FILENAME")
+else if (.not. USE_LANDSCAPE_FILE) then
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(CBH_FILENAME, "CBH_FILENAME")
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(CBD_FILENAME, "CBD_FILENAME")
+endif
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(WS_FILENAME, "WS_FILENAME")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(WD_FILENAME, "WD_FILENAME")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(M1_FILENAME, "M1_FILENAME")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(M10_FILENAME, "M10_FILENAME")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(M100_FILENAME, "M100_FILENAME")
+if (USE_ERC) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(ERC_FILENAME, "ERC_FILENAME")
+if (USE_BARRIERS) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(BARRIER_FILENAME, "BARRIER_FILENAME")
+if (USE_PYROMES) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(PYROMES_FILENAME, "PYROMES_FILENAME")
+if (USE_SDI) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(SDI_FILENAME, "SDI_FILENAME")
+! new suppression model
+if (ENABLE_EXTENDED_ATTACK .AND. (EXTENDED_ATTACK_MODEL .EQ. 1)) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(PCL_FILENAME, "PCL_FILENAME") .and. CHECK_FILEPATH_IS_SET(SDI_FILENAME, "SDI_FILENAME")
+! new suppression model
+if (USE_LAND_VALUE) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(LAND_VALUE_FILENAME, "LAND_VALUE_FILENAME")
+if (USE_POPULATION_DENSITY) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(POPULATION_DENSITY_FILENAME, "POPULATION_DENSITY_FILENAME")
+if (USE_REAL_ESTATE_VALUE) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(REAL_ESTATE_VALUE_FILENAME, "REAL_ESTATE_VALUE_FILENAME")
+if (ADJUSTMENT_FACTORS_BY_PYROME) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(ADJUSTMENT_FACTORS_FILENAME, "ADJUSTMENT_FACTORS_FILENAME")
+if (DURATION_PDF_BY_PYROME) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(DURATION_PDF_FILENAME, "DURATION_PDF_FILENAME")
+if (CALIBRATION_CONSTANTS_BY_PYROME) GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(CALIBRATION_CONSTANTS_FILENAME, "CALIBRATION_CONSTANTS_FILENAME")
+
+! Ignition mask and ignition csv are handled directly in READ_MONTE_CARLO
+IF (USE_BLDG_SPREAD_MODEL) THEN
+   IF (.NOT. USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS) THEN
+      if (GOOD_INPUTS) BLDG_GOOD_INPUTS = .TRUE. ! check if the (first) error occurs in the BLDG inputs, to output an extra message.
+      GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(BLDG_AREA_FILENAME, "BLDG_AREA_FILENAME")
+      GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(BLDG_SEPARATION_DIST_FILENAME, "BLDG_SEPARATION_DIST_FILENAME")
+      GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(BLDG_NONBURNABLE_FRAC_FILENAME, "BLDG_NONBURNABLE_FRAC_FILENAME")
+      GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(BLDG_FOOTPRINT_FRAC_FILENAME, "BLDG_FOOTPRINT_FRAC_FILENAME")
+      GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(BLDG_FUEL_MODEL_FILENAME, "BLDG_FUEL_MODEL_FILENAME")
+      if (.not. GOOD_INPUTS .and. BLDG_GOOD_INPUTS) WRITE(*,*) 'Alternatively set USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS = .TRUE.'
+      BLDG_GOOD_INPUTS = .FALSE.
+   ENDIF
+ENDIF
+
+if (.not. GOOD_INPUTS) then
+   WRITE(*,*) "[ERROR] Error with input files, some paths are not set"
+   CALL SHUTDOWN
+endif
+
+contains 
+
+FUNCTION CHECK_FILEPATH_IS_SET(filename, testname)
+   ! Returns .TRUE. if filename is non-blank; otherwise prints an error naming
+   ! testname and returns .FALSE. Used to verify required &INPUTS paths are set.
+   character(len=*), intent(in) :: filename, testname
+   logical :: CHECK_FILEPATH_IS_SET
+
+   CHECK_FILEPATH_IS_SET = .TRUE.
+   if (trim(filename) .eq. '') then
+      WRITE(*,*) "[ERROR] ", trim(testname), " is not specified and is a required input. Specify it in the &INPUTS section"
+      CHECK_FILEPATH_IS_SET = .FALSE.
+   endif
+end function CHECK_FILEPATH_IS_SET
+
+! *****************************************************************************
+end subroutine CHECK_INPUT_FILEPATHS_SET
+! *****************************************************************************
+
 ! *****************************************************************************
 SUBROUTINE CHECK_INPUTS(GOOD_INPUTS)
 ! *****************************************************************************
+! Validates namelist/raster inputs (raster dimension matches, weather-band and
+! time consistency, ignition locations, diurnal/spotting/building options) and
+! returns GOOD_INPUTS=.FALSE. with an error message for each problem found.
 
 LOGICAL, INTENT(OUT) :: GOOD_INPUTS
+integer :: I, ix_ign, iy_ign
 
 GOOD_INPUTS = .TRUE. 
 
+! DT_METEOROLOGY must be set for level set spread
 IF (MODE .NE. 2 .AND. DT_METEOROLOGY .LE. 0.) THEN
-   WRITE(*,*) 'Specify DT_METEOROLOGY in the &INPUTS namelist group.'
+   WRITE(*,*) '[ERROR] DT_METEOROLOGY must be set for level set propagation. Specify DT_METEOROLOGY in the &INPUTS namelist group.'
    GOOD_INPUTS = .FALSE. 
 ENDIF
+
+! RASTER SIZE MISMATCH
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, DEM, "Elevation")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, SLP, "Slope")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, FBFM, "Fuel Model")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, CH, "Canopy Height")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, CC, "Canopy Cover")
+! new suppression model
+IF (ENABLE_EXTENDED_ATTACK .AND. EXTENDED_ATTACK_MODEL .EQ. 1) THEN
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, PCL, "Potential Control Location")
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, SDI, "Suppression Difficulty Index")
+ENDIF
+! new suppression model
+if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, CBH, "Canopy Base Height")
+   GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, CBD, "Density")
+endif 
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(WS, WD, "Wind Direction")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(WS, M1, "M1")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(WS, M10, "M10")
+GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(WS, M100, "M100")
+
+! Check raster is big enough (too small and edge offset effects kick in)
+if (ASP%NCOLS .lt. 10 .or. ASP%NROWS .lt. 10) then
+   WRITE(*,*) "[ERROR] Raster size (", ASP%NROWS, " , ", ASP%NCOLS, ") is smaller than minimum raster size (10 , 10)"
+   GOOD_INPUTS = .FALSE.
+endif 
+
+! Check daily weather stream is enough for the simulation duration.
+if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+   if (HOUR_OF_YEAR + size(daily_bui) * 24 .lt. HOUR_OF_YEAR + WS%NBANDS * DT_METEOROLOGY / 3600) then
+      WRITE(*,*) "[ERROR] Daily weather values not enough for full fire duration (Input should span as many days as the weather raster bands)"
+      GOOD_INPUTS = .FALSE.
+   endif
+endif 
+
+! Not enough weather bands
+if (WS%NBANDS * DT_METEOROLOGY .lt. SIMULATION_TSTOP .and. WS%NBANDS .gt. 1) then
+   WRITE(*,*) "[ERROR] Not enough weather bands for given SIMULATION TSTOP"
+   GOOD_INPUTS = .FALSE.
+endif 
+
+!plain mistakes
+if (SIMULATION_TSTART .gt. SIMULATION_TSTOP) then
+   WRITE(*,*) "[ERROR] SIMULATION_TSTART greater than SIMULATION TSTOP."
+   GOOD_INPUTS = .FALSE.
+endif 
+
+!diurnal adjustment factor stuff
+if (USE_DIURNAL_ADJUSTMENT_FACTOR) then
+   if (HOUR_OF_YEAR .lt. 0 .and. SUNRISE_HOUR .lt. 0) then
+      WRITE(*,*) "[ERROR] HOUR_OF_YEAR must be specified if USE_DIURNAL_ADJUSTMENT_FACTOR is selected (and SUNRISE_HOUR and SUNSET_HOUR are not specified)."
+      GOOD_INPUTS = .FALSE.
+   endif 
+   if (CURRENT_YEAR .lt. 0 .and. SUNRISE_HOUR .lt. 0) then
+      WRITE(*,*) "[ERROR] CURRENT_YEAR must be specified if USE_DIURNAL_ADJUSTMENT_FACTOR is selected (and SUNRISE_HOUR and SUNSET_HOUR are not specified)."
+      GOOD_INPUTS = .FALSE.
+   endif 
+endif
+
+! fire potential mode
+if (MODE .ne. 1) then
+   if (METEOROLOGY_BAND_START .lt. 0) then
+      WRITE(*,*) "[ERROR] METEOROLOGY_BAND_START must be specified if fire potential mode (MODE = 2 or 3) is used."
+      GOOD_INPUTS = .FALSE.
+   endif 
+   if (METEOROLOGY_BAND_STOP .lt. 0) then
+      WRITE(*,*) "[ERROR] METEOROLOGY_BAND_STOP must be specified if fire potential mode (MODE = 2 or 3) is used."
+      GOOD_INPUTS = .FALSE.
+   endif 
+   if (METEOROLOGY_BAND_SKIP_INTERVAL .lt. 0) then
+      WRITE(*,*) "[ERROR] METEOROLOGY_BAND_SKIP_INTERVAL must be specified if fire potential mode (MODE = 2 or 3) is used."
+      GOOD_INPUTS = .FALSE.
+   endif 
+   if (2 * EDGEBUFFER .gt. 0.8 * ASP%NROWS * ASP%CELLSIZE .or. 2 * EDGEBUFFER .gt. 0.8 * ASP%NCOLS * ASP%CELLSIZE) then
+      WRITE(*,*) "[ERROR] EDGEBUFFER covers more than 80% of raster, consider reducing it (standard value is 3km)."
+      GOOD_INPUTS = .FALSE.
+   endif 
+
+endif
+
+if (ENABLE_SMOKE_OUTPUTS) then
+   if (CURRENT_YEAR .lt. 0) then
+      write (*,*) "[ERROR] CURRENT_YEAR needs to be specified with ENABLE_SMOKE_OUTPUTS"
+      GOOD_INPUTS = .FALSE.
+   endif
+   if (HOUR_OF_YEAR .lt. 0) then
+      write (*,*) "[ERROR] HOUR_OF_YEAR needs to be specified with ENABLE_SMOKE_OUTPUTS"
+      GOOD_INPUTS = .FALSE.
+   endif
+endif
+
+if (ENABLE_SPOTTING) then
+   IF (.NOT. USE_SUPERSEDED_SPOTTING) THEN
+      if (GENERATION_MODEL .ne. 'RANDOM' .and. GENERATION_MODEL .ne. 'PER-AREA' .and. GENERATION_MODEL .ne. 'PER-MW') then
+         WRITE(*,*) "[ERROR] Ember GENERATION_MODEL not supported. Valid options: 'RANDOM', 'PER-AREA', 'PER-MW'."
+         GOOD_INPUTS = .FALSE.
+      endif
+      if (SPOTTING_DISTANCE_MODEL .ne. 'UNIFORM' .and. SPOTTING_DISTANCE_MODEL .ne. 'LOGNORMAL' .and. SPOTTING_DISTANCE_MODEL .ne. 'EMPIRICAL') then
+         WRITE(*,*) "[ERROR] Ember SPOTTING_DISTANCE_MODEL not supported. Valid options: 'UNIFORM', 'LOGNORMAL', 'EMPIRICAL'."
+         GOOD_INPUTS = .FALSE.
+      endif
+      if (ACCUMULATION_MODEL .ne. 'LAGRANGIAN' .and. ACCUMULATION_MODEL .ne. 'EULERIAN') then
+         WRITE(*,*) "[ERROR] Ember ACCUMULATION_MODEL not supported. Valid options: 'LAGRANGIAN', 'EULERIAN'."
+         GOOD_INPUTS = .FALSE.
+      endif
+      if (IGNITION_MODEL .ne. 'DIRECT' .and. IGNITION_MODEL .ne. 'SIMPLE' .and. IGNITION_MODEL .ne. 'PHYSICAL') then
+         WRITE(*,*) "[ERROR] Ember IGNITION_MODEL not supported. Valid options: 'DIRECT', 'SIMPLE', 'PHYSICAL'."
+         GOOD_INPUTS = .FALSE.
+      endif
+      if (ACCUMULATION_MODEL .eq. 'EULERIAN' .and. SPOTTING_DISTANCE_MODEL .eq. 'UNIFORM') then
+         WRITE(*,*) "[ERROR] SPOTTING_DISTANCE_MODEL='UNIFORM' not supported with ACCUMULATION_MODEL='EULERIAN'. Please set SPOTTING_DISTANCE_MODEL to 'LOGNORMAL' or 'EMPIRICAL' if using the Eulerian accumulation model."
+         GOOD_INPUTS = .FALSE.
+      endif
+   ENDIF
+ENDIF
+
+if (MODE .ne. 2) then
+   if (any(PHI0%R4 .gt. 0)) then
+      WRITE(*,*) "Using input Phi grid as ignition source"
+   else if (.not. CSV_FIXED_IGNITION_LOCATIONS .and. .not. RANDOM_IGNITIONS .and. count(T_LINE_IGN .ne. -1.0) .eq. 0 .and. count(T_IGN .ne. -1.0) .eq. 0) then
+      WRITE(*,*) "[ERROR] No ignition point/time specified."
+      GOOD_INPUTS = .FALSE.
+   else
+      do I = 1 , count(T_LINE_IGN .ne. -1.0)
+         if (T_LINE_IGN(I) .ne. -1.0) THEN
+            if (X_LINE_IGN_START(I) .lt. ASP%XLLCORNER .or. &
+               Y_LINE_IGN_START(I) .lt. ASP%YLLCORNER .or. &
+               X_LINE_IGN_START(I) .gt. ASP%XLLCORNER + ASP%NCOLS * ASP%CELLSIZE .or. &
+               Y_LINE_IGN_START(I) .lt. ASP%YLLCORNER - ASP%NROWS * ASP%CELLSIZE) then ! note that y increases upwards in the northern hemisphere, might need to change this later. 
+               WRITE(*,*) "[ERROR] Starting Ignition point ", I, " is outside the bounds of the raster."
+               GOOD_INPUTS = .FALSE.
+            endif
+            if (X_LINE_IGN_END(I) .lt. ASP%XLLCORNER .or. &
+               Y_LINE_IGN_END(I) .lt. ASP%YLLCORNER .or. &
+               X_LINE_IGN_END(I) .gt. ASP%XLLCORNER + ASP%NCOLS * ASP%CELLSIZE .or. &
+               Y_LINE_IGN_END(I) .lt. ASP%YLLCORNER - ASP%NROWS * ASP%CELLSIZE) then ! note that y increases upwards in the northern hemisphere, might need to change this later. 
+               WRITE(*,*) "[ERROR] End Ignition point ", I, " is outside the bounds of the raster."
+               GOOD_INPUTS = .FALSE.
+            endif
+         endif
+      enddo
+      do I = 0, size(X_IGN)-1
+         if (T_IGN(I) .ge. 0) then
+            if (X_IGN(I) .lt. ASP%XLLCORNER .or. &
+               Y_IGN(I) .lt. ASP%YLLCORNER .or. &
+               X_IGN(I) .gt. ASP%XLLCORNER + ASP%NCOLS * ASP%CELLSIZE .or. &
+               Y_IGN(I) .lt. ASP%YLLCORNER - ASP%NROWS * ASP%CELLSIZE) then ! note that y increases upwards in the northern hemisphere, might need to change this later. 
+               WRITE(*,*) "[ERROR] Ignition point ", I, " is outside the bounds of the raster."
+               GOOD_INPUTS = .FALSE.
+            endif
+            ix_ign = ICOL_FROM_X(X_IGN(I), ASP%XLLCORNER, ASP%CELLSIZE)
+            iy_ign = IROW_FROM_Y(Y_IGN(I), ASP%YLLCORNER, ASP%CELLSIZE)
+            if (ISNONBURNABLE(ix_ign, iy_ign)) then
+               WRITE(*,*) "[ERROR] Ignition point ", I, " is on a non-burnable cell."
+               GOOD_INPUTS = .FALSE.
+            endif
+         endif      
+      enddo
+   endif
+endif
 
 IF (USE_BLDG_SPREAD_MODEL) THEN
    IF (.NOT. USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS) THEN
@@ -73,18 +328,45 @@ IF (USE_BLDG_SPREAD_MODEL) THEN
          ENDIF
    ENDIF
 
-ELSE
-
-   IF (ENABLE_SPOTTING .AND. (.NOT. USE_SUPERSEDED_SPOTTING) ) THEN
-      IF (.NOT. USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS) THEN
-         IF (TRIM(BLDG_FOOTPRINT_FRAC_FILENAME) .EQ. '' ) THEN
-            WRITE(*,*) 'Specify BLDG_FOOTPRINT_FRAC_FILENAME or set USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS = .TRUE.'
-            GOOD_INPUTS = .FALSE.
-         ENDIF
-      ENDIF
-   ENDIF
-
 ENDIF
+
+CONTAINS 
+
+FUNCTION CHECK_RASTER_DIMS(R1, R2, testname)
+   ! Returns .TRUE. if rasters R1 and R2 agree in rows/cols, cell size, corner
+   ! alignment and band count; otherwise prints a testname-labeled error and
+   ! returns .FALSE.
+   type(RASTER_TYPE) , intent(in) :: R1, R2
+   character(len=*), intent(in) :: testname
+   logical :: CHECK_RASTER_DIMS
+
+   CHECK_RASTER_DIMS = .TRUE.
+
+   ! Check raster size
+   if (R1%NROWS .ne. R2%NROWS .or. R1%NCOLS .ne. R2%NCOLS) then
+      WRITE(*,'(A,A,A,I0,A,I0,A,I0,A,I0,A)') "[ERROR] ", TRIM(testname), " raster dimensions mismatch. Please ensure the rasters have the same NROWS (",R1%NROWS, " vs ",R2%NROWS,") and NCOLS (",R1%NCOLS, " vs ",R2%NCOLS,")."
+      CHECK_RASTER_DIMS = .FALSE.
+   endif
+
+   ! Check cell size
+   if (R1%CELLSIZE .ne. R2%CELLSIZE) then
+      WRITE(*,*) "[ERROR] ", TRIM(testname), " raster cell size mismatch. Please ensure the rasters have consistent CELLSIZE."
+      CHECK_RASTER_DIMS = .FALSE.
+   endif
+
+   ! Check alignment
+   if (R1%XLLCORNER .ne. R2%XLLCORNER .or. R1%YLLCORNER .ne. R2%YLLCORNER) then
+      WRITE(*,*) "[ERROR] ", TRIM(testname), " raster alignment mismatch. Please ensure the rasters have consistent XLL and YLL corners."
+      CHECK_RASTER_DIMS = .FALSE.
+   endif
+
+   ! Check band count (mostly important for weather)
+   if (R1%NBANDS .ne. R2%NBANDS) then
+      WRITE(*,*) "[ERROR] ", TRIM(testname), " raster band number mismatch. Please ensure the rasters have consistent band numbers."
+      CHECK_RASTER_DIMS = .FALSE.
+   endif 
+
+END FUNCTION CHECK_RASTER_DIMS
 
 ! *****************************************************************************
 END SUBROUTINE CHECK_INPUTS
@@ -93,6 +375,9 @@ END SUBROUTINE CHECK_INPUTS
 ! *****************************************************************************
 SUBROUTINE INIT_LOOKUP_TABLES
 ! *****************************************************************************
+! Precomputes module lookup tables: trig arrays for slope/aspect and wind
+! direction, and the sheltered wind adjustment factor table indexed by canopy
+! cover and canopy height.
 
 INTEGER :: I, ICC, ICH
 REAL :: CC1, CH1
@@ -134,6 +419,9 @@ END SUBROUTINE INIT_LOOKUP_TABLES
 ! *****************************************************************************
 SUBROUTINE INIT_RASTERS
 ! *****************************************************************************
+! Computes derived rasters from the input rasters: wind adjustment factor
+! (WAF), 1-cos(slope) (OMCOSSLPRAD) and the ISNONBURNABLE mask from FBFM, and
+! optionally adds ADD_TO_IGNITION_MASK to burnable cells of the ignition mask.
 
 INTEGER :: IX, IY, J
 REAL :: ARG
@@ -156,11 +444,19 @@ ENDDO
 DO IY = 1, FBFM%NROWS
 DO IX = 1, FBFM%NCOLS
    J = FBFM%I2(IX,IY,1)
-   IF ( (J .GE. 90 .AND. J .LE. 100) .OR. J .EQ. 256 .OR. J .LE. 0) THEN
-      ISNONBURNABLE(IX,IY) = .TRUE.
-   ELSE
-      ISNONBURNABLE(IX,IY) = .FALSE.
-   ENDIF
+   if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+      IF ( (J .GE. 100 .AND. J .LE. 106) .OR. J .GT. 1000 .OR. J .LE. 0) THEN
+         ISNONBURNABLE(IX,IY) = .TRUE.
+      ELSE
+         ISNONBURNABLE(IX,IY) = .FALSE.
+      ENDIF
+   else if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+      IF ( (J .GE. 90 .AND. J .LE. 100) .OR. J .EQ. 256 .OR. J .LE. 0) THEN
+         ISNONBURNABLE(IX,IY) = .TRUE.
+      ELSE
+         ISNONBURNABLE(IX,IY) = .FALSE.
+      endif 
+   endif
    IF (USE_BLDG_SPREAD_MODEL .AND. J .EQ. 91) ISNONBURNABLE(IX,IY) = .FALSE.
 ENDDO
 ENDDO
@@ -180,6 +476,9 @@ END SUBROUTINE INIT_RASTERS
 ! *****************************************************************************
 SUBROUTINE SETUP_SHARED_MEMORY_1
 ! *****************************************************************************
+! Allocates MPI shared-memory windows for the weather and fuels/topography
+! rasters (sized per ARRAYSHAPE_*), queries them on non-host ranks, binds them
+! to Fortran pointers via C_F_POINTER, and fences/barriers across ranks.
 
 INTEGER :: IERR
 
@@ -189,9 +488,11 @@ WX_NCOLS       = WS%NCOLS
 WX_NROWS       = WS%NROWS
 IF (CSV_FIXED_IGNITION_LOCATIONS .AND. ONLY_READ_NEEDED_WX_BANDS) THEN
    WX_NBANDS = 1 + IGN_IWX_BAND_HI - IGN_IWX_BAND_LO
-ELSE
+ELSE IF (WS%NBANDS .EQ. 1 .OR. WS%NBANDS .LT. WX_BANDS_KEPT_IN_MEM) THEN
    WX_NBANDS = WS%NBANDS
-ENDIF
+ELSE
+   WX_NBANDS = WX_BANDS_KEPT_IN_MEM
+endif
 
 ARRAYSHAPE_ANALYSIS_SINGLEBAND=(/ ANALYSIS_NCOLS, ANALYSIS_NROWS, 1 /)
 ARRAYSHAPE_WX=(/ WX_NCOLS, WX_NROWS, WX_NBANDS /)
@@ -231,7 +532,7 @@ CALL MPI_WIN_ALLOCATE_SHARED (ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO
 CALL MPI_WIN_ALLOCATE_SHARED (ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, CBD_PTR           , WIN_CBD          )
 CALL MPI_WIN_ALLOCATE_SHARED (ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, CC_PTR            , WIN_CC           )
 CALL MPI_WIN_ALLOCATE_SHARED (ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, CH_PTR            , WIN_CH           )
-IF (MODE .NE. 2) CALL MPI_WIN_ALLOCATE_SHARED (ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, DEM_PTR           , WIN_DEM          )
+CALL MPI_WIN_ALLOCATE_SHARED (ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, DEM_PTR           , WIN_DEM          )
 CALL MPI_WIN_ALLOCATE_SHARED (ANALYSIS_SINGLEBAND_SIZE_INT , DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, FBFM_PTR          , WIN_FBFM         )
 CALL MPI_WIN_ALLOCATE_SHARED (ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, SLP_PTR           , WIN_SLP          )
 CALL MPI_WIN_ALLOCATE_SHARED (ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, ADJ_PTR           , WIN_ADJ          )
@@ -244,6 +545,9 @@ IF (USE_POPULATION_DENSITY) CALL MPI_WIN_ALLOCATE_SHARED(ANALYSIS_SINGLEBAND_SIZ
 IF (USE_REAL_ESTATE_VALUE ) CALL MPI_WIN_ALLOCATE_SHARED(ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, REAL_ESTATE_VALUE_PTR  , WIN_REAL_ESTATE_VALUE )
 IF (USE_LAND_VALUE        ) CALL MPI_WIN_ALLOCATE_SHARED(ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, LAND_VALUE_PTR         , WIN_LAND_VALUE        )
 IF (USE_SDI               ) CALL MPI_WIN_ALLOCATE_SHARED(ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, SDI_PTR                , WIN_SDI)
+! new suppression model
+IF (ENABLE_EXTENDED_ATTACK .AND. EXTENDED_ATTACK_MODEL .EQ. 1) CALL MPI_WIN_ALLOCATE_SHARED(ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, PCL_PTR                , WIN_PCL)
+! new suppression model
 IF (USE_BLDG_SPREAD_MODEL) THEN
    CALL MPI_WIN_ALLOCATE_SHARED(ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, BLDG_AREA_PTR             , WIN_BLDG_AREA )
    CALL MPI_WIN_ALLOCATE_SHARED(ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, MPI_INFO_NULL, MPI_COMM_HOST, BLDG_SEPARATION_DIST_PTR  , WIN_BLDG_SEPARATION_DIST )
@@ -281,7 +585,7 @@ IF (IRANK_HOST .NE. 0) THEN
    CALL MPI_WIN_SHARED_QUERY(WIN_CBD          , 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, CBD_PTR           )
    CALL MPI_WIN_SHARED_QUERY(WIN_CC           , 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, CC_PTR            )
    CALL MPI_WIN_SHARED_QUERY(WIN_CH           , 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, CH_PTR            )
-   IF (MODE .NE. 2) CALL MPI_WIN_SHARED_QUERY(WIN_DEM          , 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, DEM_PTR           )
+   CALL MPI_WIN_SHARED_QUERY(WIN_DEM          , 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, DEM_PTR           )
    CALL MPI_WIN_SHARED_QUERY(WIN_FBFM         , 0, ANALYSIS_SINGLEBAND_SIZE_INT , DISP_UNIT, FBFM_PTR          )
    CALL MPI_WIN_SHARED_QUERY(WIN_SLP          , 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, SLP_PTR           )
    CALL MPI_WIN_SHARED_QUERY(WIN_ADJ          , 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, ADJ_PTR           )
@@ -295,6 +599,9 @@ IF (IRANK_HOST .NE. 0) THEN
    IF (USE_REAL_ESTATE_VALUE ) CALL MPI_WIN_SHARED_QUERY(WIN_REAL_ESTATE_VALUE ,   0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, REAL_ESTATE_VALUE_PTR  )
    IF (USE_LAND_VALUE        ) CALL MPI_WIN_SHARED_QUERY(WIN_LAND_VALUE        ,   0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, LAND_VALUE_PTR         )
    IF (USE_SDI               ) CALL MPI_WIN_SHARED_QUERY(WIN_SDI               ,   0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, SDI_PTR                )
+   ! new suppression model 
+   IF (ENABLE_EXTENDED_ATTACK .AND. EXTENDED_ATTACK_MODEL .EQ. 1) CALL MPI_WIN_SHARED_QUERY(WIN_PCL, 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, PCL_PTR)
+   ! new suppression model
    IF (USE_BLDG_SPREAD_MODEL) THEN
       CALL MPI_WIN_SHARED_QUERY(WIN_BLDG_AREA            , 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, BLDG_AREA_PTR             )
       CALL MPI_WIN_SHARED_QUERY(WIN_BLDG_SEPARATION_DIST , 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, BLDG_SEPARATION_DIST_PTR  )
@@ -303,7 +610,7 @@ IF (IRANK_HOST .NE. 0) THEN
       CALL MPI_WIN_SHARED_QUERY(WIN_BLDG_FUEL_MODEL      , 0, ANALYSIS_SINGLEBAND_SIZE_INT , DISP_UNIT, BLDG_FUEL_MODEL_PTR       )
    ELSE
       IF (ENABLE_SPOTTING .AND. (.NOT. USE_SUPERSEDED_SPOTTING) ) THEN
-         CALL MPI_WIN_SHARED_QUERY(WIN_BLDG_NONBURNABLE_FRAC, 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, BLDG_NONBURNABLE_FRAC_PTR )
+         CALL MPI_WIN_SHARED_QUERY(WIN_BLDG_FOOTPRINT_FRAC, 0, ANALYSIS_SINGLEBAND_SIZE_REAL, DISP_UNIT, BLDG_FOOTPRINT_FRAC_PTR )
       ENDIF
    ENDIF
    IF (USE_PYROMES) CALL MPI_WIN_SHARED_QUERY(WIN_PYROMES, 0, ANALYSIS_SINGLEBAND_SIZE_INT, DISP_UNIT, PYROMES_PTR)
@@ -332,7 +639,7 @@ CALL C_F_POINTER(CBH_PTR          , CBH%R4        , ARRAYSHAPE_ANALYSIS_SINGLEBA
 CALL C_F_POINTER(CBD_PTR          , CBD%R4        , ARRAYSHAPE_ANALYSIS_SINGLEBAND )
 CALL C_F_POINTER(CC_PTR           , CC%R4         , ARRAYSHAPE_ANALYSIS_SINGLEBAND )
 CALL C_F_POINTER(CH_PTR           , CH%R4         , ARRAYSHAPE_ANALYSIS_SINGLEBAND )
-IF (MODE .NE. 2) CALL C_F_POINTER(DEM_PTR          , DEM%R4        , ARRAYSHAPE_ANALYSIS_SINGLEBAND )
+CALL C_F_POINTER(DEM_PTR          , DEM%R4        , ARRAYSHAPE_ANALYSIS_SINGLEBAND )
 CALL C_F_POINTER(FBFM_PTR         , FBFM%I2      , ARRAYSHAPE_ANALYSIS_SINGLEBAND )
 CALL C_F_POINTER(SLP_PTR          , SLP%R4        , ARRAYSHAPE_ANALYSIS_SINGLEBAND )
 CALL C_F_POINTER(ADJ_PTR          , ADJ%R4        , ARRAYSHAPE_ANALYSIS_SINGLEBAND )
@@ -344,6 +651,9 @@ IF (USE_POPULATION_DENSITY) CALL C_F_POINTER(POPULATION_DENSITY_PTR, POPULATION_
 IF (USE_REAL_ESTATE_VALUE ) CALL C_F_POINTER(REAL_ESTATE_VALUE_PTR , REAL_ESTATE_VALUE%R4  , ARRAYSHAPE_ANALYSIS_SINGLEBAND)
 IF (USE_LAND_VALUE        ) CALL C_F_POINTER(LAND_VALUE_PTR        , LAND_VALUE%R4         , ARRAYSHAPE_ANALYSIS_SINGLEBAND)
 IF (USE_SDI               ) CALL C_F_POINTER(SDI_PTR               , SDI%R4                , ARRAYSHAPE_ANALYSIS_SINGLEBAND)
+! new suppression model
+IF (ENABLE_EXTENDED_ATTACK .AND. EXTENDED_ATTACK_MODEL .EQ. 1) CALL C_F_POINTER(PCL_PTR, PCL%R4, ARRAYSHAPE_ANALYSIS_SINGLEBAND)
+! new suppression model
 IF (USE_BLDG_SPREAD_MODEL) THEN
    CALL C_F_POINTER(BLDG_AREA_PTR            , BLDG_AREA%R4            , ARRAYSHAPE_ANALYSIS_SINGLEBAND)
    CALL C_F_POINTER(BLDG_SEPARATION_DIST_PTR , BLDG_SEPARATION_DIST%R4 , ARRAYSHAPE_ANALYSIS_SINGLEBAND)
@@ -377,7 +687,7 @@ IF (NPROC .GT. 1) THEN
    CALL MPI_WIN_FENCE(0, WIN_CBD           , IERR)
    CALL MPI_WIN_FENCE(0, WIN_CC            , IERR)
    CALL MPI_WIN_FENCE(0, WIN_CH            , IERR)
-   IF (MODE .NE. 2) CALL MPI_WIN_FENCE(0, WIN_DEM           , IERR)
+   CALL MPI_WIN_FENCE(0, WIN_DEM           , IERR)
    CALL MPI_WIN_FENCE(0, WIN_FBFM          , IERR)
    CALL MPI_WIN_FENCE(0, WIN_SLP           , IERR)
    CALL MPI_WIN_FENCE(0, WIN_ADJ           , IERR)
@@ -390,6 +700,9 @@ IF (NPROC .GT. 1) THEN
    IF (USE_REAL_ESTATE_VALUE ) CALL MPI_WIN_FENCE(0, WIN_REAL_ESTATE_VALUE , IERR)
    IF (USE_LAND_VALUE        ) CALL MPI_WIN_FENCE(0, WIN_LAND_VALUE        , IERR)
    IF (USE_SDI               ) CALL MPI_WIN_FENCE(0, WIN_SDI               , IERR)
+   ! new suppression model
+   IF (ENABLE_EXTENDED_ATTACK .AND. EXTENDED_ATTACK_MODEL .EQ. 1) CALL MPI_WIN_FENCE(0, WIN_PCL, IERR)
+   ! new suppression model
    IF (USE_PYROMES           ) CALL MPI_WIN_FENCE(0, WIN_PYROMES           , IERR)
 
 ENDIF
@@ -403,6 +716,9 @@ END SUBROUTINE SETUP_SHARED_MEMORY_1
 ! *****************************************************************************
 SUBROUTINE SETUP_SHARED_MEMORY_2
 ! *****************************************************************************
+! Allocates and zero-initializes the MPI shared-memory STATS_* arrays (one
+! entry per case in NUM_CASES_TOTAL) that hold per-case output statistics, then
+! binds them to pointers and synchronizes across ranks.
 
 INTEGER :: IERR
 
@@ -524,6 +840,8 @@ ENDIF
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 
+iF (FEEDBACK_LEVEL .GE. 1) PRINT *, "Shared memory (2) setup finished"
+
 ! *****************************************************************************
 END SUBROUTINE SETUP_SHARED_MEMORY_2
 ! *****************************************************************************
@@ -531,6 +849,9 @@ END SUBROUTINE SETUP_SHARED_MEMORY_2
 ! *****************************************************************************
 SUBROUTINE CALC_WIND_ADJUSTMENT_FACTOR_EVERYWHERE(CC, CH, FBFM, WAF)
 ! *****************************************************************************
+! Fills the WAF raster (cloned from ADJ's header) with a per-cell wind
+! adjustment factor: canopy-cover based (Scott 2007) for the CFFDRS model, or a
+! sheltered/unsheltered blend from the lookup tables for the ROTHERMEL model.
 TYPE(RASTER_TYPE), INTENT(IN) :: CC, CH, FBFM
 TYPE(RASTER_TYPE), INTENT(INOUT) :: WAF
 REAL :: F, SHELTERED_WAF, UNSHELTERED_WAF, UNSHELTERED_FRAC
@@ -557,25 +878,41 @@ WAF%YLLCORNER     = ADJ%YLLCORNER
 
 DO IROW = 1, WAF%NROWS
 DO ICOL = 1, WAF%NCOLS
-   IF (CC%R4(ICOL,IROW,1) .LT. 0.) THEN
-      WAF%R4(ICOL,IROW,1) = 0.
-   ELSE
-      UNSHELTERED_WAF = FUEL_MODEL_TABLE_2D(MAX(FBFM%I2(ICOL,IROW,1),0),30)%UNSHELTERED_WAF
-
-      ICC = MIN(MAX(NINT(CC%R4(ICOL,IROW,1)*100.),0),100)
-      ICH = MIN(MAX(NINT(CH%R4(ICOL,IROW,1)     ),0),120)
-      SHELTERED_WAF = SHELTERED_WAF_TABLE(ICC,ICH)
-      SHELTERED_WAF = MIN(SHELTERED_WAF, UNSHELTERED_WAF)
-
-      F = 0.3333 * CC%R4(ICOL,IROW,1) * CROWN_RATIO
-
-      IF (F .GE. 0.05) THEN
-         WAF%R4(ICOL,IROW,1) = SHELTERED_WAF
+   if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then ! Scott (2007) canopy cover based wind adjustment factor calculation for CFFDRS
+      if (CC%R4(ICOL, IROW, 1) .gt. 50) then 
+         WAF%R4(ICOL,IROW,1) = 0.10
+      else if (CC%R4(ICOL, IROW, 1) .gt. 30) then 
+         WAF%R4(ICOL,IROW,1) = 0.15
+      else if (CC%R4(ICOL, IROW, 1) .gt. 15) then 
+         WAF%R4(ICOL,IROW,1) = 0.20
+      else if (CC%R4(ICOL, IROW, 1) .gt. 10) then 
+         WAF%R4(ICOL,IROW,1) = 0.25
+      else if (CC%R4(ICOL, IROW, 1) .gt. 5) then 
+         WAF%R4(ICOL,IROW,1) = 0.30
+      else 
+         WAF%R4(ICOL,IROW,1) = 0.50
+      endif
+   else if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+      IF (CC%R4(ICOL,IROW,1) .LT. 0.) THEN
+         WAF%R4(ICOL,IROW,1) = 0.
       ELSE
-         UNSHELTERED_FRAC = 1.0 - 20. * F
-         WAF%R4(ICOL,IROW,1) = UNSHELTERED_FRAC * UNSHELTERED_WAF + (1. - UNSHELTERED_FRAC) * SHELTERED_WAF
+         UNSHELTERED_WAF = FUEL_MODEL_TABLE_2D(MAX(FBFM%I2(ICOL,IROW,1),0),30)%UNSHELTERED_WAF
+
+         ICC = MIN(MAX(NINT(CC%R4(ICOL,IROW,1)*100.),0),100)
+         ICH = MIN(MAX(NINT(CH%R4(ICOL,IROW,1)     ),0),120)
+         SHELTERED_WAF = SHELTERED_WAF_TABLE(ICC,ICH)
+         SHELTERED_WAF = MIN(SHELTERED_WAF, UNSHELTERED_WAF)
+
+         F = 0.3333 * CC%R4(ICOL,IROW,1) * CROWN_RATIO
+
+         IF (F .GE. 0.05) THEN
+            WAF%R4(ICOL,IROW,1) = SHELTERED_WAF
+         ELSE
+            UNSHELTERED_FRAC = 1.0 - 20. * F
+            WAF%R4(ICOL,IROW,1) = UNSHELTERED_FRAC * UNSHELTERED_WAF + (1. - UNSHELTERED_FRAC) * SHELTERED_WAF
+         ENDIF
       ENDIF
-   ENDIF
+   endif
 ENDDO
 ENDDO
 
@@ -586,15 +923,25 @@ END SUBROUTINE CALC_WIND_ADJUSTMENT_FACTOR_EVERYWHERE
 ! *****************************************************************************
 SUBROUTINE ROTATE_ASP_AND_WD (ITYPE)
 ! *****************************************************************************
+! Rotates a directional raster by GRID_DECLINATION, wrapping into [0,360):
+! ITYPE=1 rotates the aspect raster (ASP), ITYPE=2 rotates all bands of the
+! wind direction raster (WD).
 
 INTEGER, INTENT(IN) :: ITYPE
 INTEGER :: IBAND, IROW, ICOL
 
 SELECT CASE (ITYPE)
    CASE (1) ! Aspect
-      CONTINUE 
+      DO IROW = 1, ASP%NROWS
+      DO ICOL = 1, ASP%NCOLS
+         ASP%R4(ICOL,IROW,1) = ASP%R4(ICOL,IROW,1) - GRID_DECLINATION
+         IF (ASP%R4(ICOL,IROW,1) .GT. 360.) ASP%R4(ICOL,IROW,1) = ASP%R4(ICOL,IROW,1) - 360.
+         IF (ASP%R4(ICOL,IROW,1) .LT.   0.) ASP%R4(ICOL,IROW,1) = ASP%R4(ICOL,IROW,1) + 360.
+         CONTINUE
+      ENDDO
+      ENDDO
    CASE (2) ! Wind direction
-      DO IBAND = 1, WD%NBANDS
+      DO IBAND = 1, SIZE(WD%R4(1,1,:))
       DO IROW = 1, WD%NROWS
       DO ICOL = 1, WD%NCOLS
          WD%R4(ICOL,IROW,IBAND) = WD%R4(ICOL,IROW,IBAND) - GRID_DECLINATION
@@ -613,6 +960,9 @@ END SUBROUTINE ROTATE_ASP_AND_WD
 ! *****************************************************************************
 REAL FUNCTION CALC_WIND_ADJUSTMENT_FACTOR_SINGLE(CC, CH, FUEL_BED_HEIGHT)
 ! *****************************************************************************
+! Returns the wind adjustment factor (20-ft to midflame) for a single cell:
+! a sheltered value when canopy (CC, CH) is present, otherwise an unsheltered
+! value from the fuel bed height; returns 0 for missing/negative canopy cover.
 
 REAL, INTENT(IN) :: CC, CH, FUEL_BED_HEIGHT
 
@@ -654,6 +1004,9 @@ END FUNCTION CALC_WIND_ADJUSTMENT_FACTOR_SINGLE
 ! *****************************************************************************
 SUBROUTINE WRITE_FUEL_MODEL_TABLE
 ! *****************************************************************************
+! When no FUEL_MODEL_FILE is supplied, writes a built-in default fuel model
+! table (ROTHERMEL or CFFDRS rows depending on SURFACE_SPREAD_MODEL) to
+! fuel_models.csv in the miscellaneous inputs directory.
 
 CHARACTER(400) :: FNOUTPUT
 INTEGER :: IOS
@@ -671,63 +1024,208 @@ IF ( TRIM(FUEL_MODEL_FILE) .EQ. 'null') THEN
       STOP
    ENDIF
 
-   WRITE (LUOUTPUT,'(A)') '1,FBFM01,.FALSE.,0.034,0,0,0,0,3500,9999,9999,1,12,8000'
-   WRITE (LUOUTPUT,'(A)') '2,FBFM02,.FALSE.,0.092,0.046,0.023,0.023,0,3000,1500,9999,1,15,8000'
-   WRITE (LUOUTPUT,'(A)') '3,FBFM03,.FALSE.,0.138,0,0,0,0,1500,9999,9999,2.5,25,8000'
-   WRITE (LUOUTPUT,'(A)') '4,FBFM04,.FALSE.,0.23,0.184,0.092,0,0.23,2000,9999,1500,6,20,8000'
-   WRITE (LUOUTPUT,'(A)') '5,FBFM05,.FALSE.,0.046,0.023,0,0,0.092,2000,9999,1500,2,20,8000'
-   WRITE (LUOUTPUT,'(A)') '6,FBFM06,.FALSE.,0.069,0.115,0.092,0,0,1750,9999,9999,2.5,25,8000'
-   WRITE (LUOUTPUT,'(A)') '7,FBFM07,.FALSE.,0.052,0.086,0.069,0,0.017,1750,9999,1550,2.5,40,8000'
-   WRITE (LUOUTPUT,'(A)') '8,FBFM08,.FALSE.,0.069,0.046,0.115,0,0,2000,9999,9999,0.2,30,8000'
-   WRITE (LUOUTPUT,'(A)') '9,FBFM09,.FALSE.,0.134,0.019,0.007,0,0,2500,9999,9999,0.2,25,8000'
-   WRITE (LUOUTPUT,'(A)') '10,FBFM10,.FALSE.,0.138,0.092,0.23,0,0.092,2000,9999,1500,1,25,8000'
-   WRITE (LUOUTPUT,'(A)') '11,FBFM11,.FALSE.,0.069,0.207,0.253,0,0,1500,9999,9999,1,15,8000'
-   WRITE (LUOUTPUT,'(A)') '12,FBFM12,.FALSE.,0.184,0.644,0.759,0,0,1500,9999,9999,2.3,20,8000'
-   WRITE (LUOUTPUT,'(A)') '13,FBFM13,.FALSE.,0.322,1.058,1.288,0,0,1500,9999,9999,3,25,8000'
-   WRITE (LUOUTPUT,'(A)') '14,FBFM14,.FALSE.,0.045913682,0.022956841,0,0,0,2000,2000,2000,0.2,25,8000'
-   WRITE (LUOUTPUT,'(A)') '15,FBFM15,.FALSE.,0.027548209,0.009182736,0,0,0.059687787,2000,2000,1500,1.2,25,8000'
-   WRITE (LUOUTPUT,'(A)') '101,GR1,.TRUE.,0.00459,0,0,0.01377,0,2200,2000,9999,0.4,15,8000'
-   WRITE (LUOUTPUT,'(A)') '102,GR2,.TRUE.,0.00459,0,0,0.04591,0,2000,1800,9999,1,15,8000'
-   WRITE (LUOUTPUT,'(A)') '102,GR2,.TRUE.,0.00459,0,0,0.04591,0,2000,1800,9999,1,15,8000'
-   WRITE (LUOUTPUT,'(A)') '103,GR3,.TRUE.,0.00459,0.01837,0,0.06887,0,1500,1300,9999,2,30,8000'
-   WRITE (LUOUTPUT,'(A)') '104,GR4,.TRUE.,0.01148,0,0,0.08724,0,2000,1800,9999,2,15,8000'
-   WRITE (LUOUTPUT,'(A)') '105,GR5,.TRUE.,0.01837,0,0,0.11478,0,1800,1600,9999,1.5,40,8000'
-   WRITE (LUOUTPUT,'(A)') '106,GR6,.TRUE.,0.00459,0,0,0.15611,0,2200,2000,9999,1.5,40,9000'
-   WRITE (LUOUTPUT,'(A)') '107,GR7,.TRUE.,0.04591,0,0,0.24793,0,2000,1800,9999,3,15,8000'
-   WRITE (LUOUTPUT,'(A)') '108,GR8,.TRUE.,0.02296,0.04591,0,0.33517,0,1500,1300,9999,4,30,8000'
-   WRITE (LUOUTPUT,'(A)') '109,GR9,.TRUE.,0.04591,0.04591,0,0.41322,0,1800,1600,9999,5,40,8000'
-   WRITE (LUOUTPUT,'(A)') '121,GS1,.TRUE.,0.00918,0,0,0.02296,0.02984,2000,1800,1800,0.9,15,8000'
-   WRITE (LUOUTPUT,'(A)') '122,GS2,.TRUE.,0.02296,0.02296,0,0.02755,0.04591,2000,1800,1800,1.5,15,8000'
-   WRITE (LUOUTPUT,'(A)') '123,GS3,.TRUE.,0.01377,0.01148,0,0.06657,0.05739,1800,1600,1600,1.8,40,8000'
-   WRITE (LUOUTPUT,'(A)') '124,GS4,.TRUE.,0.08724,0.01377,0.00459,0.15611,0.32599,1800,1600,1600,2.1,40,8000'
-   WRITE (LUOUTPUT,'(A)') '141,SH1,.TRUE.,0.01148,0.01148,0,0.00689,0.05969,2000,1800,1600,1,15,8000'
-   WRITE (LUOUTPUT,'(A)') '142,SH2,.FALSE.,0.06198,0.11019,0.03444,0,0.17677,2000,9999,1600,1,15,8000'
-   WRITE (LUOUTPUT,'(A)') '143,SH3,.FALSE.,0.02066,0.13774,0,0,0.28466,1600,9999,1400,2.4,40,8000'
-   WRITE (LUOUTPUT,'(A)') '144,SH4,.FALSE.,0.03903,0.0528,0.00918,0,0.11708,2000,1800,1600,3,30,8000'
-   WRITE (LUOUTPUT,'(A)') '145,SH5,.FALSE.,0.16529,0.09642,0,0,0.13315,750,9999,1600,6,15,8000'
-   WRITE (LUOUTPUT,'(A)') '146,SH6,.FALSE.,0.13315,0.06657,0,0,0.06428,750,9999,1600,2,30,8000'
-   WRITE (LUOUTPUT,'(A)') '147,SH7,.FALSE.,0.1607,0.24334,0.10101,0,0.15611,750,9999,1600,6,15,8000'
-   WRITE (LUOUTPUT,'(A)') '148,SH8,.FALSE.,0.09412,0.15611,0.03903,0,0.19972,750,9999,1600,3,40,8000'
-   WRITE (LUOUTPUT,'(A)') '149,SH9,.TRUE.,0.20661,0.11249,0,0.07117,0.3214,750,1800,1500,4.4,40,8000'
-   WRITE (LUOUTPUT,'(A)') '161,TU1,.TRUE.,0.00918,0.04132,0.06887,0.00918,0.04132,2000,1800,1600,0.6,20,8000'
-   WRITE (LUOUTPUT,'(A)') '162,TU2,.FALSE.,0.04362,0.08264,0.05739,0,0.00918,2000,9999,1600,1,30,8000'
-   WRITE (LUOUTPUT,'(A)') '163,TU3,.TRUE.,0.05051,0.00689,0.01148,0.02984,0.05051,1800,1600,1400,1.3,30,8000'
-   WRITE (LUOUTPUT,'(A)') '164,TU4,.FALSE.,0.20661,0,0,0,0.09183,2300,9999,2000,0.5,12,8000'
-   WRITE (LUOUTPUT,'(A)') '165,TU5,.FALSE.,0.18365,0.18365,0.13774,0,0.13774,1500,9999,750,1,25,8000'
-   WRITE (LUOUTPUT,'(A)') '181,TL1,.FALSE.,0.04591,0.10101,0.16529,0,0,2000,9999,9999,0.2,30,8000'
-   WRITE (LUOUTPUT,'(A)') '182,TL2,.FALSE.,0.06428,0.1056,0.10101,0,0,2000,9999,9999,0.2,25,8000'
-   WRITE (LUOUTPUT,'(A)') '183,TL3,.FALSE.,0.02296,0.10101,0.12856,0,0,2000,9999,9999,0.3,20,8000'
-   WRITE (LUOUTPUT,'(A)') '184,TL4,.FALSE.,0.02296,0.06887,0.19284,0,0,2000,9999,9999,0.4,25,8000'
-   WRITE (LUOUTPUT,'(A)') '185,TL5,.FALSE.,0.0528,0.11478,0.20202,0,0,2000,9999,1600,0.6,25,8000'
-   WRITE (LUOUTPUT,'(A)') '186,TL6,.FALSE.,0.11019,0.0551,0.0551,0,0,2000,9999,9999,0.3,25,8000'
-   WRITE (LUOUTPUT,'(A)') '187,TL7,.FALSE.,0.01377,0.06428,0.3719,0,0,2000,9999,9999,0.4,25,8000'
-   WRITE (LUOUTPUT,'(A)') '188,TL8,.FALSE.,0.2663,0.06428,0.05051,0,0,1800,9999,9999,0.3,35,8000'
-   WRITE (LUOUTPUT,'(A)') '189,TL9,.FALSE.,0.30533,0.15152,0.19054,0,0,1800,9999,1600,0.6,35,8000'
-   WRITE (LUOUTPUT,'(A)') '201,SB1,.FALSE.,0.06887,0.13774,0.50505,0,0,2000,9999,9999,1,25,8000'
-   WRITE (LUOUTPUT,'(A)') '202,SB2,.FALSE.,0.20661,0.19513,0.18365,0,0,2000,9999,9999,1,25,8000'
-   WRITE (LUOUTPUT,'(A)') '203,SB3,.FALSE.,0.25253,0.12626,0.13774,0,0,2000,9999,9999,1.2,25,8000'
-   WRITE (LUOUTPUT,'(A)') '204,SB4,.FALSE.,0.24105,0.1607,0.24105,0,0,2000,9999,9999,2.7,25,8000'
-   WRITE (LUOUTPUT,'(A)') '256,NB,.FALSE.,0.0001,0,0,0,0,9999,9999,9999,0.01,5,1'
+   if (TRIM(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+      WRITE (LUOUTPUT,'(A)') '1,FBFM01,.FALSE.,0.034,0,0,0,0,3500,9999,9999,1,12,8000'
+      WRITE (LUOUTPUT,'(A)') '2,FBFM02,.FALSE.,0.092,0.046,0.023,0.023,0,3000,1500,9999,1,15,8000'
+      WRITE (LUOUTPUT,'(A)') '3,FBFM03,.FALSE.,0.138,0,0,0,0,1500,9999,9999,2.5,25,8000'
+      WRITE (LUOUTPUT,'(A)') '4,FBFM04,.FALSE.,0.23,0.184,0.092,0,0.23,2000,9999,1500,6,20,8000'
+      WRITE (LUOUTPUT,'(A)') '5,FBFM05,.FALSE.,0.046,0.023,0,0,0.092,2000,9999,1500,2,20,8000'
+      WRITE (LUOUTPUT,'(A)') '6,FBFM06,.FALSE.,0.069,0.115,0.092,0,0,1750,9999,9999,2.5,25,8000'
+      WRITE (LUOUTPUT,'(A)') '7,FBFM07,.FALSE.,0.052,0.086,0.069,0,0.017,1750,9999,1550,2.5,40,8000'
+      WRITE (LUOUTPUT,'(A)') '8,FBFM08,.FALSE.,0.069,0.046,0.115,0,0,2000,9999,9999,0.2,30,8000'
+      WRITE (LUOUTPUT,'(A)') '9,FBFM09,.FALSE.,0.134,0.019,0.007,0,0,2500,9999,9999,0.2,25,8000'
+      WRITE (LUOUTPUT,'(A)') '10,FBFM10,.FALSE.,0.138,0.092,0.23,0,0.092,2000,9999,1500,1,25,8000'
+      WRITE (LUOUTPUT,'(A)') '11,FBFM11,.FALSE.,0.069,0.207,0.253,0,0,1500,9999,9999,1,15,8000'
+      WRITE (LUOUTPUT,'(A)') '12,FBFM12,.FALSE.,0.184,0.644,0.759,0,0,1500,9999,9999,2.3,20,8000'
+      WRITE (LUOUTPUT,'(A)') '13,FBFM13,.FALSE.,0.322,1.058,1.288,0,0,1500,9999,9999,3,25,8000'
+      WRITE (LUOUTPUT,'(A)') '14,FBFM14,.FALSE.,0.045913682,0.022956841,0,0,0,2000,2000,2000,0.2,25,8000'
+      WRITE (LUOUTPUT,'(A)') '15,FBFM15,.FALSE.,0.027548209,0.009182736,0,0,0.059687787,2000,2000,1500,1.2,25,8000'
+      WRITE (LUOUTPUT,'(A)') '101,GR1,.TRUE.,0.00459,0,0,0.01377,0,2200,2000,9999,0.4,15,8000'
+      WRITE (LUOUTPUT,'(A)') '102,GR2,.TRUE.,0.00459,0,0,0.04591,0,2000,1800,9999,1,15,8000'
+      WRITE (LUOUTPUT,'(A)') '103,GR3,.TRUE.,0.00459,0.01837,0,0.06887,0,1500,1300,9999,2,30,8000'
+      WRITE (LUOUTPUT,'(A)') '104,GR4,.TRUE.,0.01148,0,0,0.08724,0,2000,1800,9999,2,15,8000'
+      WRITE (LUOUTPUT,'(A)') '105,GR5,.TRUE.,0.01837,0,0,0.11478,0,1800,1600,9999,1.5,40,8000'
+      WRITE (LUOUTPUT,'(A)') '106,GR6,.TRUE.,0.00459,0,0,0.15611,0,2200,2000,9999,1.5,40,9000'
+      WRITE (LUOUTPUT,'(A)') '107,GR7,.TRUE.,0.04591,0,0,0.24793,0,2000,1800,9999,3,15,8000'
+      WRITE (LUOUTPUT,'(A)') '108,GR8,.TRUE.,0.02296,0.04591,0,0.33517,0,1500,1300,9999,4,30,8000'
+      WRITE (LUOUTPUT,'(A)') '109,GR9,.TRUE.,0.04591,0.04591,0,0.41322,0,1800,1600,9999,5,40,8000'
+      WRITE (LUOUTPUT,'(A)') '121,GS1,.TRUE.,0.00918,0,0,0.02296,0.02984,2000,1800,1800,0.9,15,8000'
+      WRITE (LUOUTPUT,'(A)') '122,GS2,.TRUE.,0.02296,0.02296,0,0.02755,0.04591,2000,1800,1800,1.5,15,8000'
+      WRITE (LUOUTPUT,'(A)') '123,GS3,.TRUE.,0.01377,0.01148,0,0.06657,0.05739,1800,1600,1600,1.8,40,8000'
+      WRITE (LUOUTPUT,'(A)') '124,GS4,.TRUE.,0.08724,0.01377,0.00459,0.15611,0.32599,1800,1600,1600,2.1,40,8000'
+      WRITE (LUOUTPUT,'(A)') '141,SH1,.TRUE.,0.01148,0.01148,0,0.00689,0.05969,2000,1800,1600,1,15,8000'
+      WRITE (LUOUTPUT,'(A)') '142,SH2,.FALSE.,0.06198,0.11019,0.03444,0,0.17677,2000,9999,1600,1,15,8000'
+      WRITE (LUOUTPUT,'(A)') '143,SH3,.FALSE.,0.02066,0.13774,0,0,0.28466,1600,9999,1400,2.4,40,8000'
+      WRITE (LUOUTPUT,'(A)') '144,SH4,.FALSE.,0.03903,0.0528,0.00918,0,0.11708,2000,1800,1600,3,30,8000'
+      WRITE (LUOUTPUT,'(A)') '145,SH5,.FALSE.,0.16529,0.09642,0,0,0.13315,750,9999,1600,6,15,8000'
+      WRITE (LUOUTPUT,'(A)') '146,SH6,.FALSE.,0.13315,0.06657,0,0,0.06428,750,9999,1600,2,30,8000'
+      WRITE (LUOUTPUT,'(A)') '147,SH7,.FALSE.,0.1607,0.24334,0.10101,0,0.15611,750,9999,1600,6,15,8000'
+      WRITE (LUOUTPUT,'(A)') '148,SH8,.FALSE.,0.09412,0.15611,0.03903,0,0.19972,750,9999,1600,3,40,8000'
+      WRITE (LUOUTPUT,'(A)') '149,SH9,.TRUE.,0.20661,0.11249,0,0.07117,0.3214,750,1800,1500,4.4,40,8000'
+      WRITE (LUOUTPUT,'(A)') '161,TU1,.TRUE.,0.00918,0.04132,0.06887,0.00918,0.04132,2000,1800,1600,0.6,20,8000'
+      WRITE (LUOUTPUT,'(A)') '162,TU2,.FALSE.,0.04362,0.08264,0.05739,0,0.00918,2000,9999,1600,1,30,8000'
+      WRITE (LUOUTPUT,'(A)') '163,TU3,.TRUE.,0.05051,0.00689,0.01148,0.02984,0.05051,1800,1600,1400,1.3,30,8000'
+      WRITE (LUOUTPUT,'(A)') '164,TU4,.FALSE.,0.20661,0,0,0,0.09183,2300,9999,2000,0.5,12,8000'
+      WRITE (LUOUTPUT,'(A)') '165,TU5,.FALSE.,0.18365,0.18365,0.13774,0,0.13774,1500,9999,750,1,25,8000'
+      WRITE (LUOUTPUT,'(A)') '181,TL1,.FALSE.,0.04591,0.10101,0.16529,0,0,2000,9999,9999,0.2,30,8000'
+      WRITE (LUOUTPUT,'(A)') '182,TL2,.FALSE.,0.06428,0.1056,0.10101,0,0,2000,9999,9999,0.2,25,8000'
+      WRITE (LUOUTPUT,'(A)') '183,TL3,.FALSE.,0.02296,0.10101,0.12856,0,0,2000,9999,9999,0.3,20,8000'
+      WRITE (LUOUTPUT,'(A)') '184,TL4,.FALSE.,0.02296,0.06887,0.19284,0,0,2000,9999,9999,0.4,25,8000'
+      WRITE (LUOUTPUT,'(A)') '185,TL5,.FALSE.,0.0528,0.11478,0.20202,0,0,2000,9999,1600,0.6,25,8000'
+      WRITE (LUOUTPUT,'(A)') '186,TL6,.FALSE.,0.11019,0.0551,0.0551,0,0,2000,9999,9999,0.3,25,8000'
+      WRITE (LUOUTPUT,'(A)') '187,TL7,.FALSE.,0.01377,0.06428,0.3719,0,0,2000,9999,9999,0.4,25,8000'
+      WRITE (LUOUTPUT,'(A)') '188,TL8,.FALSE.,0.2663,0.06428,0.05051,0,0,1800,9999,9999,0.3,35,8000'
+      WRITE (LUOUTPUT,'(A)') '189,TL9,.FALSE.,0.30533,0.15152,0.19054,0,0,1800,9999,1600,0.6,35,8000'
+      WRITE (LUOUTPUT,'(A)') '201,SB1,.FALSE.,0.06887,0.13774,0.50505,0,0,2000,9999,9999,1,25,8000'
+      WRITE (LUOUTPUT,'(A)') '202,SB2,.FALSE.,0.20661,0.19513,0.18365,0,0,2000,9999,9999,1,25,8000'
+      WRITE (LUOUTPUT,'(A)') '203,SB3,.FALSE.,0.25253,0.12626,0.13774,0,0,2000,9999,9999,1.2,25,8000'
+      WRITE (LUOUTPUT,'(A)') '204,SB4,.FALSE.,0.24105,0.1607,0.24105,0,0,2000,9999,9999,2.7,25,8000'
+      WRITE (LUOUTPUT,'(A)') '256,NB,.FALSE.,0.0001,0,0,0,0,9999,9999,9999,0.01,5,1'
+   else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+      WRITE (LUOUTPUT,'(A)') '1,C-1,90,0.0649,4.5,0.9,72,1.076,2,0.75'
+      WRITE (LUOUTPUT,'(A)') '2,C-2,110,0.0282,1.5,0.7,64,1.321,3,0.8'
+      WRITE (LUOUTPUT,'(A)') '3,C-3,110,0.0444,3,0.75,62,1.261,8,1.15'
+      WRITE (LUOUTPUT,'(A)') '4,C-4,110,0.0293,1.5,0.8,66,1.184,4,1.2'
+      WRITE (LUOUTPUT,'(A)') '5,C-5,30,0.0697,4,0.8,56,1.22,18,1.2'
+      WRITE (LUOUTPUT,'(A)') '6,C-6,30,0.08,3,0.8,62,1.197,7,1.8'
+      WRITE (LUOUTPUT,'(A)') '7,C-7,45,0.0305,2,0.85,106,1.134,10,0.5'
+      WRITE (LUOUTPUT,'(A)') '11,D-1,30,0.0232,1.6,0.9,32,1.179,0,0'
+      WRITE (LUOUTPUT,'(A)') '12,D-2,30,0.0232,1.6,0.9,32,1.179,0,0'
+      WRITE (LUOUTPUT,'(A)') '13,D-1/D-2,30,0.0232,1.6,0.9,32,1.179,0,0'
+      WRITE (LUOUTPUT,'(A)') '21,S-1,75,0.0297,1.3,0.75,38,1.46,0,0'
+      WRITE (LUOUTPUT,'(A)') '22,S-2,40,0.0438,1.7,0.75,63,1.256,0,0'
+      WRITE (LUOUTPUT,'(A)') '23,S-3,55,0.0829,3.2,0.75,31,1.59,0,0'
+      WRITE (LUOUTPUT,'(A)') '31,O-1a,190,0.031,1.4,1,1,1,0,0'
+      WRITE (LUOUTPUT,'(A)') '32,O-1b,250,0.035,1.7,1,1,1,0,0'
+      WRITE (LUOUTPUT,'(A)') '33,O-1b,250,0.035,1.7,1,1,1,0,0'
+      WRITE (LUOUTPUT,'(A)') '40,M-1,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '50,M-2,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '60,M-1/M-2,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '70,M-3,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '80,M-4,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '90,M-3/M-4,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '100,Non-fuel,0,0,0,0,0,1.25,0,0'
+      WRITE (LUOUTPUT,'(A)') '101,Non-fuel,0,0,0,0,0,1.25,0,0'
+      WRITE (LUOUTPUT,'(A)') '102,Non-fuel,0,0,0,0,0,1.25,0,0'
+      WRITE (LUOUTPUT,'(A)') '103,Non-fuel,0,0,0,0,0,1.25,0,0'
+      WRITE (LUOUTPUT,'(A)') '104,Non-fuel,0,0,0,0,0,1.25,0,0'
+      WRITE (LUOUTPUT,'(A)') '105,Non-fuel,0,0,0,0,0,1.25,0,0'
+      WRITE (LUOUTPUT,'(A)') '106,Non-fuel,0,0,0,0,0,1.25,0,0'
+      WRITE (LUOUTPUT,'(A)') '405,M-1_05,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '410,M-1_10,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '415,M-1_15,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '420,M-1_20,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '425,M-1_25,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '430,M-1_30,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '435,M-1_35,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '440,M-1_40,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '445,M-1_45,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '450,M-1_50,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '455,M-1_55,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '460,M-1_60,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '465,M-1_65,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '470,M-1_70,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '475,M-1_75,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '480,M-1_80,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '485,M-1_85,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '490,M-1_90,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '495,M-1_95,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '505,M-2_05,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '510,M-2_10,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '515,M-2_15,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '520,M-2_20,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '525,M-2_25,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '530,M-2_30,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '535,M-2_35,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '540,M-2_40,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '545,M-2_45,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '550,M-2_50,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '555,M-2_55,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '560,M-2_60,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '565,M-2_65,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '570,M-2_70,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '575,M-2_75,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '580,M-2_80,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '585,M-2_85,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '590,M-2_90,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '595,M-2_95,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '605,M-1/M-2_05,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '610,M-1/M-2_10,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '615,M-1/M-2_15,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '620,M-1/M-2_20,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '625,M-1/M-2_25,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '630,M-1/M-2_30,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '635,M-1/M-2_35,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '640,M-1/M-2_40,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '645,M-1/M-2_45,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '650,M-1/M-2_50,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '655,M-1/M-2_55,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '660,M-1/M-2_60,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '665,M-1/M-2_65,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '670,M-1/M-2_70,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '675,M-1/M-2_75,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '680,M-1/M-2_80,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '685,M-1/M-2_85,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '690,M-1/M-2_90,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '695,M-1/M-2_95,0,0,0,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '705,M-3_05,0.2,0,1.7,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '710,M-3_10,5.1,0.002,1.7,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '715,M-3_15,16.5,0.007,1.7,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '720,M-3_20,29.5,0.014,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '725,M-3_25,41.9,0.019,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '730,M-3_30,52.9,0.025,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '735,M-3_35,62.5,0.029,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '740,M-3_40,70.9,0.033,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '745,M-3_45,78.1,0.037,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '750,M-3_50,84.4,0.04,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '755,M-3_55,90,0.043,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '760,M-3_60,94.9,0.045,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '765,M-3_65,99.2,0.047,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '770,M-3_70,103.1,0.049,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '775,M-3_75,106.6,0.051,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '780,M-3_80,109.8,0.052,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '785,M-3_85,112.6,0.054,1.4,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '790,M-3_90,115.2,0.055,1.4,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '795,M-3_95,117.6,0.056,1.4,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '805,M-4_05,0.1,0.04,2.9,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '810,M-4_10,4,0.04,2.8,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '815,M-4_15,13.1,0.04,2.7,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '820,M-4_20,23.7,0.04,2.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '825,M-4_25,33.8,0.04,2.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '830,M-4_30,42.9,0.04,2.4,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '835,M-4_35,50.8,0.04,2.4,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '840,M-4_40,57.6,0.04,2.3,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '845,M-4_45,63.6,0.04,2.2,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '850,M-4_50,68.8,0.04,2.1,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '855,M-4_55,73.4,0.04,2,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '860,M-4_60,77.5,0.04,2,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '865,M-4_65,81.1,0.04,1.9,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '870,M-4_70,84.3,0.04,1.8,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '875,M-4_75,87.2,0.04,1.8,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '880,M-4_80,89.8,0.04,1.7,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '885,M-4_85,92.2,0.04,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '890,M-4_90,94.4,0.04,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '895,M-4_95,96.3,0.04,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '905,M-3/M-4_05,0.2,0,1.7,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '910,M-3/M-4_10,5.1,0.002,1.7,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '915,M-3/M-4_15,16.5,0.007,1.7,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '920,M-3/M-4_20,29.5,0.014,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '925,M-3/M-4_25,41.9,0.019,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '930,M-3/M-4_30,52.9,0.025,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '935,M-3/M-4_35,62.5,0.029,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '940,M-3/M-4_40,70.9,0.033,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '945,M-3/M-4_45,78.1,0.037,1.6,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '950,M-3/M-4_50,84.4,0.04,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '955,M-3/M-4_55,90,0.043,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '960,M-3/M-4_60,94.9,0.045,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '965,M-3/M-4_65,99.2,0.047,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '970,M-3/M-4_70,103.1,0.049,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '975,M-3/M-4_75,106.6,0.051,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '980,M-3/M-4_80,109.8,0.052,1.5,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '985,M-3/M-4_85,112.6,0.054,1.4,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '990,M-3/M-4_90,115.2,0.055,1.4,0.8,50,1.25,6,0.8'
+      WRITE (LUOUTPUT,'(A)') '995,M-3/M-4_95,117.6,0.056,1.4,0.8,50,1.25,6,0.8'
+   endif
    CLOSE(LUOUTPUT)
 ENDIF
 
@@ -738,6 +1236,24 @@ END SUBROUTINE WRITE_FUEL_MODEL_TABLE
 ! *****************************************************************************
 SUBROUTINE READ_FUEL_MODEL_TABLE
 ! *****************************************************************************
+! Dispatches to the appropriate fuel model table reader based on
+! SURFACE_SPREAD_MODEL (ROTHERMEL or CFFDRS).
+if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+   CALL READ_FUEL_MODEL_TABLE_ROTHERMEL
+else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+   CALL READ_FUEL_MODEL_TABLE_CFFDRS
+endif
+! *****************************************************************************
+END SUBROUTINE READ_FUEL_MODEL_TABLE
+! *****************************************************************************
+
+
+! *****************************************************************************
+SUBROUTINE READ_FUEL_MODEL_TABLE_ROTHERMEL
+! *****************************************************************************
+! Reads the Rothermel fuel model CSV and precomputes the 2-D fuel model table
+! (FUEL_MODEL_TABLE_2D, indexed by model number and live moisture) of derived
+! Rothermel spread coefficients; unused entries default to nonburnable (256).
 
 CHARACTER(400) :: FNINPUT
 INTEGER :: I, INUM, IOS, ILH
@@ -897,12 +1413,132 @@ DO I = 1, NUM_FUEL_MODELS
 ENDDO   
 
 ! *****************************************************************************
-END SUBROUTINE READ_FUEL_MODEL_TABLE
+END SUBROUTINE READ_FUEL_MODEL_TABLE_ROTHERMEL
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE READ_FUEL_MODEL_TABLE_CFFDRS
+! *****************************************************************************
+! Reads the CFFDRS/FBP fuel model CSV into FUEL_MODEL_TABLE_FBP (rate-of-spread
+! coefficients a/b/c/q, BUI0, BE_max, CBH, CFL), warning on model numbers
+! outside the valid 1..1000 range.
+
+CHARACTER(400) :: FNINPUT
+INTEGER :: INUM, IOS
+TYPE(FUEL_MODEL_TABLE_FBP_TYPE) :: FM
+
+FUEL_MODEL_TABLE_FBP(:)%SHORTNAME='NULL' !Initialize fuel model names
+FUEL_MODEL_TABLE_FBP(:)%a=0.0
+FUEL_MODEL_TABLE_FBP(:)%b=0.0
+FUEL_MODEL_TABLE_FBP(:)%c=0.0
+FUEL_MODEL_TABLE_FBP(:)%q=0.0
+FUEL_MODEL_TABLE_FBP(:)%BUI0=0.0
+FUEL_MODEL_TABLE_FBP(:)%CBH=0.0
+FUEL_MODEL_TABLE_FBP(:)%CFL=0.0
+
+FNINPUT = TRIM(MISCELLANEOUS_INPUTS_DIRECTORY) // TRIM(FUEL_MODEL_FILE)
+
+!Attempt to open fuel model table file:
+OPEN(LUINPUT,FILE=TRIM(FNINPUT),FORM='FORMATTED',STATUS='OLD',IOSTAT=IOS)
+IF (IOS .GT. 0) THEN
+   WRITE(*,*) 'Problem opening FBP fuel model table file ', TRIM(FNINPUT)
+   STOP
+ENDIF
+
+!Read fuel models and store in FUEL_MODEL_TABLE
+IOS = 0
+DO WHILE (IOS .EQ. 0)
+   READ(LUINPUT,*,IOSTAT=IOS) INUM, FM%SHORTNAME, FM%a, FM%b, FM%c, FM%q, FM%BUI0, FM%BE_max, FM%CBH, FM%CFL
+   IF (IOS .EQ. 0) THEN
+      IF (INUM .GE. 1 .AND. INUM .LE. 1000) THEN
+         FUEL_MODEL_TABLE_FBP(INUM) = FM
+      ELSE
+         WRITE(*,*) '[WARNING] CFFDRS fuel model number out of range (1..1000), skipping: ', INUM
+      ENDIF
+   ENDIF
+ENDDO
+CLOSE(LUINPUT)
+
+! *****************************************************************************
+END SUBROUTINE READ_FUEL_MODEL_TABLE_CFFDRS
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE READ_WEATHER
+! *****************************************************************************
+! Reads the CFFDRS daily weather CSV (date, midday temperature/humidity,
+! precipitation) in two passes, allocating and filling the weather_day,
+! T_midday, H_midday, precip and daily_bui module arrays.
+INTEGER :: N, I, K, IOS, MM, DD, YYYY
+CHARACTER(LEN=256) :: LINE 
+CHARACTER(len=:), allocatable :: FNINPUT
+
+print *, "CFFDRS: READING WEATHER FILE"
+
+FNINPUT = TRIM(WEATHER_DIRECTORY) // TRIM(DAILY_WEATHER_FILENAME)
+OPEN(LUINPUT,FILE=TRIM(FNINPUT),FORM='FORMATTED',STATUS='OLD',IOSTAT=IOS)
+IF (IOS .NE. 0) THEN
+   WRITE(*,*) 'Problem opening daily weather file ', TRIM(FNINPUT)
+   STOP
+ENDIF
+! --- pass 1: skip header, count rows ---
+READ(LUINPUT,'(A)',IOSTAT=IOS) LINE   ! header
+N = 0
+IOS = 0
+DO WHILE (IOS .EQ. 0)
+   READ(LUINPUT,'(A)',IOSTAT=IOS) LINE
+   IF (IOS .EQ. 0) THEN
+      IF (LEN_TRIM(LINE) .GT. 0) N = N + 1
+   ENDIF
+ENDDO
+
+! allocate arrays
+IF (ALLOCATED(weather_day)) DEALLOCATE(weather_day)
+IF (ALLOCATED(T_midday))    DEALLOCATE(T_midday)
+IF (ALLOCATED(H_midday))    DEALLOCATE(H_midday)
+IF (ALLOCATED(precip))      DEALLOCATE(precip)
+
+ALLOCATE(weather_day(N), T_midday(N), H_midday(N), precip(N), daily_bui(N+1))
+
+! --- pass 2: rewind, skip header, read data ---
+REWIND(LUINPUT)
+READ(LUINPUT,'(A)',IOSTAT=IOS) LINE   ! header again
+
+IOS = 0
+I = 0
+DO WHILE (IOS .EQ. 0 .AND. I < N)
+   READ(LUINPUT,'(A)',IOSTAT=IOS) LINE
+   IF (IOS .EQ. 0) THEN
+      IF (LEN_TRIM(LINE) == 0) CYCLE
+      I = I + 1
+
+      LINE = ADJUSTL(LINE)
+      DO K = 1, LEN(LINE)
+         IF (LINE(K:K) == ',') LINE(K:K) = ' '
+         IF (LINE(K:K) == '/') LINE(K:K) = ' '
+      END DO
+
+      READ(LINE,*,IOSTAT=IOS) DD, MM, YYYY, T_midday(I), H_midday(I), precip(I)
+      IF (IOS .NE. 0) THEN
+         WRITE(*,*) 'Bad weather row: ', TRIM(LINE)
+         STOP
+      ENDIF
+      weather_day(I) = YYYY*10000 + MM*100 + DD  ! Store as YYYYMMDD
+   ENDIF
+
+ENDDO
+
+CLOSE(LUINPUT)
+! *****************************************************************************
+END SUBROUTINE READ_WEATHER
 ! *****************************************************************************
 
 ! *****************************************************************************
 SUBROUTINE READ_BUILDING_FUEL_MODEL_TABLE
 ! *****************************************************************************
+! Reads the building fuel model CSV into BUILDING_FUEL_MODEL_TABLE (HRR timing,
+! fuel load, ignition/hardening parameters, etc.) for the WUI building spread
+! model, defaulting ignition probability and hardening factor to global values.
 
 CHARACTER(400) :: FNINPUT
 CHARACTER(80) :: SHORTNAME

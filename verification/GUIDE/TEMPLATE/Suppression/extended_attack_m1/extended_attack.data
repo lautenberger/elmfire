@@ -1,0 +1,60 @@
+&INPUTS
+FUELS_AND_TOPOGRAPHY_DIRECTORY = './inputs'
+LANDSCAPE_FILENAME             = 'landscape'
+ADJ_FILENAME                   = 'adj'
+PHI_FILENAME                   = 'phi'
+DT_METEOROLOGY                 = 36000.0
+WEATHER_DIRECTORY              = './inputs'
+SDI_FILENAME                   = 'sdi'
+PCL_FILENAME                   = 'pcl'
+WS_FILENAME                    = 'ws'
+WD_FILENAME                    = 'wd'
+M1_FILENAME                    = 'm1'
+M10_FILENAME                   = 'm10'
+M100_FILENAME                  = 'm100'
+USE_CONSTANT_LH                = .TRUE.
+LH_MOISTURE_CONTENT            = 60.0
+USE_CONSTANT_LW                = .TRUE.
+LW_MOISTURE_CONTENT            = 90.0
+WS_AT_10M = .TRUE.
+/
+
+&OUTPUTS
+SPREAD_RATE_IN_M     = .TRUE.
+OUTPUTS_DIRECTORY    = './outputs'
+DUMP_TIME_OF_ARRIVAL = .TRUE.
+DUMP_SPREAD_RATE     = .TRUE.
+DUMP_FLAME_LENGTH = .TRUE.
+CONVERT_TO_GEOTIFF = .TRUE.
+/
+
+&SUPPRESSION
+ENABLE_EXTENDED_ATTACK = .TRUE.
+EXTENDED_ATTACK_MODEL = 1
+AVAILABLE_SUPPRESSION_CAPACITY = 700
+EXTENDED_ATTACK_TIME = 103600
+DT_EXTENDED_ATTACK = 3600
+/
+
+&TIME_CONTROL
+SIMULATION_DT    = 1.0
+TARGET_CFL       = 0.2
+SIMULATION_TSTOP = 250000.0
+/
+
+&MONTE_CARLO
+NUM_METEOROLOGY_TIMES = 29
+/
+
+&SIMULATOR
+NUM_IGNITIONS = 1
+X_IGN(1) = 1890.0000000
+Y_IGN(1) = 1890.0000000
+T_IGN(1)      = 0.0
+RANDOMIZE_RANDOM_SEED = .TRUE.
+/
+
+&MISCELLANEOUS
+PATH_TO_GDAL                   = '/usr/bin/'
+SCRATCH                        = './scratch'
+/

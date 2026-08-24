@@ -1,13 +1,6 @@
 &INPUTS
 FUELS_AND_TOPOGRAPHY_DIRECTORY = './inputs'
-ASP_FILENAME                   = 'asp'
-CBD_FILENAME                   = 'cbd'
-CBH_FILENAME                   = 'cbh'
-CC_FILENAME                    = 'cc'
-CH_FILENAME                    = 'ch'
-DEM_FILENAME                   = 'dem'
-FBFM_FILENAME                  = 'fbfm40'
-SLP_FILENAME                   = 'slp'
+LANDSCAPE_FILENAME             = 'landscape'
 ADJ_FILENAME                   = 'adj'
 PHI_FILENAME                   = 'phi'
 DT_METEOROLOGY                 = 3600.0
@@ -30,13 +23,6 @@ DUMP_TIME_OF_ARRIVAL = .TRUE.
 CONVERT_TO_GEOTIFF   = .FALSE.
 /
 
-&COMPUTATIONAL_DOMAIN
-A_SRS = 'EPSG: 32610'
-COMPUTATIONAL_DOMAIN_CELLSIZE = 30
-COMPUTATIONAL_DOMAIN_XLLCORNER = -6000.00
-COMPUTATIONAL_DOMAIN_YLLCORNER = -6000.00
-/
-
 &TIME_CONTROL
 SIMULATION_DT    = 1.0
 TARGET_CFL       = 0.05
@@ -53,6 +39,6 @@ WSMFEFF_LOW_MULT = 0.011364
 /
 
 &MISCELLANEOUS
-PATH_TO_GDAL                   = '/usr/bin'
+PATH_TO_GDAL                   = 'auto'
 SCRATCH                        = './scratch'
 /

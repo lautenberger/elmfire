@@ -1,2 +1,10 @@
-docs
+# Version-control metadata — not needed in the runtime image (~600 MB).
+.git
+.gitignore
+
+# CI config — not needed at runtime.
 .github
+
+# WSL/Windows "downloaded from the internet" marker files.
+*:Zone.Identifier
+**/*:Zone.Identifier

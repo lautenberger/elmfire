@@ -1,0 +1,68 @@
+&INPUTS
+FUELS_AND_TOPOGRAPHY_DIRECTORY = './inputs'
+LANDSCAPE_FILENAME             = 'landscape'
+ADJ_FILENAME                   = 'adj'
+PHI_FILENAME                   = 'phi'
+DT_METEOROLOGY                 = 3600.0
+WEATHER_DIRECTORY              = './inputs'
+WS_FILENAME                    = 'ws'
+WD_FILENAME                    = 'wd'
+M1_FILENAME                    = 'm1'
+M10_FILENAME                   = 'm10'
+M100_FILENAME                  = 'm100'
+USE_CONSTANT_LH                = .FALSE.
+MLH_FILENAME                   = 'lh'
+USE_CONSTANT_LW                = .FALSE.
+MLW_FILENAME                   = 'lw'
+WS_AT_10M		               = .TRUE.
+ONLY_READ_NEEDED_WX_BANDS      = .TRUE.
+/
+
+&OUTPUTS
+OUTPUTS_DIRECTORY    			= './outputs'
+DUMP_HOURLY_RASTERS				= .FALSE.
+CONVERT_TO_GEOTIFF   			= .TRUE.
+DUMP_CROWN_FIRE 				= .TRUE.
+ACCUMULATE_EMBER_FLUX           = .FALSE.
+DUMP_SPOTTING_OUTPUTS			= .TRUE.
+DUMP_TIME_OF_ARRIVAL			= .TRUE.	
+/
+
+&SPOTTING
+ENABLE_SPOTTING 					 = .TRUE.
+USE_SUPERSEDED_SPOTTING 			 = .FALSE.
+GENERATION_MODEL     				 = 'PER-MW'
+SPOTTING_DISTANCE_MODEL      		 = 'EMPIRICAL'
+ACCUMULATION_MODEL   				 = 'LAGRANGIAN'
+IGNITION_MODEL       				 = 'PHYSICAL'
+CROWN_FIRE_SPOTTING_PERCENT 		 = 30
+ENABLE_SURFACE_FIRE_SPOTTING         = .FALSE.
+/
+
+&TIME_CONTROL
+SIMULATION_DT    = 1.0
+TARGET_CFL       = 0.2
+SIMULATION_TSTOP = 60000.0
+/
+
+&MONTE_CARLO
+!NUM_METEOROLOGY_TIMES = 72
+METEOROLOGY_BAND_START = 1
+METEOROLOGY_BAND_STOP = 12
+/
+
+&SIMULATOR
+NUM_IGNITIONS = 1
+X_LINE_IGN_START(1) = 1090
+Y_LINE_IGN_START(1) = 3300
+T_LINE_IGN(1)      = 0.0
+X_LINE_IGN_END(1) = 2690
+Y_LINE_IGN_END(1) = 3300
+MODE = 1
+FEEDBACK_LEVEL = 1
+/
+
+&MISCELLANEOUS
+PATH_TO_GDAL                   = 'auto'
+SCRATCH                        = './scratch'
+/

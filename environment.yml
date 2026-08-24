@@ -1,0 +1,48 @@
+# Conda/mamba environment for ELMFIRE Python tooling, verification, and the
+# CloudFire gRPC client.
+#
+# Create it with mamba (preferred) or conda:
+#     mamba env create -f environment.yml
+#     conda activate elmfire
+#
+# Using conda-forge for everything keeps GDAL/rasterio/geopandas built against
+# a single consistent libgdal — which avoids the apt-vs-pip numpy/GDAL clashes.
+name: elmfire
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+
+  # Scientific / array core
+  - numpy
+  - pandas
+  - scipy
+
+  # Geospatial (raster + vector). gdal provides the osgeo Python bindings
+  # AND the classic command-line tools.
+  # IMPORTANT: pin < 3.11. GDAL 3.11 replaced the standalone utilities
+  # (gdal_translate, gdalsrsinfo, gdalinfo, gdaltransform) with a single
+  # `gdal <subcommand>` dispatcher. ELMFIRE's Fortran I/O shells out to the
+  # classic tool names via PATH_TO_GDAL (see build/source/elmfire_io.f90), so
+  # the old binaries MUST exist or runs fail with "cannot find working GDAL".
+  - gdal>=3.8,<3.11
+  - rasterio
+  - rasterstats
+  - shapely
+  - fiona
+  - geopandas
+  - mercantile
+
+  # Plotting (headless: matplotlib-base avoids pulling a Qt GUI stack) /
+  # progress / time
+  - matplotlib-base
+  - tqdm
+  - pytz
+  - python-dateutil
+
+  # HTTP + CloudFire gRPC client (cloudfire/*_pb2.py)
+  - requests
+  - grpcio
+  - grpcio-tools
+  - protobuf
+  - google-api-python-client

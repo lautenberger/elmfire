@@ -11,16 +11,20 @@ CONTAINS
 
 ! *****************************************************************************
 SUBROUTINE SPOTTING_SUPERSEDED(IX0,IY0,WS20_NOW,FLIN,F_WIND,WS20_LO, WS20_HI, WD20_LO, WD20_HI, &
-                    N_SPOT_FIRES, IX_SPOT_FIRE, IY_SPOT_FIRE, ICASE, DT, TIME_NOW, TAU, IGNMULT)
+                    N_SPOT_FIRES, IX_SPOT_FIRE, IY_SPOT_FIRE, ICASE, IGNMULT)
 ! *****************************************************************************
+! Legacy (superseded) spotting entry point for a burning cell (IX0,IY0): computes the
+! lognormal spotting-distance parameters from the mean-spotting-distance model and
+! randomly picks an ember count, then calls EMBER_TRAJECTORY_SUPERSEDED to transport them
+! and append any new spot fires to IX_SPOT_FIRE / IY_SPOT_FIRE.
 
 IMPLICIT NONE
 
 INTEGER, INTENT(IN) :: IX0, IY0, ICASE
 INTEGER :: N_SPOT_FIRES, IX_SPOT_FIRE(:), IY_SPOT_FIRE(:)
-REAL, INTENT(IN) :: WS20_NOW, FLIN, F_WIND, DT, TIME_NOW, TAU, IGNMULT
+REAL, INTENT(IN) :: WS20_NOW, FLIN, F_WIND, IGNMULT
 REAL, INTENT(IN), DIMENSION(:,:)  ::  WS20_LO, WS20_HI, WD20_LO, WD20_HI
-REAL :: R0, X0(1:3), MSD, SIGMA_DIST, MU_DIST, NEMBERS_REAL, P, EMBERGEN_DT
+REAL :: R0, X0(1:3), MSD, SIGMA_DIST, MU_DIST
 REAL, PARAMETER :: TSTOP_SPOT= 1200.
 
 X0(1) = (REAL(IX0)-0.5) * CC%CELLSIZE 
@@ -33,18 +37,8 @@ SIGMA_DIST = SQRT(LOG(1. + MSD * NORMALIZED_SPOTTING_DIST_VARIANCE / (MSD*MSD)))
 
 CONTINUE
 
-IF (USE_UMD_SPOTTING_MODEL) THEN
-   EMBERGEN_DT = MAX(MIN(DT, TAU_EMBERGEN - TAU),0.)
-   NEMBERS_REAL = EMBER_GR * CC%CELLSIZE * CC%CELLSIZE * EMBERGEN_DT
-   NEMBERS = FLOOR(NEMBERS_REAL)
-   P = MOD(NEMBERS_REAL,1.0)
-   CALL RANDOM_NUMBER(R0)
-   IF (R0 .LE. P) NEMBERS = NEMBERS + 1
-   CONTINUE
-ELSE
-   CALL RANDOM_NUMBER(R0)
-   NEMBERS = NEMBERS_MIN + NINT (R0 * REAL(NEMBERS_MAX - NEMBERS_MIN) )
-ENDIF
+CALL RANDOM_NUMBER(R0)
+NEMBERS = NEMBERS_MIN + NINT (R0 * REAL(NEMBERS_MAX - NEMBERS_MIN) )
 
 IF (NEMBERS .EQ. 0) RETURN
 
@@ -72,7 +66,6 @@ N_SPOT_FIRES              , &
 IX_SPOT_FIRE              , &
 IY_SPOT_FIRE              , &
 ICASE                     , &
-TIME_NOW                  , &
 IGNMULT )
 
 ! *****************************************************************************
@@ -104,14 +97,17 @@ N_SPOT_FIRES               , &
 IX_SPOT_FIRE               , &
 IY_SPOT_FIRE               , &
 ICASE                      , &
-TIME_NOW                   , &
 IGNMULT )
 ! *****************************************************************************
+! Legacy (superseded) Lagrangian ember transport: advects NUM_EMBERS from X0_ELM by the
+! interpolated wind until each reaches its sampled spotting distance, then stochastically
+! tests ignition and appends successful, unburned-target locations to the spot-fire lists
+! (IX_SPOT_FIRE / IY_SPOT_FIRE), also tallying EMBER_FLUX / EMBER_COUNT.
 
 INTEGER, INTENT(IN) :: NX_ELM, NY_ELM, NUM_EMBERS, IRANK_WORLD, ICASE
 INTEGER :: N_SPOT_FIRES, IX_SPOT_FIRE(:), IY_SPOT_FIRE(:)
 REAL, INTENT(IN) :: CELLSIZE_ELM, PIGN_ELM, MIN_SPOTTING_DISTANCE, MAX_SPOTTING_DISTANCE, &
-                    SIGMA_DIST, MU_DIST, F_WIND, TIME_NOW, IGNMULT
+                    SIGMA_DIST, MU_DIST, F_WIND, IGNMULT
 REAL, INTENT(IN) :: PHIP(:,:), WS20_LO(:,:), WS20_HI(:,:), WD20_LO(:,:), WD20_HI(:,:)
 
 CHARACTER(60), INTENT(IN) :: SPOTTING_DISTRIBUTION_TYPE
@@ -172,24 +168,6 @@ DO IEMBER = 1, NUM_EMBERS
    WS20 = 0.447 * WS20
 
    DT = MIN ( 0.5 * CELLSIZE_ELM / MAX (WS20, 0.01), 5.0)
-
-   IF (USE_UMD_SPOTTING_MODEL) THEN
-      NUM_TRACKED_EMBERS = NUM_TRACKED_EMBERS + 1
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%X_FROM            = X(1) + OFFSET(1)
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%Y_FROM            = X(2) + OFFSET(2)
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%IX_FROM           = IX
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%IY_FROM           = IY
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%X_TO              = -9E9
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%Y_TO              = -9E9
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%IX_TO             = -9999
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%IY_TO             = -9999
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%DIST              = -9999
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%TTRAVEL           = -9E9
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%TLAUNCH           = TIME_NOW
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%TIGN              = -9E9
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%POSITIVE_IGNITION = .FALSE.
-      SPOTTING_STATS(NUM_TRACKED_EMBERS)%ALREADY_IGNITED   = .FALSE.
-   ENDIF
 
    ICOUNT = 0
    
@@ -257,16 +235,6 @@ DO IEMBER = 1, NUM_EMBERS
       STATS_NEMBERS(ICASE) = STATS_NEMBERS(ICASE) + 1.
       IF (USE_EMBER_COUNT_BINS) EMBER_COUNT(IX,IY) = EMBER_COUNT(IX,IY) + 1
 
-      IF (USE_UMD_SPOTTING_MODEL) THEN
-         SPOTTING_STATS(NUM_TRACKED_EMBERS)%X_TO    = X(1) + OFFSET(1)
-         SPOTTING_STATS(NUM_TRACKED_EMBERS)%Y_TO    = X(2) + OFFSET(2)
-         SPOTTING_STATS(NUM_TRACKED_EMBERS)%IX_TO   = IX
-         SPOTTING_STATS(NUM_TRACKED_EMBERS)%IY_TO   = IY
-         SPOTTING_STATS(NUM_TRACKED_EMBERS)%DIST    = DIST
-         SPOTTING_STATS(NUM_TRACKED_EMBERS)%TTRAVEL = DIST / WS20
-         SPOTTING_STATS(NUM_TRACKED_EMBERS)%TIGN    = TIME_NOW + DIST / WS20
-      ENDIF
-
       ! Following modification per UCB's requests to apply building model-sensitive ignition probability by Yiren
       IFBFM = FBFM%I2(IX,IY,1)
       IF(IFBFM .NE. 91) THEN
@@ -302,7 +270,6 @@ DO IEMBER = 1, NUM_EMBERS
             N_SPOT_FIRES = N_SPOT_FIRES + 1
             IX_SPOT_FIRE(N_SPOT_FIRES) = IX
             IY_SPOT_FIRE(N_SPOT_FIRES) = IY
-            IF (USE_UMD_SPOTTING_MODEL) SPOTTING_STATS(NUM_TRACKED_EMBERS)%POSITIVE_IGNITION = .TRUE.
          ENDIF
       ENDIF
 

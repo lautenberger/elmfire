@@ -1,0 +1,12 @@
+<PAMDataset>
+  <PAMRasterBand band="1">
+    <Description>Fire Arrival Time</Description>
+    <Metadata>
+      <MDI key="STATISTICS_MINIMUM">289.55522036324</MDI>
+      <MDI key="STATISTICS_MAXIMUM">289.82072757681</MDI>
+      <MDI key="STATISTICS_MEAN">289.76243862847</MDI>
+      <MDI key="STATISTICS_STDDEV">0.048965047361011</MDI>
+      <MDI key="STATISTICS_VALID_PERCENT">5.565</MDI>
+    </Metadata>
+  </PAMRasterBand>
+</PAMDataset>

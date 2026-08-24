@@ -1,0 +1,70 @@
+&INPUTS
+FUELS_AND_TOPOGRAPHY_DIRECTORY = './inputs'
+ASP_FILENAME                   = 'asp'
+CC_FILENAME                    = 'cc'
+CH_FILENAME                    = 'ch'
+DEM_FILENAME                   = 'dem'
+FBFM_FILENAME                  = 'fbp16'
+SLP_FILENAME                   = 'slp'
+ADJ_FILENAME                   = 'adj'
+PHI_FILENAME                   = 'phi'
+DT_METEOROLOGY                 = 3600.0
+WEATHER_DIRECTORY              = './inputs'
+WS_FILENAME                    = 'ws'
+WD_FILENAME                    = 'wd'
+WS_AT_10M 					   = .TRUE.
+M1_FILENAME                    = 'm1'
+M10_FILENAME                   = 'm10'
+M100_FILENAME                  = 'm100'
+LH_MOISTURE_CONTENT 		   = 30.0
+FOLIAR_MOISTURE_CONTENT 	   = 93.3
+SURFACE_SPREAD_MODEL		   = 'CFFDRS'
+DAILY_WEATHER_FILENAME 		   = 'daily_weather.txt'
+START_DMC 					   = 64
+START_DC 				       = 535
+/
+
+&OUTPUTS
+OUTPUTS_DIRECTORY    	= './outputs'
+DTDUMP 	 	 			= 3600.0
+DUMP_FLIN            	= .TRUE.
+DUMP_SPREAD_RATE     	= .TRUE.
+DUMP_SPREAD_DIRECTION 	= .TRUE.
+DUMP_CROWN_FIRE 		= .TRUE.
+DUMP_CRITICAL_FLIN 		= .TRUE.
+SPREAD_RATE_IN_M     	= .TRUE.
+DUMP_TIME_OF_ARRIVAL 	= .TRUE.
+CONVERT_TO_GEOTIFF   	= .TRUE.
+DUMP_TAGGED 			= .TRUE.
+DUMP_PHI 				= .TRUE.
+DUMP_CFFDRS_DEBUG		= .TRUE.
+/
+
+&TIME_CONTROL
+SIMULATION_DT    	= 1.0
+TARGET_CFL       	= 0.2
+SIMULATION_TSTOP 	= 24120.0
+HOUR_OF_YEAR 		= 6919
+/
+
+&MONTE_CARLO
+NUM_METEOROLOGY_TIMES 			= 7
+METEOROLOGY_BAND_START 			= 1
+METEOROLOGY_BAND_STOP 			= 7
+METEOROLOGY_BAND_SKIP_INTERVAL 	= 1
+EDGEBUFFER 						= 1
+/
+
+&SIMULATOR
+NUM_IGNITIONS 	= 1
+X_IGN(1) 		= 467046.582
+Y_IGN(1) 		= 5720246.601
+T_IGN(1)    	= 0.0
+FEEDBACK_LEVEL 	= 0
+MODE=3
+/
+
+&MISCELLANEOUS
+PATH_TO_GDAL                   = 'auto'
+SCRATCH                        = './scratch'
+/

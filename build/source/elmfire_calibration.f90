@@ -11,6 +11,10 @@ CONTAINS
 ! *****************************************************************************
 SUBROUTINE READ_CALIBRATION_BY_PYROME
 ! *****************************************************************************
+! Reads per-pyrome calibration data from CSV files on rank 0 and broadcasts it to
+! all ranks. Populates fuel-model adjustment factors, fire-duration PDF/CDF, and
+! calibration constants (initial attack time, SDI, containment, ignition density)
+! per pyrome, controlled by the *_BY_PYROME flags.
 
 INTEGER :: I, IP, IOS, IFBFM(0:100), IERR, N
 REAL :: READARR(1:400), PDFSUM

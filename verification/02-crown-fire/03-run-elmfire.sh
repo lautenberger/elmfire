@@ -31,9 +31,10 @@ A_SRS="EPSG: 32610" # Spatial reference system - UTM Zone 10
 
 # End inputs specification
 
-ELMFIRE_VER=${ELMFIRE_VER:-2025.1002}
-
+# ELMFIRE_VER defaults to the repo-root VERSION file (resolved by
+# set_elmfire_version below); export ELMFIRE_VER to override.
 . ../../tutorials/functions/functions.sh
+set_elmfire_version
 
 XMIN=`echo "0.0 - 0.5 * $DOMAINSIZE" | bc -l`
 XMAX=`echo "0.0 + 0.5 * $DOMAINSIZE" | bc -l`
@@ -69,14 +70,15 @@ for i in $(eval echo "{1..$NUM_INT_RASTERS}"); do
 done
 wait
 
-# Set inputs in elmfire.data
-replace_line COMPUTATIONAL_DOMAIN_XLLCORNER $XMIN no
-replace_line COMPUTATIONAL_DOMAIN_YLLCORNER $YMIN no
-replace_line COMPUTATIONAL_DOMAIN_CELLSIZE $CELLSIZE no
+# Combine the topography/fuel layers into a single multiband landscape file
+create_landscape $INPUTS fbfm40
+
+# Set inputs in elmfire.data. The computational domain (cellsize, extent, SRS)
+# is auto-detected from the input rasters generated above, so it is no longer
+# set in the namelist; A_SRS remains a shell variable used by GDAL only.
 replace_line SIMULATION_TSTOP $SIMULATION_TSTOP no
 replace_line LH_MOISTURE_CONTENT $LH_MOISTURE_CONTENT no
 replace_line LW_MOISTURE_CONTENT $LW_MOISTURE_CONTENT no
-replace_line A_SRS "$A_SRS" yes
 
 # Execute ELMFIRE
 elmfire_$ELMFIRE_VER ./inputs/elmfire.data

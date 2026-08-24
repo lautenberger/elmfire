@@ -1,13 +1,6 @@
 &INPUTS
 FUELS_AND_TOPOGRAPHY_DIRECTORY = './inputs'
-ASP_FILENAME                   = 'asp'
-CBD_FILENAME                   = 'cbd'
-CBH_FILENAME                   = 'cbh'
-CC_FILENAME                    = 'cc'
-CH_FILENAME                    = 'ch'
-DEM_FILENAME                   = 'dem'
-FBFM_FILENAME                  = 'fbfm40'
-SLP_FILENAME                   = 'slp'
+LANDSCAPE_FILENAME             = 'landscape'
 ADJ_FILENAME                   = 'adj'
 PHI_FILENAME                   = 'phi'
 DT_METEOROLOGY                 = 3600.0
@@ -34,13 +27,6 @@ DUMP_PHI             = .FALSE.
 USE_EMBER_COUNT_BINS = .TRUE.
 /
 
-&COMPUTATIONAL_DOMAIN
-A_SRS = 'EPSG: 32610'
-COMPUTATIONAL_DOMAIN_CELLSIZE = 30
-COMPUTATIONAL_DOMAIN_XLLCORNER = -6000.00
-COMPUTATIONAL_DOMAIN_YLLCORNER = -6000.00
-/
-
 &TIME_CONTROL
 SIMULATION_DT    = 2.237
 SIMULATION_DTMAX = 2.237
@@ -58,15 +44,12 @@ WSMFEFF_LOW_MULT = 0.011364
 ENABLE_SPOTTING                           = .TRUE.
 ENABLE_SURFACE_FIRE_SPOTTING              = .TRUE.
 USE_SUPERSEDED_SPOTTING                   = .FALSE.
-USE_UMD_SPOTTING_MODEL                    = .TRUE.
-USE_EULERIAN_SPOTTING                     = .TRUE.
-BUILD_EMBER_FLUX_TABLE                    = .FALSE.
-USE_EMBER_IGNITION_MODEL                  = .FALSE.
-USE_SIMPLE_IGNITION_MODEL                 = .TRUE.
+GENERATION_MODEL                          = 'PER-AREA'
+SPOTTING_DISTANCE_MODEL                   = 'EMPIRICAL'
+ACCUMULATION_MODEL                        = 'EULERIAN'
+IGNITION_MODEL                            = 'SIMPLE'
 USE_PHYSICAL_SPOTTING_DURATION            = .FALSE.
-USE_PHYSICAL_EMBER_NUMBER                 = .FALSE.
 NO_SURFACE_FIRE                           = .TRUE.
-USE_HALF_CFL_DT_FOR_SPOTTING              = .FALSE.
 
 P_EPS                                     = 0.01
 EMBER_GR                                  = 10000 ! ember number pcs/m2/s
@@ -77,7 +60,6 @@ PIGN_MAX                                  = 100.0
 PIGN_MIN                                  = 100.0
 LOCAL_IGNITION_TIME			  = 10.0
 CELL_IGNITION_DELAY			  = 0.0
-DT_DUMP_EMBER_FLUX                        = 0.28 ! Time interval to save the ember flux
 
 CRITICAL_SPOTTING_FIRELINE_INTENSITY(:)   = 0
 SURFACE_FIRE_SPOTTING_PERCENT(:)          = 100.
@@ -110,6 +92,6 @@ USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS = .TRUE.
 &MISCELLANEOUS
 MISCELLANEOUS_INPUTS_DIRECTORY = './misc'
 FUEL_MODEL_FILE                = 'fuel_models.csv'
-PATH_TO_GDAL                   ='/cvmfs/hpcsw.umd.edu/spack-software/2022.06.15/linux-rhel8-zen2/gcc-9.4.0/gdal-3.4.0-2lfwxvv4yfehlamhc5zraivmeu4hbxdi/bin/'
+PATH_TO_GDAL                   ='auto'
 SCRATCH                        = './scratch'
 /

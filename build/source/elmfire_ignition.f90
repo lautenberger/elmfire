@@ -16,6 +16,9 @@ CONTAINS
 ! *****************************************************************************
 SUBROUTINE ALLOCATE_IGNITION_ARRAYS
 ! *****************************************************************************
+! Allocates and initializes the per-weather-band case-count arrays and the temporary
+! IWX band arrays used while determining ignitions. For non-random ignitions it sets
+! NUM_CASES_TOTAL and the band bookkeeping directly from NUM_ENSEMBLE_MEMBERS.
 
 INTEGER, PARAMETER :: NUM_CASES_TOTAL_MAX = 10000000
 
@@ -47,11 +50,24 @@ END SUBROUTINE ALLOCATE_IGNITION_ARRAYS
 ! *****************************************************************************
 SUBROUTINE DETERMINE_NUM_CASES_TOTAL
 ! *****************************************************************************
+! Builds the list of ignitable pixels from the ignition mask (applying the edge
+! buffer, burnable and mask-threshold tests), then for each starting weather band
+! computes the expected ignition count (optionally weighted by ERC ignition factors
+! and pyrome adjustments) and sets NUM_ENSEMBLE_MEMBERS. Accumulates NUM_CASES_TOTAL,
+! NUM_STARTING_WX_BANDS, and the per-band case counts and band assignments.
 
 INTEGER :: ICOL, IROW, IWX_BAND, I, I1, I2, FLOOR_NUM_ENSEMBLE_MEMBERS, IPYROME, N
 REAL :: X, Y, RCOUNT, RCOUNT_NOERC, RNUM_ENSEMBLE_MEMBERS, FRAC, R0
 
 IF (USE_IGNITION_MASK) THEN
+   ! The mask is co-indexed with the analysis grid (ISNONBURNABLE) below, so the two must be
+   ! the same size. Fail loudly here rather than reading out of bounds if they are not.
+   IF (IGN_MASK%NCOLS .NE. ASP%NCOLS .OR. IGN_MASK%NROWS .NE. ASP%NROWS) THEN
+      WRITE(*,*) '[ERROR] Ignition mask dimensions do not match the analysis grid (ASP).'
+      WRITE(*,*) '        IGN_MASK is ', IGN_MASK%NCOLS, ' x ', IGN_MASK%NROWS, &
+                 ', analysis grid is ', ASP%NCOLS, ' x ', ASP%NROWS
+      CALL SHUTDOWN
+   ENDIF
    IXL_EDGEBUFFER = INT(EDGEBUFFER / IGN_MASK%CELLSIZE) + 1
    IYL_EDGEBUFFER = INT(EDGEBUFFER / IGN_MASK%CELLSIZE) + 1
    IXH_EDGEBUFFER = IGN_MASK%NCOLS - INT(EDGEBUFFER / IGN_MASK%CELLSIZE)
@@ -82,6 +98,11 @@ IF (USE_IGNITION_MASK) THEN
    ENDDO
    ENDDO
    NUM_IGNITABLE_PIXELS = N
+
+   IF (NUM_IGNITABLE_PIXELS .LT. 1) THEN
+      WRITE(*,*) '[ERROR] No ignitable pixels found in the ignition mask. Check IGN_MASK_CRIT, EDGEBUFFER, and the mask raster.'
+      CALL SHUTDOWN
+   ENDIF
 
    ALLOCATE (N_ARR       (1:NUM_IGNITABLE_PIXELS))
    ALLOCATE (ICOL_ARR    (1:NUM_IGNITABLE_PIXELS))
@@ -121,6 +142,7 @@ IF (USE_ERC) THEN
 ENDIF
 
 RCOUNT_SUM = 0.
+RCOUNT_NOERC = 0.0   ! set on the first band (IWX_BAND_START) and reused thereafter
 DO IWX_BAND = IWX_BAND_START, IWX_BAND_STOP, IWX_BAND_SKIP
 
    NUM_STARTING_WX_BANDS = NUM_STARTING_WX_BANDS + 1
@@ -194,7 +216,6 @@ DO IWX_BAND = IWX_BAND_START, IWX_BAND_STOP, IWX_BAND_SKIP
       ELSE
          NUM_ENSEMBLE_MEMBERS = FLOOR_NUM_ENSEMBLE_MEMBERS
       ENDIF
-      IF (NUM_ENSEMBLE_MEMBERS .NE. NUM_ENSEMBLE_MEMBERS) NUM_ENSEMBLE_MEMBERS = 0
    ELSE
       IF (NUM_ENSEMBLE_MEMBERS .GT. NINT(RCOUNT) .AND. (.NOT. ALLOW_MULTIPLE_IGNITIONS_AT_A_PIXEL) ) THEN
          WRITE(*,100) 'Error:  NUM_ENSEMBLE_MEMBERS is greater than the total number of ignitable pixels'
@@ -226,6 +247,10 @@ END SUBROUTINE DETERMINE_NUM_CASES_TOTAL
 ! *****************************************************************************
 SUBROUTINE DETERMINE_IGNITION_LOCATIONS
 ! *****************************************************************************
+! Assigns each Monte Carlo case an ignition location by sampling the ignitable
+! pixels in proportion to their ignition-mask weight (optionally scaled by per-band
+! ERC ignition factors). Fills STATS_X/STATS_Y (and STATS_ASTOP) via a cumulative
+! probability table and inverse lookup; falls back to uniform if weights sum to zero.
 
 INTEGER :: I, ICASE, ICOL, IROW, IWX_BAND, ICASE_FOR_WX_BAND
 REAL :: R0, IGN_MASK_SUM
@@ -251,7 +276,13 @@ IF (USE_ERC) THEN
          IGN_MASK_SUM = IGN_MASK_SUM + IGN_MASK_ARR(I)
       ENDDO
 
-      IGN_MASK_ARR(:) = IGN_MASK_ARR(:) / IGN_MASK_SUM
+      IF (IGN_MASK_SUM .GT. 0.) THEN
+         IGN_MASK_ARR(:) = IGN_MASK_ARR(:) / IGN_MASK_SUM
+      ELSE
+         WRITE(*,*) '[WARNING] Ignition-mask weights sum to zero for WX band ', IWX_BAND, &
+                    '; falling back to uniform ignition probability.'
+         IGN_MASK_ARR(:) = 1. / REAL(NUM_IGNITABLE_PIXELS)
+      ENDIF
 
       PROB(1) = 0.
       DO I = 2, NUM_IGNITABLE_PIXELS
@@ -281,7 +312,12 @@ ELSE
       IGN_MASK_SUM = IGN_MASK_SUM + IGN_MASK_ARR(I)
    ENDDO
 
-   IGN_MASK_ARR(:) = IGN_MASK_ARR(:) / IGN_MASK_SUM
+   IF (IGN_MASK_SUM .GT. 0.) THEN
+      IGN_MASK_ARR(:) = IGN_MASK_ARR(:) / IGN_MASK_SUM
+   ELSE
+      WRITE(*,*) '[WARNING] Ignition-mask weights sum to zero; falling back to uniform ignition probability.'
+      IGN_MASK_ARR(:) = 1. / REAL(NUM_IGNITABLE_PIXELS)
+   ENDIF
 
    PROB(1) = 0.
    DO I = 2, NUM_IGNITABLE_PIXELS
@@ -310,6 +346,9 @@ END SUBROUTINE DETERMINE_IGNITION_LOCATIONS
 ! *****************************************************************************
 SUBROUTINE DETERMINE_NUM_CASES_TOTAL_CSV
 ! *****************************************************************************
+! Reads fixed ignition locations from the ignitions CSV file (case, band, x, y,
+! astop, tstop), allocating the CSV_* arrays and setting NUM_CASES_TOTAL. Tallies
+! cases per starting weather band and the lowest/highest IWX bands needed.
 
 INTEGER :: I, IOS, N, IDUMMY, IWX_BAND
 REAL :: RDUMMY
@@ -366,6 +405,51 @@ IGN_IWX_BAND_HI = MAXVAL(CSV_IBANDARR(:)) + NUM_METEOROLOGY_TIMES + 1 ! CEILING(
 
 ! *****************************************************************************
 END SUBROUTINE DETERMINE_NUM_CASES_TOTAL_CSV
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE LINE_IGN_TO_POINT_IGN
+! *****************************************************************************
+! Expands user-specified line ignitions into discrete point ignitions by walking
+! each line segment at the DEM cell size, filling X_IGN/Y_IGN/T_IGN and NUM_IGNITIONS.
+! If no line ignitions are given, sets NUM_IGNITIONS from the supplied point ignitions.
+   integer :: i, x, y, stepx, stepy
+
+   if (count(X_LINE_IGN_START .ge. 0) .gt. 0) then
+      NUM_IGNITIONS = 0
+      do i = 1 , count(X_LINE_IGN_START .ge. 0) - 1
+
+         if (X_LINE_IGN_END(i) - X_LINE_IGN_START(i) .ge. 0) then
+            stepx = int(DEM%CELLSIZE)
+         else
+            stepx = -1 * int(DEM%CELLSIZE)
+         endif
+
+         if (Y_LINE_IGN_END(i) - Y_LINE_IGN_START(i) .ge. 0) then
+            stepy = int(DEM%CELLSIZE)
+         else
+            stepy = -1 * int(DEM%CELLSIZE)
+         endif
+
+         do x = 0 , int(X_LINE_IGN_END(i) - X_LINE_IGN_START(i)), stepx
+            do y = 0 , int(Y_LINE_IGN_END(i) - Y_LINE_IGN_START(i)), stepy
+               NUM_IGNITIONS = NUM_IGNITIONS + 1
+               X_IGN(NUM_IGNITIONS) = X_LINE_IGN_START(i) + x
+               Y_IGN(NUM_IGNITIONS) = Y_LINE_IGN_START(i) + y
+               T_IGN(NUM_IGNITIONS) = T_LINE_IGN(i)
+            enddo
+         enddo
+      enddo
+   else
+      if (NUM_IGNITIONS .gt. 0) then
+         NUM_IGNITIONS = NUM_IGNITIONS ! I am thinking about removing this variable from the namelist and automatically calculating it based on the inputs, but it might be worth keeping to get the user to remember to actually input the ignition points. 
+      else
+         NUM_IGNITIONS = count(T_IGN .ge. 0)
+      endif
+   endif
+
+! *****************************************************************************
+end subroutine LINE_IGN_TO_POINT_IGN
 ! *****************************************************************************
 
 ! *****************************************************************************

@@ -1,0 +1,1 @@
+gdal_calc.py -A fbp_zip__clip.tif --calc="1" --NoDataValue=-9999 --type=Float32 --overwrite --outfile=phi.tif

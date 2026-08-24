@@ -1,0 +1,60 @@
+&INPUTS
+FUELS_AND_TOPOGRAPHY_DIRECTORY = './inputs'
+LANDSCAPE_FILENAME             = 'landscape'
+ADJ_FILENAME                   = 'adj'
+PHI_FILENAME                   = 'phi'
+DT_METEOROLOGY                 = 3600.0
+WEATHER_DIRECTORY              = './inputs'
+WS_FILENAME                    = 'ws'
+WD_FILENAME                    = 'wd'
+M1_FILENAME                    = 'm1'
+M10_FILENAME                   = 'm10'
+M100_FILENAME                  = 'm100'
+USE_CONSTANT_LH                = .FALSE.
+MLH_FILENAME                   = 'lh'
+USE_CONSTANT_LW                = .FALSE.
+MLW_FILENAME                   = 'lw'
+WS_AT_10M		               = .TRUE.
+USE_BARRIERS				   = .TRUE.
+BARRIER_FILENAME			   = 'barrier'
+/
+
+&OUTPUTS
+OUTPUTS_DIRECTORY    		= './outputs'
+CONVERT_TO_GEOTIFF   		= .TRUE.
+DUMP_FLAME_LENGTH 			= .TRUE.
+DUMP_TIME_OF_ARRIVAL 		= .TRUE.
+DUMP_SPREAD_RATE 			= .TRUE.
+/
+
+&TIME_CONTROL
+SIMULATION_DT    = 1.0
+TARGET_CFL       = 0.2
+SIMULATION_TSTOP = 60000.0
+/
+
+&MONTE_CARLO
+EDGEBUFFER 								 = 60
+NUM_METEOROLOGY_TIMES = 72
+METEOROLOGY_BAND_START = 1
+METEOROLOGY_BAND_SKIP_INTERVAL = 24
+METEOROLOGY_BAND_STOP = 72
+/
+
+&SIMULATOR
+NUM_IGNITIONS = 1
+X_LINE_IGN_START(1) = 1090
+Y_LINE_IGN_STARt(1) = 3300
+X_LINE_IGN_END(1) = 2690
+Y_LINE_IGN_END(1) = 3300
+T_LINE_IGN(1)      = 0.0
+MODE = 1
+BANDTHICKNESS = 1
+FEEDBACK_LEVEL = 1
+WX_BANDS_KEPT_IN_MEM = 40
+/
+
+&MISCELLANEOUS
+PATH_TO_GDAL                   = 'auto'
+SCRATCH                        = './scratch'
+/

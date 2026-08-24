@@ -1,49 +1,125 @@
+# ============================================================
+# Build artifacts
+# ============================================================
 *.backup
 *.bak
-*.bil
 *.exe
-*.hdr
 *.lock
 *.manifest
 *.mod
 *.obj
 *.old
 *.pdb
+BuildLog.*
+
+# ============================================================
+# GIS / binary rasters
+# ============================================================
+*.aux.xml
+*.bil
+*.hdr
+
+# ============================================================
+# IDE & editor
+# ============================================================
+.devcontainer
+.vs
 *.suo
 *.u2d
 *.user
 *.vsidx
+
+# ============================================================
+# OS
+# ============================================================
+**/.DS_Store
+*:Zone.Identifier
+
+# ============================================================
+# Python
+# ============================================================
 __pycache__
-BuildLog.*
+
+# ============================================================
+# Generated runtime directories (top-level)
+# ============================================================
 control_files
 DEPRECATED
-forecasts/runs
 fuel
-inputs
 input_decks
+/inputs
 misc
 outputs
+scratch
+work
+config/wui_inputs
+
+# ============================================================
+# Runs
+# ============================================================
+forecasts/runs
+runs/forecasts/archive
 runs/forecasts/runs
 runs/hindcasts/log
+runs/hindcasts/runs
 runs/potential/part*
 runs/potential/timeseries*
 runs/potential/zones
 runs/risk/runs
 runs/risk/template/config
-scratch
+
+# ============================================================
+# Examples — large or generated content
+# ============================================================
+examples/CalibrateMemopt/
+examples/long/
+# Keep the outputs/ and scratch/ folders for examples (via .gitkeep) but
+# ignore their contents. The bare `outputs`/`scratch` rules above exclude the
+# directories globally, so re-include the example dirs, then re-exclude their
+# contents while preserving the .gitkeep placeholders.
+!examples/*/outputs/
+!examples/*/scratch/
+!examples/*/*/outputs/
+!examples/*/*/scratch/
+examples/*/outputs/*
+examples/*/scratch/*
+examples/*/*/outputs/*
+examples/*/*/scratch/*
+!examples/*/outputs/.gitkeep
+!examples/*/scratch/.gitkeep
+!examples/*/*/outputs/.gitkeep
+!examples/*/*/scratch/.gitkeep
+examples/smoke/smoke/gdas1.jul25.w1
+examples/smoke/MESSAGE.*
+examples/smoke/VMSDIST.*
+examples/smoke/WARNING.*
+examples/smoke/STARTUP
+
+# ============================================================
+# Validation, verification & tutorials (generated outputs)
+# ============================================================
+tutorials/05-UMD-spotting
+tutorials/01-constant-wind
 validation/01-single-fire/ca-county_20180701_062200
+validation/02-multi-fire/2*
 verification/01-elliptical-shape/exact_ellipses
 verification/04-spotting_eulerian
-tutorials/05-UMD-spotting
-.vs
-work
-log.txt
-runs/hindcasts/runs
-runs/forecasts/archive
-**/.DS_Store
-validation/02-multi-fire/2*
-.webui_secret_key
-.rag_db
+
+# ============================================================
+# Tooling
+# ============================================================
 ask_rag.py
 index_repo.py
+.rag_db
 rag_db
+
+# ============================================================
+# Logs & secrets
+# ============================================================
+.webui_secret_key
+log.txt
+
+# ============================================================
+# Docker
+# ============================================================
+docker_shared_folder

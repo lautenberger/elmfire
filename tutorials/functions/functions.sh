@@ -1,3 +1,37 @@
+# Sets ELMFIRE_VER from the repo-root VERSION file (the single source of truth),
+# unless the caller already exported ELMFIRE_VER. Locates VERSION by walking up
+# from this file's own location, so it works regardless of the caller's depth.
+function set_elmfire_version {
+   if [ -z "$ELMFIRE_VER" ]; then
+      local d
+      d=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+      while [ ! -f "$d/VERSION" ] && [ "$d" != "/" ]; do
+         d=$(dirname "$d")
+      done
+      if [ -f "$d/VERSION" ]; then
+         ELMFIRE_VER=$(tr -d '[:space:]' < "$d/VERSION")
+      fi
+   fi
+   export ELMFIRE_VER
+}
+
+# Stacks the eight topography/fuel layers into a single multiband "landscape"
+# GeoTIFF in ELMFIRE band order (1=DEM, 2=SLP, 3=ASP, 4=FBFM, 5=CC, 6=CH,
+# 7=CBH, 8=CBD), as an Int16 raster, then removes the individual layers. ELMFIRE
+# reads this file when LANDSCAPE_FILENAME is set and ignores the per-layer
+# filenames. Weather, adjustment-factor and phi rasters are NOT landscape bands
+# and are left untouched.
+# Args: <inputs_dir> [fuel_basename=fbfm40] [landscape_basename=landscape]
+function create_landscape {
+   local DIR=${1:-./inputs}
+   local FUEL=${2:-fbfm40}
+   local OUT=${3:-landscape}
+   local LAYERS="$DIR/dem.tif $DIR/slp.tif $DIR/asp.tif $DIR/$FUEL.tif $DIR/cc.tif $DIR/ch.tif $DIR/cbh.tif $DIR/cbd.tif"
+   gdal_merge.py -separate -ot Int16 -n -9999 -init -9999 -a_nodata -9999 \
+      -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" -o "$DIR/$OUT.tif" $LAYERS
+   rm -f $LAYERS
+}
+
 function replace_line {
    MATCH_PATTERN=$1
    NEW_VALUE="$2"

@@ -1,0 +1,50 @@
+!Fire Potential (Mode = 2) Demo by Nikolaos Kalogeropoulos
+!Based on the Canopy Verification Case
+
+&MISCELLANEOUS
+PATH_TO_GDAL                   = 'auto'
+SCRATCH 					   = './scratch'
+FUEL_MODEL_FILE				   = './inputs/fuel_models.csv'
+/
+
+&INPUTS
+FUELS_AND_TOPOGRAPHY_DIRECTORY = './inputs'
+LANDSCAPE_FILENAME             = 'landscape'
+ADJ_FILENAME                   = 'adj'
+PHI_FILENAME                   = 'phi'
+DT_METEOROLOGY                 = 3600.0
+WEATHER_DIRECTORY              = './inputs'
+WS_FILENAME                    = 'ws'
+WD_FILENAME                    = 'wd'
+M1_FILENAME                    = 'm1'
+M10_FILENAME                   = 'm10'
+M100_FILENAME                  = 'm100'
+USE_CONSTANT_LH                = .TRUE.
+LH_MOISTURE_CONTENT            = 60
+USE_CONSTANT_LW                = .TRUE.
+LH_MOISTURE_CONTENT            = 90
+USE_CONSTANT_FMC               = .TRUE.
+FOLIAR_MOISTURE_CONTENT		   = 100
+WS_AT_10M		               = .TRUE.
+/
+
+&OUTPUTS
+OUTPUTS_DIRECTORY = './outputs'
+CONVERT_TO_GEOTIFF = .TRUE.
+DUMP_CROWN_FIRE = .TRUE.
+DUMP_FLAME_LENGTH = .TRUE.
+DUMP_SPREAD_RATE = .TRUE.
+/
+
+&MONTE_CARLO
+EDGEBUFFER 								 = 60
+METEOROLOGY_BAND_START                   = 1
+METEOROLOGY_BAND_SKIP_INTERVAL           = 1
+METEOROLOGY_BAND_STOP                    = 6
+/
+
+&SIMULATOR
+CROWN_FIRE_MODEL = 1
+MODE = 2
+FEEDBACK_LEVEL = 1
+/
