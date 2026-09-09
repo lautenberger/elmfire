@@ -25,7 +25,7 @@ mkdir -p $CWD/runs 2> /dev/null
 
 # Link polygons
 echo "Linking polygons"
-POLYGON_DIR_SRC=$CLOUDFIRE_BASE_DIR/config/polygons
+POLYGON_DIR_SRC=$CLOUDFIRE_BASE_DIR/config/polygons/aois
 POLYGON_DIR_TRG=$ELMFIRE_BASE_DIR/config/polygons
 if [ -d $POLYGON_DIR_SRC ]; then
    for f in $POLYGON_DIR_SRC/*; do
