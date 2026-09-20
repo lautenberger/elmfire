@@ -186,17 +186,11 @@ if (SIMULATION_TSTART .gt. SIMULATION_TSTOP) then
    GOOD_INPUTS = .FALSE.
 endif 
 
-!diurnal adjustment factor stuff
-if (USE_DIURNAL_ADJUSTMENT_FACTOR) then
-   if (HOUR_OF_YEAR .lt. 0 .and. SUNRISE_HOUR .lt. 0) then
-      WRITE(*,*) "[ERROR] HOUR_OF_YEAR must be specified if USE_DIURNAL_ADJUSTMENT_FACTOR is selected (and SUNRISE_HOUR and SUNSET_HOUR are not specified)."
-      GOOD_INPUTS = .FALSE.
-   endif 
-   if (CURRENT_YEAR .lt. 0 .and. SUNRISE_HOUR .lt. 0) then
-      WRITE(*,*) "[ERROR] CURRENT_YEAR must be specified if USE_DIURNAL_ADJUSTMENT_FACTOR is selected (and SUNRISE_HOUR and SUNSET_HOUR are not specified)."
-      GOOD_INPUTS = .FALSE.
-   endif 
-endif
+! Same predicate/date rules used before solar initialization, including missing sunset.
+IF (LEN(SOLAR_INPUT_ERROR()) > 0) THEN
+   WRITE(*,*) '[ERROR] ', SOLAR_INPUT_ERROR()
+   GOOD_INPUTS = .FALSE.
+ENDIF
 
 ! fire potential mode
 if (MODE .ne. 1) then

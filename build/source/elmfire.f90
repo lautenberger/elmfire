@@ -70,7 +70,8 @@ IT_START = IT1
 CALL GET_OPERATING_SYSTEM ! Sets the following variables:
 ! OPERATING_SYSTEM  = 'linux  ' or 'windows'
 ! PATH_SEPARATOR    = '/' or '\'
-! DELETECOMAND      =  '/bin/rm -f ' or 'del   '
+! DELETECOMMAND     = '/bin/rm -f ' or 'del /f /q'
+! NULL_DEVICE       = '/dev/null' or 'NUL'
 
 ! Initialize MPI. This creates the communicator MPI_COMM_WORLD which is used for message passing to 
 ! all processes on all hosts. Other variables that are set include:
@@ -138,6 +139,7 @@ ENDIF
 ! Read and check inputs
 CALL READ_MISC
 REWIND(LUINPUT); CALL READ_INPUTS
+REWIND(LUINPUT); CALL READ_COMPUTATIONAL_DOMAIN
 REWIND(LUINPUT); CALL READ_OUTPUTS
 REWIND(LUINPUT); CALL READ_TIME_CONTROL
 REWIND(LUINPUT); CALL READ_SIMULATOR
@@ -198,9 +200,6 @@ ELSE
 ENDIF
 CALL RANDOM_SEED(PUT=K(1:M))
 
-! Only need to calculate sunrise and sunset hours if the user has not set them manually
-if (SUNRISE_HOUR .lt. 0 .or. SUNSET_HOUR .lt. 0) CALL SUNRISE_SUNSET_CALCS
-
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL ACCUMULATE_CPU_USAGE(2, IT1, IT2)
 
@@ -232,12 +231,14 @@ ELSE
       IF (USE_LANDSCAPE_FILE) THEN
          IF (USE_BSQ_XML_HEADER) THEN
             CALL READ_BSQ_XML_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, LANDSCAPE_FILENAME, .FALSE.)
+            CALL READ_BSQ_HDR_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, LANDSCAPE_FILENAME, .FALSE.)
          ELSE
             CALL READ_BSQ_HDR_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, LANDSCAPE_FILENAME, .FALSE.)
          ENDIF
       ELSE
          IF (USE_BSQ_XML_HEADER) THEN
             CALL READ_BSQ_XML_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, ASP_FILENAME, .FALSE.)
+            CALL READ_BSQ_HDR_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, ASP_FILENAME, .FALSE.)
          ELSE
             CALL READ_BSQ_HDR_HEADER (ASP, FUELS_AND_TOPOGRAPHY_DIRECTORY, ASP_FILENAME, .FALSE.)
          ENDIF
@@ -258,6 +259,8 @@ IF (NPROC .GT. 1) THEN
    CALL MPI_BCAST_RASTER_HEADER(WS , PARALLEL_IO_RANK(2), .TRUE.)
 ENDIF
 
+! Only the header owner has aspect coordinates after the dimension-only broadcasts.
+CALL INITIALIZE_SOLAR_HOURS
 CALL ACCUMULATE_CPU_USAGE(3, IT1, IT2)
 
 ! Rearranged code for randomized ignition, first read the ignition mask then determine the total ignition numbers

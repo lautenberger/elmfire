@@ -4,6 +4,7 @@ MODULE ELMFIRE_SUBS
 
 USE ELMFIRE_VARS
 USE MPI_F08
+USE, INTRINSIC :: IEEE_ARITHMETIC, ONLY: IEEE_IS_FINITE, IEEE_VALUE, IEEE_QUIET_NAN
 
 IMPLICIT NONE
 
@@ -243,25 +244,82 @@ END SUBROUTINE PERTURB_RASTERS
 ! *****************************************************************************
 SUBROUTINE GET_OPERATING_SYSTEM
 ! *****************************************************************************
-! Detects the host OS by inspecting the PATH environment variable and sets the
-! global OPERATING_SYSTEM, PATH_SEPARATOR, and DELETECOMMAND module variables.
-
-CHARACTER(2000) :: PATH
-
-CALL GET_ENVIRONMENT_VARIABLE('PATH',PATH)
-
-IF (PATH(1:1) .EQ. '/') THEN 
+! Use the compiler's target OS: PATH may be empty or begin with a relative path.
+#if defined(_WIN32) || defined(_WIN64)
+   OPERATING_SYSTEM = 'windows'
+   PATH_SEPARATOR   = ACHAR(92)
+   DELETECOMMAND    = 'del /f /q'
+   NULL_DEVICE      = 'NUL'
+#else
    OPERATING_SYSTEM = 'linux  '
    PATH_SEPARATOR   = '/'
    DELETECOMMAND    = '/bin/rm -f '
-ELSE
-   OPERATING_SYSTEM = 'windows'
-   PATH_SEPARATOR   = '\'
-   DELETECOMMAND    = 'del   '
-ENDIF
+   NULL_DEVICE      = '/dev/null'
+#endif
 
 ! *****************************************************************************
 END SUBROUTINE GET_OPERATING_SYSTEM
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE RUN_SHELL_COMMAND(COMMAND, EXITSTAT)
+! *****************************************************************************
+! Invoke cmd explicitly so quoted executable paths work with both Intel and GNU
+! runtimes. /S removes only the outer quotes; /D disables shell startup commands.
+CHARACTER(*), INTENT(IN) :: COMMAND
+INTEGER, OPTIONAL, INTENT(OUT) :: EXITSTAT
+INTEGER :: ISTAT, CSTAT
+CHARACTER(1024) :: CMSG
+CHARACTER(:), ALLOCATABLE :: CMD
+
+CMD = TRIM(COMMAND)
+IF (OPERATING_SYSTEM .EQ. 'windows' .AND. LEN_TRIM(CMD) .GT. 0) THEN
+   CMD = 'cmd /d /s /c "' // CMD // '"'
+ENDIF
+ISTAT = -1
+CMSG = ''
+CALL EXECUTE_COMMAND_LINE(CMD, EXITSTAT=ISTAT, CMDSTAT=CSTAT, CMDMSG=CMSG)
+IF (CSTAT /= 0) THEN
+   ISTAT = -1
+   WRITE(*,*) 'Could not start command on rank ', IRANK_WORLD, ': ', CMD, ': ', TRIM(CMSG)
+ENDIF
+IF (PRESENT(EXITSTAT)) EXITSTAT = ISTAT
+END SUBROUTINE RUN_SHELL_COMMAND
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE DELETE_FILE(FILENAME)
+! *****************************************************************************
+! Delete a single temporary file without relying on shell commands or quoting.
+CHARACTER(*), INTENT(IN) :: FILENAME
+INTEGER :: LU, IOS
+
+OPEN(NEWUNIT=LU, FILE=FILENAME, STATUS='OLD', IOSTAT=IOS)
+IF (IOS .EQ. 0) CLOSE(LU, STATUS='DELETE', IOSTAT=IOS)
+END SUBROUTINE DELETE_FILE
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE CLEAN_SCRATCH_DIRECTORY
+! *****************************************************************************
+! Remove files only; quote the directory while allowing the POSIX shell to glob.
+CHARACTER(:), ALLOCATABLE :: DIRECTORY
+INTEGER :: I
+
+IF (LEN_TRIM(SCRATCH) .EQ. 0 .OR. TRIM(SCRATCH) .EQ. 'null') RETURN
+DIRECTORY = TRIM(SCRATCH)
+IF (OPERATING_SYSTEM .EQ. 'windows') THEN
+   DO I = 1, LEN(DIRECTORY)
+      IF (DIRECTORY(I:I) .EQ. '/') DIRECTORY(I:I) = PATH_SEPARATOR
+   ENDDO
+ENDIF
+IF (DIRECTORY(LEN(DIRECTORY):) .NE. PATH_SEPARATOR) DIRECTORY = DIRECTORY // PATH_SEPARATOR
+IF (OPERATING_SYSTEM .EQ. 'windows') THEN
+   CALL RUN_SHELL_COMMAND(TRIM(DELETECOMMAND) // ' "' // DIRECTORY // '*"')
+ELSE
+   CALL RUN_SHELL_COMMAND(TRIM(DELETECOMMAND) // ' "' // DIRECTORY // '"*')
+ENDIF
+END SUBROUTINE CLEAN_SCRATCH_DIRECTORY
 ! *****************************************************************************
 
 ! *****************************************************************************
@@ -1390,46 +1448,74 @@ END SUBROUTINE LOCATE
 ! *****************************************************************************
 
 !******************************************************************************
+INTEGER FUNCTION SOLAR_DAYS_IN_YEAR(YEAR)
+INTEGER, INTENT(IN) :: YEAR
+SOLAR_DAYS_IN_YEAR = 365
+IF (MOD(YEAR,4) == 0 .AND. (MOD(YEAR,100) /= 0 .OR. MOD(YEAR,400) == 0)) SOLAR_DAYS_IN_YEAR = 366
+END FUNCTION SOLAR_DAYS_IN_YEAR
+
+FUNCTION SOLAR_INPUT_ERROR() RESULT(REASON)
+CHARACTER(:), ALLOCATABLE :: REASON
+REASON = ''
+IF (.NOT. USE_DIURNAL_ADJUSTMENT_FACTOR) RETURN
+IF (.NOT. IEEE_IS_FINITE(SUNRISE_HOUR) .OR. .NOT. IEEE_IS_FINITE(SUNSET_HOUR)) THEN
+   REASON = 'SUNRISE_HOUR and SUNSET_HOUR must be finite UTC hours'
+   RETURN
+ENDIF
+IF (SUNRISE_HOUR >= 0.0 .AND. SUNSET_HOUR >= 0.0) RETURN
+IF (CURRENT_YEAR <= 0) THEN
+   REASON = 'Automatic diurnal hours require positive CURRENT_YEAR'
+ELSE IF (HOUR_OF_YEAR < 0 .OR. HOUR_OF_YEAR >= 24*SOLAR_DAYS_IN_YEAR(CURRENT_YEAR)) THEN
+   REASON = 'Automatic diurnal hours require zero-based HOUR_OF_YEAR within CURRENT_YEAR'
+ENDIF
+END FUNCTION SOLAR_INPUT_ERROR
+
+SUBROUTINE INITIALIZE_SOLAR_HOURS
+INTEGER :: IERR
+CHARACTER(:), ALLOCATABLE :: REASON
+IF (.NOT. USE_DIURNAL_ADJUSTMENT_FACTOR) RETURN
+REASON = SOLAR_INPUT_ERROR()
+IF (LEN(REASON) > 0) CALL SPATIAL_ERROR(REASON)
+IF (SUNRISE_HOUR >= 0.0 .AND. SUNSET_HOUR >= 0.0) RETURN
+IF (IRANK_WORLD == PARALLEL_IO_RANK(1)) CALL SUNRISE_SUNSET_CALCS
+CALL MPI_BCAST(SUNRISE_HOUR, 1, MPI_REAL, PARALLEL_IO_RANK(1), MPI_COMM_WORLD, IERR)
+CALL MPI_BCAST(SUNSET_HOUR, 1, MPI_REAL, PARALLEL_IO_RANK(1), MPI_COMM_WORLD, IERR)
+END SUBROUTINE INITIALIZE_SOLAR_HOURS
+
 SUBROUTINE SUNRISE_SUNSET_CALCS
-!******************************************************************************
-! Computes the UTC sunrise and sunset hours for the domain's lower-left lat/lon
-! and current day of year (NOAA solar equations), storing them in the global
-! SUNRISE_HOUR and SUNSET_HOUR module variables.
-LOGICAL :: LEAPYEAR
-INTEGER :: DAY_OF_YEAR, HOUR_OF_DAY
-REAL :: DAYS_PER_YEAR, GAMMA, EQTIME, DECL, HA_SUNRISE, LAT_RAD, LON_RAD, &
-        SUNRISE_MIN_UTC, SUNRISE_H_UTC, SUNSET_MIN_UTC, HA_SUNSET, SUNSET_H_UTC, LON_DEG, LAT_DEG
-
+! Keep the existing NOAA equations and unwrapped UTC hours at the lower-left.
+INTEGER :: DAY_OF_YEAR
+REAL :: DAYS_PER_YEAR, GAMMA, EQTIME, DECL, HA_SUNRISE, LAT_RAD, &
+        SUNRISE_H_UTC, SUNSET_H_UTC, LON_DEG, LAT_DEG, ACOS_ARG, DENOM
+CHARACTER(:), ALLOCATABLE :: REASON
+REASON = SOLAR_INPUT_ERROR()
+IF (LEN(REASON) > 0) CALL SPATIAL_ERROR(REASON)
+IF (.NOT. ALL(IEEE_IS_FINITE([ASP%XLLCORNER, ASP%YLLCORNER, ASP%CELLSIZE]))) &
+   CALL SPATIAL_ERROR('Solar calculation requires finite aspect header coordinates/cell size')
+IF (ASP%CELLSIZE <= 0.0) CALL SPATIAL_ERROR('Solar calculation requires positive aspect cell size')
+CALL REQUIRE_ANALYSIS_SRS
 CALL XY_TO_LATLON(ASP%XLLCORNER, ASP%YLLCORNER, LAT_DEG, LON_DEG)
-
-LON_RAD = LON_DEG * PI / 180.
 LAT_RAD = LAT_DEG * PI / 180.
-
-LEAPYEAR = .FALSE.
-IF (MOD(CURRENT_YEAR,4) .EQ. 0) LEAPYEAR = .TRUE.
-DAYS_PER_YEAR = 365.
-IF (LEAPYEAR) DAYS_PER_YEAR = 366.
-
-DAY_OF_YEAR = 1 + FLOOR(REAL(HOUR_OF_YEAR) / 24.)
-HOUR_OF_DAY = HOUR_OF_YEAR - (DAY_OF_YEAR - 1) * 24
+DAYS_PER_YEAR = REAL(SOLAR_DAYS_IN_YEAR(CURRENT_YEAR))
+DAY_OF_YEAR = 1 + HOUR_OF_YEAR / 24
 GAMMA = 2.0 * (PI/DAYS_PER_YEAR) * (DAY_OF_YEAR - 1)
-
-EQTIME = 229.18 * ( 0.000075 + 0.001868*COS(GAMMA) - 0.032077*SIN(GAMMA) - 0.014615*COS(2.*GAMMA) - 0.040849*SIN(2.*GAMMA) )
-DECL   = 0.006918 - 0.399912*COS(GAMMA) + 0.070257*SIN(GAMMA) - 0.006758*COS(2.*GAMMA) + 0.000907*SIN(2.*GAMMA) - 0.002697*COS(3.*GAMMA) + 0.00148*SIN(3.*GAMMA)
-
-HA_SUNRISE = ACOS( COS(90.833*PI/180) / (COS(LAT_RAD)*COS(DECL)) -TAN(LAT_RAD)*TAN(DECL) )
-SUNRISE_MIN_UTC = 720. - 4.*(LON_DEG + HA_SUNRISE*180./PI) - EQTIME
-SUNRISE_H_UTC = SUNRISE_MIN_UTC / 60.
-
-HA_SUNSET = -HA_SUNRISE
-SUNSET_MIN_UTC = 720. - 4.*(LON_DEG + HA_SUNSET*180./PI) - EQTIME
-SUNSET_H_UTC = SUNSET_MIN_UTC / 60.
-
-SUNRISE_HOUR = SUNRISE_H_UTC ! Scope is global
-SUNSET_HOUR  = SUNSET_H_UTC ! Scope is global
-
-! *****************************************************************************
+EQTIME = 229.18 * (0.000075 + 0.001868*COS(GAMMA) - 0.032077*SIN(GAMMA) &
+         - 0.014615*COS(2.*GAMMA) - 0.040849*SIN(2.*GAMMA))
+DECL = 0.006918 - 0.399912*COS(GAMMA) + 0.070257*SIN(GAMMA) - 0.006758*COS(2.*GAMMA) &
+       + 0.000907*SIN(2.*GAMMA) - 0.002697*COS(3.*GAMMA) + 0.00148*SIN(3.*GAMMA)
+DENOM = COS(LAT_RAD)*COS(DECL)
+IF (ABS(DENOM) <= TINY(DENOM)) CALL SPATIAL_ERROR('Unsupported solar no-rise/no-set location')
+ACOS_ARG = COS(90.833*PI/180.) / DENOM - TAN(LAT_RAD)*TAN(DECL)
+IF (.NOT. IEEE_IS_FINITE(ACOS_ARG)) CALL SPATIAL_ERROR('Nonfinite solar hour angle')
+IF (ABS(ACOS_ARG) > 1.0) CALL SPATIAL_ERROR('Unsupported solar no-rise/no-set date/location')
+HA_SUNRISE = ACOS(ACOS_ARG)
+SUNRISE_H_UTC = (720. - 4.*(LON_DEG + HA_SUNRISE*180./PI) - EQTIME) / 60.
+SUNSET_H_UTC = (720. - 4.*(LON_DEG - HA_SUNRISE*180./PI) - EQTIME) / 60.
+IF (SUNRISE_HOUR < 0.0) SUNRISE_HOUR = SUNRISE_H_UTC
+IF (SUNSET_HOUR < 0.0) SUNSET_HOUR = SUNSET_H_UTC
 END SUBROUTINE SUNRISE_SUNSET_CALCS
+
+
 !******************************************************************************
 
 ! *****************************************************************************
@@ -1525,9 +1611,10 @@ IF (NPROC .GT. 1) CALL MPI_WIN_FREE(WIN_TIMINGS)
 
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 
+CALL CLEANUP_ANALYSIS_SRS
 CALL MPI_FINALIZE(IERR)
 
-if (IRANK_WORLD .eq. 0 .and. CLEAN_SCRATCH) call execute_command_line("rm -f " // trim(SCRATCH) // "/*")
+IF (IRANK_WORLD .EQ. 0 .AND. CLEAN_SCRATCH) CALL CLEAN_SCRATCH_DIRECTORY
 
 IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'End of simulation reached successfully. Shutting down.'
 
@@ -1813,286 +1900,436 @@ END FUNCTION HOUR_OF_YEAR_TO_TIMESTAMP
 ! *****************************************************************************
 
 ! *****************************************************************************
+! Small files are read in full: WKT and diagnostic records must not be truncated.
+SUBROUTINE READ_SPATIAL_TEXT(FILENAME, TEXT, IOS)
+CHARACTER(*), INTENT(IN) :: FILENAME
+CHARACTER(:), ALLOCATABLE, INTENT(OUT) :: TEXT
+INTEGER, INTENT(OUT) :: IOS
+INTEGER :: LU, N, CLOSE_IOS
+TEXT = ''
+OPEN(NEWUNIT=LU, FILE=FILENAME, STATUS='OLD', ACCESS='STREAM', FORM='UNFORMATTED', IOSTAT=IOS)
+IF (IOS /= 0) RETURN
+INQUIRE(UNIT=LU, SIZE=N, IOSTAT=IOS)
+IF (IOS == 0) THEN
+   IF (N > 0) THEN
+      TEXT = REPEAT(' ', N)
+      READ(LU, IOSTAT=IOS) TEXT
+   ENDIF
+ENDIF
+CLOSE(LU, IOSTAT=CLOSE_IOS)
+IF (IOS == 0) IOS = CLOSE_IOS
+END SUBROUTINE READ_SPATIAL_TEXT
+
+FUNCTION SPATIAL_TEMP(NAME) RESULT(FILENAME)
+CHARACTER(*), INTENT(IN) :: NAME
+CHARACTER(:), ALLOCATABLE :: FILENAME, DIRECTORY
+CHARACTER(32) :: RANKSTR
+DIRECTORY = TRIM(SCRATCH)
+IF (DIRECTORY == 'null' .OR. LEN(DIRECTORY) == 0) DIRECTORY = '.'
+IF (DIRECTORY(LEN(DIRECTORY):) /= PATH_SEPARATOR .AND. DIRECTORY(LEN(DIRECTORY):) /= '/') &
+   DIRECTORY = DIRECTORY // PATH_SEPARATOR
+WRITE(RANKSTR,'(I0)') IRANK_WORLD
+FILENAME = DIRECTORY // 'elmfire_' // NAME // '_' // TRIM(RANKSTR)
+END FUNCTION SPATIAL_TEMP
+
+FUNCTION SHELL_ARGUMENT(ARG) RESULT(QUOTED)
+CHARACTER(*), INTENT(IN) :: ARG
+CHARACTER(:), ALLOCATABLE :: QUOTED
+INTEGER :: I
+IF (OPERATING_SYSTEM == 'windows') THEN
+   IF (INDEX(ARG, '"') /= 0) CALL SPATIAL_ERROR('Double quote in shell argument: ' // ARG)
+   QUOTED = '"' // ARG // '"'
+ELSE
+   QUOTED = "'"
+   DO I = 1, LEN(ARG)
+      IF (ARG(I:I) == "'") THEN
+         QUOTED = QUOTED // "'" // ACHAR(34) // "'" // ACHAR(34) // "'"
+      ELSE
+         QUOTED = QUOTED // ARG(I:I)
+      ENDIF
+   ENDDO
+   QUOTED = QUOTED // "'"
+ENDIF
+END FUNCTION SHELL_ARGUMENT
+
+SUBROUTINE SPATIAL_ERROR(MESSAGE, ERROR_FILE)
+CHARACTER(*), INTENT(IN) :: MESSAGE
+CHARACTER(*), OPTIONAL, INTENT(IN) :: ERROR_FILE
+CHARACTER(:), ALLOCATABLE :: DIAGNOSTIC
+INTEGER :: IOS, IERR
+WRITE(*,*) 'Spatial initialization/conversion error on rank ', IRANK_WORLD, ': ', MESSAGE
+IF (PRESENT(ERROR_FILE)) THEN
+   CALL READ_SPATIAL_TEXT(ERROR_FILE, DIAGNOSTIC, IOS)
+   IF (LEN_TRIM(DIAGNOSTIC) > 0) WRITE(*,'(A)') DIAGNOSTIC
+ENDIF
+! Safe before shared-memory allocation; all peers must leave pending collectives.
+CALL MPI_ABORT(MPI_COMM_WORLD, 1, IERR)
+ERROR STOP 1
+END SUBROUTINE SPATIAL_ERROR
+
+SUBROUTINE REQUIRE_ANALYSIS_SRS
+LOGICAL :: EXISTS
+IF (.NOT. ALLOCATED(ANALYSIS_SRS_FILE)) CALL SPATIAL_ERROR('Analysis CRS has not been resolved')
+IF (LEN_TRIM(ANALYSIS_SRS_FILE) == 0) CALL SPATIAL_ERROR('Analysis CRS file is blank')
+INQUIRE(FILE=ANALYSIS_SRS_FILE, EXIST=EXISTS)
+IF (.NOT. EXISTS) CALL SPATIAL_ERROR('Analysis CRS file is missing: ' // ANALYSIS_SRS_FILE)
+END SUBROUTINE REQUIRE_ANALYSIS_SRS
+
+SUBROUTINE CLEANUP_ANALYSIS_SRS
+IF (.NOT. ALLOCATED(ANALYSIS_SRS_FILE)) RETURN
+CALL DELETE_FILE(ANALYSIS_SRS_FILE)
+DEALLOCATE(ANALYSIS_SRS_FILE)
+END SUBROUTINE CLEANUP_ANALYSIS_SRS
+
+SUBROUTINE CHECKED_GDAL_COMMAND(COMMAND, OPERATION, SOURCE, ERROR_FILE)
+CHARACTER(*), INTENT(IN) :: COMMAND, OPERATION, SOURCE, ERROR_FILE
+INTEGER :: STATUS, IOS
+CHARACTER(:), ALLOCATABLE :: DIAGNOSTIC
+CALL RUN_SHELL_COMMAND(COMMAND // ' 2> ' // SHELL_ARGUMENT(ERROR_FILE), EXITSTAT=STATUS)
+CALL READ_SPATIAL_TEXT(ERROR_FILE, DIAGNOSTIC, IOS)
+! Some GDAL utilities return zero after PROJ errors; never accept a degraded CRS.
+IF (STATUS /= 0 .OR. IOS /= 0 .OR. INDEX(DIAGNOSTIC, 'ERROR') > 0) &
+   CALL SPATIAL_ERROR(OPERATION // ' failed for ' // SOURCE, ERROR_FILE)
+IF (LEN_TRIM(DIAGNOSTIC) > 0) WRITE(*,'(A)') TRIM(DIAGNOSTIC)
+CALL DELETE_FILE(ERROR_FILE)
+END SUBROUTINE CHECKED_GDAL_COMMAND
+
+LOGICAL FUNCTION NAMELIST_GROUP_PRESENT(GROUP)
+CHARACTER(*), INTENT(IN) :: GROUP
+CHARACTER(:), ALLOCATABLE :: TEXT, TOKEN
+CHARACTER :: QUOTE, CH
+INTEGER :: I, J, IOS, CODE
+CALL READ_SPATIAL_TEXT(TRIM(NAMELIST_FN), TEXT, IOS)
+IF (IOS /= 0) CALL SPATIAL_ERROR('Cannot inspect namelist: ' // TRIM(NAMELIST_FN))
+NAMELIST_GROUP_PRESENT = .FALSE.
+QUOTE = ' '
+I = 1
+DO WHILE (I <= LEN(TEXT))
+   CH = TEXT(I:I)
+   IF (QUOTE /= ' ') THEN
+      IF (CH == QUOTE) THEN
+         IF (I < LEN(TEXT)) THEN
+            IF (TEXT(I+1:I+1) == QUOTE) THEN
+               I = I + 2
+               CYCLE
+            ENDIF
+         ENDIF
+         QUOTE = ' '
+      ENDIF
+   ELSE IF (CH == '"' .OR. CH == "'") THEN
+      QUOTE = CH
+   ELSE IF (CH == '!') THEN
+      DO WHILE (I < LEN(TEXT))
+         IF (TEXT(I:I) == ACHAR(10)) EXIT
+         I = I + 1
+      ENDDO
+   ELSE IF (CH == '&' .OR. CH == '$') THEN
+      J = I + 1
+      DO WHILE (J <= LEN(TEXT))
+         CH = TEXT(J:J)
+         IF (INDEX('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789', CH) == 0) EXIT
+         J = J + 1
+      ENDDO
+      TOKEN = TEXT(I+1:J-1)
+      DO IOS = 1, LEN(TOKEN)
+         CODE = IACHAR(TOKEN(IOS:IOS))
+         IF (CODE >= 97 .AND. CODE <= 122) TOKEN(IOS:IOS) = ACHAR(CODE-32)
+      ENDDO
+      IF (TOKEN == GROUP) THEN
+         NAMELIST_GROUP_PRESENT = .TRUE.
+         RETURN
+      ENDIF
+   ENDIF
+   I = I + 1
+ENDDO
+END FUNCTION NAMELIST_GROUP_PRESENT
+
 SUBROUTINE XY_TO_LATLON(X, Y, LAT, LON)
-! *****************************************************************************
-! Converts projected coordinates (X,Y in meters, source CRS A_SRS) to geographic
-! LAT/LON degrees (EPSG:4326) by shelling out to the GDAL 'gdaltransform' tool
-! via per-rank temporary scratch files, which are written, read back, and removed.
-REAL, INTENT(IN)  :: X, Y              ! projected coordinates (meters)
-REAL, INTENT(OUT) :: LAT, LON          ! output lat, lon in degrees
-
-INTEGER :: Z
-CHARACTER(256) :: SHELLSTR, TMPIN, TMPOUT
-INTEGER :: LUIN, LUOUT, IOS
-character(len=32) :: istr
-
-! Create simple temp file names (you can do something fancier if needed)
-write(istr,'(I0)') IRANK_WORLD
-TMPIN  = TRIM(SCRATCH) // 'gdal_xy_to_ll_in_'//trim(istr)//'.txt'
-TMPOUT = TRIM(SCRATCH) // 'gdal_xy_to_ll_out_'//trim(istr)//'.txt'
-
-! 1. Write (x, y) to input file for gdaltransform
-OPEN(NEWUNIT=LUIN, FILE=TMPIN, STATUS='REPLACE', ACTION='WRITE', IOSTAT=IOS)
-IF (IOS /= 0) THEN
-   WRITE(*,*) 'Error opening temp input file for gdaltransform, IOSTAT=', IOS
-   RETURN
-END IF
-WRITE(LUIN,'(F24.8,1X,F24.8)') X, Y
-CLOSE(LUIN)
-
-! 2. Build gdaltransform command:
-!    gdaltransform -s_srs SRC_SRS -t_srs EPSG:4326 < TMPIN > TMPOUT
-SHELLSTR = TRIM(PATH_TO_GDAL) // 'gdaltransform -s_srs "' // TRIM(A_SRS) // '"' // &
-            ' -t_srs EPSG:4326 < ' // TRIM(TMPIN) // ' > ' // TRIM(TMPOUT) // ' 2>/dev/null'
-
-! WRITE(*,*) 'Running: ', TRIM(SHELLSTR)
-CALL EXECUTE_COMMAND_LINE(TRIM(SHELLSTR), EXITSTAT=IOS)
-
-IF (IOS /= 0) THEN
-   WRITE(*,*) 'gdaltransform failed, EXITSTAT=', IOS
-   RETURN
-END IF
-
-! 3. Read lon, lat, z from output file
-OPEN(NEWUNIT=LUOUT, FILE=TMPOUT, STATUS='OLD', ACTION='READ', IOSTAT=IOS)
-IF (IOS /= 0) THEN
-   WRITE(*,*) 'Error opening temp output file from gdaltransform, IOSTAT=', IOS
-   RETURN
-END IF
-
-! gdaltransform outputs: lon lat z
-READ(LUOUT,*,IOSTAT=IOS) LON, LAT, Z
-CLOSE(LUOUT)
-
-IF (IOS .NE. 0) THEN
-   WRITE(*,*) 'Error reading gdaltransform output, IOSTAT=', IOS
-   RETURN
-END IF
-
-! 4. (Optional) clean up temp files
-CALL EXECUTE_COMMAND_LINE('rm -f ' // TRIM(TMPIN)  // ' ' // TRIM(TMPOUT))
-! *****************************************************************************
+! Success returns finite longitude/latitude; every failure aborts the MPI job.
+REAL, INTENT(IN) :: X, Y
+REAL, INTENT(OUT) :: LAT, LON
+CHARACTER(:), ALLOCATABLE :: TMPIN, TMPOUT, TMPERR, CMD, DIAGNOSTIC
+INTEGER :: LU, IOS, CLOSE_IOS
+CALL REQUIRE_ANALYSIS_SRS
+! List-directed null fields must not leave either INTENT(OUT) value undefined.
+LAT = IEEE_VALUE(0.0, IEEE_QUIET_NAN)
+LON = IEEE_VALUE(0.0, IEEE_QUIET_NAN)
+TMPIN = SPATIAL_TEMP('xy_in') // '.txt'
+TMPOUT = SPATIAL_TEMP('xy_out') // '.txt'
+TMPERR = SPATIAL_TEMP('xy_error') // '.txt'
+IF (.NOT. IEEE_IS_FINITE(X) .OR. .NOT. IEEE_IS_FINITE(Y)) CALL FAIL('Nonfinite input coordinates')
+OPEN(NEWUNIT=LU, FILE=TMPIN, STATUS='REPLACE', ACTION='WRITE', IOSTAT=IOS)
+IF (IOS /= 0) CALL FAIL('Cannot open transform input: ' // TMPIN)
+WRITE(LU,'(ES24.16,1X,ES24.16)',IOSTAT=IOS) X, Y
+CLOSE(LU,IOSTAT=CLOSE_IOS)
+IF (IOS /= 0 .OR. CLOSE_IOS /= 0) CALL FAIL('Cannot write/close transform input: ' // TMPIN)
+CMD = SHELL_ARGUMENT(TRIM(PATH_TO_GDAL) // 'gdaltransform') // ' -s_srs ' // &
+      SHELL_ARGUMENT(ANALYSIS_SRS_FILE) // ' -t_srs EPSG:4326 < ' // SHELL_ARGUMENT(TMPIN) // &
+      ' > ' // SHELL_ARGUMENT(TMPOUT) // ' 2> ' // SHELL_ARGUMENT(TMPERR)
+CALL RUN_SHELL_COMMAND(CMD, EXITSTAT=IOS)
+IF (IOS /= 0) CALL FAIL('gdaltransform command failed')
+CALL READ_SPATIAL_TEXT(TMPERR, DIAGNOSTIC, IOS)
+IF (IOS /= 0 .OR. INDEX(DIAGNOSTIC, 'ERROR') > 0) CALL FAIL('gdaltransform diagnostic')
+OPEN(NEWUNIT=LU, FILE=TMPOUT, STATUS='OLD', ACTION='READ', IOSTAT=IOS)
+IF (IOS /= 0) CALL FAIL('Cannot open transform output: ' // TMPOUT)
+! GDAL emits longitude, latitude, and an unused real height.
+READ(LU,*,IOSTAT=IOS) LON, LAT
+CLOSE(LU,IOSTAT=CLOSE_IOS)
+IF (IOS /= 0 .OR. CLOSE_IOS /= 0) CALL FAIL('Cannot read/close transform output: ' // TMPOUT)
+IF (.NOT. IEEE_IS_FINITE(LON) .OR. .NOT. IEEE_IS_FINITE(LAT)) CALL FAIL('Nonfinite transform output')
+IF (ABS(LON) > 180.0 .OR. ABS(LAT) > 90.0) CALL FAIL('Transform output outside longitude/latitude range')
+CALL DELETE_FILE(TMPIN)
+CALL DELETE_FILE(TMPOUT)
+CALL DELETE_FILE(TMPERR)
+CONTAINS
+SUBROUTINE FAIL(REASON)
+CHARACTER(*), INTENT(IN) :: REASON
+INTEGER :: STAT
+CHARACTER(:), ALLOCATABLE :: DETAIL
+WRITE(*,*) 'gdaltransform X/Y=', X, Y, ' source CRS=', ANALYSIS_SRS_FILE, ' rank=', IRANK_WORLD
+CALL READ_SPATIAL_TEXT(TMPERR, DETAIL, STAT)
+IF (LEN_TRIM(DETAIL) > 0) WRITE(*,'(A)') DETAIL
+CALL DELETE_FILE(TMPIN)
+CALL DELETE_FILE(TMPOUT)
+CALL DELETE_FILE(TMPERR)
+CALL SPATIAL_ERROR(REASON)
+END SUBROUTINE FAIL
 END SUBROUTINE XY_TO_LATLON
-! *****************************************************************************
 
-! *****************************************************************************
-subroutine read_geotiff_meta_gdalinfo()
-! Reads spatial metadata for the analysis grid from the aspect raster by running
-! GDAL 'gdalinfo'/'gdalsrsinfo' and parsing their output, then sets the global
-! ANALYSIS_CELLSIZE, ANALYSIS_XLLCORNER, ANALYSIS_YLLCORNER, and A_SRS. Requires
-! the CRS to use metre linear units (error-stops otherwise).
-   character(len=1024) :: cmd, line
-   character(len=256)  :: tmpfile, tmpfile_epsg, tempFilename, istr
-   integer :: iu, ios
-   integer :: ncols, nrows
-   real(8) :: x0, y0, dx, dy
-   integer :: epsg
-   logical :: is_metre
+SUBROUTINE RESOLVE_ANALYSIS_SRS(SOURCE)
+CHARACTER(*), INTENT(IN) :: SOURCE
+CHARACTER(:), ALLOCATABLE :: DEFINITION, DEF_FILE, ERR_FILE, VALID_FILE, CMD, WKT, VALIDATION, REASON
+INTEGER :: LU, IOS, CLOSE_IOS
+DEFINITION = TRIM(A_SRS)
+IF (LEN(DEFINITION) == 0) THEN
+   DEFINITION = SOURCE
+   IF (IRANK_WORLD == 0) WRITE(*,*) 'Analysis CRS: automatic from ', SOURCE
+ELSE
+   IF (IRANK_WORLD == 0) WRITE(*,*) 'Analysis CRS: explicit A_SRS: ', DEFINITION
+ENDIF
+DEF_FILE = SPATIAL_TEMP('srs_definition') // '.txt'
+ERR_FILE = SPATIAL_TEMP('srs_error') // '.txt'
+VALID_FILE = SPATIAL_TEMP('srs_validation') // '.txt'
+ANALYSIS_SRS_FILE = SPATIAL_TEMP('analysis_srs') // '.wkt'
+! Raw WKT contains shell quotes. Pass it to GDAL through a file without alteration.
+IF (INDEX(DEFINITION, '"') > 0) THEN
+   OPEN(NEWUNIT=LU, FILE=DEF_FILE, STATUS='REPLACE', ACTION='WRITE', IOSTAT=IOS)
+   IF (IOS /= 0) CALL SPATIAL_ERROR('Cannot create CRS definition file: ' // DEF_FILE)
+   WRITE(LU,'(A)',IOSTAT=IOS) DEFINITION
+   CLOSE(LU,IOSTAT=CLOSE_IOS)
+   IF (IOS /= 0 .OR. CLOSE_IOS /= 0) CALL SPATIAL_ERROR('Cannot write CRS definition file: ' // DEF_FILE)
+   DEFINITION = DEF_FILE
+ENDIF
+CMD = SHELL_ARGUMENT(TRIM(PATH_TO_GDAL) // 'gdalsrsinfo') // ' -o wkt2 ' // SHELL_ARGUMENT(DEFINITION) // &
+      ' > ' // SHELL_ARGUMENT(ANALYSIS_SRS_FILE)
+CALL CHECKED_GDAL_COMMAND(CMD, 'gdalsrsinfo WKT export', DEFINITION, ERR_FILE)
+CALL READ_SPATIAL_TEXT(ANALYSIS_SRS_FILE, WKT, IOS)
+IF (IOS /= 0 .OR. LEN_TRIM(WKT) == 0) CALL SPATIAL_ERROR('Empty/unreadable WKT for ' // DEFINITION)
+CMD = SHELL_ARGUMENT(TRIM(PATH_TO_GDAL) // 'gdalsrsinfo') // ' -V -o wkt2 ' // &
+      SHELL_ARGUMENT(ANALYSIS_SRS_FILE) // ' > ' // SHELL_ARGUMENT(VALID_FILE)
+CALL CHECKED_GDAL_COMMAND(CMD, 'gdalsrsinfo validation', DEFINITION, ERR_FILE)
+CALL READ_SPATIAL_TEXT(VALID_FILE, VALIDATION, IOS)
+IF (IOS /= 0 .OR. INDEX(VALIDATION, 'Validate Succeeds') == 0) &
+   CALL SPATIAL_ERROR('Invalid WKT for ' // DEFINITION, VALID_FILE)
+CALL VALIDATE_PROJECTED_METRES(WKT, REASON)
+IF (LEN(REASON) > 0) CALL SPATIAL_ERROR(REASON // ': ' // DEFINITION)
+CALL DELETE_FILE(DEF_FILE)
+CALL DELETE_FILE(VALID_FILE)
+END SUBROUTINE RESOLVE_ANALYSIS_SRS
 
-   ! Defaults
-   ncols = -1
-   nrows = -1
-   x0 = 0d0
-   y0 = 0d0
-   dx = 0d0
-   dy = 0d0
-   epsg = -1
-   is_metre = .false.
+SUBROUTINE VALIDATE_PROJECTED_METRES(WKT, REASON)
+! Traverse WKT2 brackets outside quoted strings. Only the selected PROJCRS's
+! Cartesian axes count, never ellipsoid, base-CRS or projection-parameter units.
+CHARACTER(*), INTENT(IN) :: WKT
+CHARACTER(:), ALLOCATABLE, INTENT(OUT) :: REASON
+INTEGER, ALLOCATABLE :: OPEN_AT(:), CLOSE_AT(:), PARENT(:), STACK(:)
+INTEGER :: I, J, N, DEPTH, ROOT, PROJECTED, AXES, CSCOUNT, UNITCOUNT, K, IOS, DIMENSION
+REAL(8) :: FACTOR
+LOGICAL :: QUOTED
+CHARACTER(:), ALLOCATABLE :: TOKEN, CONTENT
+ALLOCATE(OPEN_AT(LEN(WKT)), CLOSE_AT(LEN(WKT)), PARENT(LEN(WKT)), STACK(LEN(WKT)))
+REASON = 'Malformed WKT brackets or quoted string'
+N = 0
+DEPTH = 0
+QUOTED = .FALSE.
+I = 1
+DO WHILE (I <= LEN(WKT))
+   IF (WKT(I:I) == '"') THEN
+      IF (QUOTED .AND. I < LEN(WKT)) THEN
+         IF (WKT(I+1:I+1) == '"') THEN
+            I = I + 2
+            CYCLE
+         ENDIF
+      ENDIF
+      QUOTED = .NOT. QUOTED
+   ELSE IF (.NOT. QUOTED) THEN
+      IF (WKT(I:I) == '[') THEN
+         N = N + 1
+         OPEN_AT(N) = I
+         PARENT(N) = 0
+         IF (DEPTH > 0) PARENT(N) = STACK(DEPTH)
+         DEPTH = DEPTH + 1
+         STACK(DEPTH) = N
+      ELSE IF (WKT(I:I) == ']') THEN
+         IF (DEPTH == 0) RETURN
+         CLOSE_AT(STACK(DEPTH)) = I
+         DEPTH = DEPTH - 1
+      ENDIF
+   ENDIF
+   I = I + 1
+ENDDO
+IF (DEPTH /= 0 .OR. QUOTED .OR. N == 0) RETURN
+REASON = 'Unsupported CRS: a horizontal projected Cartesian grid is required'
+ROOT = 1
+IF (NODE_TYPE(ROOT) == 'BOUNDCRS') THEN
+   DO I = 2, N
+      IF (PARENT(I) /= ROOT .OR. NODE_TYPE(I) /= 'SOURCECRS') CYCLE
+      ROOT = I
+      EXIT
+   ENDDO
+   DO I = ROOT+1, N
+      IF (PARENT(I) /= ROOT) CYCLE
+      ROOT = I
+      EXIT
+   ENDDO
+ENDIF
+IF (NODE_TYPE(ROOT) /= 'PROJCRS') RETURN
+PROJECTED = ROOT
+AXES = 0
+CSCOUNT = 0
+DO I = PROJECTED+1, N
+   IF (PARENT(I) /= PROJECTED) CYCLE
+   TOKEN = NODE_TYPE(I)
+   IF (TOKEN == 'CS') THEN
+      CONTENT = WKT(OPEN_AT(I)+1:CLOSE_AT(I)-1)
+      J = INDEX(CONTENT, ',')
+      IF (J == 0) RETURN
+      IF (TRIM(ADJUSTL(CONTENT(:J-1))) /= 'Cartesian') RETURN
+      READ(CONTENT(J+1:),*,IOSTAT=IOS) DIMENSION
+      IF (IOS /= 0) RETURN
+      IF (DIMENSION /= 2) RETURN
+      CSCOUNT = CSCOUNT + 1
+   ELSE IF (TOKEN == 'AXIS') THEN
+      AXES = AXES + 1
+      UNITCOUNT = 0
+      DO K = I+1, N
+         IF (PARENT(K) /= I .OR. NODE_TYPE(K) /= 'LENGTHUNIT') CYCLE
+         UNITCOUNT = UNITCOUNT + 1
+         ! Skip the quoted name, including escaped quotes/commas.
+         QUOTED = .FALSE.
+         DO J = OPEN_AT(K)+1, CLOSE_AT(K)-1
+            IF (WKT(J:J) == '"') QUOTED = .NOT. QUOTED
+            IF (WKT(J:J) == ',' .AND. .NOT. QUOTED) EXIT
+         ENDDO
+         CONTENT = WKT(J+1:CLOSE_AT(K)-1)
+         READ(CONTENT,*,IOSTAT=IOS) FACTOR
+         REASON = 'Projected axis units must be metres (LENGTHUNIT conversion factor 1)'
+         IF (IOS /= 0) RETURN
+         IF (.NOT. IEEE_IS_FINITE(FACTOR)) RETURN
+         IF (ABS(FACTOR-1D0) > 1D-12) RETURN
+      ENDDO
+      IF (UNITCOUNT /= 1) THEN
+         REASON = 'Projected axis is missing an unambiguous LENGTHUNIT'
+         RETURN
+      ENDIF
+   ENDIF
+ENDDO
+REASON = 'Projected CRS must have exactly two Cartesian axes'
+IF (AXES == 2 .AND. CSCOUNT == 1) REASON = ''
+CONTAINS
+FUNCTION NODE_TYPE(NODE) RESULT(NAME)
+INTEGER, INTENT(IN) :: NODE
+CHARACTER(:), ALLOCATABLE :: NAME
+INTEGER :: FIRST, LAST
+LAST = OPEN_AT(NODE)-1
+DO WHILE (LAST > 0)
+   IF (IACHAR(WKT(LAST:LAST)) > 32) EXIT
+   LAST = LAST-1
+ENDDO
+FIRST = LAST
+DO WHILE (FIRST > 0)
+   IF (INDEX('ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789', WKT(FIRST:FIRST)) == 0) EXIT
+   FIRST = FIRST-1
+ENDDO
+NAME = WKT(FIRST+1:LAST)
+END FUNCTION NODE_TYPE
+END SUBROUTINE VALIDATE_PROJECTED_METRES
 
-   write(istr,'(I0)') IRANK_WORLD
-   tmpfile      = trim(SCRATCH) // '/' // '._gdalinfo_tmp_'//trim(istr)//'.txt'
-   tmpfile_epsg = trim(SCRATCH) // '/' // '._gdalsrsinfo_tmp_'//trim(istr)//'.txt'
+SUBROUTINE READ_GEOTIFF_META_GDALINFO
+CHARACTER(:), ALLOCATABLE :: SOURCE, BASE, TMPFILE, ERRFILE, CMD, TEXT, LINE
+INTEGER :: IOS, NCOLS, NROWS, FIRST, LAST, P, Q
+REAL(8) :: X0, Y0, DX, DY
+LOGICAL :: GOT_SIZE, GOT_ORIGIN, GOT_PIXEL
+BASE = TRIM(ASP_FILENAME)
+IF (USE_LANDSCAPE_FILE) BASE = TRIM(LANDSCAPE_FILENAME)
+SOURCE = TRIM(FUELS_AND_TOPOGRAPHY_DIRECTORY) // BASE
+IF (USE_TILED_IO) THEN
+   SOURCE = SOURCE // '_1_1.bsq'
+ELSE IF (USE_EXISTING_BSQS) THEN
+   IF (TRIM(SCRATCH) /= 'null') SOURCE = TRIM(SCRATCH) // BASE
+   SOURCE = SOURCE // '.bsq'
+ELSE IF (VRT_INSTEAD_OF_TIF) THEN
+   SOURCE = SOURCE // '.vrt'
+ELSE
+   SOURCE = SOURCE // '.tif'
+ENDIF
+IF (IRANK_WORLD == 0) WRITE(*,*) 'Analysis raster: ', SOURCE
+TMPFILE = SPATIAL_TEMP('gdalinfo') // '.txt'
+ERRFILE = SPATIAL_TEMP('gdalinfo_error') // '.txt'
+CMD = SHELL_ARGUMENT(TRIM(PATH_TO_GDAL) // 'gdalinfo') // ' ' // SHELL_ARGUMENT(SOURCE) // &
+      ' > ' // SHELL_ARGUMENT(TMPFILE)
+CALL CHECKED_GDAL_COMMAND(CMD, 'gdalinfo', SOURCE, ERRFILE)
+CALL READ_SPATIAL_TEXT(TMPFILE, TEXT, IOS)
+IF (IOS /= 0) CALL SPATIAL_ERROR('Cannot read gdalinfo output for ' // SOURCE)
+GOT_SIZE = .FALSE.
+GOT_ORIGIN = .FALSE.
+GOT_PIXEL = .FALSE.
+NCOLS = -1
+NROWS = -1
+X0 = IEEE_VALUE(0D0, IEEE_QUIET_NAN)
+Y0 = X0
+DX = X0
+DY = X0
+FIRST = 1
+DO WHILE (FIRST <= LEN(TEXT))
+   LAST = INDEX(TEXT(FIRST:), ACHAR(10))
+   IF (LAST == 0) LAST = LEN(TEXT)-FIRST+2
+   LINE = TRIM(ADJUSTL(TEXT(FIRST:FIRST+LAST-2)))
+   ! Stream reads retain CR on Windows; internal list-directed reads do not
+   ! treat that byte as the formatted file record terminator.
+   IF (LEN(LINE) > 0) THEN
+      IF (LINE(LEN(LINE):) == ACHAR(13)) LINE = LINE(:LEN(LINE)-1)
+   ENDIF
+   FIRST = FIRST + LAST
+   IF (INDEX(LINE, 'Size is ') == 1) THEN
+      READ(LINE(9:),*,IOSTAT=IOS) NCOLS, NROWS
+      GOT_SIZE = IOS == 0
+   ELSE IF (INDEX(LINE, 'Origin = (') == 1) THEN
+      P = INDEX(LINE, '(')
+      Q = INDEX(LINE, ')')
+      IF (Q <= P) CYCLE
+      READ(LINE(P+1:Q-1),*,IOSTAT=IOS) X0, Y0
+      GOT_ORIGIN = IOS == 0
+   ELSE IF (INDEX(LINE, 'Pixel Size = (') == 1) THEN
+      P = INDEX(LINE, '(')
+      Q = INDEX(LINE, ')')
+      IF (Q <= P) CYCLE
+      READ(LINE(P+1:Q-1),*,IOSTAT=IOS) DX, DY
+      GOT_PIXEL = IOS == 0
+   ENDIF
+ENDDO
+IF (.NOT. GOT_SIZE .OR. .NOT. GOT_ORIGIN .OR. .NOT. GOT_PIXEL) &
+   CALL SPATIAL_ERROR('Missing Size/Origin/Pixel Size (north-up grid required): ' // SOURCE)
+IF (.NOT. ALL(IEEE_IS_FINITE([X0,Y0,DX,DY]))) CALL SPATIAL_ERROR('Nonfinite raster geometry: ' // SOURCE)
+IF (NCOLS <= 0 .OR. NROWS <= 0 .OR. DX <= 0D0 .OR. DY >= 0D0) &
+   CALL SPATIAL_ERROR('Invalid north-up raster geometry: ' // SOURCE)
+IF (ABS(DX+DY) > 1D-8*DX) CALL SPATIAL_ERROR('Square raster cells required: ' // SOURCE)
+ANALYSIS_CELLSIZE = REAL(DX)
+ANALYSIS_XLLCORNER = REAL(X0)
+! For tiled data the source is the southwestern tile, so its lower-left is the mosaic lower-left.
+ANALYSIS_YLLCORNER = REAL(Y0 + DY*DBLE(NROWS))
+CALL DELETE_FILE(TMPFILE)
+CALL RESOLVE_ANALYSIS_SRS(SOURCE)
+END SUBROUTINE READ_GEOTIFF_META_GDALINFO
 
-   ! When a combined landscape file is used the individual layer filenames are
-   ! blank, so derive the analysis grid metadata from the landscape file instead.
-   if (USE_LANDSCAPE_FILE) then
-      tempFilename = trim(LANDSCAPE_FILENAME)
-   else
-      tempFilename = trim(ASP_FILENAME)
-   endif
-   if (USE_TILED_IO) then
-      tempFilename = trim(tempFilename) // '_1_1.bsq'
-   else
-      tempFilename = trim(tempFilename) // '.tif'
-   endif
-
-   call read_basic_raster_meta()
-   call read_epsg_with_gdalsrsinfo()
-
-   if (.not. is_metre) then
-      error stop 'DEM CRS does not appear to use metre linear units.'
-   endif
-
-   if (ncols <= 0 .or. nrows <= 0) error stop 'Could not parse raster Size is ...'
-   if (dx == 0d0 .or. dy == 0d0)   error stop 'Could not parse Pixel Size ...'
-
-   ANALYSIS_CELLSIZE  = abs(dx)
-   ANALYSIS_XLLCORNER = x0
-   ANALYSIS_YLLCORNER = y0 + dy * dble(nrows)
-
-   if (epsg > 0) then
-      A_SRS = 'EPSG:' // trim(int_to_str(epsg))
-   else
-      A_SRS = 'UNKNOWN'
-   end if
-
-contains
-
-   subroutine read_basic_raster_meta()
-   ! Runs gdalinfo on the target raster, writes output to a temp file, and parses
-   ! it line by line to extract size, origin, pixel size, and metre-units flag.
-      write(cmd,'(a)') 'gdalinfo "' // trim(FUELS_AND_TOPOGRAPHY_DIRECTORY) // '/' // &
-                       trim(tempFilename) // '" > "' // trim(tmpfile) // '"'
-      call execute_command_line(trim(cmd))
-
-      open(newunit=iu, file=trim(tmpfile), status='old', action='read', iostat=ios)
-      if (ios /= 0) error stop 'Failed to open gdalinfo output file.'
-
-      do
-         read(iu, '(A)', iostat=ios) line
-         if (ios /= 0) exit
-
-         call parse_size
-         call parse_origin
-         call parse_pixel_size
-         call parse_is_metre_units
-      end do
-
-      close(iu)
-   end subroutine read_basic_raster_meta
-
-   subroutine read_epsg_with_gdalsrsinfo()
-   ! Runs gdalsrsinfo on the target raster and parses its output for an 'EPSG:'
-   ! token, storing the numeric code in the host routine's epsg variable.
-      integer :: p
-      character(len=1024) :: text
-
-      write(cmd,'(a)') 'gdalsrsinfo -o epsg "' // trim(FUELS_AND_TOPOGRAPHY_DIRECTORY) // '/' // &
-                     trim(tempFilename) // '" > "' // trim(tmpfile_epsg) // '"'
-      call execute_command_line(trim(cmd))
-
-      open(newunit=iu, file=trim(tmpfile_epsg), status='old', action='read', iostat=ios)
-      if (ios /= 0) return
-
-      do
-         read(iu, '(A)', iostat=ios) line
-         if (ios /= 0) exit
-
-         line = adjustl(line)
-
-         p = index(line, 'EPSG:')
-         if (p > 0) then
-            text = adjustl(line(p+5:))
-            read(text, *, iostat=ios) epsg
-            if (ios /= 0) epsg = -1
-            exit
-         end if
-      end do
-
-      close(iu)
-   end subroutine read_epsg_with_gdalsrsinfo
-
-   pure logical function contains_ci(s, pat)
-   ! Returns .true. if string s contains pattern pat, compared case-insensitively.
-      implicit none
-      character(len=*), intent(in) :: s, pat
-      character(len=len(s))   :: sl
-      character(len=len(pat)) :: pl
-      integer :: i
-
-      sl = s
-      pl = pat
-
-      do i = 1, len(sl)
-         if (iachar(sl(i:i)) >= iachar('A') .and. iachar(sl(i:i)) <= iachar('Z')) then
-            sl(i:i) = achar(iachar(sl(i:i)) + 32)
-         end if
-      end do
-
-      do i = 1, len(pl)
-         if (iachar(pl(i:i)) >= iachar('A') .and. iachar(pl(i:i)) <= iachar('Z')) then
-            pl(i:i) = achar(iachar(pl(i:i)) + 32)
-         end if
-      end do
-
-      contains_ci = index(sl, pl) > 0
-   end function contains_ci
-
-   subroutine parse_is_metre_units
-   ! Sets the host routine's is_metre flag to .true. if the current gdalinfo line
-   ! indicates the CRS linear unit is metre.
-      if (contains_ci(line, 'linear units:') .and. contains_ci(line, 'metre')) then
-         is_metre = .true.
-      else if (contains_ci(line, 'lengthunit["metre"')) then
-         is_metre = .true.
-      else if (contains_ci(line, 'unit["metre"')) then
-         is_metre = .true.
-      end if
-   end subroutine parse_is_metre_units
-
-   subroutine parse_size
-   ! Parses a gdalinfo 'Size is NCOLS, NROWS' line into the host routine's ncols
-   ! and nrows variables.
-      integer :: p
-      character(len=256) :: rest
-
-      p = index(line, 'Size is')
-      if (p > 0) then
-         rest = adjustl(line(p+len('Size is'):))
-         read(rest, *, iostat=ios) ncols
-         if (ios == 0) then
-            p = index(rest, ',')
-            if (p > 0) read(rest(p+1:), *, iostat=ios) nrows
-         end if
-      end if
-   end subroutine parse_size
-
-   subroutine parse_origin
-   ! Parses a gdalinfo 'Origin = (x0, y0)' line into the host routine's x0 and y0
-   ! variables.
-      integer :: p1, p2
-      character(len=256) :: inside
-
-      p1 = index(line, 'Origin = (')
-      if (p1 > 0) then
-         p1 = p1 + len('Origin = (')
-         p2 = index(line(p1:), ')')
-         if (p2 > 0) then
-            inside = line(p1:p1+p2-2)
-            read(inside, *, iostat=ios) x0, y0
-         end if
-      end if
-   end subroutine parse_origin
-
-   subroutine parse_pixel_size
-   ! Parses a gdalinfo 'Pixel Size = (dx, dy)' line into the host routine's dx
-   ! and dy variables.
-      integer :: p1, p2
-      character(len=256) :: inside
-
-      p1 = index(line, 'Pixel Size = (')
-      if (p1 > 0) then
-         p1 = p1 + len('Pixel Size = (')
-         p2 = index(line(p1:), ')')
-         if (p2 > 0) then
-            inside = line(p1:p1+p2-2)
-            read(inside, *, iostat=ios) dx, dy
-         end if
-      end if
-   end subroutine parse_pixel_size
-
-   pure function int_to_str(i) result(s)
-   ! Returns integer i formatted as a trimmed, left-justified character string.
-      integer, intent(in) :: i
-      character(len=:), allocatable :: s
-      character(len=32) :: buf
-      write(buf, '(I0)') i
-      s = trim(buf)
-   end function int_to_str
-
-end subroutine read_geotiff_meta_gdalinfo
-! *****************************************************************************
-
-! *****************************************************************************
 END MODULE ELMFIRE_SUBS
-! *****************************************************************************
