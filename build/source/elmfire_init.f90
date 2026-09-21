@@ -58,7 +58,7 @@ else
 endif
 GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(PHI_FILENAME, "PHI_FILENAME")
 GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(ADJ_FILENAME, "ADJ_FILENAME")
-if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+if (SURFACE_MODEL_CFFDRS) then
    GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(DAILY_WEATHER_FILENAME, "DAILY_WEATHER_FILENAME")
 else if (.not. USE_LANDSCAPE_FILE) then
    GOOD_INPUTS = GOOD_INPUTS .and. CHECK_FILEPATH_IS_SET(CBH_FILENAME, "CBH_FILENAME")
@@ -151,7 +151,7 @@ IF (ENABLE_EXTENDED_ATTACK .AND. EXTENDED_ATTACK_MODEL .EQ. 1) THEN
    GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, SDI, "Suppression Difficulty Index")
 ENDIF
 ! new suppression model
-if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+if (SURFACE_MODEL_ROTHERMEL) then
    GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, CBH, "Canopy Base Height")
    GOOD_INPUTS = GOOD_INPUTS .and. CHECK_RASTER_DIMS(ASP, CBD, "Density")
 endif 
@@ -167,7 +167,7 @@ if (ASP%NCOLS .lt. 10 .or. ASP%NROWS .lt. 10) then
 endif 
 
 ! Check daily weather stream is enough for the simulation duration.
-if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+if (SURFACE_MODEL_CFFDRS) then
    if (HOUR_OF_YEAR + size(daily_bui) * 24 .lt. HOUR_OF_YEAR + WS%NBANDS * DT_METEOROLOGY / 3600) then
       WRITE(*,*) "[ERROR] Daily weather values not enough for full fire duration (Input should span as many days as the weather raster bands)"
       GOOD_INPUTS = .FALSE.
@@ -438,13 +438,13 @@ ENDDO
 DO IY = 1, FBFM%NROWS
 DO IX = 1, FBFM%NCOLS
    J = FBFM%I2(IX,IY,1)
-   if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+   if (SURFACE_MODEL_CFFDRS) then
       IF ( (J .GE. 100 .AND. J .LE. 106) .OR. J .GT. 1000 .OR. J .LE. 0) THEN
          ISNONBURNABLE(IX,IY) = .TRUE.
       ELSE
          ISNONBURNABLE(IX,IY) = .FALSE.
       ENDIF
-   else if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+   else if (SURFACE_MODEL_ROTHERMEL) then
       IF ( (J .GE. 90 .AND. J .LE. 100) .OR. J .EQ. 256 .OR. J .LE. 0) THEN
          ISNONBURNABLE(IX,IY) = .TRUE.
       ELSE
@@ -872,7 +872,7 @@ WAF%YLLCORNER     = ADJ%YLLCORNER
 
 DO IROW = 1, WAF%NROWS
 DO ICOL = 1, WAF%NCOLS
-   if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then ! Scott (2007) canopy cover based wind adjustment factor calculation for CFFDRS
+   if (SURFACE_MODEL_CFFDRS) then ! Scott (2007) canopy cover based wind adjustment factor calculation for CFFDRS
       if (CC%R4(ICOL, IROW, 1) .gt. 50) then 
          WAF%R4(ICOL,IROW,1) = 0.10
       else if (CC%R4(ICOL, IROW, 1) .gt. 30) then 
@@ -886,7 +886,7 @@ DO ICOL = 1, WAF%NCOLS
       else 
          WAF%R4(ICOL,IROW,1) = 0.50
       endif
-   else if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+   else if (SURFACE_MODEL_ROTHERMEL) then
       IF (CC%R4(ICOL,IROW,1) .LT. 0.) THEN
          WAF%R4(ICOL,IROW,1) = 0.
       ELSE
@@ -1018,7 +1018,7 @@ IF ( TRIM(FUEL_MODEL_FILE) .EQ. 'null') THEN
       STOP
    ENDIF
 
-   if (TRIM(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+   if (SURFACE_MODEL_ROTHERMEL) then
       WRITE (LUOUTPUT,'(A)') '1,FBFM01,.FALSE.,0.034,0,0,0,0,3500,9999,9999,1,12,8000'
       WRITE (LUOUTPUT,'(A)') '2,FBFM02,.FALSE.,0.092,0.046,0.023,0.023,0,3000,1500,9999,1,15,8000'
       WRITE (LUOUTPUT,'(A)') '3,FBFM03,.FALSE.,0.138,0,0,0,0,1500,9999,9999,2.5,25,8000'
@@ -1075,7 +1075,7 @@ IF ( TRIM(FUEL_MODEL_FILE) .EQ. 'null') THEN
       WRITE (LUOUTPUT,'(A)') '203,SB3,.FALSE.,0.25253,0.12626,0.13774,0,0,2000,9999,9999,1.2,25,8000'
       WRITE (LUOUTPUT,'(A)') '204,SB4,.FALSE.,0.24105,0.1607,0.24105,0,0,2000,9999,9999,2.7,25,8000'
       WRITE (LUOUTPUT,'(A)') '256,NB,.FALSE.,0.0001,0,0,0,0,9999,9999,9999,0.01,5,1'
-   else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+   else if (SURFACE_MODEL_CFFDRS) then
       WRITE (LUOUTPUT,'(A)') '1,C-1,90,0.0649,4.5,0.9,72,1.076,2,0.75'
       WRITE (LUOUTPUT,'(A)') '2,C-2,110,0.0282,1.5,0.7,64,1.321,3,0.8'
       WRITE (LUOUTPUT,'(A)') '3,C-3,110,0.0444,3,0.75,62,1.261,8,1.15'
@@ -1232,9 +1232,9 @@ SUBROUTINE READ_FUEL_MODEL_TABLE
 ! *****************************************************************************
 ! Dispatches to the appropriate fuel model table reader based on
 ! SURFACE_SPREAD_MODEL (ROTHERMEL or CFFDRS).
-if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+if (SURFACE_MODEL_ROTHERMEL) then
    CALL READ_FUEL_MODEL_TABLE_ROTHERMEL
-else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+else if (SURFACE_MODEL_CFFDRS) then
    CALL READ_FUEL_MODEL_TABLE_CFFDRS
 endif
 ! *****************************************************************************

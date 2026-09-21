@@ -13,7 +13,7 @@ CONTAINS
 ! *****************************************************************************
 SUBROUTINE WRITE_TIMINGS_TO_DISK
 ! *****************************************************************************
-! Writes the per-rank TIMINGS array (62 timing blocks x all host ranks) to a
+! Writes the per-rank TIMINGS array (all timing blocks x all host ranks) to a
 ! formatted CSV file 'timings_<PROCNAME>.csv' in OUTPUTS_DIRECTORY.
 
 INTEGER :: I,IOS,IR,LU
@@ -24,13 +24,13 @@ LU=3939
 FN = TRIM(OUTPUTS_DIRECTORY) // 'timings_' // TRIM(PROCNAME) // '.csv'  
 OPEN(LU,FILE=TRIM(FN),FORM='FORMATTED',STATUS='REPLACE',IOSTAT=IOS)
 WRITE(LU,100) '#,', (IR, IR=0, NPROC_HOST-1)
-DO I = 1, 62
+DO I = 1, SIZE(TIMINGS,2)
    WRITE(LU,300) I, (TIMINGS(IR+1,I), IR=0, NPROC_HOST-1)
 ENDDO
 CLOSE(LU)
 
-100 FORMAT (A,128(I3,','))
-300 FORMAT (I3,',',128(F11.5,','))
+100 FORMAT (A,*(I0,','))
+300 FORMAT (I0,',',*(ES16.8E3,','))
 
 ! *****************************************************************************
 END SUBROUTINE WRITE_TIMINGS_TO_DISK
@@ -183,6 +183,11 @@ REAL :: U1, U2, NORMAL_MEAN, NORMAL_SIGMA, NORMAL_SIGMA2
 INTEGER :: I
 
 !Format is X_actual = X_input + COEFFS_UNSCALED(I)
+
+! Conservatively refresh resident data at the next collective weather request.
+! Perturbations currently use per-rank offsets, but must never leave stale cache
+! state if raster perturbation is extended to modify the shared arrays.
+WEATHER_CACHE_VALID = .FALSE.
 
 DO I = 1, NUM_RASTERS_TO_PERTURB
    if (PDF_TYPE(I) .eq. 'UNIFORM') then

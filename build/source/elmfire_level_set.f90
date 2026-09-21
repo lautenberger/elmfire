@@ -60,7 +60,7 @@ LOGICAL :: IA_HAS_OCCURRED, LOPEN, GO, CALL_SPOTTING, JUST_INTERPOLATED, DUMP_SM
 LOGICAL, SAVE :: FIRSTCALL
 LOGICAL, DIMENSION(1:100) :: ALREADY_IGNITED
 
-real, allocatable, dimension(:,:) :: phi_previous
+!real, allocatable, dimension(:,:) :: phi_previous
 
 CHARACTER(4) :: FOUR_IWX_BAND, FOUR_IRANK_WORLD
 CHARACTER(256) :: LOG_MSG
@@ -69,11 +69,15 @@ CHARACTER(16) :: TIMESTAMP
 CHARACTER(400) :: FN
 
 ! parameters for checking if all simulations are finished
-integer :: rank_finished , global_flag
+integer :: rank_finished , global_flag, local_complete, IT_COMPLETION
 
 TYPE(NODE), POINTER :: C => NULL(), DUMMY_NODE => NULL(), L_WUI_P => NULL()
 
 ! TYPE (FUEL_MODEL_TABLE_TYPE) :: FMT
+
+! Block 30: routine entry through initial weather/setup and first-call allocation.
+CALL SYSTEM_CLOCK(IT1)
+NTIMESTEPS = 0
 
 BAND_L = MIN_IWX_BAND
 BAND_H = min(WS%NBANDS, WX_BANDS_KEPT_IN_MEM + MIN_IWX_BAND - 1)
@@ -104,7 +108,6 @@ if (FEEDBACK_LEVEL .ge. 3) then
    WRITE(LOG_MSG,'(A,I0,A,I0,A,I0,A)') '[',ICASE,'] INITIATED WEATHER SLICE TO [',BAND_L,', ',BAND_H,']'
    WRITE(*,'(A)') TRIM(LOG_MSG)
 endif
-IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER()
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 
 !MAIN DO LOOP, CONCURRENT FOR ALL THREADS
@@ -120,16 +123,31 @@ if (FEEDBACK_LEVEL .ge. 3) then
    WRITE(*,'(A)') TRIM(LOG_MSG)
 endif
 
-if (.not. allocated(phi_previous)) allocate(phi_previous(ANALYSIS_NCOLS, ANALYSIS_NROWS))
-phi_previous(:,:) = 2
+!if (.not. allocated(phi_previous)) allocate(phi_previous(ANALYSIS_NCOLS, ANALYSIS_NROWS))
+!phi_previous(:,:) = 2
 
-DO WHILE (T .le. totalDuration)
+DO
    ! if (ICASE .ge. 9945) then
    !    WRITE(LOG_MSG,'(A,I0,A,F12.1)') '[',ICASE,'] IN LEVEL SET LOOP, T IS ',T
    !    WRITE(*,'(A)') TRIM(LOG_MSG)
    ! endif
    DAY_OF_SIM = ceiling(((12 + mod(HOUR_OF_YEAR, 24) + IWX_BAND + floor(T/3600) - 1)/24.0))
-   IF (T > BAND_H * DT_METEOROLOGY .and. WS%NBANDS .gt. 1) THEN ! LOAD NEXT WEATHER SLICE (unless weather is constant)
+   ! Every rank visits exactly one rendezvous per resident window. A completed
+   ! rank waits here immediately, then participates in subsequent windows while
+   ! peers still need them. rank_finished alone is insufficient: output and node
+   ! cleanup must finish (START_CALCS=false) before advertising completion.
+   local_complete = 0
+   IF (rank_finished == 1 .AND. .NOT. START_CALCS) local_complete = 1
+   ! At an exact boundary the high interpolation band belongs to the next
+   ! window. Load it before interpolation, rather than clamping to old data.
+   IF (local_complete == 1 .OR. (T >= BAND_H * DT_METEOROLOGY .AND. BAND_H < WS%NBANDS)) THEN
+      CALL SYSTEM_CLOCK(IT_COMPLETION)
+      CALL MPI_ALLREDUCE(local_complete, global_flag, 1, MPI_INTEGER, MPI_MIN, MPI_COMM_WORLD, IERR)
+      CALL ACCUMULATE_CPU_USAGE(82, IT_COMPLETION, IT2)
+      IF (global_flag == 1) EXIT
+
+      ! An unfinished peer has reached this window's end. All ranks load the
+      ! same next bounds; no rank may return independently or skip this call.
       if (FEEDBACK_LEVEL .ge. 3) then
          WRITE(LOG_MSG,'(A,I0,A,I0,A,I0,A)') '[',ICASE,'] UPDATING WEATHER SLICE FROM [',BAND_L,', ',BAND_H,']'
          WRITE(*,'(A)') TRIM(LOG_MSG)
@@ -142,9 +160,7 @@ DO WHILE (T .le. totalDuration)
          WRITE(LOG_MSG,'(A,I0,A,I0,A,I0,A)') '[',ICASE,'] UPDATED WEATHER SLICE TO [',BAND_L,', ',BAND_H,']'
          WRITE(*,'(A)') TRIM(LOG_MSG)
       endif
-      IF (MULTIPLE_HOSTS) CALL BCAST_WEATHER()
-      call MPI_Allreduce(rank_finished, global_flag, 1, MPI_INTEGER, MPI_MIN, MPI_COMM_WORLD, ierr)
-      IF (global_flag .gt. 0) T = (WS%NBANDS+1)*DT_METEOROLOGY
+      IF (local_complete == 1) CYCLE
    ENDIF
    ! if (ICASE .ge. 9945) then
    !    WRITE(LOG_MSG,'(A,I0,A,F12.1)') '[',ICASE,'] PASSED WEATHER SLICE CHECK, T IS ',T
@@ -606,9 +622,9 @@ DO WHILE (T .le. totalDuration)
          continue
          IF (ASSOCIATED(C)) DEALLOCATE(C)
             continue
-         if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+         if (SURFACE_MODEL_ROTHERMEL) then
             CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_BURNED, C)
-         else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+         else if (SURFACE_MODEL_CFFDRS) then
             CALL CFFDRS_SPREAD_RATE(LIST_BURNED, C, daily_bui(DAY_OF_SIM))
          ENDIF
 
@@ -666,9 +682,9 @@ DO WHILE (T .le. totalDuration)
                ENDIF
                ! Prepare vegetative cell HRRPUA in WUI for ellipse/heat flux calculation
                IF (L_WUI_P%IFBFM .NE. 91) THEN
-                  IF (TRIM(SURFACE_SPREAD_MODEL) .EQ. "ROTHERMEL") THEN
+                  IF (SURFACE_MODEL_ROTHERMEL) THEN
                      CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P)
-                  ELSE IF (TRIM(SURFACE_SPREAD_MODEL) .EQ. "CFFDRS") THEN
+                  ELSE IF (SURFACE_MODEL_CFFDRS) THEN
                      CALL CFFDRS_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P, daily_bui(DAY_OF_SIM))
                   ENDIF
 
@@ -735,6 +751,7 @@ DO WHILE (T .le. totalDuration)
       CALL ACCUMULATE_CPU_USAGE(34, IT1, IT2)
 
 #ifdef _SMOKE
+      ENABLE_SMOKE_OUTPUTS=.FALSE.
       IF (ENABLE_SMOKE_OUTPUTS) THEN
          DUMP_SMOKE_OUTPUTS = .TRUE.
       ENDIF
@@ -840,8 +857,9 @@ DO WHILE (T .le. totalDuration)
       ! Determine where we are in the wind and weather arrays::
       IF (ITIMESTEP .EQ. 1 .OR. NUM_METEOROLOGY_TIMES .GT. 1) THEN
          ITLO_METEOROLOGY = MAX(FLOOR(T / DT_METEOROLOGY) - BAND_L + 1,1)
-         ITLO_METEOROLOGY = MIN(ITLO_METEOROLOGY, BAND_H)
-         ITHI_METEOROLOGY = MIN(ITLO_METEOROLOGY + 1, BAND_H)
+         ! These are local array indices, including a partial final window.
+         ITLO_METEOROLOGY = MIN(ITLO_METEOROLOGY, BAND_H - BAND_L + 1)
+         ITHI_METEOROLOGY = MIN(ITLO_METEOROLOGY + 1, BAND_H - BAND_L + 1)
          F_METEOROLOGY = (T - REAL(ITLO_METEOROLOGY+BAND_L-2) * DT_METEOROLOGY) / DT_METEOROLOGY
          IF (ITLO_METEOROLOGY .EQ. ITHI_METEOROLOGY) F_METEOROLOGY = 1.
 
@@ -1021,9 +1039,9 @@ DO WHILE (T .le. totalDuration)
 
       ! Main call to get spread rate:
       IF (JUST_INTERPOLATED) THEN
-         if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+         if (SURFACE_MODEL_ROTHERMEL) then
             CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_TAGGED, DUMMY_NODE)
-         else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+         else if (SURFACE_MODEL_CFFDRS) then
             CALL CFFDRS_SPREAD_RATE(LIST_TAGGED, DUMMY_NODE, daily_bui(DAY_OF_SIM))
          ENDIF
       ENDIF
@@ -1052,9 +1070,9 @@ DO WHILE (T .le. totalDuration)
             ENDIF
             ! Prepare vegetative cell HRRPUA in WUI for ellipse/heat flux calculation
             IF (L_WUI_P%IFBFM .NE. 91) THEN
-               IF (TRIM(SURFACE_SPREAD_MODEL) .EQ. "ROTHERMEL") THEN
+               IF (SURFACE_MODEL_ROTHERMEL) THEN
                   CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P)
-               ELSE IF (TRIM(SURFACE_SPREAD_MODEL) .EQ. "CFFDRS") THEN
+               ELSE IF (SURFACE_MODEL_CFFDRS) THEN
                   CALL CFFDRS_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P, daily_bui(DAY_OF_SIM))
                ENDIF
 
@@ -1192,6 +1210,7 @@ DO WHILE (T .le. totalDuration)
 #endif
 
 #ifdef _SMOKE
+            ENABLE_SMOKE_OUTPUTS=.FALSE.
             IF (ENABLE_SMOKE_OUTPUTS) THEN
                LIST_BURNED%TAIL%TIME_IGNITED = T
                IF (C%VELOCITY .GT. 0.) THEN
@@ -1346,9 +1365,9 @@ DO WHILE (T .le. totalDuration)
             ENDIF
             
             CALL UPDATE_WD_RASTER_SINGLE(C, WD20_LO(:,:), WD20_HI(:,:), F_METEOROLOGY)
-            if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+            if (SURFACE_MODEL_ROTHERMEL) then
                CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_TAGGED, C)
-            else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+            else if (SURFACE_MODEL_CFFDRS) then
                CALL CFFDRS_SPREAD_RATE(LIST_TAGGED, C, daily_bui(DAY_OF_SIM))
             ENDIF
 #ifdef _SUPPRESSION
@@ -1596,6 +1615,7 @@ DO WHILE (T .le. totalDuration)
       CALL ACCUMULATE_CPU_USAGE(51, IT1, IT2)
 
 #ifdef _SMOKE
+      ENABLE_SMOKE_OUTPUTS=.FALSE.
       IF (ENABLE_SMOKE_OUTPUTS .AND. T - T_LAST_SMOKE_OUTPUT .GE. DT_SMOKE_OUTPUTS .AND. LIST_BURNED%NUM_NODES .gt. 0) THEN
 
          C => LIST_BURNED%HEAD
@@ -1743,21 +1763,21 @@ DO WHILE (T .le. totalDuration)
       ENDIF
 
       ! check if propagation has stalled for an early exit
-      if ( ALL(ALREADY_IGNITED(1:MIN(NUM_IGNITIONS,100))) .AND. &
-           ( (.NOT. ENABLE_SPOTTING) .OR. USE_SUPERSEDED_SPOTTING .OR. &
-             (TRIM(ACCUMULATION_MODEL) .EQ. 'EULERIAN'   .AND. LIST_EMBER_TRACKER%NUM_NODES .LT. 1) .OR. &
-             (TRIM(ACCUMULATION_MODEL) .EQ. 'LAGRANGIAN' .AND. NUM_TRACKED_EMBERS .LT. 1) ) ) then
-         if (all(abs(PHIP - phi_previous) .lt. 0.001)) then
-            WRITE(LOG_MSG,'(A,I0,A,F10.1,A,F10.1)') '[',ICASE,'] STOPPED: FIRE FRONT PROPAGATION STALLED'
-            WRITE(*,'(A)') TRIM(LOG_MSG)
-            SIMULATION_TSTOP_HOURS = T / 3600.
-            STATS_SIMULATION_TSTOP_HOURS(ICASE) = SIMULATION_TSTOP_HOURS
-            rank_finished = 1
-            DT = DT_METEOROLOGY
-         endif
-      endif
-
-      phi_previous = PHIP
+!      if ( ALL(ALREADY_IGNITED(1:MIN(NUM_IGNITIONS,100))) .AND. &
+!           ( (.NOT. ENABLE_SPOTTING) .OR. USE_SUPERSEDED_SPOTTING .OR. &
+!             (TRIM(ACCUMULATION_MODEL) .EQ. 'EULERIAN'   .AND. LIST_EMBER_TRACKER%NUM_NODES .LT. 1) .OR. &
+!             (TRIM(ACCUMULATION_MODEL) .EQ. 'LAGRANGIAN' .AND. NUM_TRACKED_EMBERS .LT. 1) ) ) then
+!         if (all(abs(PHIP - phi_previous) .lt. 0.001)) then
+!            WRITE(LOG_MSG,'(A,I0,A,F10.1,A,F10.1)') '[',ICASE,'] STOPPED: FIRE FRONT PROPAGATION STALLED'
+!            WRITE(*,'(A)') TRIM(LOG_MSG)
+!            SIMULATION_TSTOP_HOURS = T / 3600.
+!            STATS_SIMULATION_TSTOP_HOURS(ICASE) = SIMULATION_TSTOP_HOURS
+!            rank_finished = 1
+!            DT = DT_METEOROLOGY
+!         endif
+!      endif
+!
+!      phi_previous = PHIP
 
       CALL ACCUMULATE_CPU_USAGE(54, IT1, IT2)
 
@@ -1794,7 +1814,7 @@ DO WHILE (T .le. totalDuration)
 
    T = T + DT
 
-   IF ((T .ge. TSTOP) .and. START_CALCS) THEN ! END SIM
+   IF ((T .ge. TSTOP .OR. T >= totalDuration) .and. START_CALCS) THEN ! END SIM
       if (FEEDBACK_LEVEL .ge. 3) then
          WRITE(LOG_MSG,'(A,I0,A,F12.1)') '[',ICASE,'] LEVEL SET CASE OUTPUT STARTED AT T ',T
          WRITE(*,'(A)') TRIM(LOG_MSG)
@@ -1998,6 +2018,7 @@ DO WHILE (T .le. totalDuration)
 
       ! Close smoke file
 #ifdef _SMOKE
+      ENABLE_SMOKE_OUTPUTS=.FALSE.
       IF (ENABLE_SMOKE_OUTPUTS .AND. DUMP_SMOKE_OUTPUTS) THEN
          INQUIRE(UNIT=LUSMOKE+IRANK_WORLD,OPENED=LOPEN)
          IF (LOPEN) CLOSE(LUSMOKE+IRANK_WORLD)
@@ -2350,16 +2371,16 @@ IF (ISTEP .EQ. 1) THEN
                C%NORMVECTORY_DMS = RPHIMAG * PHIY
             ENDIF
             C%VELOCITY_DMS = C%VS0 * (ACCELERATION_FACTOR + PHIMAG)
-            if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") C%VELOCITY_DMS = C%VELOCITY_DMS_SURFACE
+            if (SURFACE_MODEL_CFFDRS) C%VELOCITY_DMS = C%VELOCITY_DMS_SURFACE
 
 ! Calculate length over width:
-            if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+            if (SURFACE_MODEL_CFFDRS) then
                if (C%IFBFM .ge. 31 .and. C%IFBFM .le. 33) then !grass
                   C%LOW = max(1.0,1.1+C%WSV**0.464)
                else
                   C%LOW = 1+8.729*(1-exp(-0.03*C%WSV))**2.155
                endif
-            else if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+            else if (SURFACE_MODEL_ROTHERMEL) then
                ! Determine effective mid flame wind speed (not needed for CFFDRS)
                WSMFEFF = FUEL_MODEL_TABLE_2D(C%IFBFM,30)%WSMFEFF_COEFF * PHIMAG ** FUEL_MODEL_TABLE_2D(C%IFBFM,30)%B_COEFF_INVERSE
                IF (C%FLIN_SURFACE .LT. C%CRITICAL_FLIN .OR. CROWN_FIRE_MODEL .LE. 0) WSMFEFF = MIN(WSMFEFF, 0.9*KWPM2_TO_BTUPFT2MIN*C%IR)
@@ -2419,7 +2440,7 @@ ELSE !ISTEP .EQ. 2
 
          CALL COMPUTE_SPREAD_VELOCITIES(C, ILH)
 
-         IF (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL" .and. CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) then 
+         IF (SURFACE_MODEL_ROTHERMEL .and. CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) then
             C%FLIN_CANOPY = C%HPUA_CANOPY * C%VELOCITY * 5.08E-3
          else
             C%CROWN_FIRE = 0
@@ -2491,9 +2512,9 @@ ELSE
 END IF
 
 ILH_OUT = MAX(MIN(NINT(100.*C%MLH),120),30)
-IF (TRIM(SURFACE_SPREAD_MODEL) .EQ. "CFFDRS") THEN
+IF (SURFACE_MODEL_CFFDRS) THEN
    C%FLIN_SURFACE = C%FLIN_DMS_SURFACE
-ELSE IF (TRIM(SURFACE_SPREAD_MODEL) .EQ. "ROTHERMEL") THEN
+ELSE IF (SURFACE_MODEL_ROTHERMEL) THEN
    C%FLIN_SURFACE = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH_OUT)%TR * C%IR * C%VELOCITY * 0.3048 ! kW/m
 END IF
 

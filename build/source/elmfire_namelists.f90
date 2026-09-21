@@ -239,6 +239,11 @@ WEATHER_DIRECTORY              = TRIM(WEATHER_DIRECTORY             ) // PATH_SE
 ! canopy bulk density. When specified, it is read instead of the individual rasters.
 USE_LANDSCAPE_FILE = (LEN_TRIM(LANDSCAPE_FILENAME) .GT. 0)
 
+! Fortran equality pads trailing blanks, matching the validated namelist names.
+SURFACE_MODEL_ROTHERMEL = SURFACE_SPREAD_MODEL == "ROTHERMEL"
+SURFACE_MODEL_CFFDRS = SURFACE_SPREAD_MODEL == "CFFDRS"
+WEATHER_CACHE_VALID = .FALSE.
+
 PROCESS_TIMED_LOCATIONS = .FALSE.
 IF (TRIM(TIMED_LOCATIONS_CSV) .EQ. 'null' ) RETURN
 

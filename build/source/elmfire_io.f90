@@ -199,12 +199,39 @@ END SUBROUTINE SETUP_PARALLEL_IO
 ! *****************************************************************************
 
 ! *****************************************************************************
-SUBROUTINE UPDATE_WEATHER_SLICE(BANDSTART, BANDEND)
+SUBROUTINE UPDATE_WEATHER_SLICE(BANDSTART, BANDEND, FORCE_RELOAD)
 ! *****************************************************************************
-! Loads weather bands BANDSTART..BANDEND (tiled or single-file path) and, when
-! the grid is rotated, applies declination correction to aspect and wind direction.
+! Collective on MPI_COMM_WORLD, including cache hits. All callers request the
+! same bounds. The cache contains converted/rotated weather on every host.
+! Input files/settings are immutable during a run; callers changing them must
+! invalidate WEATHER_CACHE_VALID or pass FORCE_RELOAD on at least one rank.
 
 INTEGER, intent(in):: BANDSTART, BANDEND
+LOGICAL, OPTIONAL, INTENT(IN) :: FORCE_RELOAD
+INTEGER, SAVE :: CACHED_START = -1, CACHED_END = -1
+INTEGER :: IERR
+LOGICAL :: LOCAL_HIT, GLOBAL_HIT
+
+! This routine is called by every rank. Reject a nonadvancing propagation
+! window here, rather than entering rank-local shutdown with peers in MPI.
+IF (WX_BANDS_KEPT_IN_MEM < 1 .OR. (MODE /= 2 .AND. WS%NBANDS > 1 .AND. WX_BANDS_KEPT_IN_MEM < 2)) THEN
+   IF (IRANK_WORLD == 0) WRITE(*,*) '[ERROR] WX_BANDS_KEPT_IN_MEM must be positive and at least 2 for changing weather.'
+   CALL MPI_ABORT(MPI_COMM_WORLD, 1, IERR)
+   RETURN
+ENDIF
+
+LOCAL_HIT = WEATHER_CACHE_VALID .AND. BANDSTART == CACHED_START .AND. BANDEND == CACHED_END
+IF (PRESENT(FORCE_RELOAD)) LOCAL_HIT = LOCAL_HIT .AND. .NOT. FORCE_RELOAD
+CALL MPI_ALLREDUCE(LOCAL_HIT, GLOBAL_HIT, 1, MPI_LOGICAL, MPI_LAND, MPI_COMM_WORLD, IERR)
+IF (GLOBAL_HIT) THEN
+   IF (FEEDBACK_LEVEL >= 3 .AND. IRANK_WORLD == 0) WRITE(*,'(A,2I8)') 'WEATHER REUSE: ', BANDSTART, BANDEND
+   RETURN
+ENDIF
+WEATHER_CACHE_VALID = .FALSE.
+IF (FEEDBACK_LEVEL >= 3 .AND. IRANK_WORLD == 0) WRITE(*,'(A,2I8)') 'WEATHER LOAD: ', BANDSTART, BANDEND
+
+! Finish all readers before any IO rank overwrites shared storage.
+CALL FENCE_WEATHER()
 
 if (USE_TILED_IO) then
    CALL READ_WEATHER_SLICE_TILED(BANDSTART, BANDEND)
@@ -212,13 +239,38 @@ else
    CALL READ_WEATHER_SLICE(BANDSTART, BANDEND)
 endif 
 
-IF (ABS(GRID_DECLINATION) .GT. 0.1 .AND. IRANK_HOST .EQ. 0) THEN
-   IF (ROTATE_ASP) CALL ROTATE_ASP_AND_WD(1)
+! Publish IO-rank stores before the input host's leader reads wind direction.
+CALL FENCE_WEATHER()
+IF (ABS(GRID_DECLINATION) .GT. 0.1 .AND. IRANK_WORLD .EQ. 0) THEN
    IF (ROTATE_WD ) CALL ROTATE_ASP_AND_WD(2)
 ENDIF
+IF (MULTIPLE_HOSTS .AND. IRANK_HOST == 0) CALL BCAST_WEATHER()
+CALL FENCE_WEATHER()
+CACHED_START = BANDSTART
+CACHED_END = BANDEND
+WEATHER_CACHE_VALID = .TRUE.
 ! *****************************************************************************
 END SUBROUTINE UPDATE_WEATHER_SLICE
 ! *****************************************************************************
+
+SUBROUTINE FENCE_WEATHER()
+! Shared-window fences publish stores and order Fortran loads across ranks.
+! Use the existing active-target epochs established by INIT_RASTERS.
+INTEGER :: IERR
+IF (NPROC <= 1) RETURN
+CALL MPI_WIN_FENCE(0, WIN_WS, IERR)
+CALL MPI_WIN_FENCE(0, WIN_WD, IERR)
+CALL MPI_WIN_FENCE(0, WIN_M1, IERR)
+CALL MPI_WIN_FENCE(0, WIN_M10, IERR)
+CALL MPI_WIN_FENCE(0, WIN_M100, IERR)
+CALL MPI_WIN_FENCE(0, WIN_MLH, IERR)
+CALL MPI_WIN_FENCE(0, WIN_MLW, IERR)
+CALL MPI_WIN_FENCE(0, WIN_MFOL, IERR)
+IF (USE_ERC) THEN
+   CALL MPI_WIN_FENCE(0, WIN_ERC, IERR)
+   CALL MPI_WIN_FENCE(0, WIN_IGNFAC, IERR)
+ENDIF
+END SUBROUTINE FENCE_WEATHER
 
 ! *****************************************************************************
 SUBROUTINE READ_WEATHER_SLICE_TILED(BANDSTART, BANDEND)
@@ -484,7 +536,7 @@ ENDIF
 IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(14)) THEN
    IF (USE_LANDSCAPE_FILE) THEN
       CALL READ_LANDSCAPE_BAND (CBH, FUELS_AND_TOPOGRAPHY_DIRECTORY, LANDSCAPE_FILENAME, 7)
-   ELSE IF (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL" .or. CBH_FILENAME .ne. ' ') THEN
+   ELSE IF (SURFACE_MODEL_ROTHERMEL .or. CBH_FILENAME .ne. ' ') THEN
       CALL READ_BSQ_RASTER_SLICE (CBH , FUELS_AND_TOPOGRAPHY_DIRECTORY, CBH_FILENAME, 1, 1)
    ENDIF
    IF (ASSOCIATED(CBH%R4) .OR. ASSOCIATED(CBH%I2)) THEN
@@ -496,7 +548,7 @@ ENDIF
 IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(15)) THEN
    IF (USE_LANDSCAPE_FILE) THEN
       CALL READ_LANDSCAPE_BAND (CBD, FUELS_AND_TOPOGRAPHY_DIRECTORY, LANDSCAPE_FILENAME, 8)
-   ELSE IF (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL" .or. CBD_FILENAME .ne. ' ') THEN
+   ELSE IF (SURFACE_MODEL_ROTHERMEL .or. CBD_FILENAME .ne. ' ') THEN
       CALL READ_BSQ_RASTER_SLICE (CBD , FUELS_AND_TOPOGRAPHY_DIRECTORY, CBD_FILENAME, 1, 1)
    ENDIF
    IF (ASSOCIATED(CBD%R4) .OR. ASSOCIATED(CBD%I2)) THEN
@@ -614,7 +666,7 @@ IF (USE_BARRIERS .AND. IRANK_WORLD .EQ. PARALLEL_IO_RANK(41)) CALL READ_BSQ_RAST
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 
 IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(14)) THEN
-   if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS" .and. CBH_FILENAME .eq. ' ' .and. .not. USE_LANDSCAPE_FILE) THEN
+   if (SURFACE_MODEL_CFFDRS .and. CBH_FILENAME .eq. ' ' .and. .not. USE_LANDSCAPE_FILE) THEN
       do j = 1, size(FBFM%I2,2)
       do i = 1, size(FBFM%I2,1)
          if (FBFM%I2(i,j,1) .eq. FBFM%NODATA_VALUE) then
@@ -628,7 +680,7 @@ IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(14)) THEN
 ENDIF
 
 IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(15)) THEN
-   if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS" .and. CBD_FILENAME .eq. ' ' .and. .not. USE_LANDSCAPE_FILE) THEN
+   if (SURFACE_MODEL_CFFDRS .and. CBD_FILENAME .eq. ' ' .and. .not. USE_LANDSCAPE_FILE) THEN
       do j = 1, size(FBFM%I2,2)
       do i = 1, size(FBFM%I2,1)
          if (FBFM%I2(i,j,1) .eq. FBFM%NODATA_VALUE) then
@@ -838,7 +890,7 @@ ENDIF
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 
 IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(14)) THEN
-   if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS" .and. CBH_FILENAME .eq. ' ' .and. .not. USE_LANDSCAPE_FILE) THEN
+   if (SURFACE_MODEL_CFFDRS .and. CBH_FILENAME .eq. ' ' .and. .not. USE_LANDSCAPE_FILE) THEN
       do j = 1, size(FBFM%I2,2)
       do i = 1, size(FBFM%I2,1)
          if (FBFM%I2(i,j,1) .eq. FBFM%NODATA_VALUE) then
@@ -852,7 +904,7 @@ IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(14)) THEN
 ENDIF
 
 IF (IRANK_WORLD .EQ. PARALLEL_IO_RANK(15)) THEN
-   if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS" .and. CBD_FILENAME .eq. ' ' .and. .not. USE_LANDSCAPE_FILE) THEN
+   if (SURFACE_MODEL_CFFDRS .and. CBD_FILENAME .eq. ' ' .and. .not. USE_LANDSCAPE_FILE) THEN
       do j = 1, size(FBFM%I2,2)
       do i = 1, size(FBFM%I2,1)
          if (FBFM%I2(i,j,1) .eq. FBFM%NODATA_VALUE) then

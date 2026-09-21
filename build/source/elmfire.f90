@@ -45,7 +45,7 @@ CHARACTER(7) :: SEVEN_IENS
 CHARACTER(20) :: ENS_TAG
 ! VERSIONSTRING is kept in sync with the repo-root VERSION file by the build
 ! scripts (make_gnu.sh / make_intel.sh); edit VERSION, not this literal.
-CHARACTER(60) :: VERSIONSTRING='ELMFIRE 1.1'
+CHARACTER(60) :: VERSIONSTRING='ELMFIRE 1.12'
 CHARACTER(400) :: FN, MESSAGESTR
 
 TYPE (RASTER_TYPE), POINTER :: R
@@ -170,7 +170,7 @@ IF (TRIM(MISCELLANEOUS_INPUTS_DIRECTORY) .EQ. 'null'                  ) MISCELLA
 CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
 CALL READ_FUEL_MODEL_TABLE
 
-if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+if (SURFACE_MODEL_CFFDRS) then
    CALL READ_WEATHER
    DC_prev = START_DC
    DMC_prev = START_DMC
@@ -284,10 +284,14 @@ ELSE
 ENDIF
 CALL UPDATE_WEATHER_SLICE(1,min(METEOROLOGY_BAND_STOP,WX_BANDS_KEPT_IN_MEM))
 
+! Aspect belongs to the static terrain: rotate once, before distributing it.
+IF (NPROC > 1) CALL MPI_WIN_FENCE(0, WIN_ASP, IERR)
+IF (ROTATE_ASP .AND. ABS(GRID_DECLINATION) > 0.1 .AND. IRANK_WORLD == 0) CALL ROTATE_ASP_AND_WD(1)
+IF (NPROC > 1) CALL MPI_WIN_FENCE(0, WIN_ASP, IERR)
+
 IF (MULTIPLE_HOSTS) THEN
    IF (IRANK_WORLD .EQ. 0) WRITE(*,*) 'Broadcasting weather, fuel, and topography rasters' 
    CALL BCAST_FUEL_TOPOGRAPHY
-   CALL BCAST_WEATHER
 ENDIF
 
    CALL MPI_BARRIER(MPI_COMM_WORLD, IERR)
@@ -329,7 +333,7 @@ ENDIF
 
 !-----------------------------------------------------------------------------------------------------------------
 
-if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") THEN
+if (SURFACE_MODEL_ROTHERMEL) THEN
    WHERE(FBFM%I2(:,:,1) .GT. 303) FBFM%I2(:,:,1) = 256
    WHERE(FBFM%I2(:,:,1) .LT.   0) FBFM%I2(:,:,1) =  99
 ENDIF
@@ -564,7 +568,7 @@ IF (MODE .NE. 1) THEN
                C%FLIN_CANOPY    = 0.
                C%CRITICAL_FLIN  = 9E9
                C%CROWN_FIRE     = 0
-               if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+               if (SURFACE_MODEL_CFFDRS) then
                   C%C = 100*min(1.0,max(0.0,1.33-1.11*MLH%R4(IX,IY,1)))
                   C%PC = mod(C%IFBFM,100) / 100.0
                   C%PDF = C%PC
@@ -572,9 +576,9 @@ IF (MODE .NE. 1) THEN
                C => C%NEXT
             ENDDO
 
-            if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+            if (SURFACE_MODEL_ROTHERMEL) then
                CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_FIRE_POTENTIAL, DUMMY_NODE)
-            else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+            else if (SURFACE_MODEL_CFFDRS) then
                CALL CFFDRS_SPREAD_RATE(LIST_FIRE_POTENTIAL, DUMMY_NODE, daily_bui(ceiling((12 + mod(HOUR_OF_YEAR, 24) + IWX_BAND + IWX_MEM_BAND - 2)/24.0)))
             ENDIF
 
@@ -601,7 +605,7 @@ IF (MODE .NE. 1) THEN
                DEBUG_CFFDRS_TO_DUMP%R4(IX,IY,1) = C%WSV
                REACTION_INTENSITY_TO_DUMP%R4(IX,IY,1) = C%IR
 
-               if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then
+               if (SURFACE_MODEL_ROTHERMEL) then
                   IASP = MIN(MAX(NINT(ASP%R4(C%IX,C%IY,1)),0),360)
                   SINASPMPI = SINASPM180(IASP)
                   COSASPMPI = COSASPM180(IASP)
@@ -629,7 +633,7 @@ IF (MODE .NE. 1) THEN
                   else
                      SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) = 0.0
                   end if
-               else if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+               else if (SURFACE_MODEL_CFFDRS) then
                   SPREAD_DIRECTION_TO_DUMP%R4(IX,IY,1) = C%RAZ
                endif
 

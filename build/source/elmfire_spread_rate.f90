@@ -342,7 +342,7 @@ DO I = 1, NUM_NODES
       C%VELOCITY = C%VELOCITY + C%CFB*(RSC - C%VELOCITY/3.28) * 3.28 !ft/min
    endif
 
-   if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") C%FLIN_SURFACE = 300 * (C%SFC + C%CFC) * C%VELOCITY / 3.28
+   if (SURFACE_MODEL_CFFDRS) C%FLIN_SURFACE = 300 * (C%SFC + C%CFC) * C%VELOCITY / 3.28
 
    CALL CROWN_CRITICAL_FLIN(C)
 
@@ -350,7 +350,7 @@ DO I = 1, NUM_NODES
       C%CROWN_FIRE = 0
       C%FLIN_CANOPY = 0
    else IF (C%VS0 .GT. 0. .AND. CBD%R4(IX,IY,1) .GT. 1E-3 .AND. CC%R4(IX,IY,1) .GT. 1E-3) THEN   
-      if (trim(SURFACE_SPREAD_MODEL) .eq. "CFFDRS") then
+      if (SURFACE_MODEL_CFFDRS) then
          RSO = C%CRITICAL_FLIN /(300*C%SFC)
          C%CFB = MAX(0.0,1-exp(-0.23*(C%VELOCITY/3.28-RSO)))
          
@@ -367,7 +367,7 @@ DO I = 1, NUM_NODES
             C%CFC = FUEL_MODEL_TABLE_FBP(C%IFBFM)%CFL*C%CFB
          ENDIF
 
-      else if (trim(SURFACE_SPREAD_MODEL) .eq. "ROTHERMEL") then 
+      else if (SURFACE_MODEL_ROTHERMEL) then
          C%FLIN_CANOPY = C%HPUA_CANOPY * C%VELOCITY * 5.08E-3
          CROS = 0.
          CBD_EFF  = MAX(CBD%R4(IX,IY,1) + PERTURB_CBD, 0.01)
