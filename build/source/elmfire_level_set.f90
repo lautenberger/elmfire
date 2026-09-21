@@ -1099,7 +1099,7 @@ DO
          IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(42, IT1, IT2)
          
          ! Update local spread properties that depend on canopy / fire velocity
-         CALL UPDATE_LOCAL_SPREAD_PROPERTIES(LIST_TAGGED, DUMMY_NODE)
+         CALL UPDATE_LOCAL_SPREAD_PROPERTIES(LIST_TAGGED, DUMMY_NODE, DEFER_DERIVED=.TRUE.)
          ! Check CFL criterion, adjust timestep, AND apply flux limiter (merged)
          CALL CFL_AND_FLUX_LIMITER(DT, RCELLSIZE, PHIP, ISTEP, ITIMESTEP)
          IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(43, IT1, IT2)
@@ -2473,7 +2473,7 @@ CONTAINS
 
 ! *****************************************************************************
 SUBROUTINE COMPUTE_SPREAD_VELOCITIES(C, ILH_OUT)
-! Computes UX, UY, VELOCITY, SPREAD_DIRECTION, and FLIN_SURFACE for a node
+! Computes UX, UY, VELOCITY, FLIN_SURFACE and (when requested) SPREAD_DIRECTION
 ! from its pre-computed ellipse parameters (VELOCITY_DMS, VBACK, LOW) and
 ! normal vector components.
 ! *****************************************************************************
@@ -2504,11 +2504,15 @@ DYDT_ROTATED    = DYDT*C%NORMVECTORY_DMS - DXDT*C%NORMVECTORX_DMS ! ft/min, para
 C%UY       = DYDT_ROTATED * C%UYOUSY * FTPMIN_TO_MPS               ! m/s, projected
 C%VELOCITY = SQRT(DXDT_ROTATED*DXDT_ROTATED + DYDT_ROTATED*DYDT_ROTATED) ! ft/min, parallel to slope
 
-IF (ABS(C%UX) + ABS(C%UY) .GT. 1.0e-20) THEN
-   C%SPREAD_DIRECTION = ATAN2(C%UX, C%UY) * 180.0 / ACOS(-1.0)
-   IF (C%SPREAD_DIRECTION .LT. 0.0) C%SPREAD_DIRECTION = C%SPREAD_DIRECTION + 360.0
-ELSE
-   C%SPREAD_DIRECTION = 0.0
+! Only the final direction raster consumes this field, via LIST_BURNED.
+! Keep the original stage/velocity state, before NO_SURFACE_FIRE below.
+IF (DUMP_SPREAD_DIRECTION) THEN
+   IF (ABS(C%UX) + ABS(C%UY) .GT. 1.0e-20) THEN
+      C%SPREAD_DIRECTION = ATAN2(C%UX, C%UY) * 180.0 / ACOS(-1.0)
+      IF (C%SPREAD_DIRECTION .LT. 0.0) C%SPREAD_DIRECTION = C%SPREAD_DIRECTION + 360.0
+   ELSE
+      C%SPREAD_DIRECTION = 0.0
+   END IF
 END IF
 
 ILH_OUT = MAX(MIN(NINT(100.*C%MLH),120),30)

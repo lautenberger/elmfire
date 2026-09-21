@@ -311,18 +311,38 @@ end subroutine CFFDRS_SPREAD_RATE
 ! *****************************************************************************
 
 ! *****************************************************************************
-subroutine UPDATE_LOCAL_SPREAD_PROPERTIES(L,DUMMY_NODE)
+subroutine UPDATE_LOCAL_SPREAD_PROPERTIES(L,DUMMY_NODE,DEFER_DERIVED)
 ! *****************************************************************************
 ! Finalizes crown-fire state and intensity for each node in L (or DUMMY_NODE)
 ! using the already-computed surface velocity: computes crown fraction burned,
 ! crown fuel consumption, total surface+canopy fireline intensity, flame
 ! length, and HRRPUA. Handles both CFFDRS and Rothermel surface models.
+! Only the tagged RK stages may defer unused flame length/HRRPUA until burn
+! discovery. Other callers (initial burned cells, mode 2, dummy nodes) retain
+! the full update by default.
 TYPE (DLL), INTENT(INOUT) :: L
 TYPE (NODE), POINTER, INTENT(INOUT) :: DUMMY_NODE
+LOGICAL, OPTIONAL, INTENT(IN) :: DEFER_DERIVED
 
 TYPE(NODE), POINTER :: C
 INTEGER :: I, NUM_NODES, IX, IY, RSO
 REAL :: FME, RSC, CROS, CBD_EFF, WS10KMPH, CROSA, R0, CAC
+LOGICAL :: UPDATE_DERIVED
+
+UPDATE_DERIVED = .TRUE.
+IF (PRESENT(DEFER_DERIVED)) UPDATE_DERIVED = .NOT. DEFER_DERIVED
+! Conservatively preserve stage values for physics consumers. Evaluate per
+! call, not once per run: feature state can change (notably smoke).
+UPDATE_DERIVED = UPDATE_DERIVED .OR. ASSOCIATED(DUMMY_NODE) .OR. USE_BARRIERS
+#ifdef _WUI
+UPDATE_DERIVED = UPDATE_DERIVED .OR. USE_BLDG_SPREAD_MODEL
+#endif
+#ifdef _SUPPRESSION
+UPDATE_DERIVED = UPDATE_DERIVED .OR. ENABLE_EXTENDED_ATTACK
+#endif
+#ifdef _SMOKE
+UPDATE_DERIVED = UPDATE_DERIVED .OR. ENABLE_SMOKE_OUTPUTS
+#endif
 
 IF (ASSOCIATED (DUMMY_NODE) ) THEN
    NUM_NODES = 1
@@ -394,8 +414,10 @@ DO I = 1, NUM_NODES
       endif
    endif
 
-   C%FLAME_LENGTH = (0.0775 / 0.3048) * (C%FLIN_SURFACE + C%FLIN_CANOPY) ** 0.46
-   C%HRRPUA = (C%FLIN_SURFACE + C%FLIN_CANOPY) / ASP%CELLSIZE
+   IF (UPDATE_DERIVED) THEN
+      C%FLAME_LENGTH = (0.0775 / 0.3048) * (C%FLIN_SURFACE + C%FLIN_CANOPY) ** 0.46
+      C%HRRPUA = (C%FLIN_SURFACE + C%FLIN_CANOPY) / ASP%CELLSIZE
+   ENDIF
 
    C => C%NEXT
 enddo
