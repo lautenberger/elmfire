@@ -629,6 +629,11 @@ TYPE NODE
    REAL :: RAZ = 0
 
 ! For optimization purposes
+   ! Exact-input Rothermel LOW cache, before any building-model override.
+   ! Initialize every key: Fortran does not require short-circuit evaluation.
+   LOGICAL :: ELLIPSE_LOW_VALID = .FALSE., ELLIPSE_LOW_LIMITED = .FALSE.
+   REAL :: ELLIPSE_PHIMAG = 0., ELLIPSE_IR = 0., ELLIPSE_COEFF = 0., ELLIPSE_EXPONENT = 0.
+   REAL :: ELLIPSE_LOW_MULT = 0., ELLIPSE_MAX_LOW = 0., ELLIPSE_LOW = 0.
    LOGICAL   :: NEED_SLOPE_CALC = .TRUE.
    REAL      :: PHISX = -9999.
    REAL      :: PHISY = -9999.

@@ -2381,10 +2381,31 @@ IF (ISTEP .EQ. 1) THEN
                   C%LOW = 1+8.729*(1-exp(-0.03*C%WSV))**2.155
                endif
             else if (SURFACE_MODEL_ROTHERMEL) then
-               ! Determine effective mid flame wind speed (not needed for CFFDRS)
-               WSMFEFF = FUEL_MODEL_TABLE_2D(C%IFBFM,30)%WSMFEFF_COEFF * PHIMAG ** FUEL_MODEL_TABLE_2D(C%IFBFM,30)%B_COEFF_INVERSE
-               IF (C%FLIN_SURFACE .LT. C%CRITICAL_FLIN .OR. CROWN_FIRE_MODEL .LE. 0) WSMFEFF = MIN(WSMFEFF, 0.9*KWPM2_TO_BTUPFT2MIN*C%IR)
-               C%LOW = MIN( 0.936*EXP(0.1147*WSMFEFF*WSMFEFF_LOW_MULT) + 0.461*EXP(-0.0692*WSMFEFF*WSMFEFF_LOW_MULT) - 0.397, MAX_LOW)
+               ! Cache only this expression, using exact values rather than fuel IDs
+               ! or weather generations. Recheck inside each crown-feedback iteration.
+               IF (C%ELLIPSE_LOW_VALID .AND. C%ELLIPSE_PHIMAG .EQ. PHIMAG .AND. &
+                   C%ELLIPSE_IR .EQ. C%IR .AND. &
+                   C%ELLIPSE_COEFF .EQ. FUEL_MODEL_TABLE_2D(C%IFBFM,30)%WSMFEFF_COEFF .AND. &
+                   C%ELLIPSE_EXPONENT .EQ. FUEL_MODEL_TABLE_2D(C%IFBFM,30)%B_COEFF_INVERSE .AND. &
+                   C%ELLIPSE_LOW_MULT .EQ. WSMFEFF_LOW_MULT .AND. C%ELLIPSE_MAX_LOW .EQ. MAX_LOW .AND. &
+                   (C%ELLIPSE_LOW_LIMITED .EQV. (C%FLIN_SURFACE .LT. C%CRITICAL_FLIN .OR. CROWN_FIRE_MODEL .LE. 0))) THEN
+                  C%LOW = C%ELLIPSE_LOW
+               ELSE
+                  ! Determine effective mid flame wind speed (not needed for CFFDRS)
+                  WSMFEFF = FUEL_MODEL_TABLE_2D(C%IFBFM,30)%WSMFEFF_COEFF * PHIMAG ** FUEL_MODEL_TABLE_2D(C%IFBFM,30)%B_COEFF_INVERSE
+                  IF (C%FLIN_SURFACE .LT. C%CRITICAL_FLIN .OR. CROWN_FIRE_MODEL .LE. 0) WSMFEFF = MIN(WSMFEFF, 0.9*KWPM2_TO_BTUPFT2MIN*C%IR)
+                  C%LOW = MIN( 0.936*EXP(0.1147*WSMFEFF*WSMFEFF_LOW_MULT) + 0.461*EXP(-0.0692*WSMFEFF*WSMFEFF_LOW_MULT) - 0.397, MAX_LOW)
+                  C%ELLIPSE_PHIMAG = PHIMAG
+                  C%ELLIPSE_IR = C%IR
+                  C%ELLIPSE_COEFF = FUEL_MODEL_TABLE_2D(C%IFBFM,30)%WSMFEFF_COEFF
+                  C%ELLIPSE_EXPONENT = FUEL_MODEL_TABLE_2D(C%IFBFM,30)%B_COEFF_INVERSE
+                  C%ELLIPSE_LOW_MULT = WSMFEFF_LOW_MULT
+                  C%ELLIPSE_MAX_LOW = MAX_LOW
+                  C%ELLIPSE_LOW_LIMITED = C%FLIN_SURFACE .LT. C%CRITICAL_FLIN .OR. CROWN_FIRE_MODEL .LE. 0
+                  ! Keep the raw LOW separate: WUI may replace C%LOW below.
+                  C%ELLIPSE_LOW = C%LOW
+                  C%ELLIPSE_LOW_VALID = .TRUE.
+               ENDIF
             endif
             
             IF (C%LOW .GT. 0.999 .AND. C%LOW .LT. 1.001) THEN
