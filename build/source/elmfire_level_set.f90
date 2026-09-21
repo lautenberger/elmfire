@@ -76,7 +76,7 @@ TYPE(NODE), POINTER :: C => NULL(), DUMMY_NODE => NULL(), L_WUI_P => NULL()
 ! TYPE (FUEL_MODEL_TABLE_TYPE) :: FMT
 
 ! Block 30: routine entry through initial weather/setup and first-call allocation.
-CALL SYSTEM_CLOCK(IT1)
+IF (DUMP_TIMINGS) CALL SYSTEM_CLOCK(IT1)
 NTIMESTEPS = 0
 
 BAND_L = MIN_IWX_BAND
@@ -141,9 +141,9 @@ DO
    ! At an exact boundary the high interpolation band belongs to the next
    ! window. Load it before interpolation, rather than clamping to old data.
    IF (local_complete == 1 .OR. (T >= BAND_H * DT_METEOROLOGY .AND. BAND_H < WS%NBANDS)) THEN
-      CALL SYSTEM_CLOCK(IT_COMPLETION)
+      IF (DUMP_TIMINGS) CALL SYSTEM_CLOCK(IT_COMPLETION)
       CALL MPI_ALLREDUCE(local_complete, global_flag, 1, MPI_INTEGER, MPI_MIN, MPI_COMM_WORLD, IERR)
-      CALL ACCUMULATE_CPU_USAGE(82, IT_COMPLETION, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(82, IT_COMPLETION, IT2)
       IF (global_flag == 1) EXIT
 
       ! An unfinished peer has reached this window's end. All ranks load the
@@ -314,7 +314,7 @@ DO
 
       ENDIF !FIRSTCALL
 
-      CALL ACCUMULATE_CPU_USAGE(30, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(30, IT1, IT2)
 
       WRITE(FOUR_IWX_BAND, '(I4.4)') IWX_BAND
       WRITE(SEVEN_ICASE  , '(I7.7)') ICASE
@@ -404,7 +404,7 @@ DO
          TSTOP = SIMULATION_TSTART + 0.01
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(31, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(31, IT1, IT2)
 
       ! Initialize viariables on each new call:
       ITIMESTEP                   = 0
@@ -438,7 +438,7 @@ DO
 
       NUM_TRACKED_EMBERS          = 0 ! Only used in the Lagrangian spotting model, but initialize here to be safe
 
-      CALL ACCUMULATE_CPU_USAGE(32, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(32, IT1, IT2)
 
 #ifdef _SUPPRESSION
       IF (ENABLE_EXTENDED_ATTACK) THEN
@@ -514,7 +514,7 @@ DO
 #endif
       IT_EA=0
 
-      CALL ACCUMULATE_CPU_USAGE(33, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(33, IT1, IT2)
 
       ! IF (DUMP_EMBER_FLUX .AND. (.NOT. ACCUMULATE_EMBER_FLUX) ) EMBER_FLUX%R4(:,:,1) = 0
 
@@ -748,7 +748,7 @@ DO
 
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(34, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(34, IT1, IT2)
 
 #ifdef _SMOKE
       ENABLE_SMOKE_OUTPUTS=.FALSE.
@@ -776,7 +776,7 @@ DO
    
    !main calculation section
    IF (START_CALCS .and. rank_finished .ne. 1) THEN
-      CALL SYSTEM_CLOCK(IT1)
+      IF (DUMP_TIMINGS) CALL SYSTEM_CLOCK(IT1)
 
       if (FEEDBACK_LEVEL .GE. 1 .and. NPROC .eq. 1) THEN
          write(*,'(A)', advance='no') char(13)   ! carriage return
@@ -852,7 +852,7 @@ DO
          ENDDO
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(36, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(36, IT1, IT2)
 
       ! Determine where we are in the wind and weather arrays::
       IF (ITIMESTEP .EQ. 1 .OR. NUM_METEOROLOGY_TIMES .GT. 1) THEN
@@ -908,7 +908,7 @@ DO
          ENDIF
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(37, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(37, IT1, IT2)
 
    ! Interpolate / map transient weather rasters
       JUST_INTERPOLATED = .FALSE.
@@ -1035,7 +1035,7 @@ DO
          CALL APPLY_WIND_FLUCTUATIONS(LIST_TAGGED)
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(38, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(38, IT1, IT2)
 
       ! Main call to get spread rate:
       IF (JUST_INTERPOLATED) THEN
@@ -1045,7 +1045,7 @@ DO
             CALL CFFDRS_SPREAD_RATE(LIST_TAGGED, DUMMY_NODE, daily_bui(DAY_OF_SIM))
          ENDIF
       ENDIF
-      CALL ACCUMULATE_CPU_USAGE(39, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(39, IT1, IT2)
 
       ! Adjust spread rate for passive and active crown fire (Cruz):
       ! Note that this adjusts spread rate in not only burned cells but nearby cells
@@ -1092,23 +1092,23 @@ DO
 
          ! Calculate components of normal vector
          CALL CALC_NORMAL_VECTORS (ISTEP, HALFRCELLSIZE)
-         CALL ACCUMULATE_CPU_USAGE(41, IT1, IT2)
+         IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(41, IT1, IT2)
 
          ! Calculate x and y components of velocity from elliptical spread dimensions
          CALL UX_AND_UY_ELLIPTICAL(LIST_TAGGED, SURFACE_ACCELERATION_FACTOR, ISTEP, DT)
-         CALL ACCUMULATE_CPU_USAGE(42, IT1, IT2)
+         IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(42, IT1, IT2)
          
          ! Update local spread properties that depend on canopy / fire velocity
          CALL UPDATE_LOCAL_SPREAD_PROPERTIES(LIST_TAGGED, DUMMY_NODE)
          ! Check CFL criterion, adjust timestep, AND apply flux limiter (merged)
          CALL CFL_AND_FLUX_LIMITER(DT, RCELLSIZE, PHIP, ISTEP, ITIMESTEP)
-         CALL ACCUMULATE_CPU_USAGE(43, IT1, IT2)
+         IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(43, IT1, IT2)
 
          IF (T + REAL(DT,8) .GT. REAL(TSTOP,8)) DT = MAX(0.0, REAL(TSTOP - T))
 
          ! 2nd order Runge Kutta integration:
          CALL RK2_INTEGRATE(DT, ISTEP)
-         CALL ACCUMULATE_CPU_USAGE(44, IT1, IT2)
+         IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(44, IT1, IT2)
 
       ENDDO !ISTEP=1,2
 
@@ -1313,7 +1313,7 @@ DO
       ENDIF
 #endif
 
-      CALL ACCUMULATE_CPU_USAGE(45, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(45, IT1, IT2)
 ! Main firebrand ignition and Eulerian ember trajectory integration:
       DO I = 1, N_TO_TAG
          CALL TAG_BAND(NX, NY, IX_TO_TAG(I), IY_TO_TAG(I), T)
@@ -1339,7 +1339,7 @@ DO
          ENDDO
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(46, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(46, IT1, IT2)
 
       ! Map wind & fuel moisture fields to newly tagged cells:
       C => LIST_TAGGED%HEAD
@@ -1388,7 +1388,7 @@ DO
          C => C%NEXT
       ENDDO
          
-      CALL ACCUMULATE_CPU_USAGE(47, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(47, IT1, IT2)
 
    ! Initial attack model:
       IF (ENABLE_INITIAL_ATTACK .AND. T .GE. INITIAL_ATTACK_TIME .AND. (.NOT. IA_HAS_OCCURRED) ) THEN
@@ -1422,16 +1422,16 @@ DO
          ENDIF
       ENDIF
       
-      CALL ACCUMULATE_CPU_USAGE(48, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(48, IT1, IT2)
       
-      CALL ACCUMULATE_CPU_USAGE(49, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(49, IT1, IT2)
 
    ! Untag
       IF (MOD(ITIMESTEP,UNTAG_CELLS_TIMESTEP_INTERVAL) .EQ. 0 .AND. LIST_TAGGED%NUM_NODES .GT. 100) THEN 
          CALL UNTAG_CELLS(NX,NY,TIME_OF_ARRIVAL,T,SURFACE_FIRE)
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(50, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(50, IT1, IT2)
 
       IF (LIST_TAGGED%NUM_NODES .LE. 2) THEN
          IF(.NOT. (ENABLE_SPOTTING .AND. (.NOT. USE_SUPERSEDED_SPOTTING))) THEN
@@ -1612,7 +1612,7 @@ DO
       ENDIF
 #endif   
 
-      CALL ACCUMULATE_CPU_USAGE(51, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(51, IT1, IT2)
 
 #ifdef _SMOKE
       ENABLE_SMOKE_OUTPUTS=.FALSE.
@@ -1741,14 +1741,14 @@ DO
 
       999 FORMAT(F9.2,',',A,',',F10.1,',',F10.1,',',E12.5,',',E12.5,',',E12.5)
 
-      CALL ACCUMULATE_CPU_USAGE(52, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(52, IT1, IT2)
 
       !   IF (T .GE. TSTOP) THEN
       !      CALL LL_DUMP_ROUTINE(LIST_SUPPRESSED,'time_suppressed',T,'time_suppressed',ICASE) 
       !      CALL LL_DUMP_ROUTINE(LIST_BURNED,'time_of_arrival',T,'time_of_arrival',ICASE) 
       !   ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(53, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(53, IT1, IT2)
 
       CALL SYSTEM_CLOCK(COUNT_END)
       ELAPSED_TIME = REAL(COUNT_END - COUNT_START, 8) / REAL(CLOCK_COUNT_RATE, 8)
@@ -1779,7 +1779,7 @@ DO
 !
 !      phi_previous = PHIP
 
-      CALL ACCUMULATE_CPU_USAGE(54, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(54, IT1, IT2)
 
       IS_FINAL_DUMP = T .GE. TSTOP
       IF (DUMP_EVERY_STEP) THEN
@@ -1819,13 +1819,13 @@ DO
          WRITE(LOG_MSG,'(A,I0,A,F12.1)') '[',ICASE,'] LEVEL SET CASE OUTPUT STARTED AT T ',T
          WRITE(*,'(A)') TRIM(LOG_MSG)
       endif
-      CALL SYSTEM_CLOCK(IT1)
+      IF (DUMP_TIMINGS) CALL SYSTEM_CLOCK(IT1)
 
       NTIMESTEPS = ITIMESTEP
       IDUMP_OUTPUT = IDUMP_OUTPUT + 1
       CALL MAIN_DUMP_ROUTINE(.TRUE., IDUMP_OUTPUT, ICASE, T, ACRES)
 
-      CALL ACCUMULATE_CPU_USAGE(55, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(55, IT1, IT2)
 
       IF (PROCESS_TIMED_LOCATIONS) THEN
          FN = TRIM(OUTPUTS_DIRECTORY) // 'timed-locations-events_' // FOUR_IRANK_WORLD // '.csv'
@@ -1946,7 +1946,7 @@ DO
 
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(56, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(56, IT1, IT2)
 
       IF (DUMP_BINARY_OUTPUTS .AND. ACRES .GT. MINIMUM_AREA_FOR_BINARY_OUTPUTS) THEN
          CALL RANDOM_NUMBER(R0)
@@ -1968,7 +1968,7 @@ DO
          ENDIF
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(57, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(57, IT1, IT2)
 
       IF (USE_EMBER_COUNT_BINS) THEN
          IF (ALLOCATED(EMBER_OUTPUTS_IX)) THEN
@@ -2002,7 +2002,7 @@ DO
 
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(58, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(58, IT1, IT2)
 
       DO I = 1, NUM_EVERTAGGED
          IX = EVERTAGGED_IX(I)
@@ -2014,7 +2014,7 @@ DO
          IF (RANDOM_IGNITIONS) PHIP (IX,IY) = 1
       ENDDO
 
-      CALL ACCUMULATE_CPU_USAGE(59, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(59, IT1, IT2)
 
       ! Close smoke file
 #ifdef _SMOKE
@@ -2071,7 +2071,7 @@ DO
       !   LIST_SUPPRESSED%NUM_NODES=0
       ENDIF
 
-      CALL ACCUMULATE_CPU_USAGE(60, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(60, IT1, IT2)
 
       IF (SIMULATION_TSTOP_HOURS .LT. 0. ) STATS_SIMULATION_TSTOP_HOURS(ICASE) = T / 3600.
 #ifdef _SUPPRESSION   
@@ -2088,7 +2088,7 @@ DO
       ENDIF
 #endif   
 
-      CALL ACCUMULATE_CPU_USAGE(61, IT1, IT2)
+      IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(61, IT1, IT2)
       START_CALCS = .FALSE.
       rank_finished = 1
       DT = DT_METEOROLOGY
