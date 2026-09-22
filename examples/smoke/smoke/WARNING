@@ -1,5 +1,0 @@
- NOTICE metini: MODEL_ID not AWRF in data (kg,kt)           1           1
- Setting DREC(KG,KT)%WVERT=.FALSE. to use default vertical interpolation!
- WARNING emsmat: emissions termination
- WARNING main: puff splitting turned off ... expand MAXPAR
-         or increase merge parameters in CFG namelist file
