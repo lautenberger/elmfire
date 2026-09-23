@@ -968,6 +968,7 @@ LOGICAL, INTENT(IN) :: CONVERT_TO_GEOTIFF_LOCAL,COMPRESS
 INTEGER, INTENT(IN) :: THREADNUM
 CHARACTER(:), ALLOCATABLE :: FNBIL,FNHDR,FNTIF
 CHARACTER(:), ALLOCATABLE :: SHELLSTR
+CHARACTER(32) :: ZLEVELSTR
 INTEGER :: IOS, IROW, ICOL, IBAND, LUOUT
 REAL, ALLOCATABLE, DIMENSION(:) ::  RVALUES
 INTEGER :: ICOLSTART, ICOLSTOP, IROWSTART, IROWSTOP, IREC
@@ -975,6 +976,7 @@ INTEGER*8 :: LRECL
 INTEGER*2, ALLOCATABLE, DIMENSION(:) :: I2VALUES
 
 IF (CONVERT_TO_GEOTIFF_LOCAL) CALL REQUIRE_ANALYSIS_SRS
+IF (CONVERT_TO_GEOTIFF_LOCAL .AND. COMPRESS) WRITE(ZLEVELSTR,'(I0)') ZLEVEL
 
 LUOUT = LUOUTPUT + THREADNUM
 
@@ -1057,7 +1059,8 @@ SELECT CASE (TRIM(RASTER%PIXELTYPE))
       IF (CONVERT_TO_GEOTIFF_LOCAL) THEN
          IF (COMPRESS) THEN
             SHELLSTR = '"' // TRIM(PATH_TO_GDAL) // &
-                       'gdal_translate" -q -ot Float32 -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" -a_srs "' // &
+                       'gdal_translate" -q -ot Float32 -co "COMPRESS=' // TRIM(COMPRESSION_ALGO) // &
+                       '" -co "ZLEVEL=' // TRIM(ZLEVELSTR) // '" -a_srs "' // &
                        ANALYSIS_SRS_FILE // '" "' // TRIM(FNBIL) // '" "' // TRIM(FNTIF) // '"'
             IF (FEEDBACK_LEVEL .GE. 3) WRITE(*,100) TRIM(SHELLSTR)
             CALL CHECKED_GDAL_COMMAND(SHELLSTR, 'gdal_translate', FNBIL // ' -> ' // FNTIF, FNTIF // '.gdal_error')
@@ -1108,7 +1111,8 @@ SELECT CASE (TRIM(RASTER%PIXELTYPE))
       IF (CONVERT_TO_GEOTIFF_LOCAL) THEN
          IF (COMPRESS) THEN
             SHELLSTR = '"' // TRIM(PATH_TO_GDAL) // &
-                       'gdal_translate" -q -ot Int16 -co "COMPRESS=DEFLATE" -co "ZLEVEL=9" -a_srs "' // &
+                       'gdal_translate" -q -ot Int16 -co "COMPRESS=' // TRIM(COMPRESSION_ALGO) // &
+                       '" -co "ZLEVEL=' // TRIM(ZLEVELSTR) // '" -a_srs "' // &
                        ANALYSIS_SRS_FILE // '" "' // TRIM(FNBIL) // '" "' // TRIM(FNTIF) // '"'
             IF (FEEDBACK_LEVEL .GE. 3) WRITE(*,100) TRIM(SHELLSTR)
             CALL CHECKED_GDAL_COMMAND(SHELLSTR, 'gdal_translate', FNBIL // ' -> ' // FNTIF, FNTIF // '.gdal_error')
