@@ -1145,6 +1145,7 @@ DO WHILE (T .le. totalDuration)
             CALL APPEND(LIST_BURNED, IX, IY, T)
 
             LIST_BURNED%TAIL%IR                     = C%IR
+            LIST_BURNED%TAIL%WSMF                   = C%WSMF
             LIST_BURNED%TAIL%VS0                    = C%VS0
             LIST_BURNED%TAIL%PHIW_SURFACE           = C%PHIW_SURFACE
             LIST_BURNED%TAIL%PHIW_CROWN             = C%PHIW_CROWN
