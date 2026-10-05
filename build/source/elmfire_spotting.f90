@@ -660,9 +660,11 @@ DO WHILE (T .LT. DT_ELMFIRE)
 
    IF (IX .NE. IXLAST .OR. IY .NE. IYLAST) THEN
       IF (IX .GE. NX_ELM .OR. IX .LE. 1) THEN
+         C%TARGET_ARRIVED = .TRUE.
          T = 9E9; CYCLE
       ENDIF
       IF (IY .GE. NY_ELM .OR. IY .LE. 1) THEN
+         C%TARGET_ARRIVED = .TRUE.
          T = 9E9; CYCLE
       ENDIF
 
