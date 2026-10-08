@@ -1,0 +1,86 @@
+\section{Verification purpose}
+
+This case verifies dynamic herbaceous curing in GR2 and GS3.  Live-herb moisture is the controlled input; ELMFIRE must transfer the corresponding fraction of herbaceous load to the dead 1-h class and then evaluate the full Rothermel model.  It can expose reversed curing, incorrect 30/120\% bounds, failure to conserve load, wrong class surface-area-to-volume ratio (SAV) weighting, or confusion between curing and live moisture damping.  The verification question is whether all required curing states reproduce independently calculated intensity and rate of spread (ROS) within 1\% and \RosTolerance{}, respectively.
+
+\section{Mathematical formulation and numerical implementation}
+For live-herb moisture $M_{LH}$ expressed as a fraction, the cured fraction is
+\begin{equation}T=\max[0,\min(1,1.33-1.11M_{LH})].\end{equation}
+ELMFIRE implements the equivalent integer-percent interpolation between 30 and 120\%.  If $W_{LH,0}$ is original live-herb load, $W_{1h}'=W_{1h}+TW_{LH,0}$ and $W_{LH}'=(1-T)W_{LH,0}$.  The transferred material adopts dead 1-h moisture while remaining live material uses live damping and heat of preignition.  The formulation follows Andrews (2018), RMRS-GTR-371.
+
+\section{Derivation of expected behavior}
+At 30\% moisture all live-herb load is cured; at 75\% half is cured; at 120\% and above none is transferred.  Above 120\%, curing is constant but live moisture damping continues to change, so ROS need not form a plateau.  The case-specific reference calculation conserves total load, recomputes effective SAV and every dependent Rothermel coefficient, applies moisture damping, and applies ELMFIRE's selected wind limit at the target \SI{6}{mph} midflame wind.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+For dynamic grass fuels, the cured fraction and load transfer are
+\[
+ f_c=\min\!\left(1,\max\!\left[0,\frac{120-M_{lh}}{90}\right]\right),
+ \quad w_{lh}^{*}=(1-f_c)w_{lh},\quad
+ w_{1h}^{*}=w_{1h}+f_cw_{lh}.
+\]
+For the generated GR2 simulation condition at \(M_{lh}=75\) percent,
+\(f_c=(120-75)/90=0.5\).  With original
+\(w_{lh}=0.04591\) and \(w_{1h}=0.00459~\mathrm{lb\,ft^{-2}}\),
+\[
+ w_{lh}^{*}=0.5(0.04591)=0.022955,\qquad
+ w_{1h}^{*}=0.00459+0.5(0.04591)=0.027545.
+\]
+The weighted fuel calculation gives
+\(R_0=1.109830~\mathrm{ft\,min^{-1}}\),
+\(I_R=206.9424~\mathrm{kW\,m^{-2}}\), and
+\(\phi_w=31.095160\); therefore
+\[
+ R_{\mathrm{ref}}=0.3048(1.109830)(1+31.095160)
+ =10.857030~\mathrm{m\,min^{-1}}.
+\]
+Every GR2 and GR3 moisture simulation condition repeats these equations.  Direct
+metrics use the maximum over simulation conditions of
+\(e_R=|R_{\max}-R_{\mathrm{ref}}|/
+\max(|R_{\mathrm{ref}}|,10^{-8})\) and the analogous \(e_I\), with limits
+0.02 and 0.01.  The time of arrival (TOA) fit \(t=a+bx\) supplies
+\(R_{\mathrm{TOA}}=60/b\) and \(R^2=1-SSE/SST\), tested by
+\(\max e_{\mathrm{TOA}}\leq0.05\) and \(\min R^2\geq0.995\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+Maximum relative errors are 0.02 for direct ROS and 0.01 for reaction intensity.  Simulation conditions predicted at or above \SI{0.10}{m.min^{-1}} also require TOA-derived ROS error at most 0.05 and minimum $R^2=0.995$; the most moisture-limited simulation conditions use direct fields because they cannot cross a multi-cell corridor within the practical duration cap.  Direct effective loads are not exposed by the normal executable, so their conservation is an reference calculation invariant and the implementation is observed through intensity and ROS.  All 20 simulation conditions are required; no qualitative trend alone can pass the case.
+
+\section{Simulation configuration and predicted outcome}
+
+The finite-strip PHI raster is a signed-distance field clipped to ELMFIRE's supported $[-1,1]$ interval, preserving both an ignited interior and a resolved front gradient. For every positive reference spread rate, the prescribed and maximum timesteps use the whole-second value obtained by rounding the 5\%-of-cell target downward, with a one-second minimum; every generated value remains below the configured Courant--Friedrichs--Lewy (CFL) limit of 0.2. The stop time is rounded upward to an exact integer multiple of that step. This avoids a shortened final step that can trigger ELMFIRE's stalled-front branch and corrupt the terminal timestamp. A zero-ROS simulation condition retains a 5 s step and is evaluated from direct fields without requiring TOA propagation. The evaluator always requires uniquely named rasters tied to one final dump record. It accepts a stalled-final record only when subtracting the configured meteorology interval reconstructs the requested stop time within one configured timestep. A TOA-required simulation condition must reach the prescribed stop time in its generated namelist; a direct-only simulation condition may terminate early because lack of propagation is part of the state being tested.
+Live-herb moisture is 30, 45, 60, 75, 90, 100, 110, 120, 135, or 200\%.  Dead classes are fixed at 5\%, live woody moisture at 90\%, slope at zero, and target midflame wind at \SI{6}{mph}; the 20-ft input is back-calculated from each fuel's WAF.  Each homogeneous domain uses a finite ignition strip with a planar east face inside the analysis corridor and with lateral ends clear of the grid boundary.  Crown fire, spotting, buildings, and acceleration are excluded.  Strong nonlinear response is expected in the curing interval.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.24\textwidth}p{0.12\textwidth}p{0.32\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 1400 m square; 10 & m/cell & Planar interior propagation \\
+Dynamic fuels & \FuelSet & code/name & Enables herbaceous load transfer \\
+Live-herb moisture & \LiveHerbSet & percent & Independent curing variable \\
+Wind/slope & fixed wind; 0 slope & --- & Holds directional forcing fixed \\
+Timing & generated whole-second step and exact-multiple stop & s & Terminal-evidence compatibility \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+The available results cover \CompletedVariantCount{} of \RequiredVariantCount{} simulation conditions and reports \textbf{\VerificationStatus}.
+\ifnum\CompletedVariantCount>0
+\IfFileExists{../figures/sweep_response.pdf}{\begin{figure}[H]\centering\includegraphics[width=0.95\textwidth]{sweep_response.pdf}\caption{Independent calculations (open diamonds, solid lines) and ELMFIRE predictions (filled circles, dashed lines) for the dynamic-curing response. Each fuel-model pair uses the same color.}\end{figure}}{}
+\fi
+
+\section{Calculated metrics and verification decision}
+\begin{center}\begin{tabular}{@{}llll@{}}\toprule Metric & Limit & Calculated & Status\\\midrule\MetricRows\bottomrule\end{tabular}\end{center}
+The authoritative decision is \textbf{\VerificationStatus}.
+
+\section{Technical interpretation}
+A reversed curve indicates a reversed transfer fraction.  Discontinuities away from integer moisture selection suggest class indexing or interpolation defects.  Correct behavior above 120\% but disagreement below it isolates curing rather than live damping.  Correct intensity and wrong ROS implicate heat sink or wind coupling.
+
+\section{Scope and limitations}
+This executable-level test observes curing indirectly; a direct internal-load assertion would require a compiled component diagnostic.  It covers two dynamic fuel models, constant weather, and no temporal curing.  CASE38 separately isolates live moisture without load transfer.

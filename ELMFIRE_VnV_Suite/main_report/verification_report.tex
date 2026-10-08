@@ -1,0 +1,52 @@
+\documentclass[12pt]{article}
+\usepackage[margin=0.85in]{geometry}
+\usepackage{booktabs,longtable,array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{pdfpages}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\emergencystretch=2em
+
+\input{report_style.tex}
+\begin{document}
+\newcommand{\GuideTitle}{ELMFIRE Verification Guide}
+\input{generated/verification_cover_metadata.tex}
+\input{cover_page.tex}
+
+\section*{About This Guide}
+\phantomsection
+\addcontentsline{toc}{section}{About This Guide}
+This guide examines whether ELMFIRE reproduces prescribed physical and numerical
+responses under controlled conditions. Each case develops an expected response,
+defines quantitative comparisons and acceptance criteria, and interprets the
+available simulation results. The opening summary presents the calculated
+decisions and the computational information available during report preparation.
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\section{How to Read This Guide}
+
+Start with the verification summary for the recorded computational environment,
+declared parallel allocation, and scientific decision table. The
+case identifiers in the summary link to the corresponding case-report entries.
+The complete case reports follow in numerical order; each presents its own scientific
+context, equations, metrics, citations, acceptance criteria, and limitations.
+
+Interpret PASS and FAIL against each case's stated acceptance criteria. Missing
+results, incomplete simulations, or an unavailable model capability are shown
+as NOT EVALUABLE. A completed simulation or a complete narrative alone does not
+establish agreement with the expected response.
+
+The computational environment recorded during report preparation is not
+necessarily the environment used for every simulation. Within each case, read
+the formulation and derived expectation before interpreting the measured
+response. The scope and limitations distinguish the behavior demonstrated by
+the prescribed conditions from behavior that remains unverified.
+
+\input{generated/verification_summary.tex}
+
+\input{generated/verification_cases.tex}
+
+\end{document}

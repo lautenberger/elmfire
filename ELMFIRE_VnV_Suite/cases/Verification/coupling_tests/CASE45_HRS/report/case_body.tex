@@ -1,0 +1,349 @@
+\section{Verification purpose}
+
+This manufactured coupling test verifies the
+Wildland--Urban ELMFIRE (WU--E) model's conversion of heat received by an urban cell into its local
+level-set rate of spread (ROS). It exercises the heat-driven building-spread
+formulation and subsequent construction of the directional spread velocity.
+The intended reference calculation uses a fixed critical material fire-thermal
+property (FTP); it is sensitive to energy or unit normalization,
+ellipse partitioning, normal-vector orientation, an artificial 30,000-kJ or
+35-mph discontinuity, and failure to honor the material table. The source
+revision reviewed for the verification specification is
+\SourceCommit.
+
+The five reviewed model components were identical to that source revision.
+The simulation, output, and initialization procedures contained other changes
+outside the reviewed components. Consequently, the design review establishes
+the provenance of the reference formulation, not the identity of every
+component in a subsequently supplied ELMFIRE version.
+
+One burning urban source and one adjacent, initially positive urban receiver
+form the measured pair in a nonburnable domain.  Four disconnected urban guard
+cells keep the tagged-list termination guard inactive but remain far from the
+front and are not observables.  Per-step energy, wind, receiver normal,
+design-fire amplitude, and table critical material fire-thermal property are varied; spotting,
+crown fire, terrain, moisture gradients, and stochastic forcing are disabled.
+This is implementation verification, not evidence that the empirical response
+is physically valid.  The verification question is: for all 12 simulation conditions, does
+the executable's receiver-cell spread-rate raster agree within
+\ROSTolerance{} relative error with the independently recomputed mapping driven
+by its own recorded direct flame contact (DFC)-plus-radiation stimulus, while also satisfying the
+continuity, directional, amplitude, and FTP-response comparisons?
+
+\ReportOverview
+
+\section{Mathematical formulation and numerical implementation}
+
+At one receiver the executable records transient heat fluxes
+\(q''_{\DFC}\) and \(q''_{\rm rad}\) in \si{\kilo\watt\per\square\metre}.
+For timestep \(\Delta t\) and square cell width \(\Delta x\), the downstream
+routine forms
+\[
+ E=(q''_{\DFC}+q''_{\rm rad})\Delta t\Delta x^2,
+ \qquad q_A=E/\Delta x^2 .
+\]
+Because kilowatts are kilojoules per second, \(E\) is in kilojoules. The
+intended downscaled model uses the material value $F_{TP,crit}$ without an
+energy-dependent replacement or wind-speed divisor. The absolute velocity in
+feet per minute is
+\[
+ U=\min\!\left(10^5,
+ \frac{60E}{0.3048\,\Delta t\,\Delta x\,F_{TP,crit}}\right)
+ =\min\!\left(10^5,\frac{196.85\,q''\Delta x}{F_{TP,crit}}\right).
+\]
+The nominal default is $F_{TP,crit}=5400~\si{\kilo\joule\per\square\metre}$;
+the case also uses 3000 and 6000 to verify the inverse response. The
+peer-reviewed papers describe the accumulated-heat/FTP ignition and
+heat-derived urban spread concept \cite{PurnomoPCI2024,PurnomoIJWF2024}.
+The pinned source instead replaces FTP below/above 30,000 kJ and applies a
+1.8 divisor at and below 35 mph. Those operations are documented deviations,
+not acceptance equations.
+
+The UCB ellipse supplies major radius \(a\), minor radius \(b\), and focus
+offset \(e\).  The three response weights are
+\[
+ f_h=a+e,\qquad f_s=2b,\qquad f_b=a-e,
+\]
+so the nominal head, side, and back velocities are
+\(V_i=Uf_i/(f_h+f_s+f_b)\).  The case-specific evaluator then applies the same
+closed ellipse-normal construction, rather than treating these three labels as
+three scalar shortcuts.  In full, for front normal
+\(\boldsymbol n=(n_x,n_y)\) and direction-of-maximum-spread unit vector
+\(\boldsymbol s=(s_x,s_y)\), the implementation evaluates
+\[
+ c=n_xs_x+n_ys_y,\qquad s=n_xs_y-n_ys_x,
+\]
+\[
+ L=\begin{cases}
+ \min\!\left((V_h+V_b)/(2V_s),10\right),&V_s>10^{-4},\\
+ 1,&V_s\leq10^{-4},
+ \end{cases}
+\]
+\[
+ A=\max\!\left(\frac{V_h+V_b}{2},10^{-10}\right),\qquad
+ B=\frac12\max\!\left(\frac{V_h+V_b}{L},10^{-10}\right),
+\]
+\[
+ D=\max\!\left(\sqrt{A^2c^2+B^2s^2},10^{-10}\right),\quad
+ v_{\parallel}=\frac{A^2c}{D}+\frac{V_h-V_b}{2},\quad
+ v_{\perp}=\frac{B^2s}{D},
+\]
+\[
+ v_x=v_{\parallel}s_x+v_{\perp}s_y,\qquad
+ v_y=v_{\parallel}s_y-v_{\perp}s_x,\qquad
+ V=\sqrt{v_x^2+v_y^2}.
+\]
+The flat grid makes the source projection factors unity.  Wind is from
+\(270^\circ\), hence \(\boldsymbol s=(1,0)\).  The manufactured target normals
+are east (head), west (back), and north (side); raster rows run north to south
+while the stored mathematical normal is expressed in east/north coordinates.
+
+The upstream heat values are recorded stimuli for this case; CASE43--44 verify
+their governing equations. Here characteristic building dimension=20 denotes the source's
+linear characteristic building dimension in metres, not an area in square
+metres. The input generator chooses design-fire amplitudes deterministically,
+but the downstream reference calculation always uses the heat actually written by ELMFIRE.
+For traceability, the pinned source currently uses the following non-normative
+normalization while constructing that stimulus:
+\[
+ C_H=\frac{\Delta x^2}{\pi(ca)(cb)},\qquad c=0.5.
+\]
+For target distance \(R\) and directional ellipse distance \(R_e\), the input
+generator transcribes the overlap and radiation weights
+\[
+ C_D=\operatorname{clip}_{[0,1]}\left(\frac{R_e+\Delta x/2-R}{\Delta x}\right),
+ \qquad
+ C_R=(1-C_D)\operatorname{clip}_{[0,1]}\left(\frac{R_e+100+\Delta x/2-R}{\Delta x}\right).
+\]
+With the implementation's piecewise effective radiation distance
+\(R_{\rm eff}\), emissivity \(\varepsilon=0.89\), and radiative fraction 0.3,
+the planned plateau heat is
+\[
+ q''=C_H H_p\left[C_D+\frac{0.3\,\varepsilon C_R\Delta x^2}
+ {4\pi R_{\rm eff}^2}\right].
+\]
+The generator solves this relation separately for each normal to set the input
+amplitude.  The downstream decision never substitutes planned heat for the
+recorded heat.
+
+\section{Derivation of expected behavior}
+
+The energy triplet is constructed at \(29900\), \(30000\), and \(30100\) kJ.
+The generator uses an explicit IEEE-754 binary32 transcription of the reviewed
+default-single-precision arithmetic operation sequence to select decimal table amplitudes;
+the planned realization is exact at all three values, including equality, and
+is recorded in each simulation specification. Executable heat output remains required
+to establish the realized stimulus. With fixed FTP, local speed divided by
+recorded energy must be continuous across 30,000 kJ. Likewise, the 34.9,
+35.0, and 35.1-mph cases include the small physical ellipse change but no
+artificial divisor jump. A discontinuity at either boundary identifies the
+known source-only branches.
+
+The terminal spread-rate raster is populated only from the set of cells recorded as burned,
+so an arbitrary positive receiver would not be observable.  The prepared
+receiver value is instead $\phi_r=0.001>0$. Both source raster readers
+unconditionally add a perturbation $10^{-3}(0.5-R)$, with $R\in[0,1)$;
+wind-fluctuation settings do not disable it. Thus the receiver remains
+strictly positive, between 0.0005 and 0.0015, before propagation. The former
+$2^{-20}$ value was smaller than this perturbation and could not guarantee
+initial state. For the side receiver, its five-cell tangential PHI stencil is
+flat at $\phi_r$, removing an artificial tangential local minimum. These
+four extra stencil cells remain nonburnable and initially positive.
+
+The crossing estimate uses $\boldsymbol{v}\cdot\nabla\phi$, not speed
+magnitude times a one-dimensional gradient. Its source-facing Superbee
+gradient is $G=2(\phi_r-\phi_s)/\Delta x=0.0451$ per metre.
+With $\epsilon=0.0005$, the generator checks the conservative first-stage
+bound
+\[
+ \tfrac12\Delta t\left[v_n(G-4\epsilon/\Delta x)
+       - U(4\epsilon/\Delta x)\right]>\phi_r+\epsilon,
+\]
+where $v_n$ is normal velocity and $U$ bounds the velocity magnitude, both
+in metres per second. The bound covers input-noise gradients and discards
+second-stage inward transport. It is an intended-law setup check; actual
+arrival remains independently required. All twelve receivers must enter
+the set of cells recorded as burned at exactly 1~s, with a finite terminal speed.
+Four positive guard cells
+keep more than two nodes tagged, and a scheduled ignition at 5~s---strictly
+after the 4~s stop---keeps the first-step stall predicate false without ever
+altering the simulated state.
+
+At fixed geometry, doubling versus halving \(H_p\) gives a heat-flux ratio of
+four. The two critical material fire-thermal property simulation conditions use 3000 and 6000
+$\si{\kilo\joule\per\square\metre}$ and are otherwise equivalent. Their heat
+fields must match, while their spread speeds must have the inverse FTP ratio
+$V_{3000}/V_{6000}=2$. The
+equal-energy condition with 35-mph wind, the back-facing receiver, and
+the side-facing receiver simulation conditions share 35-mph wind and the same designed received
+energy; they are the matched head, back, and side comparison, leaving only the
+prescribed receiver normal to select the directional response.
+
+This is a recorded-input reference calculation: the emitted/received heat field at the exact
+receiver-arrival dump is a measured stimulus, while only the downstream
+heat-to-ROS calculation is the object of the numerical comparison.  It
+therefore avoids claiming that one executable
+output independently verifies another upstream heat calculation.  Ellipse
+axes, \(E\) as held in working storage, \(F\), absolute \(U\), component
+velocities, and ellipse length-to-width ratio are internal-only quantities.  They are calculated
+by the evaluator but cannot be asserted as separately observed executable
+outputs.
+
+\section{Verification metrics and acceptance criteria}
+
+Before evaluation, the simulation settings, spatial inputs, fuel properties,
+reference calculations, and analysis method must match those associated with
+the completed simulation. Their recorded SHA-256 identities are checked,
+together with the full simulation record and model results. All 12 simulation
+conditions must have completed using the same identified ELMFIRE program.
+Any subsequent change to this evidence invalidates the comparison.
+
+With output at every timestep, the exact ledger is dump indices 1--5 at
+times 0, 1, 2, 3, and 4~s, with only index 5 final. Transient heat fields
+are identified by output index, whereas terminal arrival-time and spread-rate
+fields are identified by physical time, 4 s. The final output index 5 is not
+interpreted as an elapsed time. Evaluation selects DFC plus radiation at the unique
+dump whose time equals the receiver's required 1-s time of arrival (TOA), and compares the
+resulting independent local-speed reference calculation with the terminal receiver speed
+captured when that cell entered the set of cells recorded as burned.  The exact-stop transient
+heat values must be reset to zero.  A missing or stale marker, input identity record or
+snapshot mismatch, nodata, nonfinite, missing, duplicate, stale, or off-time
+supporting result makes the case NOT EVALUABLE.
+
+\begin{center}
+
+\begin{longtable}{@{}P{0.19\textwidth}P{0.21\textwidth}P{0.25\textwidth}P{0.24\textwidth}@{}}\toprule
+Property & Observable and metric & Selection rationale & Acceptance basis\\\midrule
+Heat-to-ROS mapping & maximum relative receiver-speed error & Tests the downstream formula using recorded heat & \(\leq0.005\), allowing float raster serialization\\
+Receiver observability & TOA and finite terminal speed for every receiver & Proves the compared value was serialized from the set of cells recorded as burned & TOA exactly 1~s within \(10^{-6}\)~s; all speeds finite\\
+Fixed-FTP energy continuity & normalized speed for 29900/30000/30100 & Detects the non-normative source energy branch & spread \(\leq0.005\); energy within 0.2\% of design\\
+Wind continuity & errors for 34.9/35.0/35.1 mph & Detects the non-normative 35-mph divisor & all speed errors \(\leq0.005\)\\
+heat-release rate (HRR) amplitude & recorded double/half heat ratio & Direct metamorphic check with no assumed absolute output & \(4.00\pm0.04\)\\
+Directional mapping & maximum error for the matched 35-mph head/back/side set & Detects orientation and ellipse partition defects & \(\leq0.005\)\\
+critical material fire-thermal property inverse response & speed ratio for 3000/6000 & Requires the material table to control spread & \(2.00\pm0.01\)\\
+\bottomrule\end{longtable}
+\end{center}
+PASS requires complete evidence and every row to pass.  Any calculated breach is
+FAIL; absent or ambiguous evidence is NOT EVALUABLE and never a pass.
+
+\section{Simulation configuration and predicted outcome}
+
+The Courant--Friedrichs--Lewy (CFL) number measures the distance
+advected during one timestep relative to the grid spacing and
+constrains the time discretization.
+
+\begin{center}
+
+\begin{longtable}{@{}P{0.17\textwidth}P{0.29\textwidth}P{0.10\textwidth}P{0.31\textwidth}@{}}\toprule
+Parameter & Configured value & Units & Isolation role\\\midrule
+Grid & \(25\times25\), EPSG:32610 & -- & source well away from boundary\\
+Cell width & 20 & m & fixed energy normalization and CFL-safe local response\\
+Fuel geometry & source, adjacent receiver, four diagonal guard cells are fire behavior fuel model (FBFM) 91; FBFM 93 elsewhere & category & observable pair plus nonburning termination guards\\
+Initial \(\phi\) & source \(-0.45\), receiver 0.001 (side tangential stencil also 0.001), guards/background (+1) & -- & first-heated-step receiver crossing with guards far from the front\\
+Building characteristic dimension/separation & 20 / 10 & m & fixed linear ellipse inputs\\
+Wind direction & from 270 & degree & eastward DMS axis\\
+Design-fire times & 1 / 100 / 120 & s & terminal output remains on plateau\\
+Time controls (step, maximum, stop) & 1 / 1 / 4 & s & exact terminal alignment\\
+Dormant ignition & source centre at 5 & s & suppresses false first-step stall; occurs after stop\\
+Target CFL / displacement bound & 0.10 / 2.0 & -- / m step\(^{-1}\) & all manufactured absolute-speed estimates satisfy the bound\\
+Output cadence & every step & -- & preserves the applied heat stimulus\\
+Spread model & WU--E building type 2 & -- & selects heat-driven urban ROS\\
+Other mechanisms & spotting/crown/stochastic off & -- & removes confounders\\
+\bottomrule\end{longtable}
+\end{center}
+
+Figure~\ref{fig:hrs-input} shows the prescribed fields for the representative
+equal-energy condition. The bar
+panel is explicitly a design summary, not simulation output.
+\begin{figure}[p]
+\centering
+\IfFileExists{../figures/input_configuration.pdf}{\includegraphics[width=\textwidth]{input_configuration.pdf}}{\fbox{MISSING prepared-input figure}}
+\caption{Whole-domain prepared fuel and initial-level-set fields. The separate energy figure shows the
+designed energy sweep. Coordinates are metres in EPSG:32610; the fields
+represent the equal-energy condition.}
+\label{fig:hrs-input}
+\end{figure}
+The predicted output is receiver TOA exactly 1~s and a finite terminal
+receiver speed recorded when the cell becomes burned on that step. Its magnitude
+changes continuously with heat and follows the matched head/back/side
+ellipse-normal mapping. The FTP pair is predicted to differ by a factor of two;
+the terminal time-stamped heat field is predicted to be zero after reset and is
+not substituted for the arrival-step stimulus.
+
+\IfFileExists{../figures/input_stimulus.pdf}{%
+\begin{figure}[p]\centering
+\includegraphics[width=\textwidth]{input_stimulus.pdf}
+\caption{Prescribed receiver energy for all twelve simulation conditions, read from the generated input simulation specification. The dashed line marks the source energy-branch diagnostic, not an acceptance threshold.}
+\end{figure}}{}
+
+\section{Actual simulation results}
+
+Analysis procedure status is \textbf{\WorkflowStatus}; \CompletedVariants{} of
+\RequiredVariants{} required simulation conditions have complete black-box evidence.  The
+reported reason is ``\StatusReason''. The common model-program SHA-256
+identity is \ReadableHash{\ExecutedBinarySHA}; ``--'' means no completed
+simulation supplied that evidence. For each completed condition, the analysis
+retains the actual output times, heat fields at receiver arrival, terminal
+arrival-time and spread-rate fields, and matching input and reference
+identities. Previous results are excluded when inputs are regenerated:
+the scientific state becomes NOT EVALUABLE and the execution state becomes
+NOT RUN until new evidence is available.
+\IfFileExists{../figures/response_summary.pdf}{%
+\begin{figure}[p]\centering
+\includegraphics[width=\textwidth]{response_summary.pdf}
+\caption{Simulated receiver spread rates and independent predictions for all twelve simulation conditions. The predictions recompute the heat-to-spread relation using the simulated heat stimulus. This comparison isolates the receiver response from differences in the supplied heating; separate figures show the heat stimulus and the spatial result.}
+\end{figure}}{\begin{center}\fbox{No ELMFIRE result figure: analysis procedure has not been run.}\end{center}}
+
+\IfFileExists{../figures/heat_stimulus.pdf}{%
+\begin{figure}[p]\centering
+\includegraphics[width=\textwidth]{heat_stimulus.pdf}
+\caption{Simulated receiver energy at the selected arrival-step output, calculated from the recorded direct-flame-contact and radiative heat fields. The dashed line identifies the energy-branch transition in the reviewed formulation; it is not an acceptance threshold.}
+\end{figure}}{}
+
+\IfFileExists{../figures/domain_result.pdf}{%
+\begin{figure}[p]\centering
+\includegraphics[width=\textwidth]{domain_result.pdf}
+\caption{Whole-domain terminal spread rate for 35 mph wind at 4 s, read from the selected ELMFIRE raster. Symbols mark the source and receiver; nodata is blank.}
+\end{figure}}{}
+
+\section{Calculated metrics and verification decision}
+
+\input{readable_results.tex}
+
+The authoritative case decision sourced from
+calculated verification and validation metrics is \textbf{\VerificationStatus}.  NOT RUN and
+INCOMPLETE are analysis procedure states; NOT EVALUABLE is their non-passing scientific
+decision.
+
+\section{Technical interpretation}
+
+The repaired receiver stencil provides complete, observable arrival and speed
+evidence. Its positive initial PHI remains positive under the source's input
+noise, and its side-normal transport no longer competes with an artificial
+tangential minimum. The observability result therefore separates a usable
+experiment from agreement with the intended spread law.
+
+The remaining failures identify the heat-to-speed mapping. The source replaces
+the table FTP with an energy-dependent value and applies a separate wind-speed
+divisor. The material-pair speeds consequently do not show the required inverse
+FTP response. The energy and wind comparisons expose the associated branch
+changes, while the correct HRR amplitude ratio confirms that the prescribed
+source-amplitude control was realized. See the generated metric rows for the
+measured errors and decisions; a complete run is not a scientific PASS.
+
+\section{Scope and limitations}
+
+The case verifies the executable-visible local speed produced by one WU--E
+urban receiver under a compact deterministic sweep.  It does not independently
+verify the upstream heat-flux model, ignition delay over multiple cells, accumulated exposure across
+timesteps, building-to-building community spread, or convergence.  Internal
+working variables listed above remain inferred from the reviewed formulation,
+not observed. All accepted results must share one recorded model-program
+identity and matching input and reference identities. This consistency does
+not establish that the program was compiled from the reviewed source revision.
+The result provides numerical verification, not physical validation.
+
+\begin{thebibliography}{9}
+\bibitem{PurnomoPCI2024} D. M. J. Purnomo et al., ``Reconstructing modes of destruction in wildland--urban interface fires using a semi-physical level-set model,'' \emph{Proceedings of the Combustion Institute}, 40 (2024), 105755. \href{https://doi.org/10.1016/j.proci.2024.105755}{doi:10.1016/j.proci.2024.105755}.
+\bibitem{PurnomoIJWF2024} D. M. J. Purnomo et al., ``Integrating an urban fire model into an operational wildland fire model to simulate one dimensional wildland--urban interface fires: a parametric study,'' \emph{International Journal of Wildland Fire}, 33 (2024), WF24102. \href{https://doi.org/10.1071/WF24102}{doi:10.1071/WF24102}.
+\end{thebibliography}

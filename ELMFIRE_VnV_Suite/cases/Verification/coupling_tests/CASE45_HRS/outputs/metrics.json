@@ -1,0 +1,1201 @@
+{
+  "case_id": "CASE45_HRS",
+  "source_commit": "a2dfbcdf72209733c000e5d3431e44723e15efea",
+  "overall_status": "FAIL",
+  "workflow_status": "COMPLETE",
+  "verification_passed": false,
+  "required_outputs_complete": true,
+  "required_variant_count": 12,
+  "completed_variant_count": 12,
+  "reason": "All required run evidence was complete, but one or more scientific metrics failed.",
+  "runtime_input_fingerprint_sha256": "e37779a4d19df8fda8a04dd78fa2f60b15ab60a5982209f76b040e9d2145c893",
+  "oracle_manifest_sha256": "2dfe4df51088e6334268df69888e932bc8651b48cd5f643df5facb3e98b6ae61",
+  "oracle_evaluator_sha256": "52c413fd3bc792b01afe3985d52bb2d8aedcd59d8009f7e3b6bc294cd13b424a",
+  "executed_binary": {
+    "resolved_path": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+    "sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+    "size_bytes": 700368
+  },
+  "oracle_semantics": "recorded transient heat is an input stimulus; the downstream UMD_UCB_BLDG_SPREAD mapping is recomputed independently",
+  "metrics": [
+    {
+      "name": "recorded heat-to-ROS oracle relative error",
+      "expected": "<= 0.005",
+      "calculated": 2.104206231324779,
+      "units": "fraction",
+      "status": "FAIL"
+    },
+    {
+      "name": "receiver LIST_BURNED observability",
+      "expected": "TOA = 1 s and terminal VS is finite",
+      "calculated": "True",
+      "units": "--",
+      "status": "PASS"
+    },
+    {
+      "name": "fixed-FTP continuity across 30000 kJ",
+      "expected": "normalized speed spread <= 0.005",
+      "calculated": 1.8138495448148282,
+      "units": "fraction",
+      "status": "FAIL"
+    },
+    {
+      "name": "wind continuity across 35 mph",
+      "expected": "oracle error <= 0.005",
+      "calculated": 0.444444483971983,
+      "units": "fraction",
+      "status": "FAIL"
+    },
+    {
+      "name": "HRR amplitude response",
+      "expected": "double/half heat ratio = 4 +/- 0.04",
+      "calculated": 4.0,
+      "units": "ratio",
+      "status": "PASS"
+    },
+    {
+      "name": "head/back/side response",
+      "expected": "matched-wind maximum relative error <= 0.005",
+      "calculated": 0.444444483971983,
+      "units": "fraction",
+      "status": "FAIL"
+    },
+    {
+      "name": "FTP_CRIT inverse response",
+      "expected": "speed ratio for 3000/6000 kJ m^-2 = 2 +/- 0.01",
+      "calculated": 1.0,
+      "units": "ratio",
+      "status": "FAIL"
+    }
+  ],
+  "variants": [
+    {
+      "id": "energy_below",
+      "wind_mph": 34.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 288.53912353515625,
+      "requested_step_energy_kj": 29900.0,
+      "designed_step_energy_kj": 29900.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 97.10293579101562,
+        "ellipse_minor_m": 20.24562644958496,
+        "ellipse_eccentricity_m": 48.55146789550781,
+        "ellipse_downwind_m": 171.465087890625,
+        "ellipse_upwind_m": 22.74078369140625,
+        "ellipse_sidewind_m": 17.533226013183594,
+        "hrr_adjuster": 0.2590636610984802,
+        "ellipse_distance_m": 51.43952941894531,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 74.75,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 74.75,
+        "step_energy_kj": 29900.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 97.10288778542586,
+        "minor_m": 20.24561421068446,
+        "eccentricity_m": 48.55144389271293,
+        "downwind_m": 171.4649829523173,
+        "upwind_m": 22.740792618534414,
+        "sidewind_m": 17.533216221671978
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.2590639644703301,
+        "ellipse_distance_m": 51.43949488569519,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.2590639644703301,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.2590639644703301
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": false,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 98.0971128608924,
+      "predicted_absolute_displacement_per_step_m": 0.49833333333333335,
+      "predicted_receiver_velocity_ft_min": 60.87964128328557,
+      "predicted_receiver_displacement_per_step_m": 0.3092685777190907,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.006933626332012874,
+      "receiver_phi_margin_factor": 4.622417554675249,
+      "normal_displacement_per_step_m": 0.3092685777190907,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "0c3b55045016d453439f40cd0f9e61bda808dead58c1583f52a4172dec4d7dde",
+      "recorded_peak_heat_kw_m2": 74.75005340576172,
+      "recorded_step_energy_kj": 29900.021362304688,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 188.98309326171875,
+      "oracle_vs_ft_min": 60.879683622394715,
+      "ros_relative_error": 2.104206231324779,
+      "selected_files": {
+        "dfc": "variants/energy_below/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/energy_below/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/energy_below/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/energy_below/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/energy_below/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/energy_below/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "1070795af645e163c1fdd1a9bcad999d6c56054531fade5e71ad9c60b05d300c",
+        "output_snapshot_sha256": "b89cd1ca898f223b97a786ebb87fae5717df88f933988932338a2fec170d4742"
+      }
+    },
+    {
+      "id": "energy_equal",
+      "wind_mph": 34.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 289.5041198730469,
+      "requested_step_energy_kj": 30000.0,
+      "designed_step_energy_kj": 30000.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 97.10293579101562,
+        "ellipse_minor_m": 20.24562644958496,
+        "ellipse_eccentricity_m": 48.55146789550781,
+        "ellipse_downwind_m": 171.465087890625,
+        "ellipse_upwind_m": 22.74078369140625,
+        "ellipse_sidewind_m": 17.533226013183594,
+        "hrr_adjuster": 0.2590636610984802,
+        "ellipse_distance_m": 51.43952941894531,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 75.0,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 75.0,
+        "step_energy_kj": 30000.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 97.10288778542586,
+        "minor_m": 20.24561421068446,
+        "eccentricity_m": 48.55144389271293,
+        "downwind_m": 171.4649829523173,
+        "upwind_m": 22.740792618534414,
+        "sidewind_m": 17.533216221671978
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.2590639644703301,
+        "ellipse_distance_m": 51.43949488569519,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.2590639644703301,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.2590639644703301
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": false,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 98.4251968503937,
+      "predicted_absolute_displacement_per_step_m": 0.5000000000000001,
+      "predicted_receiver_velocity_ft_min": 61.083252123697896,
+      "predicted_receiver_displacement_per_step_m": 0.31030292078838534,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.0069568157177386705,
+      "receiver_phi_margin_factor": 4.637877145159114,
+      "normal_displacement_per_step_m": 0.31030292078838534,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "63da142bcc89d9de5097e2eaa04c280cb1d787ca63c5aa1a98da876792c1e6dc",
+      "recorded_peak_heat_kw_m2": 75.00004577636719,
+      "recorded_step_energy_kj": 30000.018310546875,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 33.93516540527344,
+      "oracle_vs_ft_min": 61.083288245228346,
+      "ros_relative_error": 0.4444443581845914,
+      "selected_files": {
+        "dfc": "variants/energy_equal/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/energy_equal/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/energy_equal/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/energy_equal/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/energy_equal/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/energy_equal/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "289f4537889bacaa1add2f64a59034db06adcdeab692920b292274349d293a23",
+        "output_snapshot_sha256": "e0ac607d24a3af68ce99e7f9c990cc35af76801c70d27e7ca96e4f76c32e84f9"
+      }
+    },
+    {
+      "id": "energy_above",
+      "wind_mph": 34.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 290.4691467285156,
+      "requested_step_energy_kj": 30100.0,
+      "designed_step_energy_kj": 30100.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 97.10293579101562,
+        "ellipse_minor_m": 20.24562644958496,
+        "ellipse_eccentricity_m": 48.55146789550781,
+        "ellipse_downwind_m": 171.465087890625,
+        "ellipse_upwind_m": 22.74078369140625,
+        "ellipse_sidewind_m": 17.533226013183594,
+        "hrr_adjuster": 0.2590636610984802,
+        "ellipse_distance_m": 51.43952941894531,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 75.25,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 75.25,
+        "step_energy_kj": 30100.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 97.10288778542586,
+        "minor_m": 20.24561421068446,
+        "eccentricity_m": 48.55144389271293,
+        "downwind_m": 171.4649829523173,
+        "upwind_m": 22.740792618534414,
+        "sidewind_m": 17.533216221671978
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.2590639644703301,
+        "ellipse_distance_m": 51.43949488569519,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.2590639644703301,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.2590639644703301
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": true,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 98.75328083989501,
+      "predicted_absolute_displacement_per_step_m": 0.5016666666666667,
+      "predicted_receiver_velocity_ft_min": 61.28686296411022,
+      "predicted_receiver_displacement_per_step_m": 0.3113372638576799,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.006980005103464464,
+      "receiver_phi_margin_factor": 4.653336735642975,
+      "normal_displacement_per_step_m": 0.3113372638576799,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "9dd3edbc8bddf6ef4a9a263cb4b59972ba204c4a7118869173c97b02134e8b43",
+      "recorded_peak_heat_kw_m2": 75.25005340576172,
+      "recorded_step_energy_kj": 30100.021362304688,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 34.04828643798828,
+      "oracle_vs_ft_min": 61.28690529548119,
+      "ros_relative_error": 0.4444443511410466,
+      "selected_files": {
+        "dfc": "variants/energy_above/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/energy_above/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/energy_above/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/energy_above/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/energy_above/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/energy_above/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "b0fdededc1d38432816dccbc1436f34ee3535fe81e06764c63765a161b20adff",
+        "output_snapshot_sha256": "9f9c460be175e45a0ede94604ce66a596db17f764b2f6f62eef812b99435802f"
+      }
+    },
+    {
+      "id": "wind_below_35",
+      "wind_mph": 34.9,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 351.0770263671875,
+      "requested_step_energy_kj": 30100.0,
+      "designed_step_energy_kj": 30100.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 106.61639404296875,
+        "ellipse_minor_m": 22.286508560180664,
+        "ellipse_eccentricity_m": 53.308197021484375,
+        "ellipse_downwind_m": 188.505859375,
+        "ellipse_upwind_m": 24.7269287109375,
+        "ellipse_sidewind_m": 19.300682067871094,
+        "hrr_adjuster": 0.2143404334783554,
+        "ellipse_distance_m": 56.551761627197266,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 75.25,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 75.25,
+        "step_energy_kj": 30100.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 106.61635744526131,
+        "minor_m": 22.286473390240715,
+        "eccentricity_m": 53.30817872263066,
+        "downwind_m": 188.50577963641354,
+        "upwind_m": 24.726935254109094,
+        "sidewind_m": 19.30065211671436
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.21434083489138062,
+        "ellipse_distance_m": 56.55173389092407,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.21434083489138062,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.21434083489138062
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": true,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 98.75328083989501,
+      "predicted_absolute_displacement_per_step_m": 0.5016666666666667,
+      "predicted_receiver_velocity_ft_min": 61.25960357508342,
+      "predicted_receiver_displacement_per_step_m": 0.31119878616142377,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.006976889355298701,
+      "receiver_phi_margin_factor": 4.651259570199134,
+      "normal_displacement_per_step_m": 0.31119878616142377,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "2d5ccbb7e6b2078d34d8636e06a60fe09cef5323d34cc10642b9d104f45062a1",
+      "recorded_peak_heat_kw_m2": 75.2500991821289,
+      "recorded_step_energy_kj": 30100.039672851562,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 34.03315734863281,
+      "oracle_vs_ft_min": 61.259671238916134,
+      "ros_relative_error": 0.44444433572126757,
+      "selected_files": {
+        "dfc": "variants/wind_below_35/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/wind_below_35/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/wind_below_35/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/wind_below_35/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/wind_below_35/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/wind_below_35/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "dc74232d232410c07c658f4ad23d5f6072b6e4c7bda232c8c46a342a9405bcd0",
+        "output_snapshot_sha256": "3c838b61ee283f78c7cd85ff3d0851e83d06fcee0540968c82fc9d9049adc69f"
+      }
+    },
+    {
+      "id": "wind_equal_35",
+      "wind_mph": 35.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 358.5794982910156,
+      "requested_step_energy_kj": 30100.0,
+      "designed_step_energy_kj": 30100.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 107.73453521728516,
+        "ellipse_minor_m": 22.526519775390625,
+        "ellipse_eccentricity_m": 53.86726760864258,
+        "ellipse_downwind_m": 190.5076904296875,
+        "ellipse_upwind_m": 24.961380004882812,
+        "ellipse_sidewind_m": 19.50853729248047,
+        "hrr_adjuster": 0.2098558396100998,
+        "ellipse_distance_m": 57.15230941772461,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 75.25,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 75.25,
+        "step_energy_kj": 30100.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 107.73452478415305,
+        "minor_m": 22.52650483529324,
+        "eccentricity_m": 53.867262392076526,
+        "downwind_m": 190.5076552164462,
+        "upwind_m": 24.961394351859894,
+        "sidewind_m": 19.508525445836938
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.20985600301369986,
+        "ellipse_distance_m": 57.15229656493386,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.20985600301369986,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.20985600301369986
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": true,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 98.75328083989501,
+      "predicted_absolute_displacement_per_step_m": 0.5016666666666667,
+      "predicted_receiver_velocity_ft_min": 61.25664260395465,
+      "predicted_receiver_displacement_per_step_m": 0.31118374442808966,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.006976550916298683,
+      "receiver_phi_margin_factor": 4.651033944199122,
+      "normal_displacement_per_step_m": 0.31118374442808966,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "477667292b046f98ead499be77f04a5725d513f8d511be33bd9304485c7db321",
+      "recorded_peak_heat_kw_m2": 75.25005340576172,
+      "recorded_step_energy_kj": 30100.021362304688,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 34.03148651123047,
+      "oracle_vs_ft_min": 61.256680078601256,
+      "ros_relative_error": 0.444444483971983,
+      "selected_files": {
+        "dfc": "variants/wind_equal_35/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/wind_equal_35/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/wind_equal_35/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/wind_equal_35/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/wind_equal_35/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/wind_equal_35/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "40d8da1e0b585a763b92b4db7b374726ca10be0b0476b5234a4170e1867f55aa",
+        "output_snapshot_sha256": "168afd6c7377fa17c152146db3f2c72ac800c91aba141b2666412fd58cf51d81"
+      }
+    },
+    {
+      "id": "wind_above_35",
+      "wind_mph": 35.1,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 366.2454833984375,
+      "requested_step_energy_kj": 30100.0,
+      "designed_step_energy_kj": 30100.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 108.86492156982422,
+        "ellipse_minor_m": 22.769207000732422,
+        "ellipse_eccentricity_m": 54.43246078491211,
+        "ellipse_downwind_m": 192.53125,
+        "ellipse_upwind_m": 25.198593139648438,
+        "ellipse_sidewind_m": 19.718711853027344,
+        "hrr_adjuster": 0.20546329021453857,
+        "ellipse_distance_m": 57.75938034057617,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 75.25,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 75.25,
+        "step_energy_kj": 30100.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 108.8649151539379,
+        "minor_m": 22.769190143143835,
+        "eccentricity_m": 54.43245757696895,
+        "downwind_m": 192.53122154172775,
+        "upwind_m": 25.198608766148055,
+        "sidewind_m": 19.7186970875608
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.2054634554205957,
+        "ellipse_distance_m": 57.75936646251832,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.2054634554205957,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.2054634554205957
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": true,
+        "wind_at_or_below_35_mph": false
+      },
+      "predicted_absolute_velocity_ft_min": 98.75328083989501,
+      "predicted_absolute_displacement_per_step_m": 0.5016666666666667,
+      "predicted_receiver_velocity_ft_min": 61.25369741115933,
+      "predicted_receiver_displacement_per_step_m": 0.31116878284868943,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.006976214280762178,
+      "receiver_phi_margin_factor": 4.650809520508118,
+      "normal_displacement_per_step_m": 0.31116878284868943,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "115c4c5d0237863520cfa23410aa094455622d5e60808204b6ece4d5c79dbe49",
+      "recorded_peak_heat_kw_m2": 75.25006103515625,
+      "recorded_step_energy_kj": 30100.0244140625,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 61.25375747680664,
+      "oracle_vs_ft_min": 61.25373987396409,
+      "ros_relative_error": 2.8737580078160583e-07,
+      "selected_files": {
+        "dfc": "variants/wind_above_35/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/wind_above_35/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/wind_above_35/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/wind_above_35/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/wind_above_35/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/wind_above_35/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "8fa63101a18e01d23bb09576baa6367f1bd69d50729dabb069e565f1bbd57d06",
+        "output_snapshot_sha256": "7773f090fa302b1a0026b5989966f58df9469443e18b03d1c769c517b46d22c9"
+      }
+    },
+    {
+      "id": "normal_back",
+      "wind_mph": 35.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "back",
+      "normal_xy": [
+        -1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        11
+      ],
+      "hrr_peak_kw_m2": 729.7859497070312,
+      "requested_step_energy_kj": 30100.0,
+      "designed_step_energy_kj": 30100.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 107.73453521728516,
+        "ellipse_minor_m": 22.526519775390625,
+        "ellipse_eccentricity_m": 53.86726760864258,
+        "ellipse_downwind_m": 190.5076904296875,
+        "ellipse_upwind_m": 24.961380004882812,
+        "ellipse_sidewind_m": 19.50853729248047,
+        "hrr_adjuster": 0.2098558396100998,
+        "ellipse_distance_m": 19.050769805908203,
+        "dfc_factor": 0.45253849029541016,
+        "radiation_factor": 0.5474615097045898,
+        "dfc_heat_kw_m2": 69.30619812011719,
+        "radiation_heat_kw_m2": 5.943802356719971,
+        "total_heat_kw_m2": 75.25,
+        "step_energy_kj": 30100.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 107.73452478415305,
+        "minor_m": 22.52650483529324,
+        "eccentricity_m": 53.867262392076526,
+        "downwind_m": 190.5076552164462,
+        "upwind_m": 24.961394351859894,
+        "sidewind_m": 19.508525445836938
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.20985600301369986,
+        "ellipse_distance_m": 19.05076552164462,
+        "dfc_factor": 0.4525382760822311,
+        "dfc_per_hrr": 0.09496787382932723,
+        "radiation_per_hrr": 0.00814458637780066,
+        "total_heat_per_hrr": 0.10311246020712789
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": true,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 98.75328083989501,
+      "predicted_absolute_displacement_per_step_m": 0.5016666666666667,
+      "predicted_receiver_velocity_ft_min": 20.41888086798489,
+      "predicted_receiver_displacement_per_step_m": 0.10372791480936325,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.0023087947498773393,
+      "receiver_phi_margin_factor": 1.5391964999182262,
+      "normal_displacement_per_step_m": 0.10372791480936325,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "7eea0a14903b06e407765a929994d39ba152eab5552be08d18bf91e454be512b",
+      "recorded_peak_heat_kw_m2": 75.25005102157593,
+      "recorded_step_energy_kj": 30100.02040863037,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 11.343830108642578,
+      "oracle_vs_ft_min": 20.418892712591553,
+      "ros_relative_error": 0.4444444040960522,
+      "selected_files": {
+        "dfc": "variants/normal_back/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/normal_back/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/normal_back/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/normal_back/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/normal_back/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/normal_back/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "ffe6dcb9bb6b128fb40f23f7ab1c59963b33b069e4b2653aad6255b6e3e383e5",
+        "output_snapshot_sha256": "4464488f9be9ce8c060c909b43b4c8b1831bd0fe6b0201a4be87fe10ee637a36"
+      }
+    },
+    {
+      "id": "normal_side",
+      "wind_mph": 35.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "side",
+      "normal_xy": [
+        0.0,
+        1.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        11,
+        12
+      ],
+      "hrr_peak_kw_m2": 292.1798400878906,
+      "requested_step_energy_kj": 30100.0,
+      "designed_step_energy_kj": 30100.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 107.73453521728516,
+        "ellipse_minor_m": 22.526519775390625,
+        "ellipse_eccentricity_m": 53.86726760864258,
+        "ellipse_downwind_m": 190.5076904296875,
+        "ellipse_upwind_m": 24.961380004882812,
+        "ellipse_sidewind_m": 19.50853729248047,
+        "hrr_adjuster": 0.2098558396100998,
+        "ellipse_distance_m": 28.576154708862305,
+        "dfc_factor": 0.9288078546524048,
+        "radiation_factor": 0.07119214534759521,
+        "dfc_heat_kw_m2": 56.95045471191406,
+        "radiation_heat_kw_m2": 18.29954719543457,
+        "total_heat_kw_m2": 75.25,
+        "step_energy_kj": 30100.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 107.73452478415305,
+        "minor_m": 22.52650483529324,
+        "eccentricity_m": 53.867262392076526,
+        "downwind_m": 190.5076552164462,
+        "upwind_m": 24.961394351859894,
+        "sidewind_m": 19.508525445836938
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.20985600301369986,
+        "ellipse_distance_m": 28.57614828246693,
+        "dfc_factor": 0.9288074141233466,
+        "dfc_per_hrr": 0.1949158114974158,
+        "radiation_per_hrr": 0.06263080971259032,
+        "total_heat_per_hrr": 0.2575466212100061
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": true,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 98.75328083989501,
+      "predicted_absolute_displacement_per_step_m": 0.5016666666666667,
+      "predicted_receiver_velocity_ft_min": 26.619175280607717,
+      "predicted_receiver_displacement_per_step_m": 0.1352254104254872,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.001926904333823979,
+      "receiver_phi_margin_factor": 1.284602889215986,
+      "normal_displacement_per_step_m": 0.08675500742921388,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "be05057aa42c0e50a077e656a06269556760a4f10f29bd2bf3fdcee6c9f66a04",
+      "recorded_peak_heat_kw_m2": 75.25006866455078,
+      "recorded_step_energy_kj": 30100.027465820312,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 14.791515350341797,
+      "oracle_vs_ft_min": 26.61920316847071,
+      "ros_relative_error": 0.44432914626604214,
+      "selected_files": {
+        "dfc": "variants/normal_side/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/normal_side/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/normal_side/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/normal_side/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/normal_side/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/normal_side/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "d0e7870af6f6ba06e550c893265c726003f2a8b5fe1ecc9fd67d4f6c78243551",
+        "output_snapshot_sha256": "192ce29140c3937652c2570532e855d425006eb915a6159143440d51914422b7"
+      }
+    },
+    {
+      "id": "hrr_half",
+      "wind_mph": 35.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 179.2897491455078,
+      "requested_step_energy_kj": null,
+      "designed_step_energy_kj": 15050.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 107.73453521728516,
+        "ellipse_minor_m": 22.526519775390625,
+        "ellipse_eccentricity_m": 53.86726760864258,
+        "ellipse_downwind_m": 190.5076904296875,
+        "ellipse_upwind_m": 24.961380004882812,
+        "ellipse_sidewind_m": 19.50853729248047,
+        "hrr_adjuster": 0.2098558396100998,
+        "ellipse_distance_m": 57.15230941772461,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 37.625,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 37.625,
+        "step_energy_kj": 15050.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 107.73452478415305,
+        "minor_m": 22.52650483529324,
+        "eccentricity_m": 53.867262392076526,
+        "downwind_m": 190.5076552164462,
+        "upwind_m": 24.961394351859894,
+        "sidewind_m": 19.508525445836938
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.20985600301369986,
+        "ellipse_distance_m": 57.15229656493386,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.20985600301369986,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.20985600301369986
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": false,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 49.376640419947506,
+      "predicted_absolute_displacement_per_step_m": 0.25083333333333335,
+      "predicted_receiver_velocity_ft_min": 30.628321301977326,
+      "predicted_receiver_displacement_per_step_m": 0.15559187221404483,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.0034882754581493417,
+      "receiver_phi_margin_factor": 2.325516972099561,
+      "normal_displacement_per_step_m": 0.15559187221404483,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "055073825a00b679d0aa3d3947ce4195dc5785b61e84c6832649170c1be548df",
+      "recorded_peak_heat_kw_m2": 37.62502670288086,
+      "recorded_step_energy_kj": 15050.010681152344,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 24.088212966918945,
+      "oracle_vs_ft_min": 30.628340039300628,
+      "ros_relative_error": 0.2135318813879481,
+      "selected_files": {
+        "dfc": "variants/hrr_half/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/hrr_half/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/hrr_half/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/hrr_half/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/hrr_half/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/hrr_half/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "87a29a7b9bdc7d1025b38bf4b6c39f27d91139f5e91b1a37aa54d4efbfa75ac9",
+        "output_snapshot_sha256": "eecb9088b5f622b5cd22a6aae84e7663a896fd5c944e7cb5a6e8383c82bac4a9"
+      }
+    },
+    {
+      "id": "hrr_double",
+      "wind_mph": 35.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 717.1589965820312,
+      "requested_step_energy_kj": null,
+      "designed_step_energy_kj": 60200.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 107.73453521728516,
+        "ellipse_minor_m": 22.526519775390625,
+        "ellipse_eccentricity_m": 53.86726760864258,
+        "ellipse_downwind_m": 190.5076904296875,
+        "ellipse_upwind_m": 24.961380004882812,
+        "ellipse_sidewind_m": 19.50853729248047,
+        "hrr_adjuster": 0.2098558396100998,
+        "ellipse_distance_m": 57.15230941772461,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 150.5,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 150.5,
+        "step_energy_kj": 60200.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 107.73452478415305,
+        "minor_m": 22.52650483529324,
+        "eccentricity_m": 53.867262392076526,
+        "downwind_m": 190.5076552164462,
+        "upwind_m": 24.961394351859894,
+        "sidewind_m": 19.508525445836938
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.20985600301369986,
+        "ellipse_distance_m": 57.15229656493386,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.20985600301369986,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.20985600301369986
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": true,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 197.50656167979002,
+      "predicted_absolute_displacement_per_step_m": 1.0033333333333334,
+      "predicted_receiver_velocity_ft_min": 122.5132852079093,
+      "predicted_receiver_displacement_per_step_m": 0.6223674888561793,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.013953101832597367,
+      "receiver_phi_margin_factor": 9.302067888398245,
+      "normal_displacement_per_step_m": 0.6223674888561793,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "ef6a48f2ae5b93b9d944417ef19d34121ffffa2cc7184208db51fccf165f4483",
+      "recorded_peak_heat_kw_m2": 150.50010681152344,
+      "recorded_step_energy_kj": 60200.042724609375,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 68.06297302246094,
+      "oracle_vs_ft_min": 122.51336015720251,
+      "ros_relative_error": 0.444444483971983,
+      "selected_files": {
+        "dfc": "variants/hrr_double/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/hrr_double/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/hrr_double/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/hrr_double/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/hrr_double/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/hrr_double/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "7aec61b97c8595100c3f4d1251dfa9797fb940115e35623abbb2326f08750c84",
+        "output_snapshot_sha256": "6b77286fabea4488d86ab67930c4ba9663a73620608688730c739ca1dcfae494"
+      }
+    },
+    {
+      "id": "ftp_low",
+      "wind_mph": 35.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 358.5794982910156,
+      "requested_step_energy_kj": 30100.0,
+      "designed_step_energy_kj": 30100.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 107.73453521728516,
+        "ellipse_minor_m": 22.526519775390625,
+        "ellipse_eccentricity_m": 53.86726760864258,
+        "ellipse_downwind_m": 190.5076904296875,
+        "ellipse_upwind_m": 24.961380004882812,
+        "ellipse_sidewind_m": 19.50853729248047,
+        "hrr_adjuster": 0.2098558396100998,
+        "ellipse_distance_m": 57.15230941772461,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 75.25,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 75.25,
+        "step_energy_kj": 30100.0
+      },
+      "ftp_crit_table_kj_m2": 3000.0,
+      "ellipse": {
+        "major_m": 107.73452478415305,
+        "minor_m": 22.52650483529324,
+        "eccentricity_m": 53.867262392076526,
+        "downwind_m": 190.5076552164462,
+        "upwind_m": 24.961394351859894,
+        "sidewind_m": 19.508525445836938
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.20985600301369986,
+        "ellipse_distance_m": 57.15229656493386,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.20985600301369986,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.20985600301369986
+      },
+      "intended_ftp_crit_kj_m2": 3000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": true,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 98.75328083989501,
+      "predicted_absolute_displacement_per_step_m": 0.5016666666666667,
+      "predicted_receiver_velocity_ft_min": 61.25664260395465,
+      "predicted_receiver_displacement_per_step_m": 0.31118374442808966,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.006976550916298683,
+      "receiver_phi_margin_factor": 4.651033944199122,
+      "normal_displacement_per_step_m": 0.31118374442808966,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "880982a7d3fcc23e7b2c8bd9df6315c76944ddcd6a01ca6e0d81bb8614deba6a",
+      "recorded_peak_heat_kw_m2": 75.25005340576172,
+      "recorded_step_energy_kj": 30100.021362304688,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 34.03148651123047,
+      "oracle_vs_ft_min": 61.256680078601256,
+      "ros_relative_error": 0.444444483971983,
+      "selected_files": {
+        "dfc": "variants/ftp_low/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/ftp_low/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/ftp_low/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/ftp_low/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/ftp_low/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/ftp_low/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "8674c59af4d7e1f75ee82f2cb8c03c77bbfc9c9618d75fc528c9aafd237fce6b",
+        "output_snapshot_sha256": "bdc5c707aea63c2a86b5bd70914165c96fe68b7d73ace888bffc7c6a4995ef6f"
+      }
+    },
+    {
+      "id": "ftp_high",
+      "wind_mph": 35.0,
+      "wind_from_degrees": 270.0,
+      "normal_class": "head",
+      "normal_xy": [
+        1.0,
+        0.0
+      ],
+      "source_row_col": [
+        12,
+        12
+      ],
+      "receiver_row_col": [
+        12,
+        13
+      ],
+      "hrr_peak_kw_m2": 358.5794982910156,
+      "requested_step_energy_kj": 30100.0,
+      "designed_step_energy_kj": 30100.0,
+      "binary32_input_design": {
+        "ellipse_major_m": 107.73453521728516,
+        "ellipse_minor_m": 22.526519775390625,
+        "ellipse_eccentricity_m": 53.86726760864258,
+        "ellipse_downwind_m": 190.5076904296875,
+        "ellipse_upwind_m": 24.961380004882812,
+        "ellipse_sidewind_m": 19.50853729248047,
+        "hrr_adjuster": 0.2098558396100998,
+        "ellipse_distance_m": 57.15230941772461,
+        "dfc_factor": 1.0,
+        "radiation_factor": 0.0,
+        "dfc_heat_kw_m2": 75.25,
+        "radiation_heat_kw_m2": 0.0,
+        "total_heat_kw_m2": 75.25,
+        "step_energy_kj": 30100.0
+      },
+      "ftp_crit_table_kj_m2": 6000.0,
+      "ellipse": {
+        "major_m": 107.73452478415305,
+        "minor_m": 22.52650483529324,
+        "eccentricity_m": 53.867262392076526,
+        "downwind_m": 190.5076552164462,
+        "upwind_m": 24.961394351859894,
+        "sidewind_m": 19.508525445836938
+      },
+      "heat_transfer": {
+        "hrr_adjuster": 0.20985600301369986,
+        "ellipse_distance_m": 57.15229656493386,
+        "dfc_factor": 1.0,
+        "dfc_per_hrr": 0.20985600301369986,
+        "radiation_per_hrr": 0.0,
+        "total_heat_per_hrr": 0.20985600301369986
+      },
+      "intended_ftp_crit_kj_m2": 6000.0,
+      "source_deviation_diagnostics": {
+        "energy_above_30000_kj": true,
+        "wind_at_or_below_35_mph": true
+      },
+      "predicted_absolute_velocity_ft_min": 49.376640419947506,
+      "predicted_absolute_displacement_per_step_m": 0.25083333333333335,
+      "predicted_receiver_velocity_ft_min": 30.628321301977326,
+      "predicted_receiver_displacement_per_step_m": 0.15559187221404483,
+      "prepared_limited_gradient_per_m": 0.0451,
+      "conservative_rk2_phi_decrement": 0.0034882754581493417,
+      "receiver_phi_margin_factor": 2.325516972099561,
+      "normal_displacement_per_step_m": 0.15559187221404483,
+      "receiver_phi_upper_bound": 0.0015,
+      "target_cfl_displacement_limit_m": 2.0,
+      "runtime_input_fingerprint_sha256": "1075d19a5e282b95f4b498d8e233936452593e47af7006a25cba079d591f6fcd",
+      "recorded_peak_heat_kw_m2": 75.25005340576172,
+      "recorded_step_energy_kj": 30100.021362304688,
+      "receiver_toa_s": 1.0,
+      "selected_heat_time_s": 1.0,
+      "selected_heat_dump_index": 2,
+      "measured_vs_ft_min": 34.03148651123047,
+      "oracle_vs_ft_min": 30.628340039300628,
+      "ros_relative_error": 0.11111103205603395,
+      "selected_files": {
+        "dfc": "variants/ftp_high/outputs/hf_dfc_transient_0000001_d0000002.tif",
+        "radiation": "variants/ftp_high/outputs/hf_rad_transient_0000001_d0000002.tif",
+        "spread_rate": "variants/ftp_high/outputs/vs_0000001_0000004.tif",
+        "time_of_arrival": "variants/ftp_high/outputs/time_of_arrival_0000001_0000004.tif",
+        "dump_times": "variants/ftp_high/outputs/dump_times_0000001.csv"
+      },
+      "terminal_dump_index": 5,
+      "terminal_time_stamp_s": 4,
+      "run_evidence": {
+        "completion_marker": "variants/ftp_high/outputs/run_complete.json",
+        "executable_resolved": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+        "executable_sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+        "log_snapshot_sha256": "0cf6f454700dfda5c1ec5c1914cea51a2e554f2d6d82086c652ec2b2dd6e59c9",
+        "output_snapshot_sha256": "5fe2f0ee028a59c2481706fc12a8d291f57536b7f380176094bd5687e7f3da76"
+      }
+    }
+  ]
+}

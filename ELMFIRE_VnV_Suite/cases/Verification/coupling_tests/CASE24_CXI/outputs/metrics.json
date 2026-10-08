@@ -1,0 +1,27 @@
+{
+  "case_id": "CASE24_CXI",
+  "case_title": "Case 24: Combined fuel, slope, and wind interactions",
+  "overall_status": "PASS",
+  "workflow_status": "COMPLETE",
+  "metric_count": 1,
+  "passing_metric_count": 1,
+  "variants": [
+    {
+      "label": "main",
+      "guide_case": "Complex",
+      "configuration": "elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "head ROS",
+          "target": 12.896232594040406,
+          "measured": 12.896235466003418,
+          "percent_error": 2.2269782987813105e-05,
+          "units": "m/min",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "source": "ELMFIRE Guide verification section"
+}

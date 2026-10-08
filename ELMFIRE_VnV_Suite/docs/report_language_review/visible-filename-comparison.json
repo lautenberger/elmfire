@@ -1,0 +1,647 @@
+[
+  {
+    "case": "CASE01_BET",
+    "removed_visible_tokens": [
+      "flin_*_*.tif",
+      "outputs/",
+      "outputs/metrics.json",
+      "vs_*_*.tif"
+    ],
+    "remaining_visible_tokens": [
+      "ember_flux_0000001_0000500.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE02_FGR",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json",
+      "variants/manifest.json"
+    ],
+    "remaining_visible_tokens": [
+      "ember_flux_0000001_0003641.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE03_ETC",
+    "removed_visible_tokens": [
+      "run_case.sh"
+    ],
+    "remaining_visible_tokens": [
+      "phi_0000001_d0000873.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE04_STI",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json",
+      "run_case.sh",
+      "variants/manifest.json"
+    ],
+    "remaining_visible_tokens": [
+      "ember_flux_0000001_0000100.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE05_TDW",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json",
+      "wd.tif",
+      "ws.tif"
+    ],
+    "remaining_visible_tokens": [
+      "time_of_arrival_0000001_0000120.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE06_F2D",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json"
+    ],
+    "remaining_visible_tokens": [
+      "ember_flux_0000001_0000120.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE07_IPC",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json"
+    ],
+    "remaining_visible_tokens": [
+      "ember_ignition_0000001_0000240.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE08_FBC",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json"
+    ],
+    "remaining_visible_tokens": [
+      "ember_flux_0000001_0000260.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE09_MMD",
+    "removed_visible_tokens": [
+      "data.in",
+      "metrics.json",
+      "outputs/",
+      "outputs/metrics.json",
+      "run_case.sh",
+      "scripts/",
+      "scripts/preprocess.py"
+    ],
+    "remaining_visible_tokens": [
+      "time_of_arrival_0000001_0000300.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE10_WSR",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json"
+    ],
+    "remaining_visible_tokens": [
+      "time_of_arrival_0000001_0022000.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE11_WSC",
+    "removed_visible_tokens": [
+      "run_case.sh",
+      "scripts/",
+      "scripts/preprocess.py"
+    ],
+    "remaining_visible_tokens": [
+      "time_of_arrival_0000001_0006000.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE12_TRS",
+    "removed_visible_tokens": [
+      "run_case.sh",
+      "scripts/",
+      "scripts/postprocess.py",
+      "scripts/preprocess.py",
+      "variants/manifest.json"
+    ],
+    "remaining_visible_tokens": [
+      "time_of_arrival_0000001_0022000.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE13_PRM",
+    "removed_visible_tokens": [
+      "case.json",
+      "outputs/",
+      "outputs/parameter_design.csv",
+      "outputs/parametric_results.csv",
+      "run_case.sh",
+      "scripts/",
+      "scripts/postprocess.py",
+      "scripts/preprocess.py"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE14_SRS",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/geometry_summary.csv",
+      "outputs/metrics.json",
+      "run_case.sh",
+      "scripts/",
+      "scripts/postprocess.py",
+      "scripts/preprocess.py"
+    ],
+    "remaining_visible_tokens": [
+      "time_of_arrival_0000001_0150000.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE15_CRO",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE16_NSP",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE17_SCV",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "data/",
+      "fbfm40.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE18_TCV",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "fbfm40.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE19_WTH",
+    "removed_visible_tokens": [
+      "elmfire_io.f90",
+      "elmfire_level_set.f90",
+      "hf_dfc_transient_0000001_*.tif",
+      "hf_rad_transient_0000001_*.tif",
+      "hrr_transient_0000001_*.tif"
+    ],
+    "remaining_visible_tokens": [
+      "isolated_adj.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE20_PIG",
+    "removed_visible_tokens": [
+      "outputs/metrics.json",
+      "postprocess.py",
+      "scripts/"
+    ],
+    "remaining_visible_tokens": [
+      "landscape.tif",
+      "outputs/",
+      "outputs/time_of_arrival_0000001_0266400.tif",
+      "time_of_arrival_0000001_0266400.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE21_WDE",
+    "removed_visible_tokens": [
+      "outputs/metrics.json",
+      "postprocess.py",
+      "scripts/"
+    ],
+    "remaining_visible_tokens": [
+      "outputs/",
+      "outputs/time_of_arrival_0000001_0266400.tif",
+      "time_of_arrival_0000001_0266400.tif",
+      "ws.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE22_VSL",
+    "removed_visible_tokens": [
+      "outputs/metrics.json",
+      "postprocess.py",
+      "scripts/"
+    ],
+    "remaining_visible_tokens": [
+      "landscape.tif",
+      "outputs/",
+      "outputs/time_of_arrival_0000001_0259200.tif",
+      "time_of_arrival_0000001_0259200.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE23_FQD",
+    "removed_visible_tokens": [
+      "outputs/metrics.json",
+      "postprocess.py",
+      "scripts/"
+    ],
+    "remaining_visible_tokens": [
+      "landscape.tif",
+      "outputs/",
+      "outputs/time_of_arrival_0000001_0259200.tif",
+      "time_of_arrival_0000001_0259200.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE24_CXI",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "landscape.tif",
+      "outputs/",
+      "outputs/time_of_arrival_0000001_0259200.tif",
+      "time_of_arrival_0000001_0259200.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE25_MQD",
+    "removed_visible_tokens": [
+      "outputs/metrics.json",
+      "postprocess.py",
+      "scripts/"
+    ],
+    "remaining_visible_tokens": [
+      "m1.tif",
+      "outputs/",
+      "outputs/time_of_arrival_0000001_0259200.tif",
+      "time_of_arrival_0000001_0259200.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE26_CNF",
+    "removed_visible_tokens": [
+      "outputs/metrics.json",
+      "postprocess.py",
+      "scripts/"
+    ],
+    "remaining_visible_tokens": [
+      "landscape.tif",
+      "outputs/",
+      "time_of_arrival_0000001_0266400.tif",
+      "variants/",
+      "variants/1mph/outputs/time_of_arrival_0000001_0266400.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE27_FBT",
+    "removed_visible_tokens": [
+      "outputs/metrics.json",
+      "postprocess.py",
+      "scripts/"
+    ],
+    "remaining_visible_tokens": [
+      "landscape.tif",
+      "outputs/",
+      "outputs/time_of_arrival_0000001_0000100.tif",
+      "time_of_arrival_0000001_0000100.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE28_OVA",
+    "removed_visible_tokens": [
+      "outputs/metrics.json",
+      "scripts/",
+      "scripts/postprocess.py"
+    ],
+    "remaining_visible_tokens": [
+      "m1.tif",
+      "outputs/",
+      "outputs/time_of_arrival_0000001_0266400.tif",
+      "time_of_arrival_0000001_0266400.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE29_SUP",
+    "removed_visible_tokens": [
+      "elmfire_level_set.f90",
+      "fire_size_stats*.csv",
+      "fire_size_stats.csv",
+      "outputs/metrics.json",
+      "scripts/",
+      "scripts/postprocess.py"
+    ],
+    "remaining_visible_tokens": [
+      "landscape.tif",
+      "outputs/",
+      "outputs/time_of_arrival_0000001_0252001.tif",
+      "time_of_arrival_0000001_0252001.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE30_MIT",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE31_PFT",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json",
+      "phi.tif"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE32_RCV",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json",
+      "phi.tif"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE33_SDO",
+    "removed_visible_tokens": [
+      "outputs/",
+      "outputs/metrics.json"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE34_FMS",
+    "removed_visible_tokens": [
+      "rothermel_reference.py"
+    ],
+    "remaining_visible_tokens": [
+      "fbfm40.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE35_WSS",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "variants/",
+      "ws.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE36_SLS",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "slp.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE37_DMS",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "m1.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE38_LMS",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "fbfm40.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE39_DHC",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "fbfm40.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE40_WSD",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "variants/",
+      "wd.tif"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE41_CFP",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "fbfm40.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE42_WAF",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [
+      "cc.tif",
+      "variants/"
+    ],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE43_WER",
+    "removed_visible_tokens": [
+      "case.yaml"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE44_WHP",
+    "removed_visible_tokens": [],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE45_HRS",
+    "removed_visible_tokens": [
+      "case.yaml",
+      "elmfire.f90",
+      "elmfire_io.f90",
+      "elmfire_subs.f90",
+      "expected.json",
+      "outputs/",
+      "outputs/metrics.json",
+      "variants/"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE46_WUT",
+    "removed_visible_tokens": [
+      "_0000060.tif",
+      "_d0000061.tif",
+      "build/source/",
+      "build/source/elmfire_spread_rate.f90",
+      "case.yaml",
+      "elmfire_io.f90",
+      "outputs/",
+      "outputs/source_selector_preflight.json",
+      "variants/",
+      "variants/expected.json",
+      "variants/run_fingerprints.json",
+      "variants/variant_ids.txt"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE47_UWT",
+    "removed_visible_tokens": [
+      "elmfire_level_set.f90",
+      "elmfire_spread_rate.f90",
+      "outputs/",
+      "outputs/metrics.json"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE48_WGC",
+    "removed_visible_tokens": [
+      "data/",
+      "elmfire_level_set.f90",
+      "elmfire_spread_rate.f90",
+      "outputs/",
+      "outputs/metrics.json",
+      "phi.tif",
+      "variants/",
+      "variants/dx_5p0m/data/inputs/fbfm.tif"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "CASE49_WTC",
+    "removed_visible_tokens": [
+      "elmfire_level_set.f90",
+      "elmfire_spread_rate.f90",
+      "outputs/",
+      "outputs/metrics.json"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "camp_fire",
+    "removed_visible_tokens": [
+      "Camp_VAL.rar",
+      "SOURCE_AUDIT.md",
+      "case.yaml",
+      "data/",
+      "data/archive_manifest.json",
+      "data/source_manifest.json",
+      "figures/*.pdf",
+      "outputs/",
+      "outputs/input_statistics.json",
+      "run_case.sh",
+      "scripts/",
+      "scripts/preprocess.py"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "thomas_fire",
+    "removed_visible_tokens": [
+      "SOURCE_AUDIT.md",
+      "Thomas_VAL.rar",
+      "case.yaml",
+      "data/",
+      "data/archive_manifest.json",
+      "data/source_manifest.json",
+      "figures/*.pdf",
+      "outputs/",
+      "outputs/input_statistics.json",
+      "run_case.sh",
+      "scripts/",
+      "scripts/preprocess.py"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  },
+  {
+    "case": "tubbs_fire",
+    "removed_visible_tokens": [
+      "SOURCE_AUDIT.md",
+      "Tubbs_VAL.rar",
+      "case.yaml",
+      "data/",
+      "data/archive_manifest.json",
+      "data/source_manifest.json",
+      "figures/*.pdf",
+      "outputs/",
+      "outputs/input_statistics.json",
+      "run_case.sh",
+      "scripts/",
+      "scripts/preprocess.py"
+    ],
+    "remaining_visible_tokens": [],
+    "note": "Extracted-text tokens, not an OCR or exhaustive visual audit."
+  }
+]

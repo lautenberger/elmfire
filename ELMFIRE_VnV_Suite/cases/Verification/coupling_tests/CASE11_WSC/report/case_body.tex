@@ -1,0 +1,329 @@
+\section{Verification purpose}
+
+This case verifies the effect of nonzero surface spread on ignition synchronization in a fine-grid WUI calculation. A no-surface reference and a surface-coupled simulation condition use identical geometry, wind, firebrand physics, and resolution; only surface propagation changes.
+
+The expected effect is earlier and more uniform ignition within each structure while cell-scale firebrand-accumulation distortion remains measurable. Success is based on paired structure-level timing and load metrics rather than visual comparison alone.
+
+\section{Mathematical formulation and numerical implementation}
+
+\subsection{Fine-grid structural discretization}
+
+At \(\Delta x=\SI{2.5}{m}\), each \SI{10}{m} structure is represented by
+a \(4\times4\) block of square cells. For cell \(j\), the
+structure heat-release rate (HRR) used by the firebrand model is
+\[
+  \mathrm{HRR}_j(t)=q''(t)\,\Delta x^2.
+\]
+No strip-width correction is applied: summing the 16 cells recovers the
+physical \SI{100}{m^2} footprint and its design HRR. Firebrands are generated with
+\[
+  \dot N_j(t)=GR'\,\mathrm{HRR}_j(t),\qquad
+  GR'=\SI{10}{pcs.MW^{-1}.s^{-1}},
+\]
+and transported by the current Eulerian implementation using the structural
+Himoto distribution. Physical ignition uses the critical accumulated load
+\(N''_{\rm crit}=\SI{2928.9}{pcs.m^{-2}}\), followed by the configured
+small-fuel and development delays.
+
+In the no-surface simulation condition, cell-local deposition makes downwind cells within
+one structure
+receive different loads. Those cells consequently cross the ignition
+criterion at different times, producing artificial intra-structure delay and
+slow community-scale propagation.
+
+\subsection{Surface-fire synchronization mechanism}
+
+The surface-coupled simulation condition retains the firebrand process but activates surface
+spread throughout the same two-dimensional lattice. The configured Hamada
+surface rate is
+\(ROS_{\rm surface}\approx\SI{0.34}{m.s^{-1}}\)~\cite{Qin2025}. Once one cell of a
+\SI{10}{m} structure ignites, a surface front at this speed traverses the
+footprint in approximately
+\[
+  \Delta t_{\rm traverse}
+  \approx \frac{a}{ROS_{\rm surface}}
+  =\frac{\SI{10}{m}}{\SI{0.34}{m.s^{-1}}}
+  \approx\SI{29.4}{s}.
+\]
+This is much shorter than the cell-to-cell ignition offsets created by
+firebrand accumulation alone. Surface coupling should therefore reduce
+within-structure ignition spans and accelerate the downwind ignition
+chronology. It does not alter the cell-local firebrand deposition algorithm,
+so load imbalance should remain visible.
+
+\section{Derivation of expected behavior}
+Surface propagation crosses a represented structure much faster than independent firebrand accumulation ignites its cells. The coupled simulation condition should therefore ignite earlier and with a smaller within-structure time span, while the unchanged deposition algorithm should preserve measurable load nonuniformity.
+
+% BEGIN EXPLICIT EXPECTED-RESULT DERIVATION
+At \(\Delta x=2.5~\mathrm{m}\), each structural cell has area
+\(2.5^2=6.25~\mathrm{m^2}\).  At the design-fire plateau,
+\[
+ HRR_{j,\max}=400(6.25)=2500~\mathrm{kW}=2.5~\mathrm{MW},
+ \qquad \dot N_{j,\max}=10(2.5)=25~\mathrm{pcs\,s^{-1}}.
+\]
+Summing the \(4\times4=16\) cells gives
+\(16(2.5)=40~\mathrm{MW}\) and
+\(16(25)=400~\mathrm{pcs\,s^{-1}}\), exactly the physical
+\(100~\mathrm{m^2}\) structure totals.  The generated level-set step is
+\[
+ \Delta t=0.5(2.5)/[40(0.44704)]=0.0699043~\mathrm{s}.
+\]
+Once one structural cell ignites, the surface reference crosses one 2.5-m
+cell in \(2.5/0.34=7.3529~\mathrm{s}\) and a full 10-m footprint in
+\(10/0.34=29.4118~\mathrm{s}\).  These are the explicit synchronization
+timescales; firebrand-only cells still wait for independent accumulation to
+\(2928.9~\mathrm{pcs\,m^{-2}}\) plus the configured ignition delays.
+
+The ideal paired signatures are therefore
+\(t_{\mathrm{coupled}}<t_{\mathrm{no\ surface}}\) for most matched cells,
+a smaller coupled within-structure span, and a larger coupled fitted rate of spread (ROS),
+while the deposition range remains nonzero because its algorithm is unchanged.
+The quantified substitutions require at least 75 percent earlier cells,
+median time ratio at most 0.90, median span ratio at most 0.50, ROS ratio at
+least 2, and coupled load range at least 0.05.
+% END EXPLICIT EXPECTED-RESULT DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+For every downstream structural cell having finite arrival times in both
+simulation conditions, let \(t_{\mathrm{ns},j}\) denote the no-surface arrival and
+\(t_{\mathrm{sc},j}\) the surface-coupled arrival. Earlier ignition is
+quantified by
+\[
+  F_{\rm early}=\frac{1}{N}\sum_j
+  \mathbf{1}(t_{\mathrm{sc},j}<t_{\mathrm{ns},j}),
+  \qquad
+  R_t=\operatorname{median}_j\left(
+  \frac{t_{\mathrm{sc},j}}{t_{\mathrm{ns},j}}\right).
+\]
+The case requires \(F_{\rm early}\ge0.75\) and \(R_t\le0.90\).
+
+For structure \(s\), define its ignition span as
+\[
+  S_s=\max_{j\in s}t_j-\min_{j\in s}t_j.
+\]
+The synchronization metric is the median paired ratio
+\[
+  R_S=\operatorname{median}_{s\ge2}
+      \left(\frac{S_{\mathrm{sc},s}}{S_{\mathrm{ns},s}}\right),
+\]
+which must not exceed 0.50. Mean propagation speed is obtained from a
+least-squares fit of first-ignition time against structure center,
+\(ROS=(dt/dx)^{-1}\); the coupled/no-surface ratio must be at least 2.
+
+Persistence of accumulation distortion is measured from the represented cell
+loads along the diagnostic lattice row in each coupled structure:
+\[
+  D_s=\frac{\max_{j\in s}N''_j-\min_{j\in s}N''_j}
+            {\operatorname{mean}_{j\in s}N''_j}.
+\]
+The downstream median must remain at or above 0.05. This is intentionally a
+lower-bound test: the surface-coupled simulation condition is expected to improve ignition
+synchronization,
+not to homogenize firebrand deposition.
+
+\subsection{Justification of metric quantification}
+
+These are minimum effect-size criteria for the directional comparison reported
+for this configuration~\cite{Qin2025}, not estimates of experimental
+uncertainty.  Requiring \(F_{\rm early}\ge0.75\) means earlier ignition must
+occur in a clear supermajority of matched cells, so a few ties or grid-crossing
+reversals cannot determine the result.  The median time ratio of 0.90 requires
+at least a 10\% central timing improvement, while the span ratio of 0.50
+requires a factor-of-two synchronization improvement within structures.  The
+ROS ratio of 2.0 likewise demands a large propagation effect consistent with
+surface coupling, rather than declaring success from an arbitrarily small
+positive change.
+
+The 5\% lower bound on within-structure load range is deliberately above
+floating-point and raster-write noise.  It confirms that the known deposition
+nonuniformity remains visible even when ignition becomes synchronized; it is
+not an accuracy tolerance.  Requiring both input-matched simulation conditions is
+essential because all five quantities are paired effects and have no valid
+unpaired interpretation.
+
+\subsection{Predeclared acceptance criteria}
+
+Table~\ref{tab:acceptance-contract} summarizes the metrics fixed before
+inspection of the calculated results. Numerical values and component statuses
+are reported separately in Section~7.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Predeclared verification metrics and acceptance criteria.}
+\label{tab:acceptance-contract}
+\begin{tabular}{@{}p{0.23\linewidth}p{0.47\linewidth}p{0.21\linewidth}@{}}
+\toprule
+Metric & Output, region, and aggregation & Acceptance criterion\\
+\midrule
+Output completeness & Both simulation conditions must carry the current input identity record and usable structure-level load/ignition fields. & 2 of 2 simulation conditions \\
+Earlier-ignition fraction & Fraction of matched downstream cells with \(t_{coupled}<t_{no\ surface}\). & \(\ge0.75\) \\
+Median ignition-time ratio & Median \(t_{coupled}/t_{no\ surface}\) over matched downstream cells. & \(\le0.90\) \\
+Ignition-span ratio & Median paired within-structure span ratio over downstream structures. & \(\le0.50\) \\
+Mean-ROS ratio & Coupled fitted structure-propagation ROS divided by no-surface ROS. & \(\ge2.0\) \\
+Persistent load distortion & Median coupled within-structure relative load range. & \(\ge0.05\) \\
+Overall decision & Conjunction of completeness and all five comparison metrics. & PASS only if all pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation configuration and predicted outcome}
+
+Figure~\ref{fig:input-configuration} records the prepared spatial inputs for the 2.5 m grid with surface spread enabled.
+These panels show the prepared spatial fields, remove the
+two-cell numerical buffer, and retain map coordinates in metres.  The left panel shows
+the most informative fuel or structure layout available for the case; the right panel
+shows the cells selected by the non-positive initial level-set field, making a localized
+ignition or firebrand-emission source explicit.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.42\textheight,keepaspectratio]{../figures/input_configuration.pdf}
+\caption{Whole-domain prepared input configuration for the representative simulation condition.  The
+physical domain is shown without the numerical halo; coordinates, configured wind values,
+fuel or structure layout, and initial ignition/source geometry are identified in the panels.}
+\label{fig:input-configuration}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Controlled paired configuration.}
+\begin{tabular}{lll}
+\toprule
+Parameter & No-surface simulation condition & Surface-coupled simulation condition\\
+\midrule
+Grid spacing & \SI{2.5}{m} & \SI{2.5}{m}\\
+Physical transect & \SI{100}{m} by \SI{10}{m} & same\\
+Structure/firebreak & \SI{10}{m}/\SI{10}{m} & same\\
+Wind & \SI{40}{mph}, west to east & same\\
+Time step & \(0.5\Delta x/U\) & same\\
+Requested maximum time & \SI{6000}{s} & \SI{3500}{s}\\
+Surface fuel & model 91 structures; model 102 gaps & same\\
+Spread model & disabled & Hamada (a=d=\SI{10}{m})\\
+Generation & per-MW & per-MW\\
+Transport/accumulation & empirical/Eulerian & same\\
+Ignition & physical & same\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The fixed wind Courant--Friedrichs--Lewy (CFL) requires a fractional step. Preprocessing sets each generated
+stop to \(\lceil t_{\mathrm{requested}}/\Delta t\rceil\Delta t\), and records
+the requested stop, aligned stop, and integer step count in the simulation specification.
+
+The no-surface reference retains a longer observation window because
+accumulation-only spread requires it to ignite multiple downstream structures.
+The surface-coupled simulation condition stops
+after all structures have ignited and a mature, nonuniform ember-load field
+has formed. Since time of arrival (TOA) is immutable after ignition and load distortion is
+measured within the coupled run rather than between terminal times, this
+difference reduces execution without changing any acceptance quantity.
+
+The expected signature is not agreement with a prescribed straight-line TOA
+curve. It is a directional paired result: the surface-coupled simulation condition must
+ignite earlier, have
+smaller intra-structure ignition spans, and have a larger fitted mean ROS,
+while its cell-level load curve remains nonuniform.
+
+\subsection{Preprocessing, execution, and postprocessing}
+
+The two prescribed conditions use spatially aligned fields in a Universal
+Transverse Mercator coordinate system. Square structures and surface-fuel gaps
+repeat in both horizontal directions over the \(100\times100\)-m physical
+domain; only the two-cell halo uses inert fuel model 93. Structure properties
+share that grid. ELMFIRE applies the Hamada velocity in structures and the
+Rothermel velocity in surface-fuel gaps, providing a continuous two-dimensional
+route for the coupled front. Every structure in the first upwind column is
+initialized, and distinct structure identities preserve each physical
+\(4\times4\)-cell footprint. The two conditions differ only in whether
+vegetative surface spread is enabled. Input-identity checks exclude results
+from earlier configurations.
+
+The two conditions are simulated independently. Analysis uses their final
+fire arrival times and accumulated firebrand counts, normalized by each cell's
+physical \(\Delta x\,w_y\) area, to calculate the timing and load comparisons.
+
+\section{Actual simulation results}
+
+Figure~\ref{fig:domain-result} shows the representative time-of-arrival field from the 2.5 m grid with surface spread enabled.
+The displayed field is taken from the simulated results, masks missing values, and excludes
+the two-cell numerical buffer.  The map shows the spatial synchronization of surface spread and structure ignition that is reduced to profiles in the subsequent comparison.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.50\textheight,keepaspectratio]{../figures/domain_result.pdf}
+\caption{Whole-domain time-of-arrival field from the representative completed ELMFIRE run.  This
+domain-scale result supplements, rather than replaces, the higher-level verification
+profiles, convergence plots, ensemble statistics, and calculated acceptance metrics below.}
+\label{fig:domain-result}
+\end{figure}
+
+\CompletedVariantCount{} of \RequestedVariantCount{} input-matched
+simulation conditions have evaluable outputs. Figure~\ref{fig:wsc-reference} first presents
+the surface-coupled experiment by itself using the two physical profiles that
+define the expected synchronization behavior.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=\linewidth]{surface_coupled_reference.pdf}
+\caption{Surface-coupled fine-grid result. Left: cell-level accumulated
+firebrand load and the critical ignition load. Right: structural-cell ignition
+chronology.}
+\label{fig:wsc-reference}
+\end{figure}
+
+Figure~\ref{fig:wsc-comparison} then overlays the no-surface control, making the
+earlier and more uniform coupled ignition response directly visible. The
+overall decision is \textbf{\OverallStatus}.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=\linewidth]{surface_coupling_comparison.pdf}
+\caption{Controlled surface-coupling comparison. Persistent within-structure
+load variation diagnoses the remaining accumulation distortion, while the
+lower, smoother coupled ignition curve demonstrates synchronization.}
+\label{fig:wsc-comparison}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{table}[H]
+\centering\small
+\caption{Calculated verification metrics and component decisions.}
+\begin{tabular}{@{}p{0.37\linewidth}p{0.18\linewidth}p{0.17\linewidth}p{0.14\linewidth}@{}}
+\toprule
+Metric & Acceptance limit & Calculated & Status\\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+The current decision is \textbf{\OverallStatus}. A pass requires both
+input-matched outputs and every synchronization, acceleration, and
+persistent-distortion check in the table. Missing comparison values are
+reported as \emph{NOT EVALUABLE}, never as a pass.
+
+This is an implementation verification using an idealized two-dimensional WUI
+lattice. The fitted ROS is a community-scale diagnostic and is not required
+to equal the configured Hamada surface speed exactly because the executable
+also retains spotting, Rothermel fuel behavior, and discrete ignition delays.
+The case verifies the qualitative and quantitative coupling signature derived
+above; it does not claim that surface spread corrects the underlying
+cell-local firebrand transport distortion.
+
+\section{Technical interpretation}
+The no-surface reference completes at its aligned \SI{6000.0224}{s} stop and supplies a input-matched final output.  The surface-coupled member uses the predeclared single controlled difference, enabled vegetative surface spread, but does not complete its \SI{3500.0364}{s} run.
+
+The coupled execution writes a valid first transient dump near \SI{500.025}{s}, then exhibits sustained memory growth and severe slowdown: resident memory rises from approximately 319 MB at 93 s wall time to 874 MB at 550 s, 1.07 GB at 823 s, and 1.28 GB at 1188 s without reaching the second \SI{1000}{s} dump.  It was stopped before exhausting the shared environment.  Because the preprocessor, input identity record, input rasters, and controlled namelist contrast are valid, changing the case to avoid the coupled path would invalidate the verification objective.  The report therefore records 1/2 completeness and \emph{NOT RUN}; the unavailable comparison metrics are not treated as passes.  The resource-growth behavior is an implementation issue in the coupled WUI execution path.
+
+\section{Scope and limitations}
+The paired comparison isolates one uniform fine-grid WUI transect. It verifies the coupling signature and does not establish that surface spread corrects the underlying deposition discretization or predicts a real community fire.
+
+\begin{thebibliography}{9}
+\bibitem{Qin2025}
+Y. Qin, \emph{A Physics-Based Eulerian Framework for Modeling Firebrand
+Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire
+Simulations}, Ph.D. dissertation, University of Maryland, College Park, 2025.
+\end{thebibliography}

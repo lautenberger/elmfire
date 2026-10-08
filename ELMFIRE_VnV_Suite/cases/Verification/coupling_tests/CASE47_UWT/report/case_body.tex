@@ -1,0 +1,282 @@
+\section{Verification purpose}
+
+This case tests the urban-to-wildland interface of the Wildland--Urban ELMFIRE
+(\WUE{}) model.  It separates three observables that can otherwise be
+mistaken for one another: heat emitted by an urban source, heat accumulated at
+a wildland receiver, and arrival of the level-set fire front at that receiver.
+The reviewed WU-E components are identical to source revision
+\SourceRevision{}; this identity claim does not extend to other modified
+model components. The processes examined are the building design-fire curve,
+urban heat transfer, fuel-dependent velocity selection in the level-set
+formulation, and ordinary Rothermel surface-fire spread.
+
+Two urban sources are initialized in otherwise nonburnable surroundings.  One
+illuminates a disconnected wildland receiver; the other starts a three-cell
+wildland path.  The factorial experiment varies urban peak heat-release rate (HRR) per unit area (HRRPUA) over
+\PeakSet{}, wildland spread-rate adjustment factor over \AdjustmentSet{}, and replaces the
+middle path cell by a nonburnable barrier.  Terrain is flat and deterministic;
+firebrands, crown fire, wind fluctuations, and suppression are disabled.  This
+is numerical verification and implementation characterization, not physical
+validation.
+
+The precise verification question is: across all eight simulation conditions, does the
+pinned implementation preserve the fourfold source-HRR and received-heat
+responses, keep the disconnected heat-exposed wildland cell unignited, expose
+ordinary wildland velocity to spread-rate adjustment factor, and preserve the nonburnable
+barrier?  The separate publication claim that heat alone ignites a wildland
+target is reported as \textbf{NOT EVALUABLE} because the pinned source contains
+no corresponding target-state transition.
+
+\ReportOverview
+
+\section{Mathematical formulation and numerical implementation}
+Urban-to-wildland coupling is outside the downscaled
+building-to-building baseline used by CASE43--46 and CASE48--49. It is retained
+as a separate published capability \cite{PurnomoPCI2024,PurnomoIJWF2024}.
+The proceedings article (pages 2--3,
+equations (2)--(8)) and the
+supplied thesis (PDF pages 63--67, printed pages 41--45, equations
+(2.81)--(2.95)) describe source heat transfer using
+\begin{align}
+ \dot q_c &= \frac{\HRR\,A_t}{\Delta x^2}, &
+ \dot q_r'' &= \frac{0.3\,\HRR}{4\pi R^2}, \\
+ \dot q_t &= \alpha_c\dot q_c+\alpha_r\dot q_r''\Delta x^2, &
+ E_t^{n+1} &= E_t^n+\dot q_t^n\Delta t .
+\end{align}
+Here $A_t$ is the flame-overlap area, $R$ is source--target distance,
+$\alpha_c$ is a combustible-area coefficient, and $\alpha_r$ includes target
+absorptivity.  The documented ignition idealization is
+$E_t\geq\mathrm{FTP}\,\Delta x^2$, giving
+$U=\sum\dot q_t/(\mathrm{FTP}\,\Delta x)$.
+
+The implementation performs a related discrete heat calculation.  For every
+burning source it scans the configured interaction-band thickness, computes
+ellipse-overlap factors, sums transient direct flame contact (DFC) and radiation at each target,
+and accumulates both after multiplication by $\Delta t\Delta x^2$.  Target
+coefficients come from the building-fuel table even where the target fire behavior fuel model (FBFM)
+is wildland.  These arrays are observable as transient heat flux and terminal
+total-received-heat rasters.
+
+That heat state is not, however, consumed by a wildland ignition law at the
+pinned revision.  The WU-E heat-to-velocity routine is selected only when the
+current target has fuel model 91.  A target with a fuel model other than 91
+instead follows the ordinary surface-fire path; for Rothermel its no-wind base
+velocity contains the explicit multiplier
+\begin{equation}
+ V_{s,0}=\mathrm{ADJ}\;D\;I_R\xi/(\rho_b\epsilon Q_{ig}),
+\end{equation}
+where $D$ is the diurnal adjustment.  Consequently, received WU-E heat and
+Rothermel front arrival are distinct state variables in this experiment.
+
+\section{Derivation of expected behavior}
+Let the low design-fire curve be $H_L(t)=H_0h(t)$, where the common
+piecewise-linear shape $h$ grows through \SI{60}{s}, remains fully developed
+through \SI{300}{s}, and decays to zero at \SI{600}{s}.  The high table changes
+only the amplitude, so
+\begin{equation}H_H(t)=4H_L(t).
+\end{equation}
+The heat-loop geometry and target coefficients are unchanged between a matched
+low/high pair.  Both \DFC{} and radiation are linear in instantaneous HRR;
+therefore, at the disconnected receiver,
+\begin{equation}
+ \frac{\max H_H}{\max H_L}=4,
+ \qquad \frac{E_{t,H}}{E_{t,L}}=4.
+\end{equation}
+Raster roundoff motivates small relative tolerances rather than exact bitwise
+equality.
+
+The limits are preregistered numerical discriminators, not experimental
+uncertainties.  The 1-percent source-ratio limit is generous relative to
+float32 storage while still detecting a material departure from fourfold
+scaling; the 0.1-percent repeat limit is tighter because the paired source
+inputs are identical.  The 2-percent accumulated-heat ratio allows repeated
+float32 additions over 600 one-second updates.  A 1-s time of arrival (TOA) difference is exactly
+one configured solver step.  Finally, $10^{-4}$ m/min would move a front only
+0.001 m over the full run, far below a 10-m cell, so it separates a dynamically
+positive path from numerical zero without serving as a physical rate of spread (ROS) threshold.
+
+The heat experiment places its wildland receiver three cells downwind and
+separates it from the source with two FBFM99 cells.  It lies inside the
+five-cell WU-E scan but cannot be reached by the continuous front.  The pinned
+algorithm accumulates positive heat there but has no conditional assignment
+that changes its arrival time from that heat; its \TOA{} must therefore remain
+nodata.  This is an implementation invariant, not acceptance of the published
+capability as correct.
+
+In the separate path experiment, FBFM1 cells carry spread-rate adjustment factor=0 or 1.
+For spread-rate adjustment factor=0 their ordinary Rothermel base velocity is zero; for
+spread-rate adjustment factor=1, the configured dry fuel and \SI{20}{mph} westerly wind give a
+positive value.  The open path therefore supplies a direct control on ordinary
+surface spread.  Replacing its middle cell by FBFM99 supplies an independent
+nonburnable invariant.  No arrival at that named FBFM99 barrier cell is
+permitted; the metric does not generalize this single-cell control to every
+background pixel.
+
+\section{Verification metrics and acceptance criteria}
+The evaluator first verifies prepared-input hashes, all eight identities, a
+unique dump-time simulation specification per simulation condition, a unique final record exactly at
+\StopTime{}, and grid agreement for every required GeoTIFF.  It requires
+ terminal \TOA{}, spread rate, fireline intensity, total \DFC{}, and total
+ radiation, plus complete HRR/DFC/radiation transient series matching every
+ dump-simulation specification index on the exact 60 s schedule.  With feedback enabled, it
+ also requires exactly 600 logged solver-step timestamps on the configured
+ 0--599 s sequence before selecting the explicit post-step final dump at
+ \StopTime{}.  Any missing,
+duplicate, malformed, off-grid, or nonterminal evidence makes the run
+\textbf{NOT EVALUABLE}; process exit status is never evidence of success.
+
+\begin{center}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{P{0.22\textwidth}P{0.24\textwidth}P{0.25\textwidth}P{0.18\textwidth}}
+\toprule
+Expected property & Observable and metric & Sensitivity and selection rationale & Component limit \\
+\midrule
+Fourfold source amplitude & Maximum of the two source cells over every HRR transient; matched high/low ratio error & Detects table selection, design-curve, or output errors without depending on front shape & relative error $\leq0.01$ \\
+Control independence & Range of source peaks across ADJ/barrier controls at fixed amplitude & Detects unintended coupling of receiver controls into the source curve & relative range $\leq0.001$ \\
+Heat reaches isolated cell & Terminal DFC plus radiation at the exact receiver cell & Proves absence of TOA is not explained by zero incident heat & minimum $>0$ \\
+Linear heat response & Matched high/low ratio of isolated total heat & Detects nonlinear or incorrect HRR accumulation while holding geometry fixed & ratio error $\leq0.02$ \\
+No current heat-only target transition & Count of finite isolated-receiver TOA values & Directly tests the source-derived current invariant & 0 of 8 \\
+Nonburnable control & Count of finite barrier-cell TOA values in closed simulation conditions & Detects leakage through the FBFM99 control & 0 of 4 \\
+Ordinary surface control & Named-cell TOA plus finite terminal VS over FBFM1 cells & Distinguishes the ADJ-scaled Rothermel path from received heat without coercing nodata VS to zero & no adjacent/distal ADJ0 arrivals; all ADJ1-open arrivals; VS $>10^{-4}$ \si{m.min^{-1}} \\
+Ignition-time control & Adjacent and distal TOA paired across the two open-path HRR simulation conditions & Detects accidental dependence of ordinary spread on the disconnected HRR-amplitude control & maximum difference $\leq1$ s \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+All current-implementation components must pass for the implementation
+characterization to be \textbf{PASS}.  The intended heat-only urban-to-wildland
+capability remains \textbf{NOT EVALUABLE} independently, so the case-wide
+verification decision cannot be \textbf{PASS} at this source revision.
+
+\section{Simulation configuration and predicted outcome}
+The domain is a \SI{310}{m} square in EPSG:32610, with north-up
+\CellSize{} cells and nodata $-9999$.  PHI is a clipped signed-distance field
+with exactly two negative urban-source cells and no cell centered on PHI zero.
+Both sources use building fuel model 1; every wildland receiver is FBFM1 and
+the background/barrier is FBFM99.  Source separation exceeds twice the WU-E
+heat band, so the isolated receiver is influenced only by its designated heat
+source.  A dormant scheduled ignition at \SI{601}{s} prevents an unrelated
+stalled-front shortcut but occurs after the stop time.
+
+\begin{center}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{P{0.25\textwidth}P{0.28\textwidth}P{0.13\textwidth}P{0.25\textwidth}}
+\toprule Parameter & Configured value & Units & Role \\
+\midrule
+Grid/domain & $31\times31$ at 10; EPSG:32610 & m/cell & Resolves source, receiver, and barrier cells exactly \\
+Urban peak HRRPUA & 100, 400 & \si{kW.m^{-2}} & Fourfold source and heat-amplitude pair \\
+Wildland adjustment & 0, 1 & --- & Turns ordinary Rothermel velocity off/on \\
+Path control & FBFM1 or FBFM99 at middle cell & code & Open versus nonburnable barrier \\
+Weather/terrain & 20 mph from $270^\circ$; flat & mph, degree & Downwind heat exposure with fixed geometry \\
+Building geometry & linear dimension 10, separation 10, footprint fraction 1 & m, m, fraction & Fixed WU-E ellipse inputs \\
+Time integration & $\Delta t=\Delta t_{\max}=1$, $t_{stop}=600$ & s & Exactly 600 logged steps and an explicit post-step exact-stop final dump \\
+Output cadence & 60 & s & Resolves rise, plateau, and decay \\
+Disabled processes & spotting, crown fire, suppression, fluctuations & -- & Removes alternate nonlocal or stochastic ignition \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Figure~\ref{fig:case47-input} is generated only from the prepared case-specific
+GeoTIFFs.  The predicted result is positive isolated-cell heat with no isolated
+TOA, a fourfold low/high response, zero ordinary wildland speed at ADJ0,
+positive ordinary speed for the open ADJ1 controls, and no barrier-cell TOA.
+
+\begin{figure}[p]
+ \centering
+ \IfFileExists{../figures/input_configuration.pdf}{%
+   \includegraphics[width=\textwidth]{input_configuration.pdf}%
+ }{\fbox{\parbox{0.9\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text.}}}
+ \caption{Whole-domain prepared inputs for representative high-HRR simulation conditions.
+ FBFM91 marks each urban source, FBFM1 marks wildland receivers/path cells,
+ FBFM99 is nonburnable, and the black contour is the generated initial PHI
+ interface. Yellow circles mark urban sources; white circles mark wildland receivers. The upper row of markers is the isolated heat experiment; the lower row is the surface-spread experiment, with a square marking the barrier cell.}
+ \label{fig:case47-input}
+\end{figure}
+
+\section{Actual simulation results}
+The authoritative record reports analysis procedure state \textbf{\WorkflowStatus} and
+contains \CompletedVariantCount{} of \RequiredVariantCount{} required simulation conditions.
+The scientific decision is \textbf{\VerificationStatus}.  Reason:
+\VerificationReason{}  The executed binary SHA-256 is
+\ReadableHash{\ExecutedBinarySHA}; it is interpreted only against the pinned source
+reference calculation and is not assumed to equal it. Available results retain
+their actual output times and matching model, input, and simulation-record
+identities. All selected fields must belong to those completed simulations.
+
+\ifnum\ResultFiguresAvailable=1
+\begin{figure}[p]
+ \centering
+ \includegraphics[width=\textwidth]{implementation_characterization.pdf}
+ \caption{Actual case-specific source HRR and isolated-cell accumulated heat
+ for all eight simulation conditions through
+ \SI{600}{s}.  Values are read from ELMFIRE GeoTIFF outputs; they are not
+ synthetic reference curves. Amplitude-ratio limits are 1\% for source HRR and
+ 2\% for heat. Arrival times are shown separately.}
+\end{figure}
+\begin{figure}[p]
+ \centering
+ \includegraphics[width=\textwidth]{whole_domain_result.pdf}
+ \caption{Actual whole-domain \TOA{} for the
+ open configuration with heat-release rate per unit area 400 and adjustment factor 1 at \SI{600}{s}; nodata remains blank and
+ the cyan line marks the FBFM99 boundary. The selected field is the unique
+ terminal arrival-time result for this simulation condition.}
+\end{figure}
+\else
+No simulation-output figure is shown because a complete eight-simulation condition result
+set is unavailable.  In particular, the prepared-input figure above must not
+be interpreted as simulation evidence.
+\fi
+
+\IfFileExists{../figures/arrival_controls.pdf}{%
+\begin{figure}[p]\centering
+\includegraphics[width=\textwidth]{arrival_controls.pdf}
+\caption{Adjacent and distal receiver arrival times for all eight simulation conditions. A missing observation is labeled no arrival, not plotted at zero. The selected simulation quantities are identified with the calculated metrics.}
+\end{figure}}{}
+
+\section{Calculated metrics and verification decision}
+\input{readable_results.tex}
+
+Current-implementation characterization: \textbf{\ImplementationStatus}.
+Published intended heat-only U-to-W capability:
+\textbf{\IntendedCapabilityStatus}.  Overall case decision:
+\textbf{\VerificationStatus}.  These two decision layers are deliberately not
+collapsed: agreement with the currently missing transition cannot verify that
+the documented capability has been implemented.
+
+\section{Technical interpretation}
+
+The implementation-characterization checks pass: source HRR and isolated
+received heat preserve the fourfold amplitude response, ordinary propagation
+responds to ADJ, and the nonburnable control remains intact. Yet the isolated
+wildland receiver has no arrival despite positive heat exposure. This
+combination demonstrates the distinction between heat deposition and a
+heat-driven ignition pathway.
+
+The source selects heat-derived spread only for urban FBFM91 targets. Wildland
+receivers retain the ordinary surface-fire path. Agreement with this current
+behavior is a characterization PASS; it cannot establish the separately
+claimed heat-only urban-to-wildland capability. The overall capability verdict
+therefore remains NOT EVALUABLE. Missing TOA is shown as missing, never as an
+arrival at zero seconds.
+
+\section{Scope and limitations}
+This case covers deterministic DFC/radiation exposure from urban FBFM91
+sources to FBFM1 receivers on a flat \SI{10}{m} grid, two HRR amplitudes, an
+ADJ control, and one nonburnable barrier.  It does not validate heat-transfer
+coefficients, material ignition thresholds, physical flame dimensions,
+firebrands, crown fire, topography, suppression, or stochastic behavior.  It
+also does not claim that lack of a target law is desirable; it records that
+current-source fact separately from the published intended capability.
+
+The supplied publications are technical evidence, not executable
+specifications.  Their notation and default-value ambiguities, including
+combustible-fraction semantics and dimensional interpretation of the
+heat-derived ROS equations, require resolution before a future U-to-W
+ignition-time test can have a quantitative physical reference calculation.  Spatial and
+temporal convergence are outside this case and belong to CASE48\_WGC and
+CASE49\_WTC, respectively.
+
+\begin{thebibliography}{9}
+\bibitem{PurnomoPCI2024} D. M. J. Purnomo et al., ``Reconstructing modes of destruction in wildland--urban interface fires using a semi-physical level-set model,'' \emph{Proceedings of the Combustion Institute}, 40 (2024), 105755. \href{https://doi.org/10.1016/j.proci.2024.105755}{doi:10.1016/j.proci.2024.105755}.
+\bibitem{PurnomoIJWF2024} D. M. J. Purnomo et al., ``Integrating an urban fire model into an operational wildland fire model to simulate one dimensional wildland--urban interface fires: a parametric study,'' \emph{International Journal of Wildland Fire}, 33 (2024), WF24102. \href{https://doi.org/10.1071/WF24102}{doi:10.1071/WF24102}.
+\end{thebibliography}

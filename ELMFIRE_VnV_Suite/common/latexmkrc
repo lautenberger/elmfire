@@ -1,0 +1,4 @@
+# Quiet latexmk config used by run scripts
+$pdf_mode = 1;
+$silent = 1;
+$cleanup_includes_cusdep_generated = 1;

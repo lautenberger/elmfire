@@ -1,0 +1,65 @@
+{
+  "case_number": "11",
+  "purpose_abbreviation": "WSC",
+  "id": "CASE11_WSC",
+  "chapter": "6",
+  "title": "WUI Surface-Coupling Synchronization",
+  "summary": "Paired reproduction of Tests 6-2 and 6-4 at 2.5 m resolution, differing only by activation of surface-fire spread.",
+  "wind_speed_mph": 40.0,
+  "physical_width_m": 100.0,
+  "structure_width_m": 10.0,
+  "firebreak_width_m": 10.0,
+  "cross_grid_width_m": 10.0,
+  "surface_fuel_model": 102,
+  "surface_ros_reference_m_s": 0.34,
+  "building_spread_model": "Hamada",
+  "building_spread_model_type": 1,
+  "hrrpua_peak_kw_m2": 400.0,
+  "hrr_growth_end_s": 300.0,
+  "hrr_steady_end_s": 3900.0,
+  "hrr_decay_end_s": 4200.0,
+  "ember_generation_building_pcs_mw_s": 10.0,
+  "ember_generation_vegetation_pcs_mw_s": 33.3,
+  "critical_load_pcs_m2": 2928.9,
+  "small_ignition_delay_s": 42.1,
+  "development_delay_s": 300.0,
+  "feature_keyword": "NO_SURFACE_FIRE",
+  "metrics": {
+    "coupled_earlier_cell_fraction_min": 0.75,
+    "coupled_median_ignition_ratio_max": 0.9,
+    "coupled_ignition_span_ratio_max": 0.5,
+    "coupled_ros_ratio_min": 2.0,
+    "coupled_load_relative_range_min": 0.05
+  },
+  "variants": [
+    {
+      "name": "no_surface_dx2p5",
+      "variant_label": "no-surface reference reference",
+      "role": "no_surface",
+      "dx_m": 2.5,
+      "physical_length_m": 100.0,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 6000.0,
+      "cfl": 0.5,
+      "no_surface_fire": true,
+      "structure_treatment": "native_fine",
+      "requires_feature": false
+    },
+    {
+      "name": "surface_coupled_dx2p5",
+      "variant_label": "surface-coupled variant",
+      "role": "surface_coupled",
+      "dx_m": 2.5,
+      "physical_length_m": 100.0,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 3500.0,
+      "cfl": 0.5,
+      "no_surface_fire": false,
+      "structure_treatment": "native_fine_surface_coupled",
+      "requires_feature": false
+    }
+  ],
+  "source_references": [
+    "Section 6.2.4, surface-coupled variant and Figure 6.12"
+  ]
+}

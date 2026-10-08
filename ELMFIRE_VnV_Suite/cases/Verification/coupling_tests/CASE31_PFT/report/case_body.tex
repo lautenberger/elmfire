@@ -1,0 +1,86 @@
+\section{Verification purpose}
+
+This case verifies planar level-set transport across diagonal geometry, a discontinuous fuel field, uniform wind, and a nonburnable fuel break. It consolidates Adam Laird's diagonal-front, fuel-jump, fuel-jump-with-wind, and fuel-break scenarios into one verification case based on observable model responses.
+
+\section{Mathematical formulation and numerical implementation}
+
+For a planar front with signed-distance coordinate $s$, the level-set equation reduces to $\partial_t\phi+V_n\partial_s\phi=0$. Uniform forcing should preserve planarity. At a fuel boundary $V_n$ changes but the arrival-time field remains nearly constant along lines parallel to the front. A nonburnable strip imposes $V_n=0$ except at an explicit gap.
+
+\section{Derivation of expected behavior}
+
+A uniform diagonal front is translationally invariant along its tangent. The fuel-jump solution is piecewise linear in normal distance, $T(s)=\int ds/V_n(s)$, so downstream time must increase while cross-front variation remains small. A 1 mph wind from 270 degrees aids eastward transport and must reduce downstream arrival time relative to the otherwise identical no-wind simulation condition. A continuous nonburnable strip blocks transport; opening a gap creates a strictly larger burned fraction downstream.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+At every declared station, arrival times are restricted to the central
+\(|y|\leq350~\mathrm{m}\) band (or the equivalent diagonal tangent band).
+The local planarity measure is
+\[
+ CV_j=\frac{\operatorname{std}(T_j)}
+            {\max[\operatorname{mean}(T_j),1~\mathrm{s}]},
+ \qquad CV_{\max}=\max_jCV_j.
+\]
+For the diagonal front, \(j\) spans nine normal-coordinate stations from
+25 to 275 m; for the fuel jump it spans
+\(x=\{-50,-20,10,40,70,100\}\) m.  Both substituted tests are
+\(CV_{\max}\leq0.03\), with at least 90 percent finite station coverage.
+Let \(\widetilde T(x)\) be the station median.  The transition metric is
+\[
+ \Delta T=\widetilde T(100)-\widetilde T(-50)>0,
+\]
+and the wind response is
+\[
+ q_w=\frac{\widetilde T_{\mathrm{wind}}(100)}
+           {\widetilde T_{\mathrm{no\ wind}}(100)}\leq0.95.
+\]
+For the continuous and gapped Fuel Model~91 breaks, define
+\(f(x)=N_{\mathrm{finite}}/N_{\mathrm{sampled}}\).  After the required
+90 percent upstream/barrier/opening coverage checks, the substituted
+barrier metric is
+\(G=f_{\mathrm{gapped}}(100)-f_{\mathrm{continuous}}(100)\geq0.10\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+Cross-front coefficients of variation for diagonal and fuel-jump fronts must each be at most 3 percent. The nine diagonal-normal stations are 25, 56.25, 87.5, 118.75, 150, 181.25, 212.5, 243.75, and 275 m beyond the initial leading face. The six vertical-front stations are $x=-50,-20,10,40,70,$ and 100 m; each is sampled at the nearest raster column. Every station must have at least 90 percent finite, positive arrival-time coverage in the central $|y|\le350$ m corridor (or the corresponding diagonal tangent corridor). The evaluator reports the maximum station coefficient of variation, so one poorly resolved station cannot be hidden by aggregation. The downstream fuel-transition arrival-time increment between $x=-50$ m and $x=100$ m must be positive. The wind/no-wind arrival-time ratio at $x=100$ m must be at most 0.95. The burned-fraction gain at the same downstream station produced by the gap must be at least 0.10. Before that absence can be classified as a failure, both break simulation conditions must have at least 90 percent arrival coverage at $x=-50$ m, the continuous case must also reach the near-barrier station at $x=-5$ m, the gapped case must have at least 90 percent coverage through the opening at $x=35$ m within $|y|\le40$ m, and its final dump must reach or exceed the configured stop time. Otherwise the barrier metric is NOT EVALUABLE. These geometry and metamorphic metrics avoid calibrating against ELMFIRE itself and remain valid across executable versions.
+
+\section{Simulation configuration and predicted outcome}
+
+All five simulation conditions use a $1500\times1500$ m domain at \CellSize{}, Fuel Models 10 and 3 where applicable, and 3/5/6 percent dead-fuel moisture. The input level-set field is a finite-strip signed-distance field clipped to ELMFIRE's supported $[-1,1]$ interval. It retains an ignited interior and a resolved planar leading-face gradient without relying on a grid cell whose value is exactly zero; its ends remain inside the domain. ELMFIRE applies adaptive Courant--Friedrichs--Lewy (CFL) control only after the first five steps and declares a front stalled when the step-to-step PHI change stays below 0.001. The initial and maximum timestep are therefore both 5 s: for the slowest no-wind Fuel Model 10 state ($R\simeq0.426$ m/min), one step moves the front about 0.0071 cell, above the stall comparison and far below the target CFL of 0.2. The stop time is 43,200 s, long enough for that slowest front to traverse the 275 m needed by the farthest diagonal station and the 195 m needed by the $x=100$ m comparison station with margin. The break simulation conditions use Fuel Model 91 for a 30 m nonburnable strip, with or without a 100 m opening.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.22\textwidth}p{0.12\textwidth}p{0.34\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 1500 m square; 5 & m/cell & Resolves planar fronts and fuel break \\
+Fuel/moisture & FM10/FM3/FM91; 3/5/6 & --- / percent & Uniform, transition, and nonburnable states \\
+Time control & step 5; stop 43200 & s & Exact multiple with traversal margin \\
+Wind & 0 or 1 from 270 & mph / degrees & Metamorphic acceleration pair \\
+Gap & closed or 100 & m & Connectivity response \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prescribed fuel-model classification with an opening in the nonburnable strip. Coordinates are grid-cell indices on the 5 m grid, and the color scale identifies the fuel-model codes.}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+The generated status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} metrics pass across \VariantCount{} simulation conditions. Missing required rasters, an obsolete or geometrically inconsistent level-set field, a final-dump mismatch, or inadequate arrival coverage produces NOT EVALUABLE. The generated diagnostic is: \textit{\VerificationReason}.
+\begin{figure}[H]\centering\IfFileExists{../figures/verification_summary.pdf}{\includegraphics[width=\textwidth]{verification_summary.pdf}}{\fbox{No result figure is available.}}\caption{Time-of-arrival fields for all planar-front simulation conditions.}\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}\small\begin{tabular}{@{}llll@{}}\toprule Metric & Expected & Calculated & Status \\\midrule \MetricRows \bottomrule\end{tabular}\end{center}
+The authoritative decision is \textbf{\VerificationStatus} from calculated verification and validation metrics.
+
+\section{Technical interpretation}
+
+Loss of planarity suggests orientation-dependent transport or indexing. A nonpositive transition time indicates an invalid arrival field. Lack of wind acceleration indicates a weather/fire-behavior coupling problem. Lack of gap response indicates incorrect nonburnable-fuel or front-connectivity handling.
+
+\section{Scope and limitations}
+
+The case verifies observable coupled behavior rather than individual internal Fortran routines. It does not assert absolute Rothermel rates, and the selected fuel and wind states are not field validation data.

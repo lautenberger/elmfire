@@ -1,0 +1,111 @@
+\section{Verification purpose}
+
+This case verifies PER-MW firebrand generation and empirical Lagrangian transport for surface fire.  The verification question is whether the dominant emitting cell's count and log-distance distribution agree with the independent GUIDE targets.
+
+The scientific setup and historical expected response are reconstructed from Section~3.2 of the supplied \emph{ELMFIRE Guide}. The Guide is used as reference provenance, not as an instruction or a substitute for evidence. Configuration statements below are checked against the generated GeoTIFFs and namelist; current results and decisions come only from case-specific outputs and generated metrics. Where the generated experiment differs from the historical example, the report states that difference explicitly.
+
+\section{Mathematical formulation and numerical implementation}
+
+For the selected source cell, firebrands are generated in proportion to fire power. Empirical transport produces positive distances \(d_i\). A lognormal response is summarized by \(\mu=\mathrm{mean}[\ln d_i]\) and \(\sigma=\mathrm{std}[\ln d_i]\). The postprocessor groups the spotting log by source indices before calculating these quantities.
+
+For one emitting cell, the residence/crossing exposure is
+\begin{equation}
+\Delta t=\max(\Delta t_R,60C/R), \qquad N=33.3\,I_{b,MW}\Delta t.
+\end{equation}
+For the generated 30 m cell, \(R=14.4\) m/min gives 125 s crossing time, longer than the 15.3 s fuel residence time, and the Guide calculation gives \(N=8450\). The empirical Sardoy transport uses a lognormal downwind distance: if \(Y=\ln d\), then \(Y\sim\mathcal{N}(\mu_d,\sigma_d^2)\). Its fireline-intensity, wind, and Froude-number calculation gives \(\mu_d=2.42\) and \(\sigma_d=1.31\) for this configuration.
+
+\section{Derivation of expected behavior}
+
+The configured experiment predicts 8450 firebrands from the dominant cell and log-distance parameters \(\mu=2.42\) and \(\sigma=1.31\). Grouping by source is essential: combining cells would mix different emission histories and would not test the intended distribution.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The Guide's firebrand-count relation is
+\[
+ N=33.3\,I\,\Delta t.
+\]
+With generated fireline intensity \(I=2.03~\mathrm{MW\,m^{-1}}\) and
+\(\Delta t=\max(15.3,60(30)/14.4)=125~\mathrm{s}\),
+\(N=33.3(2.03)(125)=8449.875\), hence the integer reference is 8450.
+For the Sardoy distribution, the generated \(5~\mathrm{mph}\) wind becomes
+\(U=0.44704(5)/0.87=2.56897~\mathrm{m\,s^{-1}}\); with \(I=2.03\) the
+flame-length calculation gives \(L_c=1.57184~\mathrm{m}\) and
+\(Fr=0.65421\leq1\).  The applicable parameter equations then give
+\[
+ \mu=\frac{1.47I^{0.54}}{U^{0.55}}+1.14
+     =\frac{1.47(2.03)^{0.54}}{(2.56897)^{0.55}}+1.14=2.42233,
+\]
+\[
+ \sigma=\frac{0.86U^{0.44}}{I^{0.21}}+0.19
+ =\frac{0.86(2.56897)^{0.44}}{(2.03)^{0.21}}+0.19=1.31258.
+\]
+Thus the references are \(N=8450\), \(\mu=2.42\), and \(\sigma=1.31\);
+the generated table applies its stated absolute or relative tolerance to
+the corresponding difference.
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+Dominant-cell count detects generation-rate or duration errors and uses 15 percent relative tolerance to accommodate stochastic sampling. The mean and standard deviation of \(\ln d\) test location and width of the transport distribution and each use absolute tolerance 0.15. All three components require complete spotting logs and must pass.
+
+\section{Simulation configuration and predicted outcome}
+
+The case uses Fuel Model 3, flat terrain, 5 mph wind, PER-MW generation, the EMPIRICAL distance model, LAGRANGIAN accumulation, DIRECT ignition, and deterministic random-seed handling. Spotting statistics output is required. The Guide also discussed an Eulerian ember-flux magnitude/decay check, but the current case specification and generated configuration exercise the Lagrangian path only; no Eulerian verification claim is made.
+
+\begin{center}
+\begin{tabular}{@{}p{0.20\textwidth}p{0.20\textwidth}p{0.12\textwidth}p{0.38\textwidth}@{}}
+\toprule
+Parameter & Configured value & Units & Role in the experiment \\
+\midrule
+Grid & \(126\times126\) at 30 & m per cell & Resolves ignition and emitting-cell indices \\
+Fuel and forcing & FM3; 5 mph wind & --- / mph & Reproduces the Guide source-cell state \\
+Time control & \(\Delta t=1\), \(t_{stop}=100\) & s & Exact timestep multiple covering the logged emission interval \\
+Spotting path & PER-MW / EMPIRICAL / LAGRANGIAN / DIRECT & --- & Selects the generation, distance, accumulation, and ignition algorithms \\
+Required result & sampled firebrand trajectories & --- & Identifies the source and travel distance of every sampled firebrand \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+The required evidence is generated only from case-specific ELMFIRE outputs. The current postprocessing status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} required metric rows pass across \VariantCount{} simulation condition(s). A missing output is reported as NOT RUN or NOT EVALUABLE and is not interpreted as verification evidence.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/whole_domain_result.pdf}{%
+    \includegraphics[width=0.82\textwidth,height=0.58\textheight,keepaspectratio]{whole_domain_result.pdf}%
+  }{\fbox{\parbox{0.85\textwidth}{No case-specific whole-domain ELMFIRE raster is available.}}}
+  \caption{Final whole-domain ELMFIRE time of arrival for the displayed simulation condition, in seconds. The coordinate reference system is stated in the figure. The calculated metrics, not visual appearance, determine acceptance.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Simulation condition / metric & Expected & Calculated & Status \\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{center}
+
+The displayed overall decision is \textbf{\VerificationStatus}. When calculated verification and validation metrics exists, result analysis procedure generates every table value and status; when it is absent, the report states NOT EVALUABLE with no invented rows.
+
+\section{Technical interpretation}
+
+Count-only failure points toward generation or residence time; distribution-only failure points toward sampling, units, or transport parameterization. No scientific conclusion should be drawn when the status is NOT RUN or NOT EVALUABLE.
+
+\section{Scope and limitations}
+
+The metrics cover the dominant source cell and one forcing condition. They verify implementation against the prescribed statistical target, not physical firebrand observations. This case provides implementation verification evidence only.

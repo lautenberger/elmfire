@@ -1,0 +1,19 @@
+docs
+.github
+
+# ignore large outputs and caches
+**/outputs/
+**/scratch/
+**/logs/
+
+# venvs, notebooks, junk
+.venv/
+.env
+*.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# git
+.git
+.gitignore
+.DS_Store

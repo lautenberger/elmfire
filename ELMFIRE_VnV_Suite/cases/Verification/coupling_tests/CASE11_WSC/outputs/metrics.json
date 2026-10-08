@@ -1,0 +1,56 @@
+{
+  "case_id": "CASE11_WSC",
+  "overall_status": "NOT RUN",
+  "completed_variants": [
+    "no_surface"
+  ],
+  "unrun_variants": [
+    "surface_coupled_dx2p5"
+  ],
+  "metrics": [
+    {
+      "metric": "Output completeness",
+      "limit": "2 current-fingerprint variants",
+      "calculated": "1/2",
+      "status": "FAIL",
+      "note": ""
+    },
+    {
+      "metric": "Coupled earlier-ignition cell fraction",
+      "limit": ">= 0.75",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "The required finite comparison was unavailable."
+    },
+    {
+      "metric": "Coupled median ignition-time ratio",
+      "limit": "<= 0.9",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "The required finite comparison was unavailable."
+    },
+    {
+      "metric": "Coupled/no-surface ignition-span ratio",
+      "limit": "<= 0.5",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "The required finite comparison was unavailable."
+    },
+    {
+      "metric": "Coupled/no-surface mean-ROS ratio",
+      "limit": ">= 2.0",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "The required finite comparison was unavailable."
+    },
+    {
+      "metric": "Coupled within-structure load relative range",
+      "limit": ">= 0.05",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "The required finite comparison was unavailable."
+    }
+  ],
+  "diagnostics": {},
+  "controlled_difference": "NO_SURFACE_FIRE=.TRUE. for no-surface reference and .FALSE. for surface-coupled variant; all generated rasters and other namelist controls are identical"
+}

@@ -1,0 +1,51 @@
+{
+  "case_id": "CASE25_MQD",
+  "case_title": "Case 25: Spatially varying moisture quadrants",
+  "overall_status": "PASS",
+  "workflow_status": "COMPLETE",
+  "metric_count": 4,
+  "passing_metric_count": 4,
+  "variants": [
+    {
+      "label": "main",
+      "guide_case": "MoistureQuad",
+      "configuration": "elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "ROS @ 6%",
+          "target": 1.511,
+          "measured": 1.511830449104309,
+          "percent_error": 0.054960231919866535,
+          "units": "m/min",
+          "status": "PASS"
+        },
+        {
+          "name": "ROS @ 12%",
+          "target": 1.089,
+          "measured": 1.089719295501709,
+          "percent_error": 0.06605101025794458,
+          "units": "m/min",
+          "status": "PASS"
+        },
+        {
+          "name": "ROS @ 18%",
+          "target": 0.801,
+          "measured": 0.801066517829895,
+          "percent_error": 0.00830434830149491,
+          "units": "m/min",
+          "status": "PASS"
+        },
+        {
+          "name": "ROS @ 25%",
+          "target": 0.0,
+          "measured": 0.0,
+          "percent_error": null,
+          "units": "m/min",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "source": "ELMFIRE Guide verification section"
+}

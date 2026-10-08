@@ -1,0 +1,89 @@
+&INPUTS
+FUELS_AND_TOPOGRAPHY_DIRECTORY = './data/inputs'
+ASP_FILENAME                   = 'asp'
+CBD_FILENAME                   = 'cbd'
+CBH_FILENAME                   = 'cbh'
+CC_FILENAME                    = 'cc'
+CH_FILENAME                    = 'ch'
+DEM_FILENAME                   = 'dem'
+FBFM_FILENAME                  = 'new_fbfm40'
+SLP_FILENAME                   = 'slp'
+ADJ_FILENAME                   = 'isolated_adj'
+PHI_FILENAME                   = 'new_phi'
+DT_METEOROLOGY                 = 3600.0
+WEATHER_DIRECTORY              = './data/inputs'
+WS_FILENAME                    = 'ws'
+WD_FILENAME                    = 'wd'
+M1_FILENAME                    = 'm1'
+M10_FILENAME                   = 'm10'
+M100_FILENAME                  = 'm100'
+DEAD_MC_IN_PERCENT             = .TRUE.
+LIVE_MC_IN_PERCENT             = .TRUE.
+USE_CONSTANT_LH                = .TRUE.
+USE_CONSTANT_LW                = .TRUE.
+USE_CONSTANT_FMC               = .TRUE.
+FOLIAR_MOISTURE_CONTENT        = 0.01
+LH_MOISTURE_CONTENT            = 30
+LW_MOISTURE_CONTENT            = 60
+/
+
+&OUTPUTS
+OUTPUTS_DIRECTORY    = './outputs'
+DTDUMP               = 100.0
+ACCUMULATE_EMBER_FLUX= .FALSE.
+DUMP_FLIN            = .TRUE.
+DUMP_SPREAD_RATE     = .TRUE.
+DUMP_TIME_OF_ARRIVAL = .TRUE.
+CONVERT_TO_GEOTIFF   = .TRUE.
+DUMP_EMBER_FLUX      = .FALSE.
+DUMP_TIMINGS         = .TRUE.
+DUMP_PHI             = .FALSE.
+DUMP_HRR_TRANSIENT   = .TRUE.
+DUMP_TRANSIENT_DFC   = .TRUE.
+DUMP_TRANSIENT_RAD   = .TRUE.
+USE_EMBER_COUNT_BINS = .TRUE.
+DUMP_TOTAL_DFC_RECEIVED = .TRUE.
+DUMP_TOTAL_RAD_RECEIVED = .TRUE.
+/
+
+&TIME_CONTROL
+SIMULATION_DT=1.0
+SIMULATION_DTMAX=10.0
+TARGET_CFL   = 0.45
+SIMULATION_TSTOP = 5000.0
+/
+
+&SIMULATOR
+BANDTHICKNESS = 3
+UNTAG_TYPE_2                         = .FALSE.
+UNTAG_TYPE_3                         = .FALSE.
+WIND_FLUCTUATIONS                    = .FALSE.
+DT_WIND_FLUCTUATIONS                 = 0.
+WIND_DIRECTION_FLUCTUATION_INTENSITY = 0
+WIND_SPEED_FLUCTUATION_INTENSITY     = 0
+RANDOMIZE_RANDOM_SEED                = .FALSE.
+NUM_IGNITIONS = 1
+X_IGN(1)=210.0
+Y_IGN(1)=190.0
+T_IGN(1)=5001.0
+/
+
+&WUI
+BLDG_AREA_CONSTANT                    = 10.0
+BLDG_SEPARATION_DIST_CONSTANT         = 10.0
+BLDG_NONBURNABLE_FRAC_CONSTANT        = 0.0
+BLDG_FOOTPRINT_FRAC_CONSTANT          = 1.0
+BLDG_FUEL_MODEL_CONSTANT              = 14
+BLDG_SPREAD_MODEL_TYPE                = 2
+USE_BLDG_SPREAD_MODEL                 = .TRUE.
+USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS = .TRUE.
+HRR_ELLIPSE_ADJ                       = 0.5
+/
+
+&MISCELLANEOUS
+MISCELLANEOUS_INPUTS_DIRECTORY = './data/misc'
+FUEL_MODEL_FILE                = 'fuel_models.csv'
+BUILDING_FUEL_MODEL_FILE       = 'building_fuel_models.csv'
+PATH_TO_GDAL                   = 'auto'
+SCRATCH                        = './logs/scratch'
+/

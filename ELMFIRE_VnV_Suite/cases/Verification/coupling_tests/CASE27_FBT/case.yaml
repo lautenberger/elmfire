@@ -1,0 +1,31 @@
+case_id: "CASE27_FBT"
+case_title: "Case 27: Lagrangian firebrand generation and transport"
+category: "Verification/coupling_tests"
+guide_section: "3.2.8"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+variants:
+  - id: "main"
+    guide_case: "Firebrands"
+    config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figure: "figures/verification_summary.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        TIME_CONTROL.SIMULATION_TSTOP: 100.0
+        SPOTTING.ENABLE_SPOTTING: true
+        SPOTTING.GENERATION_MODEL: "PER-MW"
+        SPOTTING.SPOTTING_DISTANCE_MODEL: "EMPIRICAL"
+        SPOTTING.ACCUMULATION_MODEL: "LAGRANGIAN"
+        SPOTTING.IGNITION_MODEL: "DIRECT"
+        OUTPUTS.DUMP_SPOTTING_OUTPUTS: true

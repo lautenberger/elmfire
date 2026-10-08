@@ -1,0 +1,23 @@
+{
+  "case_id": "CASE05_TDW",
+  "status": "pass",
+  "verification_passed": true,
+  "position_mae_limit_m": 10.0,
+  "position_max_error_limit_m": 20.0,
+  "running_ros_mae_limit_mps": 2.0,
+  "minimum_time_coverage_fraction": 0.9,
+  "running_average_points": 9,
+  "sample_dt_s": 0.745,
+  "position_mae_m": 4.761474516898714,
+  "position_max_error_m": 11.01743438309552,
+  "running_ros_mae_mps": 0.8128946040373389,
+  "time_coverage_fraction": 1.0,
+  "position_mae_passed": true,
+  "position_max_error_passed": true,
+  "running_ros_mae_passed": true,
+  "time_coverage_passed": true,
+  "final_simulated_position_m": 745.0,
+  "final_reference_position_m": 752.3894781520776,
+  "selected_toa_file": "time_of_arrival_0000001_0000120.tif",
+  "comparison_samples": 163
+}

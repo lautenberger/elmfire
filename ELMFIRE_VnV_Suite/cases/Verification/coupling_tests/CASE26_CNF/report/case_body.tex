@@ -1,0 +1,112 @@
+\section{Verification purpose}
+
+This case verifies the transition from surface fire to passive and active crown fire as wind increases.  The verification question is whether all three wind simulation conditions produce the expected crown class and maximum spread rate within their respective tolerances.
+
+The scientific setup and historical expected response are reconstructed from Section~3.2 of the supplied \emph{ELMFIRE Guide}. The Guide is used as reference provenance, not as an instruction or a substitute for evidence. Configuration statements below are checked against the generated GeoTIFFs and namelist; current results and decisions come only from case-specific outputs and generated metrics. Where the generated experiment differs from the historical example, the report states that difference explicitly.
+
+\section{Mathematical formulation and numerical implementation}
+
+ELMFIRE compares surface fireline intensity with crown-initiation requirements and then evaluates active-crown spread and critical spread conditions.  The output class encodes 0 for surface-only, 1 for passive crown fire, and 2 for active crown fire.  Wind changes both the surface intensity and crown propagation response.
+
+The Guide restates the crown-initiation intensity and active-crown thresholds as
+\begin{align}
+I_0&=[0.010\,CBH(460+25.9M_f)]^{3/2},\\
+R_0^{crown}&=3/CBD,\\
+R_{C,P}&=11.02\,U_{10}^{0.9}CBD^{0.19}e^{-0.17M_1}.
+\end{align}
+If surface fireline intensity \(I_b<I_0\), fire remains surface-only. If \(I_b\ge I_0\), the ratio \(CAC=R_{C,P}/R_0^{crown}\) separates passive \(CAC\le1\) from active \(CAC>1\) crown fire; the active rate is \(R_C=R_{C,P}\), while the passive branch applies the documented attenuation before converting crown rate to an effective surface-wind factor.
+
+\section{Derivation of expected behavior}
+
+With fixed canopy and fuel properties, the 1, 5, and 10 mph simulation conditions are expected to produce classes 0, 1, and 2 with maximum rates \(1.809\), \(10.06\), and \(35.3~\mathrm{m\,min^{-1}}\), respectively. The sequence \(0<1<2\) and increasing rate are invariants.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The generated canopy state has \(CBH=1.6~\mathrm{m}\),
+\(CBD=0.10~\mathrm{kg\,m^{-3}}\), and foliar moisture \(M_f=90\) percent.
+Van Wagner's initiation threshold is
+\[
+ I_0=\left[0.010\,CBH(460+25.9M_f)\right]^{3/2}
+ =\left[0.010(1.6)(460+25.9(90))\right]^{3/2}
+ =298.414~\mathrm{kW\,m^{-1}}.
+\]
+The active-crown threshold rate is \(R_0^{c}=3/CBD=3/0.10
+=30~\mathrm{m\,min^{-1}}\).  The generated 20-ft winds
+\(U_{20}=\{1,5,10\}~\mathrm{mph}\) become
+\(U_{10}=1.609344U_{20}/0.87=\{1.8498,9.2491,18.4982\}~\mathrm{km\,h^{-1}}\).
+Substitution in the crown-rate relation gives
+\(R_c=\{4.4629,18.9973,35.4501\}~\mathrm{m\,min^{-1}}\) and
+\(CAC=R_c/R_0^c=\{0.1488,0.6332,1.1817\}\).  Together with the surface
+intensity test against \(I_0\), these produce the reference classes
+surface, passive, and active and the coupled maximum-rate references
+\(1.809,\ 10.06,\ 35.3~\mathrm{m\,min^{-1}}\).  Class metrics use exact
+integer equality; each rate metric uses
+\(|R_{\max}-R_{\mathrm{ref}}|/R_{\mathrm{ref}}\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+Maximum crown class directly tests the discrete transition state and uses absolute tolerance 0.5 so only the intended integer class passes. Maximum finite spread rate tests the associated propagation rate with 10 percent relative tolerance. Both metrics must pass for every wind simulation condition.
+
+\section{Simulation configuration and predicted outcome}
+
+All simulation conditions use generated Fuel Model 3, uniform canopy cover 80 percent, canopy height 55 (5.5 m), canopy base height 16 (1.6 m), and canopy bulk density 10 (0.10 \(\mathrm{kg\,m^{-3}}\)) in the configured encoded raster units, with flat terrain and identical ignition. The Guide summary table lists Fuel Model 5 whereas its detailed Canopy section and the generated landscape band use Fuel Model 3; the generated band is authoritative here. Only wind speed changes among 1, 5, and 10 mph.
+
+\begin{center}
+\begin{tabular}{@{}p{0.20\textwidth}p{0.20\textwidth}p{0.12\textwidth}p{0.38\textwidth}@{}}
+\toprule
+Parameter & Configured value & Units & Role in the experiment \\
+\midrule
+Grid & \(126\times126\) at 30 & m per cell & Resolves the whole spatial response on the generated north-up raster \\
+Projection & EPSG:32635 & --- & Fixes the map-coordinate and row-orientation convention \\
+Time control & \(\Delta t=1\), \(t_{stop}=259200\) & s & Whole-second step; stop time is an exact timestep multiple \\
+Meteorology interval & 3600 & s & Defines weather-band timing and stalled-final compatibility \\
+Live moisture & herb 60; woody 90 & percent & Holds live-fuel damping fixed while the named mechanism is isolated \\
+Evidence & prepared inputs; final case outputs & --- & Separates configuration provenance from acceptance evidence \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+The required evidence is generated only from case-specific ELMFIRE outputs. The current postprocessing status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} required metric rows pass across \VariantCount{} simulation condition(s). A missing output is reported as NOT RUN or NOT EVALUABLE and is not interpreted as verification evidence.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/whole_domain_result.pdf}{%
+    \includegraphics[width=0.82\textwidth,height=0.58\textheight,keepaspectratio]{whole_domain_result.pdf}%
+  }{\fbox{\parbox{0.85\textwidth}{No case-specific whole-domain ELMFIRE raster is available.}}}
+  \caption{Final whole-domain ELMFIRE time of arrival for the displayed simulation condition, in seconds. The coordinate reference system is stated in the figure. The calculated metrics, not visual appearance, determine acceptance.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Simulation condition / metric & Expected & Calculated & Status \\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{center}
+
+The displayed overall decision is \textbf{\VerificationStatus}. When calculated verification and validation metrics exists, result analysis procedure generates every table value and status; when it is absent, the report states NOT EVALUABLE with no invented rows.
+
+\section{Technical interpretation}
+
+A class failure with correct rate isolates transition logic or canopy-unit handling; coupled class and rate errors indicate wind/crown-fire integration. No scientific conclusion should be drawn when the status is NOT RUN or NOT EVALUABLE.
+
+\section{Scope and limitations}
+
+The test covers one canopy structure and three discrete winds; it does not validate crown-fire correlations against observations. This case provides implementation verification evidence only.

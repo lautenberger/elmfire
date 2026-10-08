@@ -1,0 +1,166 @@
+{
+  "case_id": "CASE40_WSD",
+  "overall_status": "PASS",
+  "verification_passed": true,
+  "required_outputs_complete": true,
+  "required_variant_count": 5,
+  "completed_variant_count": 5,
+  "missing_variants": [],
+  "metrics": [
+    {
+      "name": "maximum DMS direction error",
+      "expected": "<= 5.0",
+      "calculated": 3.059891907211039,
+      "units": "degrees",
+      "status": "PASS"
+    },
+    {
+      "name": "maximum head-ROS relative error",
+      "expected": "<= 0.05",
+      "calculated": 0.04411041770905145,
+      "units": "fraction",
+      "status": "PASS"
+    },
+    {
+      "name": "maximum length/width relative error",
+      "expected": "<= 0.1",
+      "calculated": 0.09616575837614799,
+      "units": "fraction",
+      "status": "PASS"
+    },
+    {
+      "name": "maximum reaction-intensity relative error",
+      "expected": "<= 0.01",
+      "calculated": 2.0115561508336862e-07,
+      "units": "fraction",
+      "status": "PASS"
+    }
+  ],
+  "variant_results": [
+    {
+      "id": "angle_000",
+      "group": "wind-slope angle",
+      "x": 0.0,
+      "relative_angle_degrees": 0.0,
+      "expected_direction_degrees": 0.0,
+      "expected_head_ros_m_min": 15.771337091679358,
+      "expected_length_width": 1.6374481897055546,
+      "expected_ir_kw_m2": 686.5297401500934,
+      "expected_ros_m_min": 15.771337091679358,
+      "reference": {
+        "phi_s": 6.436560743099959,
+        "phi_w": 9.746234579803398,
+        "phi_magnitude": 16.182795322903356
+      },
+      "toa_required": true,
+      "measured_direction_degrees": 359.96625848813414,
+      "direction_error_degrees": 0.0337415118658555,
+      "measured_head_ros_m_min": 15.966206604182117,
+      "head_ros_relative_error": 0.012355928439673534,
+      "measured_length_width": 1.577323360999642,
+      "length_width_relative_error": 0.03671861441718303,
+      "measured_ir_kw_m2": 686.5296020507812,
+      "ir_relative_error": 2.0115561508336862e-07
+    },
+    {
+      "id": "angle_045",
+      "group": "wind-slope angle",
+      "x": 45.0,
+      "relative_angle_degrees": 45.0,
+      "expected_direction_degrees": 27.342202150741308,
+      "expected_head_ros_m_min": 14.689836010820652,
+      "expected_length_width": 1.6007368317086157,
+      "expected_ir_kw_m2": 686.5297401500934,
+      "expected_ros_m_min": 14.689836010820652,
+      "reference": {
+        "phi_s": 6.436560743099959,
+        "phi_w": 9.746234579803398,
+        "phi_magnitude": 15.004505136987664
+      },
+      "toa_required": true,
+      "measured_direction_degrees": 30.38181330683348,
+      "direction_error_degrees": 3.039611156092178,
+      "measured_head_ros_m_min": 15.220661786196507,
+      "head_ros_relative_error": 0.03613558211166168,
+      "measured_length_width": 1.4974540193485304,
+      "length_width_relative_error": 0.06452204404508012,
+      "measured_ir_kw_m2": 686.5296020507812,
+      "ir_relative_error": 2.0115561508336862e-07
+    },
+    {
+      "id": "angle_090",
+      "group": "wind-slope angle",
+      "x": 90.0,
+      "relative_angle_degrees": 90.0,
+      "expected_direction_degrees": 56.558623995493086,
+      "expected_head_ros_m_min": 11.638260934002323,
+      "expected_length_width": 1.4958592389500873,
+      "expected_ir_kw_m2": 686.5297401500934,
+      "expected_ros_m_min": 11.638260934002323,
+      "reference": {
+        "phi_s": 6.436560743099959,
+        "phi_w": 9.746234579803398,
+        "phi_magnitude": 11.679828880774368
+      },
+      "toa_required": true,
+      "measured_direction_degrees": 53.49873208828204,
+      "direction_error_degrees": 3.059891907211039,
+      "measured_head_ros_m_min": 12.151629485208101,
+      "head_ros_relative_error": 0.04411041770905145,
+      "measured_length_width": 1.3802779965858087,
+      "length_width_relative_error": 0.0772674589658601,
+      "measured_ir_kw_m2": 686.5296020507812,
+      "ir_relative_error": 2.0115561508336862e-07
+    },
+    {
+      "id": "angle_135",
+      "group": "wind-slope angle",
+      "x": 135.0,
+      "relative_angle_degrees": 135.0,
+      "expected_direction_degrees": 93.77786885574146,
+      "expected_head_ros_m_min": 7.257156407626495,
+      "expected_length_width": 1.3383776573805046,
+      "expected_ir_kw_m2": 686.5297401500934,
+      "expected_ros_m_min": 7.257156407626495,
+      "reference": {
+        "phi_s": 6.436560743099959,
+        "phi_w": 9.746234579803398,
+        "phi_magnitude": 6.906636733059935
+      },
+      "toa_required": true,
+      "measured_direction_degrees": 91.36792209042282,
+      "direction_error_degrees": 2.4099467653186366,
+      "measured_head_ros_m_min": 7.293915178389997,
+      "head_ros_relative_error": 0.005065175490068289,
+      "measured_length_width": 1.209671554964816,
+      "length_width_relative_error": 0.09616575837614799,
+      "measured_ir_kw_m2": 686.5296020507812,
+      "ir_relative_error": 2.0115561508336862e-07
+    },
+    {
+      "id": "angle_180",
+      "group": "wind-slope angle",
+      "x": 180.0,
+      "relative_angle_degrees": 180.0,
+      "expected_direction_degrees": 179.99999999999997,
+      "expected_head_ros_m_min": 3.9556613203233066,
+      "expected_length_width": 1.2054726788124297,
+      "expected_ir_kw_m2": 686.5297401500934,
+      "expected_ros_m_min": 3.9556613203233066,
+      "reference": {
+        "phi_s": 6.436560743099959,
+        "phi_w": 9.746234579803398,
+        "phi_magnitude": 3.309673836703438
+      },
+      "toa_required": true,
+      "measured_direction_degrees": 181.22503521436207,
+      "direction_error_degrees": 1.2250352143620944,
+      "measured_head_ros_m_min": 4.00830799155129,
+      "head_ros_relative_error": 0.01330919584988147,
+      "measured_length_width": 1.1883454280834407,
+      "length_width_relative_error": 0.014207912821269342,
+      "measured_ir_kw_m2": 686.5296020507812,
+      "ir_relative_error": 2.0115561508336862e-07
+    }
+  ]
+}

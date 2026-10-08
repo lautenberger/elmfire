@@ -1,0 +1,394 @@
+ M cases/Validation/landscape_scale/camp_fire/figures/input_overview.pdf
+ M cases/Validation/landscape_scale/camp_fire/figures/observation_summary.pdf
+ M cases/Validation/landscape_scale/camp_fire/figures/weather_summary.pdf
+ M cases/Validation/landscape_scale/camp_fire/figures/weather_time_series.pdf
+ M cases/Validation/landscape_scale/camp_fire/report/case_body.tex
+ M cases/Validation/landscape_scale/camp_fire/report/case_metadata.tex
+ M cases/Validation/landscape_scale/camp_fire/report/case_report.pdf
+ M cases/Validation/landscape_scale/camp_fire/scripts/metrics_to_macro.py
+ M cases/Validation/landscape_scale/camp_fire/scripts/postprocess.py
+ M cases/Validation/landscape_scale/camp_fire/scripts/preprocess.py
+ M cases/Validation/landscape_scale/thomas_fire/report/case_body.tex
+ M cases/Validation/landscape_scale/thomas_fire/report/case_metadata.tex
+ M cases/Validation/landscape_scale/thomas_fire/report/case_report.pdf
+ M cases/Validation/landscape_scale/thomas_fire/scripts/metrics_to_macro.py
+ M cases/Validation/landscape_scale/thomas_fire/scripts/postprocess.py
+ M cases/Validation/landscape_scale/thomas_fire/scripts/preprocess.py
+ M cases/Validation/landscape_scale/tubbs_fire/figures/input_overview.pdf
+ M cases/Validation/landscape_scale/tubbs_fire/figures/observation_summary.pdf
+ M cases/Validation/landscape_scale/tubbs_fire/figures/weather_summary.pdf
+ M cases/Validation/landscape_scale/tubbs_fire/figures/weather_time_series.pdf
+ M cases/Validation/landscape_scale/tubbs_fire/report/case_body.tex
+ M cases/Validation/landscape_scale/tubbs_fire/report/case_metadata.tex
+ M cases/Validation/landscape_scale/tubbs_fire/report/case_report.pdf
+ M cases/Validation/landscape_scale/tubbs_fire/scripts/metrics_to_macro.py
+ M cases/Validation/landscape_scale/tubbs_fire/scripts/postprocess.py
+ M cases/Validation/landscape_scale/tubbs_fire/scripts/preprocess.py
+ M cases/Validation/skills/elmfire-validation-case/SKILL.md
+ M cases/Validation/skills/elmfire-validation-case/references/case_contract.md
+ M cases/Validation/skills/elmfire-validation-case/references/data_and_configuration.md
+ M cases/Validation/skills/elmfire-validation-case/references/report_structure.md
+ M cases/Validation/skills/elmfire-validation-case/references/statistics_and_visualization.md
+ M cases/Verification/coupling_tests/CASE01_BET/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE01_BET/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE01_BET/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE01_BET/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE01_BET/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE02_FGR/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE02_FGR/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE02_FGR/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE02_FGR/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE02_FGR/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE03_ETC/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE03_ETC/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE03_ETC/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE03_ETC/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE03_ETC/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE04_STI/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE04_STI/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE04_STI/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE04_STI/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE04_STI/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE05_TDW/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE05_TDW/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE05_TDW/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE05_TDW/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE05_TDW/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE06_F2D/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE06_F2D/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE06_F2D/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE06_F2D/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE06_F2D/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE07_IPC/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE07_IPC/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE07_IPC/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE07_IPC/scripts/case_support.py
+ M cases/Verification/coupling_tests/CASE07_IPC/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE07_IPC/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE08_FBC/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE08_FBC/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE08_FBC/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE08_FBC/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE08_FBC/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE09_MMD/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE09_MMD/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE09_MMD/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE09_MMD/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE09_MMD/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE10_WSR/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE10_WSR/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE10_WSR/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE10_WSR/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE10_WSR/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE11_WSC/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE11_WSC/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE11_WSC/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE11_WSC/report/technical_macros.tex
+ M cases/Verification/coupling_tests/CASE11_WSC/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE11_WSC/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE12_TRS/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE12_TRS/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE12_TRS/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE12_TRS/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE12_TRS/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE13_PRM/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE13_PRM/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE13_PRM/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE14_SRS/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE14_SRS/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE14_SRS/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE14_SRS/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE14_SRS/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE19_WTH/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE19_WTH/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE19_WTH/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE19_WTH/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE19_WTH/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE20_PIG/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE20_PIG/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE20_PIG/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE20_PIG/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE20_PIG/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE21_WDE/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE21_WDE/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE21_WDE/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE21_WDE/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE21_WDE/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE22_VSL/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE22_VSL/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE22_VSL/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE22_VSL/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE22_VSL/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE23_FQD/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE23_FQD/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE23_FQD/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE23_FQD/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE23_FQD/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE24_CXI/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE24_CXI/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE24_CXI/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE24_CXI/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE24_CXI/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE25_MQD/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE25_MQD/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE25_MQD/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE25_MQD/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE25_MQD/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE26_CNF/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE26_CNF/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE26_CNF/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE26_CNF/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE26_CNF/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE27_FBT/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE27_FBT/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE27_FBT/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE27_FBT/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE27_FBT/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE28_OVA/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE28_OVA/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE28_OVA/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE28_OVA/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE28_OVA/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE29_SUP/figures/verification_summary.pdf
+ M cases/Verification/coupling_tests/CASE29_SUP/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE29_SUP/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE29_SUP/scripts/case_adapter.py
+ M cases/Verification/coupling_tests/CASE29_SUP/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE30_MIT/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE30_MIT/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE30_MIT/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE30_MIT/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE30_MIT/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE31_PFT/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE31_PFT/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE31_PFT/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE31_PFT/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE31_PFT/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE32_RCV/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE32_RCV/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE32_RCV/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE32_RCV/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE32_RCV/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE33_SDO/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE33_SDO/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE33_SDO/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE33_SDO/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE33_SDO/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE40_WSD/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE40_WSD/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE40_WSD/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE40_WSD/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE40_WSD/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE42_WAF/figures/sweep_response.pdf
+ M cases/Verification/coupling_tests/CASE42_WAF/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE42_WAF/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE42_WAF/scripts/evaluate_outputs.py
+ M cases/Verification/coupling_tests/CASE42_WAF/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE42_WAF/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE43_WER/figures/expected_response.pdf
+ M cases/Verification/coupling_tests/CASE43_WER/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE43_WER/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE43_WER/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE43_WER/report/readability_macros.tex
+ M cases/Verification/coupling_tests/CASE43_WER/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE43_WER/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE43_WER/scripts/preprocess.py
+ M cases/Verification/coupling_tests/CASE43_WER/scripts/report_readability.py
+ M cases/Verification/coupling_tests/CASE44_WHP/figures/expected_response.pdf
+ M cases/Verification/coupling_tests/CASE44_WHP/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE44_WHP/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE44_WHP/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE44_WHP/report/readability_macros.tex
+ M cases/Verification/coupling_tests/CASE44_WHP/report/readable_results.tex
+ M cases/Verification/coupling_tests/CASE44_WHP/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE44_WHP/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE44_WHP/scripts/preprocess.py
+ M cases/Verification/coupling_tests/CASE44_WHP/scripts/report_readability.py
+ M cases/Verification/coupling_tests/CASE45_HRS/figures/heat_stimulus.pdf
+ M cases/Verification/coupling_tests/CASE45_HRS/figures/response_summary.pdf
+ M cases/Verification/coupling_tests/CASE45_HRS/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE45_HRS/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE45_HRS/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE45_HRS/report/readability_macros.tex
+ M cases/Verification/coupling_tests/CASE45_HRS/report/readable_results.tex
+ M cases/Verification/coupling_tests/CASE45_HRS/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE45_HRS/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE45_HRS/scripts/preprocess.py
+ M cases/Verification/coupling_tests/CASE45_HRS/scripts/report_readability.py
+ M cases/Verification/coupling_tests/CASE46_WUT/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE46_WUT/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE46_WUT/report/readability_macros.tex
+ M cases/Verification/coupling_tests/CASE46_WUT/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE46_WUT/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE46_WUT/scripts/preprocess.py
+ M cases/Verification/coupling_tests/CASE46_WUT/scripts/report_readability.py
+ M cases/Verification/coupling_tests/CASE47_UWT/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE47_UWT/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE47_UWT/report/case_report.tex
+ M cases/Verification/coupling_tests/CASE47_UWT/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE47_UWT/report/readability_macros.tex
+ M cases/Verification/coupling_tests/CASE47_UWT/report/readable_results.tex
+ M cases/Verification/coupling_tests/CASE47_UWT/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE47_UWT/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE47_UWT/scripts/report_readability.py
+ M cases/Verification/coupling_tests/CASE47_UWT/scripts/spatial_evidence.py
+ M cases/Verification/coupling_tests/CASE48_WGC/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE48_WGC/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE48_WGC/report/case_report.tex
+ M cases/Verification/coupling_tests/CASE48_WGC/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE48_WGC/report/readability_macros.tex
+ M cases/Verification/coupling_tests/CASE48_WGC/report/readable_results.tex
+ M cases/Verification/coupling_tests/CASE48_WGC/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE48_WGC/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE48_WGC/scripts/preprocess.py
+ M cases/Verification/coupling_tests/CASE48_WGC/scripts/report_readability.py
+ M cases/Verification/coupling_tests/CASE49_WTC/report/case_body.tex
+ M cases/Verification/coupling_tests/CASE49_WTC/report/case_report.pdf
+ M cases/Verification/coupling_tests/CASE49_WTC/report/case_report.tex
+ M cases/Verification/coupling_tests/CASE49_WTC/report/metrics_macros.tex
+ M cases/Verification/coupling_tests/CASE49_WTC/report/readability_macros.tex
+ M cases/Verification/coupling_tests/CASE49_WTC/report/readable_results.tex
+ M cases/Verification/coupling_tests/CASE49_WTC/scripts/metrics_to_macro.py
+ M cases/Verification/coupling_tests/CASE49_WTC/scripts/postprocess.py
+ M cases/Verification/coupling_tests/CASE49_WTC/scripts/preprocess.py
+ M cases/Verification/coupling_tests/CASE49_WTC/scripts/report_readability.py
+ M cases/Verification/skills/elmfire-verification-case/SKILL.md
+ M cases/Verification/skills/elmfire-verification-case/references/case_contract.md
+ M cases/Verification/skills/elmfire-verification-case/references/report_structure.md
+ M cases/Verification/unit_tests/CASE15_CRO/report/case_body.tex
+ M cases/Verification/unit_tests/CASE15_CRO/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE15_CRO/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE15_CRO/scripts/postprocess.py
+ M cases/Verification/unit_tests/CASE15_CRO/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE16_NSP/report/case_body.tex
+ M cases/Verification/unit_tests/CASE16_NSP/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE16_NSP/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE16_NSP/scripts/postprocess.py
+ M cases/Verification/unit_tests/CASE16_NSP/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE17_SCV/report/case_body.tex
+ M cases/Verification/unit_tests/CASE17_SCV/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE17_SCV/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE17_SCV/scripts/postprocess.py
+ M cases/Verification/unit_tests/CASE17_SCV/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE18_TCV/report/case_body.tex
+ M cases/Verification/unit_tests/CASE18_TCV/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE18_TCV/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE18_TCV/scripts/postprocess.py
+ M cases/Verification/unit_tests/CASE18_TCV/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE34_FMS/figures/sweep_response.pdf
+ M cases/Verification/unit_tests/CASE34_FMS/report/case_body.tex
+ M cases/Verification/unit_tests/CASE34_FMS/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE34_FMS/scripts/evaluate_outputs.py
+ M cases/Verification/unit_tests/CASE34_FMS/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE34_FMS/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE35_WSS/figures/sweep_response.pdf
+ M cases/Verification/unit_tests/CASE35_WSS/report/case_body.tex
+ M cases/Verification/unit_tests/CASE35_WSS/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE35_WSS/scripts/evaluate_outputs.py
+ M cases/Verification/unit_tests/CASE35_WSS/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE35_WSS/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE36_SLS/figures/sweep_response.pdf
+ M cases/Verification/unit_tests/CASE36_SLS/report/case_body.tex
+ M cases/Verification/unit_tests/CASE36_SLS/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE36_SLS/scripts/evaluate_outputs.py
+ M cases/Verification/unit_tests/CASE36_SLS/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE36_SLS/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE37_DMS/figures/sweep_response.pdf
+ M cases/Verification/unit_tests/CASE37_DMS/report/case_body.tex
+ M cases/Verification/unit_tests/CASE37_DMS/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE37_DMS/scripts/evaluate_outputs.py
+ M cases/Verification/unit_tests/CASE37_DMS/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE37_DMS/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE38_LMS/figures/sweep_response.pdf
+ M cases/Verification/unit_tests/CASE38_LMS/report/case_body.tex
+ M cases/Verification/unit_tests/CASE38_LMS/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE38_LMS/scripts/evaluate_outputs.py
+ M cases/Verification/unit_tests/CASE38_LMS/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE38_LMS/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE39_DHC/figures/sweep_response.pdf
+ M cases/Verification/unit_tests/CASE39_DHC/report/case_body.tex
+ M cases/Verification/unit_tests/CASE39_DHC/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE39_DHC/scripts/evaluate_outputs.py
+ M cases/Verification/unit_tests/CASE39_DHC/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE39_DHC/scripts/spatial_evidence.py
+ M cases/Verification/unit_tests/CASE41_CFP/figures/sweep_response.pdf
+ M cases/Verification/unit_tests/CASE41_CFP/report/case_body.tex
+ M cases/Verification/unit_tests/CASE41_CFP/report/case_report.pdf
+ M cases/Verification/unit_tests/CASE41_CFP/scripts/evaluate_outputs.py
+ M cases/Verification/unit_tests/CASE41_CFP/scripts/metrics_to_macro.py
+ M cases/Verification/unit_tests/CASE41_CFP/scripts/spatial_evidence.py
+ M cases/case_template/report/case_body.tex
+ M main_report/generated/validation_cases.tex
+ M main_report/generated/validation_cover_metadata.tex
+ M main_report/generated/validation_summary.json
+ M main_report/generated/validation_summary.tex
+ M main_report/generated/verification_cases.tex
+ M main_report/generated/verification_cover_metadata.tex
+ M main_report/generated/verification_summary.json
+ M main_report/generated/verification_summary.tex
+ M main_report/validation_report.pdf
+ M main_report/validation_report.tex
+ M main_report/verification_report.pdf
+ M main_report/verification_report.tex
+ M tools/build_all.sh
+ M tools/generate_summary_reports.py
+ M tools/tests/test_summary_reports.py
+?? cases/Validation/landscape_scale/camp_fire/scripts/report_language.py
+?? cases/Validation/landscape_scale/thomas_fire/scripts/report_language.py
+?? cases/Validation/landscape_scale/tubbs_fire/scripts/report_language.py
+?? cases/Validation/skills/elmfire-validation-case/references/report_language.md
+?? cases/Verification/coupling_tests/CASE01_BET/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE02_FGR/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE03_ETC/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE04_STI/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE05_TDW/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE06_F2D/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE07_IPC/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE08_FBC/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE09_MMD/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE10_WSR/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE11_WSC/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE12_TRS/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE13_PRM/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE14_SRS/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE19_WTH/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE20_PIG/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE21_WDE/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE22_VSL/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE23_FQD/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE24_CXI/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE25_MQD/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE26_CNF/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE27_FBT/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE28_OVA/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE29_SUP/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE30_MIT/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE31_PFT/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE32_RCV/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE33_SDO/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE40_WSD/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE42_WAF/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE43_WER/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE44_WHP/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE45_HRS/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE46_WUT/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE47_UWT/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE48_WGC/scripts/report_language.py
+?? cases/Verification/coupling_tests/CASE49_WTC/scripts/report_language.py
+?? cases/Verification/skills/elmfire-verification-case/references/report_language.md
+?? cases/Verification/unit_tests/CASE15_CRO/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE16_NSP/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE17_SCV/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE18_TCV/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE34_FMS/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE35_WSS/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE36_SLS/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE37_DMS/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE38_LMS/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE39_DHC/scripts/report_language.py
+?? cases/Verification/unit_tests/CASE41_CFP/scripts/report_language.py
+?? docs/report_language_review.md
+?? docs/report_language_review/
+?? tools/audit_report_language.py
+?? tools/report_language.py
+?? tools/tests/test_report_language.py

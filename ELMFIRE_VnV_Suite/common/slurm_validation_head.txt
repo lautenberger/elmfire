@@ -1,0 +1,78 @@
+# ELMFIRE landscape validation cases use one MPI rank per ensemble member.
+# Keeping all ranks on one Savio4 node avoids unnecessary cross-node shared-state
+# traffic; savio4_htc nodes provide 56 cores, so the 50-rank request fits.
+#SBATCH --job-name=elmfire-validation
+#SBATCH --account=co_gollner
+#SBATCH --partition=savio4_htc
+#SBATCH --qos=gollner_htc4_normal
+#SBATCH --nodes=1
+#SBATCH --ntasks=50
+#SBATCH --ntasks-per-node=50
+#SBATCH --cpus-per-task=1
+#SBATCH --time=10-01:00:00
+#SBATCH --output=slurm-%x-%j.stdout
+#SBATCH --error=slurm-%x-%j.stderr
+
+set -euo pipefail
+
+module purge
+module load gcc
+module load openmpi
+module load gdal
+module load anaconda3
+
+# Slurm's allocation is authoritative. Override any stale value exported in the
+# submission shell (for example, ELMFIRE_MPI_RANKS=51 from an earlier header).
+export ELMFIRE_MPI_RANKS="${SLURM_NTASKS:-50}"
+
+# Prevent packages under ~/.local from shadowing the selected environment.
+export PYTHONNOUSERSITE=1
+
+# Require an explicit environment because the Anaconda module's base Python
+# does not provide the suite's geospatial dependencies. ELMFIRE_VNV_CONDA_ENV
+# must be exported before sbatch so it is present in the job environment.
+if [[ -z "${ELMFIRE_VNV_CONDA_ENV:-}" ]]; then
+  echo "[ERROR] ELMFIRE_VNV_CONDA_ENV is not set in the Slurm job environment." >&2
+  echo "[ERROR] Export its environment name or absolute path before submission." >&2
+  exit 2
+fi
+
+source "$(conda info --base)/etc/profile.d/conda.sh"
+CONDA_BASE=$(conda info --base)
+echo "[INFO] Requested Conda environment: $ELMFIRE_VNV_CONDA_ENV"
+conda activate "$ELMFIRE_VNV_CONDA_ENV"
+
+if [[ -z "${CONDA_PREFIX:-}" || "$CONDA_PREFIX" == "$CONDA_BASE" ]]; then
+  echo "[ERROR] Conda activation resolved to the base environment: ${CONDA_PREFIX:-unset}" >&2
+  echo "[ERROR] ELMFIRE_VNV_CONDA_ENV must identify the dedicated suite environment." >&2
+  exit 2
+fi
+echo "[INFO] Activated Conda environment: $CONDA_PREFIX"
+
+# These cases contain all coordinate-operation resources they need locally.
+# Disable PROJ network-grid access so concurrent MPI ranks do not contend for
+# the shared ~/.local/share/proj/cache.db SQLite cache on Savio.
+export PROJ_NETWORK=OFF
+echo "[INFO] PROJ network access: $PROJ_NETWORK"
+
+# Case runners honor PYTHON_BIN, while their portable fallback is python3.
+# Resolve and export the interpreter only after Conda activation so the same
+# Python that passes this preflight is also used by preprocess.py and
+# postprocess.py.
+PYTHON_BIN="$CONDA_PREFIX/bin/python"
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  echo "[ERROR] Activated environment has no executable Python: $PYTHON_BIN" >&2
+  exit 2
+fi
+export PYTHON_BIN
+
+if ! "$PYTHON_BIN" -c \
+  'import numpy, matplotlib, yaml, rasterio, pandas, geopandas, shapely, pyproj'; then
+  echo "[ERROR] Validation Python dependencies are unavailable in: $PYTHON_BIN" >&2
+  echo "[ERROR] Activate/install the environment named by ELMFIRE_VNV_CONDA_ENV before submitting." >&2
+  exit 2
+fi
+
+echo "[INFO] Validation Python: $PYTHON_BIN"
+"$PYTHON_BIN" -c \
+  'import rasterio; print("[INFO] Rasterio:", rasterio.__version__, rasterio.__file__)'

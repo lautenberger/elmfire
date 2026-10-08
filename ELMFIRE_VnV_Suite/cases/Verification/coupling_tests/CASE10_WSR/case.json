@@ -1,0 +1,101 @@
+{
+  "case_number": "10",
+  "purpose_abbreviation": "WSR",
+  "id": "CASE10_WSR",
+  "chapter": "6",
+  "title": "WUI Structural Resolution Sensitivity",
+  "summary": "One paired suite for the Chapter 6 baseline, native fine/coarse discretization behavior, and the proposed aligned/misaligned integrated-structure treatment.",
+  "wind_speed_mph": 40.0,
+  "physical_width_m": 100.0,
+  "structure_width_m": 10.0,
+  "firebreak_width_m": 10.0,
+  "cross_grid_width_m": 10.0,
+  "hrrpua_peak_kw_m2": 400.0,
+  "hrr_growth_end_s": 300.0,
+  "hrr_steady_end_s": 3900.0,
+  "hrr_decay_end_s": 4200.0,
+  "ember_generation_building_pcs_mw_s": 10.0,
+  "ember_generation_vegetation_pcs_mw_s": 33.3,
+  "critical_load_pcs_m2": 2928.9,
+  "small_ignition_delay_s": 42.1,
+  "development_delay_s": 300.0,
+  "feature_keyword": "USE_RESOLUTION_INDEPENDENT_STRUCTURES",
+  "required_feature_available": false,
+  "metrics": {
+    "baseline_load_mean_relative_error_max": 0.1,
+    "baseline_ignition_relative_error_max": 0.1,
+    "fine_within_structure_relative_range_min": 0.05,
+    "fine_ros_ratio_to_baseline_max": 0.5,
+    "coarse_load_ratio_reference": 1.86,
+    "coarse_load_ratio_relative_error_max": 0.25,
+    "aligned_load_mean_relative_error_max": 0.01,
+    "aligned_ignition_mean_relative_error_max": 0.05,
+    "misaligned_load_max_relative_error_max": 0.33,
+    "misaligned_ignition_max_relative_error_max": 0.1
+  },
+  "variants": [
+    {
+      "name": "baseline_dx10",
+      "variant_label": "exact-grid baseline",
+      "role": "baseline",
+      "dx_m": 10.0,
+      "physical_length_m": 220.0,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 22000.0,
+      "cfl": 0.5,
+      "structure_treatment": "native_cell",
+      "requires_feature": false
+    },
+    {
+      "name": "native_fine_dx2p5",
+      "variant_label": "native fine-grid variant",
+      "role": "native_fine",
+      "dx_m": 2.5,
+      "physical_length_m": 220.0,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 50000.0,
+      "cfl": 0.5,
+      "structure_treatment": "native_cell",
+      "requires_feature": false
+    },
+    {
+      "name": "native_coarse_dx30",
+      "variant_label": "native coarse-grid variant",
+      "role": "native_coarse",
+      "dx_m": 30.0,
+      "physical_length_m": 240.0,
+      "cross_grid_width_m": 30.0,
+      "tstop_s": 22000.0,
+      "cfl": 0.5,
+      "structure_treatment": "native_cell_mode_resampled",
+      "requires_feature": false
+    },
+    {
+      "name": "integrated_aligned_dx2p5",
+      "variant_label": "integrated aligned variant",
+      "role": "integrated_aligned",
+      "dx_m": 2.5,
+      "physical_length_m": 220.0,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 22000.0,
+      "cfl": 0.5,
+      "structure_treatment": "integrated_structure",
+      "requires_feature": true
+    },
+    {
+      "name": "integrated_misaligned_dx3p24",
+      "variant_label": "integrated misaligned variant",
+      "role": "integrated_misaligned",
+      "dx_m": 3.24,
+      "physical_length_m": 220.32,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 22000.0,
+      "cfl": 0.5,
+      "structure_treatment": "integrated_structure_mode_resampled",
+      "requires_feature": true
+    }
+  ],
+  "source_references": [
+    "Sections 6.2.1-6.2.3 and 6.3.2; Tests 6-1, 6-2, 6-3, 6-5 and 6-6"
+  ]
+}

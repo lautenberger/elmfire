@@ -1,0 +1,95 @@
+case_id: "CASE45_HRS"
+case_title: "Case 45: WU-E heat-to-urban rate-of-spread response"
+category: "Verification/coupling_tests"
+parameter_interpretation:
+  BLDG_AREA: "linear characteristic building dimension in metres"
+source_provenance:
+  repository: "elmfire-nick"
+  commit: "a2dfbcdf72209733c000e5d3431e44723e15efea"
+  checkout_state_at_design_review: "dirty outside the reviewed WU-E files"
+  reviewed_files_match_commit: true
+  reviewed_file_sha256:
+    build/source/elmfire_vars.f90: "5ad4a4fdd7e3faf98d839fb75af5b3c1178cadd335142ab960adec2462c7896c"
+    build/source/elmfire_init.f90: "06d2be089db961d1af387f4d1cfb60a6ab28f2daa50d7e4ada8bfda58cd87c0d"
+    build/source/elmfire_namelists.f90: "2fcd9e57a2bec5df964d96ccef0f658b703e0406abb19c13cb8080af066c78b4"
+    build/source/elmfire_spread_rate.f90: "eed515c2f44b5582c01b1573e41a7e24bf76f0a445870f27ba7d32d281e656a4"
+    build/source/elmfire_level_set.f90: "18c446fce24ac5fac8dd174e38e273bfdddecfa81c9371550b247055b6d833b3"
+  known_modified_paths_outside_reviewed_files:
+    - "build/source/elmfire.f90"
+    - "build/source/elmfire_io.f90"
+    - "build/source/elmfire_subs.f90"
+  untracked_entries_present_at_design_review: true
+  untracked_paths_at_design_review:
+    - ".vscode/"
+    - "ELMFIRE_VnV_Suite/"
+    - "Thomas_VAL/"
+    - "VERIFICATION_TROUBLESHOOT_DWI/"
+    - "notebooks/"
+    - "thomas_fire/"
+    - "verification/spotting-suite-legacy/"
+    - "verification/spotting-suite/"
+  reviewed_paths:
+    - "build/source/elmfire_vars.f90:11-12"
+    - "build/source/elmfire_vars.f90:662-672"
+    - "build/source/elmfire_init.f90:1537-1600"
+    - "build/source/elmfire_namelists.f90:676-710"
+    - "build/source/elmfire_spread_rate.f90:522-596"
+    - "build/source/elmfire_spread_rate.f90:600-726"
+    - "build/source/elmfire_spread_rate.f90:730-837"
+    - "build/source/elmfire_spread_rate.f90:841-916"
+    - "build/source/elmfire_level_set.f90:2496-2547"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/response_summary.pdf"
+
+variants:
+  required_count: 12
+  receiver_initial_phi: 9.5367431640625e-07
+  required_receiver_toa_s: 1.0
+  axes:
+    per_step_energy_kj: [29900.0, 30000.0, 30100.0]
+    wind_mph: [34.9, 35.0, 35.1]
+    front_normal: [head, back, side]
+    hrr_amplitude_factor: [0.5, 2.0]
+    ftp_crit_kj_m2: [3000.0, 6000.0]
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      template: true
+      invariants:
+        INPUTS.SURFACE_SPREAD_MODEL: "ROTHERMEL"
+        INPUTS.DT_METEOROLOGY: 3600.0
+        OUTPUTS.DUMP_SPREAD_RATE: true
+        OUTPUTS.SPREAD_RATE_IN_M: false
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        OUTPUTS.DUMP_HRR_TRANSIENT: true
+        OUTPUTS.DUMP_TRANSIENT_DFC: true
+        OUTPUTS.DUMP_TRANSIENT_RAD: true
+        OUTPUTS.DUMP_EVERY_STEP: true
+        TIME_CONTROL.SIMULATION_DT: 1.0
+        TIME_CONTROL.SIMULATION_DTMAX: 1.0
+        TIME_CONTROL.SIMULATION_TSTOP: 4.0
+        TIME_CONTROL.TARGET_CFL: 0.10
+        SIMULATOR.NUM_IGNITIONS: 1
+        SIMULATOR.X_IGN(1): 0.0
+        SIMULATOR.Y_IGN(1): 0.0
+        SIMULATOR.T_IGN(1): 5.0
+        SIMULATOR.ALLOW_NONBURNABLE_PIXEL_IGNITION: false
+        SPOTTING.ENABLE_SPOTTING: false
+        WUI.BLDG_AREA_CONSTANT: 20.0
+        WUI.BLDG_SEPARATION_DIST_CONSTANT: 10.0
+        WUI.BLDG_FUEL_MODEL_CONSTANT: 1
+        WUI.BLDG_SPREAD_MODEL_TYPE: 2
+        WUI.USE_BLDG_SPREAD_MODEL: true
+        WUI.USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS: true
+        WUI.HRR_ELLIPSE_ADJ: 0.5

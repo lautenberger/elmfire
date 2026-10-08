@@ -1,0 +1,52 @@
+{
+  "case_id": "CASE30_MIT",
+  "overall_status": "PASS",
+  "verification_passed": true,
+  "required_outputs_complete": true,
+  "variants": [
+    "dual_nowind",
+    "dual_wind",
+    "staggered_merge",
+    "near_boundary"
+  ],
+  "metrics": [
+    {
+      "name": "dual-ignition reflection error",
+      "expected": "<= 0.02",
+      "calculated": 0.00047228372114257707,
+      "units": "",
+      "tolerance": "2% normalized L1",
+      "status": "PASS"
+    },
+    {
+      "name": "wind-forcing response",
+      "expected": ">= 0.05",
+      "calculated": 0.09376360354621224,
+      "units": "",
+      "tolerance": "5% normalized L1",
+      "status": "PASS"
+    },
+    {
+      "name": "maximum scheduled-ignition timing error",
+      "expected": "<= 1200",
+      "calculated": 0.0,
+      "units": "s",
+      "tolerance": "one output interval",
+      "status": "PASS"
+    },
+    {
+      "name": "boundary ignitions initialized",
+      "expected": "8",
+      "calculated": 8.0,
+      "units": "count",
+      "tolerance": "all eight points",
+      "status": "PASS"
+    }
+  ],
+  "source_files": [
+    "variants/dual_nowind/outputs/time_of_arrival_0000001_0014400.tif",
+    "variants/dual_wind/outputs/time_of_arrival_0000001_0014400.tif",
+    "variants/staggered_merge/outputs/time_of_arrival_0000001_0012000.tif",
+    "variants/near_boundary/outputs/time_of_arrival_0000001_0002400.tif"
+  ]
+}

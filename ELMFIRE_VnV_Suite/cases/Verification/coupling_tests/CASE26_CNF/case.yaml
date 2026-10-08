@@ -1,0 +1,43 @@
+case_id: "CASE26_CNF"
+case_title: "Case 26: Surface, passive-crown, and active-crown fire"
+category: "Verification/coupling_tests"
+guide_section: "3.2.7"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "variants/1mph/elmfire.data.in"
+
+variants:
+  - id: "1mph"
+    guide_case: "Canopy-1mph"
+    config: "variants/1mph/elmfire.data.in"
+  - id: "5mph"
+    guide_case: "Canopy-5mph"
+    config: "elmfire.data.in"
+  - id: "10mph"
+    guide_case: "Canopy-10mph"
+    config: "variants/10mph/elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figure: "figures/verification_summary.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "variants/1mph/elmfire.data.in"
+      invariants:
+        TIME_CONTROL.SIMULATION_TSTOP: 259200.0
+        SIMULATOR.NUM_IGNITIONS: 1
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+    - path: "elmfire.data.in"
+      invariants:
+        TIME_CONTROL.SIMULATION_TSTOP: 259200.0
+        SIMULATOR.NUM_IGNITIONS: 1
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+    - path: "variants/10mph/elmfire.data.in"
+      invariants:
+        TIME_CONTROL.SIMULATION_TSTOP: 259200.0
+        SIMULATOR.NUM_IGNITIONS: 1
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true

@@ -1,0 +1,20 @@
+case_id: "CASE13_PRM"
+case_title: "WUI Parametric Response Maps"
+category: "Verification/coupling_tests"
+
+elmfire:
+  bin: "not applicable"
+  config: "not applicable"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/parametric_response_maps.pdf"
+
+namelist_contract:
+  schema_version: 1
+  applicability: "not_applicable"
+  reason: "The required resolution-independent structure capability and source adapter are unavailable, so this case intentionally does not execute ELMFIRE."
+  report: "report/case_body.tex"
+  files: []

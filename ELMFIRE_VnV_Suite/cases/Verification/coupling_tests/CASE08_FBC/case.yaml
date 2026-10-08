@@ -1,0 +1,30 @@
+case_id: "CASE08_FBC"
+case_title: "Deposited Firebrand Consumption"
+category: "Verification/coupling_tests"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/domain_result.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        OUTPUTS.DUMP_EMBER_FLUX: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        SPOTTING.ENABLE_SPOTTING: true
+        SPOTTING.GENERATION_MODEL: "PER-MW"
+        SPOTTING.ACCUMULATION_MODEL: "EULERIAN"
+        SPOTTING.IGNITION_MODEL: "PHYSICAL"
+        SPOTTING.USE_PHYSICAL_SPOTTING_DURATION: true
+        SPOTTING.NO_SURFACE_FIRE: false
+        SPOTTING.LOCAL_IGNITION_TIME: 42.0
+        SPOTTING.CELL_IGNITION_DELAY: 300.0

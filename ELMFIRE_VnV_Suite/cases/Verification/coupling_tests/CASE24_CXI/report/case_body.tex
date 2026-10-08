@@ -1,0 +1,108 @@
+\section{Verification purpose}
+
+This case exercises simultaneous spatial fuel variation, opposing slopes, and steady wind to reveal integration failures that isolated cases may miss. The decision checks the independently derived domain-maximum head spread while preserving the Guide configuration and central ignition.
+
+The scientific setup and historical expected response are reconstructed from Section~3.2 of the supplied \emph{ELMFIRE Guide}. The Guide is used as reference provenance, not as an instruction or a substitute for evidence. Configuration statements below are checked against the generated GeoTIFFs and namelist; current results and decisions come only from case-specific outputs and generated metrics. Where the generated experiment differs from the historical example, the report states that difference explicitly.
+
+\section{Mathematical formulation and numerical implementation}
+
+At each active front cell ELMFIRE combines fuel-dependent reaction terms, wind and slope factors, and elliptical propagation geometry to obtain a local normal velocity. The configuration intentionally produces competing directional effects. Although the discontinuous coupled perimeter has no closed-form solution, its maximum local direction-of-maximum-spread response does.
+
+For each active cell, ELMFIRE evaluates fuel-dependent \(R_0\), wind factor \(\phi_w\), and slope factor \(\phi_s\). Wind and slope are combined as vectors before the direction of maximum spread and effective-wind ellipse are formed:
+\begin{equation}
+\boldsymbol{\phi}=\phi_w\widehat{\boldsymbol{u}}_w+\phi_s\widehat{\boldsymbol{u}}_s, \qquad R_H=R_0(1+|\boldsymbol{\phi}|).
+\end{equation}
+Spatial discontinuities in fuel and slope make \(R_H\) piecewise and the resulting level-set problem has no closed-form perimeter.
+
+\section{Derivation of expected behavior}
+
+The dominant generated condition is the southwest quadrant: fuel model 4, 15-degree slope, 5 mph wind, and fixed 6/7/8 percent dead moisture. The tracked fuel table gives \(R_0=1.493256\) m/min and wind-adjustment factor 0.547659. The independent Rothermel calculation gives \(\phi_s=2.010270\) and \(\phi_w=7.366964\). Wind-to south and upslope west are orthogonal, so \(|\boldsymbol{\phi}|=\sqrt{\phi_s^2+\phi_w^2}\) and \(R_H=12.896233\) m/min.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The generated Fuel Model~4 and moisture inputs first give the no-forcing
+rate\[R_0=1.493256~\mathrm{m\,min^{-1}}\]and reaction intensity
+\(I_R=2272.300~\mathrm{kW\,m^{-2}}\).  Independent wind and slope
+calculations give \(\phi_w=7.366964\) and \(\phi_s=2.010270\).
+Because the imposed wind and upslope vectors are orthogonal, their
+dimensionless resultant is
+\[
+ \phi_{\mathrm{res}}=\sqrt{\phi_w^2+\phi_s^2}
+ =\sqrt{(7.366964)^2+(2.010270)^2}=7.636318.
+\]
+The reference maximum rate is consequently
+\[
+ R_{\mathrm{ref}}=R_0(1+\phi_{\mathrm{res}})
+ =1.493256(1+7.636318)=12.896233~\mathrm{m\,min^{-1}}.
+\]
+The decision metric substitutes this value in
+\(e_R=|R_{\max}-12.896233|/12.896233\) and compares \(e_R\) with the
+tabulated relative tolerance.
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+The required metric is the maximum finite spread rate over the completed domain. It must agree with the independently derived 12.896233 m/min southwest-quadrant head response within the Guide prescribed 10 percent tolerance. The case is NOT EVALUABLE only when required output is missing; otherwise this quantitative metric decides PASS or FAIL.
+
+\section{Simulation configuration and predicted outcome}
+
+The 30 m domain combines the CASE23 fuel quadrants, CASE22 opposing slopes, 5 mph wind, uniform moisture, and central ignition. Predicted output is asymmetric, spatially continuous, and preferentially extended by both wind and locally faster fuels/slopes.
+
+\begin{center}
+\begin{tabular}{@{}p{0.20\textwidth}p{0.20\textwidth}p{0.12\textwidth}p{0.38\textwidth}@{}}
+\toprule
+Parameter & Configured value & Units & Role in the experiment \\
+\midrule
+Grid & \(126\times126\) at 30 & m per cell & Resolves the whole spatial response on the generated north-up raster \\
+Projection & EPSG:32635 & --- & Fixes the map-coordinate and row-orientation convention \\
+Time control & \(\Delta t=1\), \(t_{stop}=259200\) & s & Whole-second step; stop time is an exact timestep multiple \\
+Meteorology interval & 3600 & s & Defines weather-band timing and stalled-final compatibility \\
+Live moisture & herb 60; woody 90 & percent & Holds live-fuel damping fixed while the named mechanism is isolated \\
+Evidence & prepared inputs; final case outputs & --- & Separates configuration provenance from acceptance evidence \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+The required evidence is generated only from case-specific ELMFIRE outputs. The current postprocessing status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} required metric rows pass across \VariantCount{} simulation condition(s). A missing output is reported as NOT RUN or NOT EVALUABLE and is not interpreted as verification evidence.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/whole_domain_result.pdf}{%
+    \includegraphics[width=0.82\textwidth,height=0.58\textheight,keepaspectratio]{whole_domain_result.pdf}%
+  }{\fbox{\parbox{0.85\textwidth}{No case-specific whole-domain ELMFIRE raster is available.}}}
+  \caption{Final whole-domain ELMFIRE time of arrival for the displayed simulation condition, in seconds. The coordinate reference system is stated in the figure. The calculated metrics, not visual appearance, determine acceptance.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Simulation condition / metric & Expected & Calculated & Status \\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{center}
+
+The displayed decision is \textbf{\VerificationStatus}. A present case-specific calculated metrics controls the table; missing required output remains NOT EVALUABLE.
+
+\section{Technical interpretation}
+
+Agreement supports the coupled fuel-table selection, wind adjustment, slope factor, vector magnitude, and spread-rate output for the dominant generated condition. A plausible perimeter alone is not used as evidence.
+
+\section{Scope and limitations}
+
+The metric verifies the analytically observable domain maximum, not the complete discontinuous perimeter or every regional direction. It uses deterministic implementation verification rather than field validation.

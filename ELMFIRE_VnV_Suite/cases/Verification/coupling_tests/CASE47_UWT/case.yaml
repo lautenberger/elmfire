@@ -1,0 +1,97 @@
+case_id: "CASE47_UWT"
+case_title: "Case 47: Urban-to-wildland WU-E transition and isolated wildland receivers"
+category: "Verification/coupling_tests"
+purpose: >-
+  Characterize urban-source heat exposure separately from ordinary Rothermel
+  arrival, and determine whether isolated wildland receivers have a heat-only
+  WU-E ignition path in the inspected implementation.
+
+source_provenance:
+  repository: "elmfire-nick"
+  commit: "a2dfbcdf72209733c000e5d3431e44723e15efea"
+  inspected_files:
+    - "build/source/elmfire_namelists.f90:676-710"
+    - "build/source/elmfire_spread_rate.f90:600-726"
+    - "build/source/elmfire_spread_rate.f90:841-916"
+    - "build/source/elmfire_level_set.f90:2414-2425"
+    - "build/source/elmfire_level_set.f90:2496-2547"
+  namelist_source_sha256: "2fcd9e57a2bec5df964d96ccef0f658b703e0406abb19c13cb8080af066c78b4"
+  spread_rate_source_sha256: "eed515c2f44b5582c01b1573e41a7e24bf76f0a445870f27ba7d32d281e656a4"
+  level_set_source_sha256: "18c446fce24ac5fac8dd174e38e273bfdddecfa81c9371550b247055b6d833b3"
+  checkout_note: >-
+    These mapped files were byte-identical to the named revision. The source
+    checkout also contained pre-existing changes in other files and is not
+    represented as globally clean.
+  runtime_source_dependency: false
+
+references:
+  - file: "1-s2.0-S1540748924005637-main.pdf"
+    pages: "PDF 2-3, equations (2)-(8)"
+    use: "Published WU-E heat-transfer and intended interface capability evidence"
+  - file: "Thesis(PubLetterIncluded)_YirenQin_20250623.pdf"
+    pages: "PDF 63-67 (printed 41-45), equations (2.81)-(2.95)"
+    use: "Detailed WU-E formulation evidence"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/implementation_characterization.pdf"
+    - "figures/whole_domain_result.pdf"
+
+variants:
+  factors:
+    source_hrrpua_peak_kw_m2: [100.0, 400.0]
+    wildland_adjustment: [0.0, 1.0]
+    corridor: ["open", "barrier"]
+  count: 8
+  receiver_cells:
+    heat_source_row_col_zero_based: [8, 10]
+    isolated_wildland_row_col_zero_based: [8, 13]
+    propagation_source_row_col_zero_based: [22, 10]
+    adjacent_wildland_row_col_zero_based: [22, 11]
+    barrier_row_col_zero_based: [22, 12]
+    distal_wildland_row_col_zero_based: [22, 13]
+
+decision_contract:
+  capability_gate: "data/misc/source_capability.json"
+  implementation_characterization: "PASS or FAIL after all eight runs"
+  intended_heat_only_urban_to_wildland_capability: "NOT EVALUABLE at the pinned source revision"
+  overall: "NOT EVALUABLE until and after complete runs because the intended capability is absent; workflow is NOT RUN before execution"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        INPUTS.SURFACE_SPREAD_MODEL: "ROTHERMEL"
+        INPUTS.DT_METEOROLOGY: 600.0
+        OUTPUTS.DTDUMP: 60.0
+        OUTPUTS.DUMP_FLIN: true
+        OUTPUTS.DUMP_SPREAD_RATE: true
+        OUTPUTS.SPREAD_RATE_IN_M: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        OUTPUTS.DUMP_HRR_TRANSIENT: true
+        OUTPUTS.DUMP_TRANSIENT_DFC: true
+        OUTPUTS.DUMP_TRANSIENT_RAD: true
+        OUTPUTS.DUMP_TOTAL_DFC_RECEIVED: true
+        OUTPUTS.DUMP_TOTAL_RAD_RECEIVED: true
+        TIME_CONTROL.SIMULATION_TSTOP: 600.0
+        TIME_CONTROL.SIMULATION_DT: 1.0
+        TIME_CONTROL.SIMULATION_DTMAX: 1.0
+        SIMULATOR.FEEDBACK_LEVEL: 1
+        SIMULATOR.CROWN_FIRE_MODEL: 0
+        SIMULATOR.ALLOW_NONBURNABLE_PIXEL_IGNITION: false
+        SPOTTING.ENABLE_SPOTTING: false
+        SUPPRESSION.ENABLE_INITIAL_ATTACK: false
+        SUPPRESSION.ENABLE_EXTENDED_ATTACK: false
+        WUI.USE_BLDG_SPREAD_MODEL: true
+        WUI.BLDG_SPREAD_MODEL_TYPE: 2
+        WUI.INTERFACE_MODEL_TYPE: 1
+        MISCELLANEOUS.FUEL_MODEL_FILE: "fuel_models.csv"
+        MISCELLANEOUS.BUILDING_FUEL_MODEL_FILE: "building_low.csv"

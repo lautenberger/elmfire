@@ -123,3 +123,6 @@ log.txt
 # Docker
 # ============================================================
 docker_shared_folder
+
+# Built from the LaTeX sources and published at https://elmfire.io/ELMFIRE_Guide.pdf
+docs/ELMFIRE_Guide.pdf

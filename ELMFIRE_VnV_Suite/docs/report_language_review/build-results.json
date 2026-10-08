@@ -1,0 +1,262 @@
+[
+  {
+    "case": "CASE02_FGR",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE02_FGR/build.stdout"
+  },
+  {
+    "case": "CASE01_BET",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE01_BET/build.stdout"
+  },
+  {
+    "case": "CASE03_ETC",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE03_ETC/build.stdout"
+  },
+  {
+    "case": "CASE05_TDW",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE05_TDW/build.stdout"
+  },
+  {
+    "case": "CASE06_F2D",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE06_F2D/build.stdout"
+  },
+  {
+    "case": "CASE04_STI",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE04_STI/build.stdout"
+  },
+  {
+    "case": "CASE07_IPC",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE07_IPC/build.stdout"
+  },
+  {
+    "case": "CASE08_FBC",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE08_FBC/build.stdout"
+  },
+  {
+    "case": "CASE09_MMD",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE09_MMD/build.stdout"
+  },
+  {
+    "case": "CASE10_WSR",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE10_WSR/build.stdout"
+  },
+  {
+    "case": "CASE11_WSC",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE11_WSC/build.stdout"
+  },
+  {
+    "case": "CASE12_TRS",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE12_TRS/build.stdout"
+  },
+  {
+    "case": "CASE15_CRO",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE15_CRO/build.stdout"
+  },
+  {
+    "case": "CASE13_PRM",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE13_PRM/build.stdout"
+  },
+  {
+    "case": "CASE14_SRS",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE14_SRS/build.stdout"
+  },
+  {
+    "case": "CASE16_NSP",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE16_NSP/build.stdout"
+  },
+  {
+    "case": "CASE17_SCV",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE17_SCV/build.stdout"
+  },
+  {
+    "case": "CASE18_TCV",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE18_TCV/build.stdout"
+  },
+  {
+    "case": "CASE20_PIG",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE20_PIG/build.stdout"
+  },
+  {
+    "case": "CASE19_WTH",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE19_WTH/build.stdout"
+  },
+  {
+    "case": "CASE21_WDE",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE21_WDE/build.stdout"
+  },
+  {
+    "case": "CASE22_VSL",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE22_VSL/build.stdout"
+  },
+  {
+    "case": "CASE23_FQD",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE23_FQD/build.stdout"
+  },
+  {
+    "case": "CASE24_CXI",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE24_CXI/build.stdout"
+  },
+  {
+    "case": "CASE25_MQD",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE25_MQD/build.stdout"
+  },
+  {
+    "case": "CASE26_CNF",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE26_CNF/build.stdout"
+  },
+  {
+    "case": "CASE27_FBT",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE27_FBT/build.stdout"
+  },
+  {
+    "case": "CASE28_OVA",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE28_OVA/build.stdout"
+  },
+  {
+    "case": "CASE29_SUP",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE29_SUP/build.stdout"
+  },
+  {
+    "case": "CASE30_MIT",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE30_MIT/build.stdout"
+  },
+  {
+    "case": "CASE31_PFT",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE31_PFT/build.stdout"
+  },
+  {
+    "case": "CASE32_RCV",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE32_RCV/build.stdout"
+  },
+  {
+    "case": "CASE33_SDO",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE33_SDO/build.stdout"
+  },
+  {
+    "case": "CASE34_FMS",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE34_FMS/build.stdout"
+  },
+  {
+    "case": "CASE35_WSS",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE35_WSS/build.stdout"
+  },
+  {
+    "case": "CASE36_SLS",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE36_SLS/build.stdout"
+  },
+  {
+    "case": "CASE38_LMS",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE38_LMS/build.stdout"
+  },
+  {
+    "case": "CASE37_DMS",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE37_DMS/build.stdout"
+  },
+  {
+    "case": "CASE39_DHC",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE39_DHC/build.stdout"
+  },
+  {
+    "case": "CASE41_CFP",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE41_CFP/build.stdout"
+  },
+  {
+    "case": "CASE40_WSD",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE40_WSD/build.stdout"
+  },
+  {
+    "case": "CASE42_WAF",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE42_WAF/build.stdout"
+  },
+  {
+    "case": "CASE43_WER",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE43_WER/build.stdout"
+  },
+  {
+    "case": "CASE45_HRS",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE45_HRS/build.stdout"
+  },
+  {
+    "case": "CASE44_WHP",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE44_WHP/build.stdout"
+  },
+  {
+    "case": "CASE48_WGC",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE48_WGC/build.stdout"
+  },
+  {
+    "case": "CASE46_WUT",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE46_WUT/build.stdout"
+  },
+  {
+    "case": "CASE47_UWT",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE47_UWT/build.stdout"
+  },
+  {
+    "case": "CASE49_WTC",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/CASE49_WTC/build.stdout"
+  },
+  {
+    "case": "camp_fire",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/camp_fire/build.stdout"
+  },
+  {
+    "case": "thomas_fire",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/thomas_fire/build.stdout"
+  },
+  {
+    "case": "tubbs_fire",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/build/tubbs_fire/build.stdout"
+  }
+]

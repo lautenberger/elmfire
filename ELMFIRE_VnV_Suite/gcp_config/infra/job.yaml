@@ -1,0 +1,32 @@
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__
+  annotations:
+spec:
+  template:
+    spec:
+      taskCount: __TASK_COUNT__
+      parallelism: __PARALLELISM__
+      template:
+        spec:
+          serviceAccountName: __JOB_SA__
+          maxRetries: "0" 
+          timeoutSeconds: "3600" 
+          containers:
+          - image: __REGION__-docker.pkg.dev/__PROJECT_ID__/__REPO__/__IMAGE__:__COMMIT_SHA__
+            command:
+            - python3
+            args:
+            - tools/run_all.py
+            env:
+            - name: RESULTS_BUCKET
+              value: __RESULTS_BUCKET__
+            - name: COMMIT_SHA
+              value: __COMMIT_SHA__
+            - name: RESULTS_PREFIX
+              value: "__COMMIT_SHA__/task_${CLOUD_RUN_TASK_INDEX}"
+            resources:
+              limits:
+                cpu: 8000m
+                memory: 32Gi

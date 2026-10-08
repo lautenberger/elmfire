@@ -1,0 +1,32 @@
+case_id: "CASE03_ETC"
+case_title: "Eulerian Firebrand Transport Convergence"
+category: "Verification/coupling_tests"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/domain_result.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        OUTPUTS.DUMP_PHI: true
+        OUTPUTS.DUMP_EVERY_STEP: true
+        TIME_CONTROL.SIMULATION_TSTOP: 260.0
+        SIMULATOR.NUM_IGNITIONS: 0
+        SPOTTING.ENABLE_SPOTTING: true
+        SPOTTING.GENERATION_MODEL: "PER-AREA"
+        SPOTTING.ACCUMULATION_MODEL: "EULERIAN"
+        SPOTTING.IGNITION_MODEL: "DIRECT"
+        SPOTTING.USE_PHYSICAL_SPOTTING_DURATION: false
+        SPOTTING.TAU_EMBERGEN: 10.0
+        SPOTTING.NO_SURFACE_FIRE: true
+        SPOTTING.EMBER_GR: 10.0

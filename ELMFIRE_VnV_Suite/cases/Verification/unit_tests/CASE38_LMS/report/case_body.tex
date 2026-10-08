@@ -1,0 +1,77 @@
+\section{Verification purpose}
+
+This case verifies live-fuel moisture damping and calculated live extinction while fuel loads remain fixed.  The static shrub models SH2, SH6, and SH8 are intentionally used so changing live moisture cannot transfer herbaceous load into a dead class.  It can expose live/dead index errors, percent conversion errors, incorrect live-extinction calculation, or unintended dynamic curing.  The question is whether all static-fuel simulation conditions match independent $I_R$ and rate of spread (ROS) predictions over \LiveMoistureSet{}.
+
+\section{Mathematical formulation and numerical implementation}
+The live term uses the same cubic damping function $\eta_M(r_M)$ as dead fuel, but $r_M=M_L/M_{x,L}$ and $M_{x,L}$ is calculated from dead/live weighting and dead moisture rather than read directly.  Live moisture also appears in $Q_{ig}=250+1116M_f$.  The formulation follows Andrews (2018), RMRS-GTR-371.  For a static fuel, $W_{1h}$, $W_{LH}$, and $W_{LW}$ are invariant throughout the sweep.
+
+\section{Derivation of expected behavior}
+The reference calculation first calculates the live extinction moisture for each frozen fuel row and fixed dead moisture.  It then evaluates live damping, reaction intensity, heat sink, and $R_0$ at each moisture.  Since no loads move, changes arise only from moisture physics.  This controlled result is the baseline needed to interpret the additional load-transfer mechanism in CASE39.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+Live-fuel damping uses the same cubic with the generated live-moisture
+ratio \(r_l=M_l/M_{x,l}\):
+\[
+ \eta_{M,l}=\max\{0,\ 1-2.59r_l+5.11r_l^2-3.52r_l^3\}.
+\]
+For generated SH2, \(M_{x,l}=0.7080597\).  At \(M_l=0.70\),
+\(r_l=0.70/0.7080597=0.988617\), giving
+\(\eta_{M,l}=0.0326506\); substitution in the weighted Rothermel
+calculation gives \(I_R=354.3991~\mathrm{kW\,m^{-2}}\) and
+\(R=0.0800849~\mathrm{m\,min^{-1}}\).  At \(M_l=0.90\),
+\(r_l=1.27108>1\), so the live contribution is zero and the remaining
+dead-fuel contribution gives \(I_R=304.8611~\mathrm{kW\,m^{-2}}\) and
+\(R=0.0579864~\mathrm{m\,min^{-1}}\).
+The calculation is repeated for each generated SH2, SH6, and SH8 moisture
+value.  Direct metrics use
+\(e_R=|R_{\max}-R_{\mathrm{ref}}|/
+\max(|R_{\mathrm{ref}}|,10^{-8})\) and the analogous \(e_I\), with
+\(\max e_R\leq0.02\) and \(\max e_I\leq0.01\).
+Where time of arrival (TOA) is required, \(t=a+bx\) gives
+\(R_{\mathrm{TOA}}=60/b\), \(R^2=1-SSE/SST\),
+\(\max e_{\mathrm{TOA}}\leq0.05\), and \(\min R^2\geq0.995\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+Maximum relative errors are 0.02 for direct ROS and 0.01 for reaction intensity.  Simulation conditions predicted at or above \SI{0.10}{m.min^{-1}} also require TOA-derived ROS error at most 0.05 and minimum $R^2=0.995$; slower simulation conditions use the direct field because the practical run-duration cap cannot provide a multi-cell TOA regression.  Pointwise analytical comparison is selected because a merely monotonic curve would not detect an incorrect live-extinction threshold.  All 21 simulation conditions are required and the preprocessor rejects a fuel row marked dynamic.
+
+\section{Simulation configuration and predicted outcome}
+
+The finite-strip PHI raster is a signed-distance field clipped to ELMFIRE's supported $[-1,1]$ interval, preserving both an ignited interior and a resolved front gradient. For every positive reference spread rate, the prescribed and maximum timesteps use the whole-second value obtained by rounding the 5\%-of-cell target downward, with a one-second minimum; every generated value remains below the configured Courant--Friedrichs--Lewy (CFL) limit of 0.2. The stop time is rounded upward to an exact integer multiple of that step. This avoids a shortened final step that can trigger ELMFIRE's stalled-front branch and corrupt the terminal timestamp. A zero-ROS simulation condition retains a 5 s step and is evaluated from direct fields without requiring TOA propagation. The evaluator always requires uniquely named rasters tied to one final dump record. It accepts a stalled-final record only when subtracting the configured meteorology interval reconstructs the requested stop time within one configured timestep. A TOA-required simulation condition must reach the prescribed stop time in its generated namelist; a direct-only simulation condition may terminate early because lack of propagation is part of the state being tested.
+These shrub models carry live woody but no live herbaceous load. Live-woody moisture is set to 60, 70, 90, 120, 150, 180, or 200\%; 60\% is the supported ELMFIRE lower bound; dead classes remain at 8\%.  The homogeneous domain uses a finite ignition strip whose east face is planar in the interior measurement corridor and whose ends remain inside the lateral boundaries.  Wind and slope are zero and all coupled processes are disabled.  Fuel loads remain invariant; reaction intensity and ROS should generally decline as live moisture rises, with behavior governed by each fuel's calculated live extinction.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.24\textwidth}p{0.12\textwidth}p{0.32\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 1400 m square; 10 & m/cell & Planar interior propagation \\
+Fuel models & \FuelSet & code/name & Static live-fuel responses \\
+Live moisture & \LiveMoistureSet & percent & Independent damping variable \\
+Wind/slope & 0 / 0 & mph / degrees & Isolates live damping \\
+Timing & generated whole-second step and exact-multiple stop & s & Terminal-evidence compatibility \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+The available results cover \CompletedVariantCount{} of \RequiredVariantCount{} required simulation conditions and reports \textbf{\VerificationStatus}.
+\ifnum\CompletedVariantCount>0
+\IfFileExists{../figures/sweep_response.pdf}{\begin{figure}[H]\centering\includegraphics[width=0.95\textwidth]{sweep_response.pdf}\caption{Independent calculations (open diamonds, solid lines) and ELMFIRE predictions (filled circles, dashed lines) for the static live-moisture response. Each fuel-model pair uses the same color.}\end{figure}}{}
+\fi
+
+\section{Calculated metrics and verification decision}
+\begin{center}\begin{tabular}{@{}llll@{}}\toprule Metric & Limit & Calculated & Status\\\midrule\MetricRows\bottomrule\end{tabular}\end{center}
+The authoritative decision is \textbf{\VerificationStatus}.
+
+\section{Technical interpretation}
+A shifted transition implicates calculated live extinction or moisture units.  Unexpected sharp changes suggest that a supposedly static row was treated dynamically.  Agreement in intensity but not ROS narrows the defect to heat sink or spread conversion.
+
+\section{Scope and limitations}
+This case covers three static shrub fuels at one dead-moisture state.  It does not verify dynamic curing, spatial moisture mosaics, temporal interpolation, or physical observations.  Dynamic herbaceous transfer is isolated in CASE39.

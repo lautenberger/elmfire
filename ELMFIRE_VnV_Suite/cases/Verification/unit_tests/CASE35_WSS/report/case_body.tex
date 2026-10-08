@@ -1,0 +1,83 @@
+\section{Verification purpose}
+
+This case verifies ELMFIRE's Rothermel wind response for \FuelSet{} over \WindSet.  It isolates the midflame wind factor while separately accounting for ELMFIRE's public 20-ft wind input and unsheltered wind-adjustment factor (WAF).  It can expose errors in wind units, WAF inversion, exponentiation, fuel-dependent coefficients, or wind limiting.  The question is whether every simulation condition agrees with the independent implementation-limited rate of spread (ROS) within \RosTolerance{}, reaction intensity within 1\%, and time of arrival (TOA)-derived ROS within 5\%.
+
+\section{Mathematical formulation and numerical implementation}
+Rothermel wind enhancement is
+\begin{equation}R=R_0(1+\phi_w),\qquad \phi_w=C U^B(\beta/\beta_{op})^{-E},\end{equation}
+with $U$ in \si{ft.min^{-1}} at midflame.  Coefficients are $C=7.47e^{-0.133\sigma^{0.55}}$, $B=0.02526\sigma^{0.54}$, and $E=0.715e^{-0.000359\sigma}$.  The reference is Andrews (2018), RMRS-GTR-371.  The inspected ELMFIRE implementation limits $U$ to $0.9I_R$ in native units.  ELMFIRE inputs 20-ft wind in mph, so preprocessing divides each target midflame speed by the independently computed unsheltered WAF.
+
+\section{Derivation of expected behavior}
+Below the limit, $(R/R_0-1)$ follows the fuel-specific power law in $U$; once the limit is reached, the wind contribution is constant.  The case-specific reference calculation computes $R_0$, $I_R$, WAF, $\phi_w$, limit location, and final ROS from the paper equations and the documented ELMFIRE limiting policy.  This separates paper-equation behavior from the implementation's explicit cap.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The wind series uses the Rothermel wind factor
+\[
+ \phi_w=C\,U_{mf}^{B},\qquad R=0.3048R_0^{(\mathrm{ft/min})}(1+\phi_w),
+\]
+with \(U_{mf}\) in \(\mathrm{ft\,min^{-1}}\) and fuel-specific \(B,C\).
+For a concrete generated substitution, Fuel Model~2 at
+\(U_{mf}=4~\mathrm{mph}=352~\mathrm{ft\,min^{-1}}\) has
+\(C=0.0002125869\), \(B=1.8304427\), and
+\[
+ \phi_w=0.0002125869(352)^{1.8304427}=9.746235,
+\]
+\[
+ R_{\mathrm{ref}}=0.3048(2.702741)(1+9.746235)
+ =8.852700~\mathrm{m\,min^{-1}},\qquad
+ I_{R,\mathrm{ref}}=675.184~\mathrm{kW\,m^{-2}}.
+\]
+The same substitution is applied to every generated fuel/wind pair
+(\(0,1,2,4,6,8,12~\mathrm{mph}\)); the 20-ft raster value is
+\(U_{20}=U_{mf}/WAF\), e.g. \(4/0.362674=11.02919~\mathrm{mph}\).
+For each simulation condition, \(e_R=|R_{\max}-R_{\mathrm{ref}}|/
+\max(|R_{\mathrm{ref}}|,10^{-8})\) and \(e_I\) is analogous.
+A TOA regression \(t=a+bx\) gives \(R_{\mathrm{TOA}}=60/b\) and
+\(R^2=1-SSE/SST\).  The aggregated tests substitute
+\(\max e_R\leq0.02\), \(\max e_I\leq0.01\),
+\(\max e_{\mathrm{TOA}}\leq0.05\), and \(\min R^2\geq0.995\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+Maximum relative errors are 0.02 for the final direct ROS, 0.01 for reaction intensity, and 0.05 for TOA-derived ROS.  The minimum TOA regression $R^2$ is 0.995.  Direct pointwise comparison is more diagnostic than monotonicity alone because it detects an incorrect exponent or premature plateau even when the curve still increases.  All 35 fuel--wind combinations are required.
+
+\section{Simulation configuration and predicted outcome}
+
+The finite-strip PHI raster is a signed-distance field clipped to ELMFIRE's supported $[-1,1]$ interval, preserving both an ignited interior and a resolved front gradient. For every positive reference spread rate, the prescribed and maximum timesteps use the whole-second value obtained by rounding the 5\%-of-cell target downward, with a one-second minimum; every generated value remains below the configured Courant--Friedrichs--Lewy (CFL) limit of 0.2. The stop time is rounded upward to an exact integer multiple of that step. This avoids a shortened final step that can trigger ELMFIRE's stalled-front branch and corrupt the terminal timestamp. A zero-ROS simulation condition retains a 5 s step and is evaluated from direct fields without requiring TOA propagation. The evaluator always requires uniquely named rasters tied to one final dump record. It accepts a stalled-final record only when subtracting the configured meteorology interval reconstructs the requested stop time within one configured timestep. A TOA-required simulation condition must reach the prescribed stop time in its generated namelist; a direct-only simulation condition may terminate early because lack of propagation is part of the state being tested.
+Each homogeneous \SI{1400}{m} square simulation condition uses \SI{10}{m} cells and a finite ignition strip whose east face is planar at $x=-\SI{400}{m}$ within the interior analysis corridor.  The strip ends inside the lateral boundaries so it remains an active fire rather than an edge-to-edge contained front.  Slope is zero, dead moisture is 5/7/9\%, and live moisture is 90\%.  The wind is from the west.  Crown fire, spotting, buildings, fluctuations, acceleration, and Monte Carlo variation are disabled.  Curves should increase as $U^B$ and may flatten at fuel-dependent limits.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.24\textwidth}p{0.12\textwidth}p{0.32\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 1400 m square; 10 & m/cell & Planar interior propagation \\
+Fuel sweep & \FuelSet & code/name & Fuel-dependent response \\
+Wind sweep & \WindSet & mph & Independent midflame target \\
+Moisture/slope & dead 5/7/9, live 90/90; 0 & percent / degrees & Fixed damping and terrain \\
+Timing & generated whole-second step and exact-multiple stop & s & CFL-safe terminal evidence \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+The available results cover \CompletedVariantCount{} of \RequiredVariantCount{} required simulation conditions and reports \textbf{\VerificationStatus}.
+\ifnum\CompletedVariantCount>0
+\IfFileExists{../figures/sweep_response.pdf}{\begin{figure}[H]\centering\includegraphics[width=0.95\textwidth]{sweep_response.pdf}\caption{Independent calculations (open diamonds, solid lines) and ELMFIRE predictions (filled circles, dashed lines). Each fuel-model pair uses the same color. Target values are midflame wind; namelists contain the corresponding 20-ft wind.}\end{figure}}{}
+\fi
+
+\section{Calculated metrics and verification decision}
+\begin{center}\begin{tabular}{@{}llll@{}}\toprule Metric & Limit & Calculated & Status\\\midrule\MetricRows\bottomrule\end{tabular}\end{center}
+The authoritative overall decision is \textbf{\VerificationStatus}.
+
+\section{Technical interpretation}
+A common scale error across fuels suggests mph, ft/min, or WAF conversion.  Fuel-dependent curvature errors suggest $B$, $C$, $E$, or packing-ratio handling.  A wrong plateau indicates a changed or incorrect wind-limit policy.  Correct direct ROS but incorrect TOA points to transport rather than the Rothermel calculation.
+
+\section{Scope and limitations}
+The case verifies steady, aligned wind and the currently selected original wind limit.  If a future ELMFIRE release intentionally adopts a corrected or optional limit, the scientific reference calculation must be reviewed rather than changing only the namelist.  Canopy-dependent WAF is tested in CASE42.

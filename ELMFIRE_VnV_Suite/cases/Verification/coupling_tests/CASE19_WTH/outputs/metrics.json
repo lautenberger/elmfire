@@ -1,0 +1,40 @@
+{
+  "case_id": "CASE19_WTH",
+  "overall_status": "PASS",
+  "verification_passed": true,
+  "required_outputs_complete": true,
+  "dump_count": 50,
+  "terminal_output_time_s": 5000.0,
+  "active_source_limit": 1,
+  "selected_output_patterns": {
+    "hrr": "outputs/hrr_transient_0000001_*.tif",
+    "dfc": "outputs/hf_dfc_transient_0000001_*.tif",
+    "rad": "outputs/hf_rad_transient_0000001_*.tif"
+  },
+  "metrics": [
+    {
+      "name": "HRRPUA normalized L1 error",
+      "expected": 0.0,
+      "calculated": 1.630909479576925e-09,
+      "units": "-",
+      "tolerance": "<= 0.005",
+      "status": "PASS"
+    },
+    {
+      "name": "DFC normalized L1 error",
+      "expected": 0.0,
+      "calculated": 9.028415383529258e-08,
+      "units": "-",
+      "tolerance": "<= 0.005",
+      "status": "PASS"
+    },
+    {
+      "name": "radiation normalized L1 error",
+      "expected": 0.0,
+      "calculated": 1.4194505155805267e-07,
+      "units": "-",
+      "tolerance": "<= 0.005",
+      "status": "PASS"
+    }
+  ]
+}

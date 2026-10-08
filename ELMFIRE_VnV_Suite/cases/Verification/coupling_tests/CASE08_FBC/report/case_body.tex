@@ -1,0 +1,319 @@
+\section{Verification purpose}
+
+This case verifies removal of deposited firebrands by the consumption model. Paired consumption-off and consumption-on runs use identical forcing, seed, source model, and resolution so their active deposited populations can be compared directly.
+
+The test exposes non-decaying stock, negative active counts, resolution-dependent consumption, and unintended feedback on surface arrival. Success requires the specified population reduction, invariant surface arrival, and convergence toward the finest-grid spatial profile.
+
+\section{Mathematical formulation and numerical implementation}
+Let \(N''\) denote active deposited firebrands per unit area. With mean particle
+mass \(m_{fb}=0.2\)~g, the pile mass loading is
+\begin{equation}
+ \psi=\frac{m_{fb}N''}{10^4}\quad[\mathrm{g\,cm^{-2}}].
+\end{equation}
+The source estimates the local air velocity from the 20-ft wind using a fuel-
+and canopy-dependent coefficient. It then evaluates the empirical pile heat-
+flux parameters
+\begin{align}
+ t_{rise}&=\max(-1.02v_a^2+9.08v_a+35,0),\\
+ HF_{rise}&=\max(-0.32v_a^2+1.59v_a+0.1,0)\tanh(12\psi),\\
+ HF_{decay}&=\max(10^{-6},-0.05v_a^2+0.02v_a-0.01)\tanh(12\psi).
+\end{align}
+After applying the source's heat-flux scaling, the lifetime is the duration for
+which the modeled incident heat flux exceeds
+\(HF_{fb,live}=10~\mathrm{kW\,m^{-2}}\):
+\begin{equation}
+ t_{fb,live}=\max(t_{half,2}-t_{half,1},0).
+\end{equation}
+The intended explicit update is
+\begin{equation}
+ N''^{n+1}=N''^n-\frac{N''^n}{\max(t_{fb,live},t_{min})}\Delta t,
+ \qquad t_{min}=10~\mathrm{s}.
+ \label{eq:decay}
+\end{equation}
+ELMFIRE stores pixel counts, so the implementation multiplies the areal decay
+rate by pixel area before subtracting from accumulated firebrand deposition. Only the
+consumption-on member calls this consumption calculation. Final accumulated firebrand deposition therefore
+represents the active deposited population. The transient
+time-resolved firebrand deposition product records new deposition during an
+output interval and is reset after each dump; it is not used as an active-stock
+surrogate. Instead, independent consumption-on runs terminated at predeclared
+times provide the temporal samples from their final active-stock rasters.
+
+The current source is also audited as part of this test. It presently assigns
+a minimum firebrand lifetime of 1E9~s, whereas the documented model requires
+\SI{10}{s}~\cite{Qin2025}, as expressed in Equation~\ref{eq:decay}. The
+verification preserves this behavior
+and is expected to fail the consumption-effect metric until that implementation
+discrepancy is corrected.
+
+\section{Derivation of expected behavior}
+For otherwise identical runs, let \(A_{on}(\Delta x)\) and
+\(A_{off}(\Delta x)\) be the centerline sums of active deposited particles at
+260~s. The retained fraction is
+\begin{equation}
+ f_{ret}(\Delta x)=\frac{A_{on}(\Delta x)}{A_{off}(\Delta x)}.
+\end{equation}
+The documented result that more than 96\% is consumed gives
+\(f_{ret}\le0.04\)~\cite{Qin2025}. Because the delayed-ignition baseline uses
+long ignition delays and is surface-fire dominated, removing deposited embers
+should not materially change time of arrival (TOA). The active-particle line density is recovered from a
+centerline pixel count as \(n'(x_i)=N_i/\Delta x\) in pcs/m.
+
+For grid convergence, the 5, 10, and 30~m consumption-on profiles are linearly
+interpolated to the 1~m cell centers. Their normalized integral error is
+\begin{equation}
+ E_{\Delta x}=\frac{\int|n'_{\Delta x}(x)-n'_1(x)|\,dx}
+                         {\int|n'_1(x)|\,dx}.
+\end{equation}
+Consistent refinement requires \(E_{30}\ge E_{10}\ge E_5\), with
+\(E_5\le0.15\).
+
+% BEGIN EXPLICIT EXPECTED-RESULT DERIVATION
+For a cell whose calculated lifetime is \(T_n=\max(t_{fb,live,n},10)\),
+Equation~\ref{eq:decay} gives the explicit retained fraction
+\[
+ \frac{N''_{n+1}}{N''_n}=1-\frac{\Delta t_n}{T_n},\qquad
+ \frac{N''_m}{N''_0}=\prod_{n=0}^{m-1}
+ \left(1-\frac{\Delta t_n}{T_n}\right).
+\]
+This is the reference update that the consumption-on run must execute; the
+consumption-off reference has every factor equal to one.  The published
+statement that more than 96 percent is consumed is converted without further
+fitting to
+\[
+ 1-f_{\mathrm{ret}}\geq0.96
+ \quad\Longleftrightarrow\quad
+ f_{\mathrm{ret}}=\frac{A_{\mathrm{on}}}{A_{\mathrm{off}}}\leq0.04.
+\]
+The nominal surface Courant--Friedrichs--Lewy (CFL) upper bounds are \(0.5\Delta x/0.71\). To keep every requested 10-s-multiple observation time exact, preprocessing selects the largest divisor no greater than that bound, preferring whole seconds when feasible:
+\[
+ \Delta t=\{0.666667,\ 2,\ 5,\ 10\}~\mathrm{s}
+\]
+for \(\Delta x=\{1,5,10,30\}\) m. Thus all 260-s paired stops and 50--500-s history stops are exact timestep multiples, and every actual surface CFL remains below 0.5. The intended lifetime is recalculated
+locally from \(v_a\) and
+\(\psi=0.2N''/10^4\), so no constant lifetime is invented for the report.
+
+For the paired control, the exact expected TOA difference is zero and the
+active-stock lower bound is zero particles.  The convergence reference is the
+generated 1-m profile:
+\(E_1=0\), with expected refinement ordering
+\(E_{30}\geq E_{10}\geq E_5\geq E_1\).
+The decision substitutes \(E_5\leq0.15\), paired TOA difference
+\(\leq10~\mathrm{s}\), and minimum active count
+\(\geq-10^{-6}\), in addition to the 0.04 retained-fraction limit.
+% END EXPLICIT EXPECTED-RESULT DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+All 48 prescribed simulation conditions are required: eight paired 260-s metric runs and 40
+consumption-on stop-time runs (four resolutions at ten sample times). Exactly
+one final active-flux and TOA raster per simulation condition is required. The two-cell numerical halo is excluded. The components
+are:
+\begin{enumerate}
+ \item \(\max_{\Delta x} f_{ret}\le0.04\);
+ \item paired centerline TOA difference \(\le10\)~s at every resolution;
+ \item every active count \(\ge-10^{-6}\) particles;
+ \item \(E_5\le0.15\); and
+ \item \(E_{30}\ge E_{10}\ge E_5\).
+\end{enumerate}
+The overall decision is the conjunction of completeness and all five
+components. Missing, duplicated, dimensionally stale, or unreadable outputs
+produce an insufficient-output result rather than a pass.
+
+\subsection{Justification of metric quantification}
+
+The retained-fraction ceiling of 0.04 is not tuned to these outputs; it is the
+complement of the reported result that more than 96\% of deposited firebrands
+are consumed by the evaluation time~\cite{Qin2025}.  The paired TOA allowance
+of \SI{10}{s} is a mechanism-isolation check at the scale of one output-time
+increment: consumption may alter the active stock but must not materially
+change the surface-dominated arrival field.  The lower bound of
+\(-10^{-6}\) particle is only a floating-point allowance around the exact
+nonnegativity invariant and cannot conceal a physically meaningful negative
+population.
+
+The convergence ordering is more informative than agreement at one grid.  It
+requires every refinement to move toward the \SI{1}{m} profile.  The
+\(E_5\le0.15\) limit allows cell averaging of a steep transported-stock
+profile while requiring at least 85\% agreement in normalized integral
+content; errors of that size remain clearly separated from the coarse-grid
+shape changes the sweep is intended to expose.  All paired and stop-time runs
+are mandatory because omitting one would break either the on/off control or
+the temporal consumption history.
+
+\subsection{Predeclared acceptance criteria}
+
+Table~\ref{tab:acceptance-contract} summarizes the metrics fixed before
+inspection of the calculated results. Numerical values and component statuses
+are reported separately in Section~7.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Predeclared verification metrics and acceptance criteria.}
+\label{tab:acceptance-contract}
+\begin{tabular}{@{}p{0.23\linewidth}p{0.47\linewidth}p{0.21\linewidth}@{}}
+\toprule
+Metric & Output, region, and aggregation & Acceptance criterion\\
+\midrule
+Output completeness & Eight paired metric runs plus 40 active-stock stop-time runs, with final-raster shape/nodata validation and halo exclusion. & 48 of 48 simulation conditions \\
+Retained active fraction & For each resolution, consumption-on active population divided by its consumption-off pair at \SI{260}{s}. & Maximum \(\le0.04\) \\
+Surface-TOA invariance & Maximum paired centreline TOA difference on common finite physical cells. & \(\le\SI{10}{s}\) at every resolution \\
+Active-count nonnegativity & Minimum value over every active-firebrand raster. & \(\ge-10^{-6}\) particles \\
+Fine-grid profile convergence & Normalized \(L_1\) error of the 5-m consumption-on profile relative to the 1-m profile. & \(E_5\le0.15\) \\
+Ordered convergence & Normalized profile errors for 5, 10, and 30-m grids. & \(E_{30}\ge E_{10}\ge E_5\) \\
+Overall decision & Conjunction of completeness and all five physical/numerical checks. & PASS only if all pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation configuration and predicted outcome}
+
+Figure~\ref{fig:input-configuration} records the prepared spatial inputs for the 10 m grid with firebrand consumption enabled.
+These panels show the prepared spatial fields, remove the
+two-cell numerical buffer, and retain map coordinates in metres.  The left panel shows
+the most informative fuel or structure layout available for the case; the right panel
+shows the cells selected by the non-positive initial level-set field, making a localized
+ignition or firebrand-emission source explicit.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.42\textheight,keepaspectratio]{../figures/input_configuration.pdf}
+\caption{Whole-domain prepared input configuration for the representative simulation condition.  The
+physical domain is shown without the numerical halo; coordinates, configured wind values,
+fuel or structure layout, and initial ignition/source geometry are identified in the panels.}
+\label{fig:input-configuration}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{p{0.26\textwidth}p{0.27\textwidth}p{0.35\textwidth}}
+\toprule
+Parameter & Configured value & Role \\
+\midrule
+Physical domain & $300\times300$ m & identical extent at all resolutions \\
+Cell sizes & 1, 5, 10, 30 m & active-stock convergence sweep \\
+Numerical halo & 2 cells per side & excluded from all metrics \\
+Metric evaluation time & 260 s & paired consumption-on/off comparison \\
+History sample times & 50--500 s in 50-s increments & final active-stock samples for the temporal curve \\
+Temporal CFL & at most 0.5 based on 0.71 m/s & conservative exact-duration divisors \\
+Wind & 15 mph from 270 degrees & uniform downwind forcing \\
+Generation & PER-MW, $33.3/\Delta y$ pcs/s/MW & delayed-ignition baseline vegetation source \\
+Transport/accumulation & EMPIRICAL/EULERIAN & active-stock implementation \\
+Ignition & PHYSICAL; 300 s development & prevents spotting-dominated spread \\
+Consumption & paired off/on & isolates finite lifetime \\
+Critical live heat flux & 10 kW/m$^2$ & hard-coded lifetime threshold \\
+Crosswind distribution & disabled & one-dimensional profile diagnostic \\
+\bottomrule
+\end{tabular}
+\caption{Configuration used by every paired simulation condition.}
+\end{table}
+
+Before inspecting results, consumption-on curves should be far below the paired
+no-consumption curve upstream of 200~m, retained fractions should lie below the
+4\% line, and progressively finer active-stock profiles should agree. TOA
+should be nearly unchanged between paired runs.
+
+\section{Actual simulation results}
+
+Figure~\ref{fig:domain-result} shows the representative accumulated firebrand density from the 10 m grid with firebrand consumption enabled.
+The displayed field is taken from the simulated results, masks missing values, and excludes
+the two-cell numerical buffer.  Counts are divided by physical cell area, giving pcs m$^{-2}$, so the retained and consumed portions of the deposit field can be interpreted spatially.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.50\textheight,keepaspectratio]{../figures/domain_result.pdf}
+\caption{Whole-domain accumulated firebrand density from the representative completed ELMFIRE run.  This
+domain-scale result supplements, rather than replaces, the higher-level verification
+profiles, convergence plots, ensemble statistics, and calculated acceptance metrics below.}
+\label{fig:domain-result}
+\end{figure}
+
+All 48 simulation conditions were rerun. The temporal curves use ten independent
+consumption-on stop-time runs per resolution, from 50 to 500~s in 50~s
+increments. Each plotted sample is therefore a final ELMFIRE active-stock
+field, not an interval-deposition raster. Figure~\ref{fig:consumption-state}
+first presents the four physical observables for the finest consumption-on
+simulation condition: active firebrands, arrival time, leading-edge position, and
+leading-edge rate of spread (ROS).
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.66\textheight,keepaspectratio]{../figures/firebrand_consumption_state.pdf}
+\caption{Consumption-on state at 1~m resolution. The top row gives the active
+firebrand and arrival-time profiles; the bottom row gives the reconstructed
+leading-edge trajectory and ROS with surface-spread references.}
+\label{fig:consumption-state}
+\end{figure}
+
+Figure~\ref{fig:consumption-convergence} reproduces the temporal and spatial
+resolution views of the active population. The left panel samples the physical
+location nearest 200~m; the right panel selects the dump nearest 250~s.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.43\textheight,keepaspectratio]{../figures/firebrand_consumption_convergence.pdf}
+\caption{Consumption-model resolution sweep. Left: active-firebrand history
+near 200~m. Right: active-firebrand spatial profile near 250~s. Every curve is
+read from a predeclared stop-time run's final ELMFIRE raster.}
+\label{fig:consumption-convergence}
+\end{figure}
+
+Figure~\ref{fig:consumption} is the supplemental paired diagnostic that makes
+the consumption-on/off effect and the 4\% retention criterion explicit.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.43\textheight,keepaspectratio]{../figures/firebrand_consumption_verification.pdf}
+\caption{Paired consumption diagnostic. Left: consumption-on profiles by
+resolution. Center: paired 1~m profiles. Right: retained active fraction with
+the 4\% acceptance limit.}
+\label{fig:consumption}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{p{0.39\textwidth}p{0.19\textwidth}p{0.18\textwidth}p{0.13\textwidth}}
+\toprule
+Metric & Limit & Calculated & Status \\
+\midrule
+Output completeness & 48 simulation conditions & \Metric{evaluatedvariants}/\Metric{requiredvariants} & -- \\
+Maximum retained fraction & $\le0.04$ & \Metric{maximumretainedfraction} & \Metric{consumptioneffectpassed} \\
+Maximum paired TOA difference & $\le10$ s & \Metric{maximumpairedtoadifferences} & \Metric{toainvariancepassed} \\
+Minimum active count & $\ge-10^{-6}$ & \Metric{minimumactivecount} & \Metric{nonnegativeactivecountspassed} \\
+5 m normalized profile error & $\le0.15$ & \Metric{dx5normalizedl1profileerror} & \Metric{dx5profilepassed} \\
+Ordered profile convergence & required & -- & \Metric{orderedprofileconvergencepassed} \\
+Overall decision & all pass & \Metric{verificationpassed} & \textbf{\Metric{status}} \\
+\bottomrule
+\end{tabular}
+\caption{Calculated verification metrics for the completed simulations.}
+\end{table}
+
+\section{Technical interpretation}
+All four measured retained fractions are exactly 1.0, so enabling consumption
+does not change the active deposited population. The maximum paired TOA
+difference is 0~s, while the normalized profile errors are 0.0363, 0.0778, and
+0.3511 at 5, 10, and 30~m, respectively. The source-normalized profiles therefore
+converge monotonically and the paired dynamics remain controlled, but the primary
+consumption metric fails decisively. Given the audited \(10^9\)~s minimum
+lifetime, this is a source-code implementation defect rather than insufficient
+run duration. A TOA-only result cannot establish consumption behavior, which is
+why TOA appears here solely as a controlled invariance check.
+
+\section{Scope and limitations}
+This test verifies active-stock decay in one flat, uniform delayed-ignition baseline-like
+configuration. It does not validate the empirical heat-flux correlation, pile
+clustering, subgrid redistribution, or the 10~s lifetime against experiments.
+The 50~s sequence of independently stopped runs provides the active-stock history near 200~m and
+the spatial profile near 250~s directly from ELMFIRE rasters. The experiment
+still does not resolve within-cell firebrand clustering or validate the lifetime
+correlation against measurements.
+
+\begin{thebibliography}{9}
+\bibitem{Qin2025}
+Y. Qin, \emph{A Physics-Based Eulerian Framework for Modeling Firebrand
+Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire
+Simulations}, Ph.D. dissertation, University of Maryland, College Park, 2025.
+\end{thebibliography}

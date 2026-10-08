@@ -1,0 +1,12 @@
+\newcommand{\CaseID}{tubbs\_fire}
+\newcommand{\CaseTitle}{2017 Tubbs Fire Landscape Reconstruction}
+\newcommand{\EventStart}{8 October 2017 at 21:45 PDT}
+\newcommand{\SimulationDuration}{12 hours}
+\newcommand{\ComparisonTime}{9 October 2017 at 09:45 PDT (16:45 UTC)}
+\newcommand{\GridDescription}{700 by 900 cells at 30 m in the archived Lambert conformal conic CRS}
+\newcommand{\WeatherDescription}{25-band, 300 m weather rasters at 30-minute intervals}
+\newcommand{\IgnitionDescription}{random ignition sampling from the archived ignition mask, with seed 2024}
+\newcommand{\ArchiveName}{Tubbs\_VAL.rar}
+\newcommand{\ArchiveSha}{\seqsplit{e97bf430d25122019211405f62f98979e929f80bc3f20d8c3b9f1f9f1a8a4955}}
+\newcommand{\InputCaveat}{The 300-m weather rasters cover the same extent and CRS as the 30-m landscape but intentionally do not share its pixel grid.  The preprocessor checks weather extent, band count, and CRS separately rather than treating the resolution difference as an error.}
+\newcommand{\CompatibilityNote}{Obsolete domain-description and diagnostic settings were omitted, and the heat-release-rate ellipse adjustment was associated with the wildland--urban interface settings. The earlier spotting choices were expressed as fire-power-proportional generation, empirical transport distance, Eulerian accumulation, and physical ignition. Archived building spread type 3 was mapped to current University of California, Berkeley/University of Maryland building-spread formulation (type 2). The contradictory archived fixed ignition was disabled because current ELMFIRE applies it in addition to the configured random ignition-mask sample, whereas this case specifies the latter alone.}

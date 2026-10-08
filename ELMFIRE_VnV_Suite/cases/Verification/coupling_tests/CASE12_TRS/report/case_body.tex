@@ -1,0 +1,373 @@
+\section{Verification purpose}
+
+This case verifies temporal-resolution sensitivity using a fixed physical
+problem and four level-set timesteps. Every curve identified as ELMFIRE output
+is regenerated from case-specific simulation products.
+
+This case verifies temporal-resolution sensitivity in a firebrand-driven WUI calculation. Spatial resolution, geometry, wind, heat-release history, firebrand physics, random seed, and output cadence are fixed; only the level-set timestep changes over a wide Courant--Friedrichs--Lewy (CFL) range.
+
+The test determines the range over which ignition chronology and structure-level spread remain timestep independent and makes loss of resolution explicit at very large steps. Success is evaluated against the finest-step baseline using load, ignition-time, and spread metrics.
+
+\section{Mathematical formulation and numerical implementation}
+
+\subsection{Fixed physical problem}
+
+The community is a \(220\times100\)-m two-dimensional lattice of
+\SI{10}{m} square structures separated by \SI{10}{m} inert firebreaks in both
+directions. Every structure in the first upwind column is burning at \(t=0\), and wind is uniform at
+\SI{40}{mph} from west to east. Non-structure cells use nonburnable fuel model
+93, so vegetative surface-fire spread is absent. Thus a
+new source can appear only after deposited firebrands complete the configured
+physical ignition process.
+
+For a structure ignited at \(t_i\), the design heat-release rate (HRR) per unit area is
+\[
+q''(\tau)=
+\begin{cases}
+q''_{\max}\tau/300,&0<\tau<300,\\
+q''_{\max},&300\le\tau\le3900,\\
+q''_{\max}(4200-\tau)/300,&3900<\tau<4200,\\
+0,&\text{otherwise},
+\end{cases}
+\quad \tau=t-t_i,\qquad q''_{\max}=\SI{400}{kW.m^{-2}}.
+\]
+For footprint area \(A_s=\SI{100}{m^2}\),
+\(\mathrm{HRR}_i=q''A_s\). Structural firebrands are emitted using the per-power rate
+\[
+\dot N_i(t)=GR'\times{\mathrm{HRR}_i(t)},\qquad
+GR'=\SI{10}\,\rm{pcs\, MW^{-1}\,s^{-1}}.
+\]
+
+\subsection{Transport, deposition, and analytical load}
+
+The downwind landing distance \(X\) is represented by the lognormal density
+\[
+ f(x\mid\mu,\sigma)=
+ \frac{\exp[-(\ln x-\mu)^2/(2\sigma^2)]}
+      {x\sigma\sqrt{2\pi}},\qquad x>0.
+\]
+For source structure \(i\), the heat-release-dependent transport parameter is
+\[
+ B_i^*=\frac{U}{\sqrt{gL}}
+ \left(\frac{\rho_f}{\rho_a}\right)^{-3/4}
+ \left(\frac{d_f}{L}\right)^{-3/4}
+ \left[
+ \frac{\mathrm{HRR}_i}
+ {\rho_a c_p T_a\sqrt{g}\,L^{5/2}}
+ \right]^{1/2}.
+\]
+The dimensional mean and standard deviation of landing distance are
+\[
+ \bar x_i=0.47(B_i^*)^{2/3}L,\qquad
+ s_{x,i}=0.88(B_i^*)^{1/3}L,
+\]
+and the log-space parameters supplied to \(f\) are
+\[
+ \sigma_i=\sqrt{\ln\!\left[1+(s_{x,i}/\bar x_i)^2\right]},
+ \qquad
+ \mu_i=\ln\!\left(
+ \frac{\bar x_i}{\sqrt{1+(s_{x,i}/\bar x_i)^2}}
+ \right).
+\]
+Here \(L=\SI{10}{m}\), \(d_f=\SI{5e-3}{m}\),
+\(\rho_f=\SI{100}{kg.m^{-3}}\), \(\rho_a=\SI{1.1}{kg.m^{-3}}\),
+\(c_p=\SI{1}{kJ.kg^{-1}.K^{-1}}\), \(T_a=\SI{300}{K}\),
+\(g=\SI{9.81}{m.s^{-2}}\), and
+\(U=0.447(40)/0.87=\SI{20.55}{m.s^{-1}}\). This parameterization and its
+configured constants follow the documented structural-firebrand
+model~\cite{Qin2025}; the equations are reproduced here so the reference can
+be evaluated without consulting that source.
+
+The independently calculated deposited count on target structure \(k\) is
+\[
+N_k=\sum_{i<k}\int_0^T GR'\,\mathrm{HRR}_i(t)
+\left[\int_{x_k}^{x_{k+1}}
+ f\!\left(x-x_i\mid\mu_i(t),\sigma_i(t)\right)\,dx\right]dt .
+\]
+The inner integral is evaluated using the lognormal cumulative distribution function (CDF) and the time integral
+uses an independent \SI{5}{s} midpoint quadrature. ELMFIRE's final deposited
+count is divided by the physical \SI{100}{m^2} structure footprint, giving
+\(N_k/A_s\) in \si{pcs\,m^{-2}}.
+
+The Eulerian firebrand tracker advances with its own wind-limited substeps.
+Changing the level-set step therefore must not change the spatial resolution of
+the flight trajectory. This is the core algorithmic separation being tested.
+In the generated namelists, prescribed timestep and
+maximum timestep impose the four values above. The input
+target surface-spread Courant number remains the ordinary surface-spread limiter and does not
+redefine the four wind-based temporal simulation conditions.  The global vegetative surface-spread setting switch remains true to suppress vegetative surface-fire propagation.  The current source independently refreshes initialized model-14 building HRR, and the nonburnable fuel-93 background provides an additional isolation of building-only spread.
+The fractional timesteps are intrinsic to this temporal-resolution sweep.  For
+each member, preprocessing sets the generated stop to
+\(\lceil t_{\mathrm{requested}}/\Delta t\rceil\Delta t\), and records the
+requested stop, aligned stop, and integer step count in the simulation specification.
+
+\subsection{Physical ignition}
+
+For the configured structural ignition model, the critical deposited load is
+\(N_{\mathrm{crit}}=\SI{2928.9}{pcs\,m^{-2}}\), the
+smoldering-to-flaming timescale is \SI{42.1}{s}, and the subsequent structure
+development delay is \SI{300}{s}~\cite{Qin2025}. Because these are much longer
+than the CFL=0.5, 1, and 10 level-set steps, their ignition chronologies should
+remain nearly unchanged. CFL=200 deliberately makes the time step comparable
+to or larger than the short ignition time scale and exposes the onset of
+temporal sensitivity.
+
+\section{Derivation of expected behavior}
+When firebrand flight and ignition time scales are much longer than the level-set step, moderate timestep changes should preserve deposited-load histories and structure ignition times. Extremely large steps should show increasing temporal error without changing the fixed physical problem.
+
+% BEGIN EXPLICIT EXPECTED-RESULT DERIVATION
+At peak HRR, one \(10\times10~\mathrm{m}\) structure produces
+\[
+ HRR_{\max}=400(100)=40~\mathrm{MW},\qquad
+ \dot N_{\max}=10(40)=400~\mathrm{pcs\,s^{-1}},
+\]
+and the critical total load is
+\(2928.9(100)=292890\) particles.  The transport reference uses the adjusted
+air speed \(0.447(40)/0.87=20.55~\mathrm{m\,s^{-1}}\), whereas preprocessing
+constructs the declared level-set timesteps from the 20-ft input speed
+\(U_{20}=40(0.44704)=17.8816~\mathrm{m\,s^{-1}}\).  Thus
+\[
+\begin{array}{c|rrrr}
+CFL_w&0.5&1&10&200\\\hline
+\Delta t=CFL_w(10)/17.8816~(\mathrm{s})
+&0.279617&0.559234&5.592341&111.846815
+\end{array}
+\]
+which reproduces the simulation condition names to their displayed precision.
+
+Relative to the \(\SI{42.1}{s}\) small-fuel timescale, these steps are
+\(0.00664,\ 0.0133,\ 0.1328,\) and \(2.657\) times as large.  The first
+three therefore resolve that timescale, while CFL 200 spans more than twice
+it and is expected to show temporal degradation.  The analytical convolution
+is unchanged among simulation conditions, so its ideal load error is zero.  The explicit
+numerical substitutions are: baseline mean load error at most 0.01; CFL 1
+and 10 maximum load and mean ignition-time errors at most 0.001; their
+history NRMSE at most 0.05; and CFL 200 maximum load error at most 0.10.
+% END EXPLICIT EXPECTED-RESULT DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+Prior calculations for this fixed physical problem motivate the following
+predeclared expectations~\cite{Qin2025}:
+\begin{itemize}
+\item the maximum analytical-load error remains below 10\% even at CFL=200;
+\item for CFL no greater than 10, analytical-load errors are generally below
+0.1\%;
+\item ignition-time errors relative to CFL=0.5 remain below 0.1\% for CFL no
+greater than 10;
+\item accumulation histories at the structure spanning
+\(140\le x\le\SI{150}{m}\) closely align; and
+\item first-deposition timing remains close through the approximately
+\SI{80}{m} peak-HRR spotting range.
+\end{itemize}
+
+The case converts those expectations into explicit acceptance checks. The
+CFL=0.5 mean error against the analytical deposited-load integral defined
+above must not exceed 1\%; the CFL=1 and 10 maximum errors against the same
+integral must not exceed 0.1\%; and the CFL=200 maximum must remain below
+10\%. CFL=1 and 10 mean full-ignition-time errors relative to CFL=0.5 must not
+exceed 0.1\%. Accumulation-history normalized RMSE at 140--150~m must not
+exceed 5\% for CFL=1 and 10. Every simulation condition must be complete, and every
+acceptance component must pass.
+
+The postprocessor also estimates first-deposition time from the first transient
+output interval with nonzero accumulation. Because its resolution is the
+\SI{500}{s} dump interval rather than the firebrand trajectory substep, this is
+shown as a diagnostic corresponding to the first-deposition diagnostic, but is not used as a
+pass/fail metric.
+
+\subsection{Justification of metric quantification}
+
+The 0.1\% limits for CFL 1 and 10 and the 10\% limit for CFL 200 quantify the
+reported temporal-resolution behavior for this fixed-grid experiment rather
+than being selected from the present outputs~\cite{Qin2025}.  They deliberately
+ask for near invariance over the moderate-step range while treating the
+extreme-step case as acceptable only if its error remains bounded rather than
+converged.  The baseline mean-load limit is 1\% because it compares a
+cell-integrated analytical deposition relation with a thresholded numerical
+field; it establishes that the reference member itself is accurate enough to
+anchor the relative ignition comparisons.
+
+The 5\% history NRMSE limit is wider than the final-load limits because
+transient rasters are sampled every \SI{500}{s}; small timing offsets at a
+rising accumulation front are amplified pointwise even when final totals
+agree.  Normalizing by the baseline history range makes 5\% a direct bound on
+the fraction of the resolved accumulation excursion.  First-deposition time is
+kept diagnostic because its \SI{500}{s} observation interval is too coarse to
+support a defensible tighter decision.  All four simulation conditions are required so the
+case demonstrates both moderate-step invariance and the predicted extreme-CFL
+degradation.
+
+\subsection{Predeclared acceptance criteria}
+
+Table~\ref{tab:acceptance-contract} summarizes the metrics fixed before
+inspection of the calculated results. Numerical values and component statuses
+are reported separately in Section~7.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Predeclared verification metrics and acceptance criteria.}
+\label{tab:acceptance-contract}
+\begin{tabular}{@{}p{0.23\linewidth}p{0.47\linewidth}p{0.21\linewidth}@{}}
+\toprule
+Metric & Output, region, and aggregation & Acceptance criterion\\
+\midrule
+Output completeness & Current-input identity record outputs for baseline and CFL 1, 10, and 200 simulation conditions. & 4 of 4 simulation conditions \\
+Baseline load mean error & Mean structure-load relative error against the analytical load reference. & \(\le0.01\) \\
+CFL 1 load maximum error & Maximum finite structure-load relative error against its analytical reference. & \(\le0.001\) \\
+CFL 10 load maximum error & Same maximum error at CFL 10. & \(\le0.001\) \\
+CFL 200 load maximum error & Same maximum error at CFL 200. & \(\le0.10\) \\
+CFL 1 ignition error & Mean matched full-ignition-time relative error against CFL 0.5. & \(\le0.001\) \\
+CFL 10 ignition error & Mean matched full-ignition-time relative error against CFL 0.5. & \(\le0.001\) \\
+CFL 1 history NRMSE & Normalized RMSE of accumulation history at the 140--150-m structure against baseline. & \(\le0.05\) \\
+CFL 10 history NRMSE & Same normalized history error at CFL 10. & \(\le0.05\) \\
+Overall decision & Conjunction of completeness and all eight quantitative checks. & PASS only if all pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation configuration and predicted outcome}
+
+Figure~\ref{fig:input-configuration} records the prepared spatial inputs for the wind Courant number 0.5 and timestep 0.28 s condition.
+These panels show the prepared spatial fields, remove the
+two-cell numerical buffer, and retain map coordinates in metres.  The left panel shows
+the most informative fuel or structure layout available for the case; the right panel
+shows the cells selected by the non-positive initial level-set field, making a localized
+ignition or firebrand-emission source explicit.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.42\textheight,keepaspectratio]{../figures/input_configuration.pdf}
+\caption{Whole-domain prepared input configuration for the representative simulation condition.  The
+physical domain is shown without the numerical halo; coordinates, configured wind values,
+fuel or structure layout, and initial ignition/source geometry are identified in the panels.}
+\label{fig:input-configuration}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Generated temporal-resolution simulation conditions. The time step is calculated
+from \(\Delta t=\mathrm{CFL}\,\Delta x/U\), not rounded to the display value.}
+\begin{tabular}{lrrr}
+\toprule
+Simulation condition & Wind-based CFL & \(\Delta t\) (s) & \(t_{\max}\) (s)\\
+\midrule
+\VariantRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+All simulation conditions use \(\Delta x=\Delta y=\SI{10}{m}\), alternating
+\SI{10}{m} structures and firebreaks, a \SI{40}{mph} wind, the same model-14
+design fire, per-MW firebrand generation, empirical structural transport,
+Eulerian accumulation, physical ignition, no ember consumption, no crosswind
+distribution, and no vegetative surface-fire pathway. The predicted result is near-overlap for
+CFL=0.5, 1, and 10, with visible but bounded load sensitivity at CFL=200.
+
+\subsection{Preprocessing, execution, and postprocessing}
+
+Each prescribed condition uses co-registered fields in a Universal Transverse
+Mercator coordinate system and the stated fuel properties. The initial level-set
+field \(\phi\) is negative within every structure footprint in the first upwind column.
+The exact timestep and input identities are recorded for each condition. Unique
+structure identities preserve the two-dimensional lattice; the profiles compare
+a representative cross-stream row.
+
+A completed result is reused only when its input identity matches the current
+prescribed configuration. Each simulation condition is evaluated independently.
+
+result analysis procedure aggregates final ember counts and ignition times
+by physical structure ID, reconstructs cumulative histories from transient
+ember rasters and recorded output times metadata, evaluates the analytical deposited-load relation,
+calculates every declared metric, and produces report-ready vector figures.
+Stale pre-modification outputs are explicitly excluded.
+
+\section{Actual simulation results}
+
+Figure~\ref{fig:domain-result} shows the representative time-of-arrival field from the wind Courant number 0.5 and timestep 0.28 s condition.
+The displayed field is taken from the simulated results, masks missing values, and excludes
+the two-cell numerical buffer.  The finest-timestep reference field anchors the profile and error comparisons and exposes domain-wide behavior that a single-row profile can hide.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.50\textheight,keepaspectratio]{../figures/domain_result.pdf}
+\caption{Whole-domain time-of-arrival field from the representative completed ELMFIRE run.  This
+domain-scale result supplements, rather than replaces, the higher-level verification
+profiles, convergence plots, ensemble statistics, and calculated acceptance metrics below.}
+\label{fig:domain-result}
+\end{figure}
+
+\CompletedVariantCount{} of \RequestedVariantCount{} simulation conditions currently have
+complete outputs matching the generated inputs. The verification decision is
+\textbf{\OverallStatus}.
+
+Figure~\ref{fig:temporal-four-panel} presents four complementary
+temporal-resolution diagnostics. Panel (a) compares deposited load with the
+analytical integral defined in Section~2; panels (b) and (d) use CFL=0.5 as
+the numerical baseline; and panel (c) shows the accumulation history at the
+specified downwind structure.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=\linewidth]{temporal_resolution_profiles.pdf}
+\caption{Temporal-resolution diagnostics for the prescribed temporal-resolution sweep:
+(a) accumulated-load relative error; (b) dump-cadence first-deposition-time
+relative error; (c) accumulation history at 140--150~m; and (d) full-ignition
+time relative error.}
+\label{fig:temporal-four-panel}
+\end{figure}
+
+Figure~\ref{fig:mean-ignition-error} condenses the ignition comparison into
+mean relative error versus CFL and displays the acceptance threshold directly.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.72\linewidth]{temporal_resolution_error.pdf}
+\caption{Mean full-ignition-time relative error referenced to CFL=0.5. The
+dashed line is the 0.1\% acceptance level used for CFL=1 and 10.}
+\label{fig:mean-ignition-error}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{table}[H]
+\centering\small
+\caption{Calculated verification metrics and component decisions.}
+\begin{tabular}{@{}p{0.37\linewidth}p{0.18\linewidth}p{0.17\linewidth}p{0.14\linewidth}@{}}
+\toprule
+Metric & Acceptance limit & Calculated & Status\\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+The current decision is \textbf{\OverallStatus}. A pass requires all four
+input-matched runs and all tabled acceptance checks. A not-run state is
+not evidence of agreement.
+
+This is a deterministic code-verification test of the implemented idealized WUI
+model, not field validation. The analytical load uses simulated source ignition
+times so that it isolates generation and deposition from ignition chronology.
+First-deposition timing is limited by transient output cadence because the
+current executable does not write the internal firebrand arrival time array as a
+final raster; that diagnostic is therefore intentionally excluded from the
+decision specification.
+
+\section{Technical interpretation}
+With the declared building-only switch restored, all four current-source simulation conditions produce nonzero structural heat release, firebrand transport, input identity record-matched final rasters, and a complete metric record.  This invalidates the earlier zero-HRR and missing-output interpretations, both of which arose while diagnosing the stale executable or the temporary altered switch.
+
+The temporal history is comparatively stable at moderate step sizes: the CFL 1 and CFL 10 accumulation-history NRMSE values are 0.008466 and 0.008443, both below 0.05.  The stricter pointwise/reference components do not pass.  The analytical-load errors are 0.54345 for CFL 0.5, 0.82701 for CFL 1, 0.82690 for CFL 10, and 0.83927 for CFL 200, all above their respective limits.  The CFL 1 and CFL 10 mean ignition-time relative errors are 0.007295 and 0.01326, compared with the 0.001 limit.  The overall result is therefore \emph{FAIL}, not \emph{NOT RUN} or \emph{NOT EVALUABLE}.
+
+Because every input identity record, final output, and integer timestep/stop relation is valid, these discrepancies are not caused by an admissible case-configuration error.  They identify disagreement between the implemented temporal/structural spotting calculation and the predeclared analytical-load and ignition-time requirements.
+
+\section{Scope and limitations}
+The test varies only temporal resolution in a fixed academic WUI configuration. It verifies timestep sensitivity for the selected transport and ignition scales and does not establish spatial convergence or physical validation.
+
+\begin{thebibliography}{9}
+\bibitem{Qin2025}
+Y. Qin, \emph{A Physics-Based Eulerian Framework for Modeling Firebrand
+Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire
+Simulations}, Ph.D. dissertation, University of Maryland, College Park, 2025.
+\end{thebibliography}

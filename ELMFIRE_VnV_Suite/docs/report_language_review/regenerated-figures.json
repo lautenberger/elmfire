@@ -1,0 +1,42 @@
+[
+  {
+    "case": "CASE42_WAF",
+    "exit_code": 0,
+    "figure": "/private/tmp/vnv-language-review/regenerated/CASE42_WAF/figures/sweep_response.pdf"
+  },
+  {
+    "case": "CASE37_DMS",
+    "exit_code": 0,
+    "figure": "/private/tmp/vnv-language-review/regenerated/CASE37_DMS/figures/sweep_response.pdf"
+  },
+  {
+    "case": "CASE36_SLS",
+    "exit_code": 0,
+    "figure": "/private/tmp/vnv-language-review/regenerated/CASE36_SLS/figures/sweep_response.pdf"
+  },
+  {
+    "case": "CASE35_WSS",
+    "exit_code": 0,
+    "figure": "/private/tmp/vnv-language-review/regenerated/CASE35_WSS/figures/sweep_response.pdf"
+  },
+  {
+    "case": "CASE38_LMS",
+    "exit_code": 0,
+    "figure": "/private/tmp/vnv-language-review/regenerated/CASE38_LMS/figures/sweep_response.pdf"
+  },
+  {
+    "case": "CASE41_CFP",
+    "exit_code": 0,
+    "figure": "/private/tmp/vnv-language-review/regenerated/CASE41_CFP/figures/sweep_response.pdf"
+  },
+  {
+    "case": "CASE34_FMS",
+    "exit_code": 0,
+    "figure": "/private/tmp/vnv-language-review/regenerated/CASE34_FMS/figures/sweep_response.pdf"
+  },
+  {
+    "case": "CASE39_DHC",
+    "exit_code": 0,
+    "figure": "/private/tmp/vnv-language-review/regenerated/CASE39_DHC/figures/sweep_response.pdf"
+  }
+]

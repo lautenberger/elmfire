@@ -1,0 +1,27 @@
+{
+  "case_id": "CASE20_PIG",
+  "case_title": "Case 20: Point ignition and isotropic spread",
+  "overall_status": "PASS",
+  "workflow_status": "COMPLETE",
+  "metric_count": 1,
+  "passing_metric_count": 1,
+  "variants": [
+    {
+      "label": "main",
+      "guide_case": "Point",
+      "configuration": "elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "head ROS",
+          "target": 1.51,
+          "measured": 1.511830449104309,
+          "percent_error": 0.12122179498735584,
+          "units": "m/min",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "source": "ELMFIRE Guide verification section"
+}

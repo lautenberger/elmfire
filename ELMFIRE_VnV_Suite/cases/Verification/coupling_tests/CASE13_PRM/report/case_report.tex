@@ -1,0 +1,49 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=0.85in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx,float,placeins}
+\usepackage[detect-all]{siunitx}
+\usepackage{xcolor,hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\graphicspath{{../figures/}}
+
+% Every report uses the same project structure. Identity, static scientific
+% constants, run-derived metrics, and prose remain in separate local files.
+\input{case_metadata.tex}
+\input{case_macros.tex}
+\input{technical_macros.tex}
+\IfFileExists{metrics_macros.tex}{\input{metrics_macros.tex}}{%
+  \def\OverallStatus{NOT EVALUABLE}%
+  \def\MetricRows{Metrics unavailable & required & unavailable & NOT EVALUABLE\tabularnewline}}
+
+% Missing generated metric keys are conspicuous instead of producing blank
+% report cells that could be mistaken for valid values.
+\makeatletter
+\newcommand{\Metric}[1]{%
+  \ifcsname metric@#1\endcsname
+    \csname metric@#1\endcsname
+  \else
+    \textcolor{red}{\textbf{MISSING:#1}}%
+  \fi}
+\makeatother
+\providecommand{\OverallStatus}{NOT EVALUABLE}
+\providecommand{\CompletedVariantCount}{0}
+\providecommand{\RequestedVariantCount}{0}
+
+% Missing generated figures are explicit evidence gaps, never silent omissions.
+\newcommand{\EvidenceFigure}[2][]{%
+  \IfFileExists{#2}{\includegraphics[#1]{#2}}{%
+    \IfFileExists{../figures/#2}{\includegraphics[#1]{#2}}{%
+      \fbox{\parbox{0.88\linewidth}{\centering
+        \textbf{Generated evidence unavailable}\\[0.4em]
+        The required figure is absent because its simulation outputs are not
+        available. The associated comparison remains \textbf{NOT EVALUABLE}.}}%
+    }%
+  }%
+}
+
+\title{Case \CaseNumber: \CaseTitle}
+\input{report_style.tex}
+\begin{document}
+\maketitle
+\input{case_body.tex}
+\end{document}

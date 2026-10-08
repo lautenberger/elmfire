@@ -1,0 +1,133 @@
+\section{Verification purpose}
+
+This case verifies spatial convergence of the Wildland--Urban ELMFIRE (WU--E) ellipse--heat propagation model in a uniform idealized community. It holds the physical domain, initial burning area, wind, design-fire curve, linear characteristic building dimension, and separation fixed while refining the raster spacing through \GridSet. The question is whether physically located ignition times, the community propagation rate, and domain-integrated received heat approach grid-independent values.
+
+\ReportOverview
+
+\section{Mathematical formulation and numerical implementation}
+The uniform-community context follows the published WU--E parametric study
+\cite{PurnomoIJWF2024}. Executable semantics were checked
+against ELMFIRE spread-rate calculation and
+ELMFIRE level-set formulation at source revision
+\texttt{a2dfbcdf7220}.  The reviewed components were identical to that revision; this identity claim
+does not extend to other modified model components.
+The intended downscaled model interprets characteristic building dimension as the linear
+characteristic building dimension $L_c$ in metres. For each spacing it uses
+\begin{equation}
+ \beta_{ssd}=\min\!\left(1,\frac{s_{sd}+L_c}{\Delta x}\right),\qquad
+ g_f=\min\!\left[\left(\frac{\Delta x}{L_c}\right)^2,1\right],\qquad
+ R_{search}=\left\lceil\frac{HAZ}{\Delta x}\right\rceil .
+\end{equation}
+For a target cell receiving direct-flame-contact (DFC) and radiative fluxes, the cell-step energy is
+\begin{equation}
+ E=(q_{\mathrm{DFC}}+q_{\mathrm{rad}})\,\Delta t\,\Delta x^2.
+\end{equation}
+The material fire-thermal property (FTP) is fixed, with nominal
+$F_{TP,crit}=5400~\si{\kilo\joule\per\square\metre}$, and the absolute urban spread magnitude is
+\begin{equation}
+ U=\frac{60E}{0.3048\,\Delta t\,\Delta x\,F_{TP,crit}}.
+\end{equation}
+WU-E then partitions this magnitude among head, flank, and backing directions
+using the wind- and geometry-dependent ellipse before ELMFIRE advances the
+level set with its two-stage integration. The pinned source omits
+$\beta_{ssd}$ and $g_f$, uses a cell-count heat band, and replaces FTP using a
+30,000-kJ branch; these are expected convergence defects, not reference calculation terms.
+
+\section{Derivation of expected behavior}
+Let $Q_h$ denote any physical observable calculated on spacing $h$.  A convergent discretization has
+\begin{equation}
+ Q_h=Q+C h^p+o(h^p),
+ \qquad
+ p\approx\frac{\log\left(\lVert Q_{2h}-Q_h\rVert/\lVert Q_h-Q_{h/2}\rVert\right)}{\log 2}.
+\end{equation}
+Arrival times are evaluated at fixed physical landmarks by interpolation of the cross-community median time of arrival (TOA) profile; community rate of spread (ROS) is $1/b$ from $t=a+bx$ over ignited downwind columns.  Total received heat is the sum of ELMFIRE's terminal DFC and radiation energy rasters, whose stored values already include $\Delta t\,\Delta x^2$.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The four prepared grids use $h=20,10,5,2.5$ m with one fixed $\Delta t=0.25$ s, so temporal-model and integration effects are not deliberately co-refined with space.  Feedback-level timestamps must also show the complete 1,200-step sequence at that configured step.  For a scalar $Q$, the finest-pair change is
+\[
+ e_Q=\frac{|Q_{5}-Q_{2.5}|}{\max(|Q_{2.5}|,10^{-12})};
+\]
+for the three-component landmark vector, absolute values are replaced by the Euclidean norm.  The reported order uses the three finest levels,
+\[
+ p_Q=\log_2\frac{\lVert Q_{10}-Q_5\rVert}{\lVert Q_5-Q_{2.5}\rVert}.
+\]
+Only an exactly or roundoff-unchanged three-level sequence satisfies the flat-sequence alternative and is reported as such rather than as an invented infinite order.  A flat finest pair following a nonzero coarse change fails this order component as possible stagnation or quantization.
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+All four input-matched simulation conditions and their exact-stop TOA, total-DFC, and total-radiation rasters are mandatory.  Each concrete namelist and prepared raster geometry must agree with the case specification and simulation specification.  Each feedback log must contain every expected start time from 0 through $t_{stop}-\Delta t$, with maximum absolute error 0.051 s to accommodate the log's 0.1 s print precision.  Finest-pair relative changes must not exceed 5\% for landmark TOA and community ROS or 10\% for total heat.  A resolvable nonzero sequence must have observed order at least 0.5; a roundoff-flat three-level sequence is the explicit alternative.  Every TOA fit must have $R^2\geq0.95$.
+
+These are preregistered numerical-resolution criteria, not tolerances quoted by
+the references.  Five percent makes a propagation observable materially
+smaller than a one-cell coarse-grid displacement; the 10-percent heat limit is
+looser because source/receiver overlap changes discontinuously with
+rasterization.  The positive order floor of 0.5 detects contraction without
+asserting a formal order for this coupled, clipped model, and $R^2=0.95$
+prevents a visibly nonlinear or fragmentary TOA profile from being summarized
+by a single ROS.  The limits are not adjusted to the result.
+
+\section{Simulation configuration and predicted outcome}
+The physical community is \SI{160}{m} by \SI{40}{m}; every interior cell is fire behavior fuel model (FBFM)~91 and uses a constant \SI{20}{m} linear characteristic building dimension, \SI{10}{m} separation, and building fuel model~14. A \SpatialSourceWidth{}-wide upwind strip is initially burning. The wind is \SpatialWind{} from the west, the design fire reaches \SpatialPeakHRR{} at \SI{30}{s}, and the run ends at \SpatialStopTime{}. Firebrands, crown fire, stochastic wind, and suppression are disabled. A point ignition scheduled after the stop time prevents the generic early-stall shortcut without affecting the solution.
+
+\begin{center}
+\begin{longtable}{P{0.22\textwidth}P{0.20\textwidth}P{0.12\textwidth}P{0.34\textwidth}}
+\toprule Quantity & Values & Units & Control intent\\
+\midrule
+Grid spacing & \GridSet & m & Ratio-two refinement\\
+Timestep / stop & 0.25 / 300 & s & Isolates spatial refinement\\
+Physical source & 20 by 40 & m & Equal initial burning area\\
+Wind / direction & 15 / 270 & mph / degree from & Fixed ellipse forcing\\
+WU-E band & Entire physical domain & cells & Equal heat-interaction support\\
+Terminal evidence & TOA, total DFC, total radiation & s / kJ & Propagation and energy convergence\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Figure~\ref{fig:wgc-input} is generated directly from the prepared \SI{5}{m} GeoTIFFs.  It appears before any result figure so the fuel field and initial level-set support can be audited independently of simulation output.
+\begin{figure}[p]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{\includegraphics[width=\textwidth]{input_configuration.pdf}}{\fbox{Prepared-input evidence has not been generated.}}
+  \caption{Mechanically rendered fuel-model classification
+  and level-set field; this is the representative 5-m prepared grid, not a
+  simulation result.}
+  \label{fig:wgc-input}
+\end{figure}
+
+\section{Actual simulation results}
+The analysis procedure state is \textbf{\WorkflowStatus}; the scientific decision is
+\textbf{\VerificationStatus}, with \CompletedVariantCount{} of
+\RequiredVariantCount{} required simulation conditions.  Reason: \VerificationReason.
+The executed binary SHA-256 is \ReadableHash{\ExecutedBinarySHA}.  For each completed simulation, the selected fields retain their actual output
+times and matching model, input, and simulation-record identities. All results
+must belong to those completed simulations.
+\ifnum\CompletedVariantCount>0
+\IfFileExists{../figures/convergence.pdf}{\begin{figure}[p]\centering\includegraphics[width=\textwidth]{convergence.pdf}\caption{Exact-$t=300$ s observables from completed, input-matched simulations; the finest-pair limits are 5\% for TOA/ROS and 10\% for heat.}\end{figure}}{}
+\IfFileExists{../figures/domain_result.pdf}{\begin{figure}[p]\centering\includegraphics[width=\textwidth]{domain_result.pdf}\caption{Finest-grid ($\Delta x=2.5$ m) exact-$t=300$ s TOA from the unique terminal field for this simulation condition.}\end{figure}}{}
+\fi
+
+\section{Calculated metrics and verification decision}
+\input{readable_results.tex}
+
+The overall scientific decision is \textbf{\VerificationStatus}.  Missing, stale, nonterminal, or malformed output is NOT EVALUABLE; NOT RUN is retained only as the analysis procedure state and can never produce a pass.
+
+\section{Technical interpretation}
+
+All required grids have complete terminal rasters and the prescribed solver
+step sequences. The failed finest-pair and observed-order rows therefore
+represent sensitivity of the calculated solution, rather than absent files or
+an unintended temporal refinement. The fitted TOA profiles remain suitable
+for the reported community ROS, but that fitted ROS does not meet the
+registered grid-convergence criterion.
+
+The source contains grid-dependent heat normalization, overlap/support rules,
+and an energy-dependent replacement of material FTP. These are plausible
+contributors to the observed sensitivity. The finite sequence identifies a
+failed convergence test; it does not uniquely assign causality or prove
+asymptotic divergence. The existing limits remain unchanged.
+
+\section{Scope and limitations}
+This is a numerical verification case for an idealized, fully urban, uniform community. It does not validate building-to-building fire behavior against experiments, represent explicit street gaps or variable structure footprints, exercise firebrands, or cover wildland--urban interfaces. CASE46 and CASE47 address transition pathways; CASE43--CASE45 isolate the component responses used here.
+
+\begin{thebibliography}{9}
+\bibitem{PurnomoIJWF2024} D. M. J. Purnomo et al., ``Integrating an urban fire model into an operational wildland fire model to simulate one dimensional wildland--urban interface fires: a parametric study,'' \emph{International Journal of Wildland Fire}, 33 (2024), WF24102. \href{https://doi.org/10.1071/WF24102}{doi:10.1071/WF24102}.
+\end{thebibliography}

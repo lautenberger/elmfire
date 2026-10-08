@@ -1,0 +1,86 @@
+\section{Verification purpose}
+
+This case verifies dead-fuel moisture damping, heat of preignition, and extinction for the dead-dominated static fuels fire behavior fuel model (FBFM) 3 and TL6.  Moisture is varied as a fraction of each model's configured dead extinction moisture.  It can expose percent/fraction errors, incorrect polynomial evaluation, wrong extinction comparison, or omission of moisture from the heat sink.  The verification question is whether reaction intensity and rate of spread (ROS) follow the independent calculation through extinction for every required simulation condition.
+
+\section{Mathematical formulation and numerical implementation}
+For $r_M=M_f/M_x$, Rothermel moisture damping is
+\begin{equation}\eta_M=\max\{0,\min[1,1-2.59r_M+5.11r_M^2-3.52r_M^3]\}.\end{equation}
+Moisture also increases $Q_{ig}=250+1116M_f$.  Thus it reduces the reaction source and increases the heat sink.  The equations follow Andrews (2018), RMRS-GTR-371.  ELMFIRE receives percent rasters; the reference calculation uses fractions.
+
+\section{Derivation of expected behavior}
+For each fuel, the 1-h, 10-h, and 100-h moistures are equal, so their weighted dead moisture is the selected ratio times $M_x$.  The damping polynomial and therefore dead reaction intensity reach zero at and above $r_M=1$.  Because these simulation conditions have no live load contribution, $I_R=R_0=0$ there.  Below extinction, the independent fuel weighting and heat sink give the exact expected curve.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+Dead-fuel moisture damping is evaluated from the generated ratio
+\(r=M_d/M_x\):
+\[
+ \eta_M=\begin{cases}
+ 1-2.59r+5.11r^2-3.52r^3,&0\leq r\leq1,\\
+ 0,&r>1.
+ \end{cases}
+\]
+For Fuel Model~3 at \(r=0.50\),
+\(\eta_M=1-2.59(0.5)+5.11(0.5)^2-3.52(0.5)^3=0.5425\).
+Substitution through the weighted reaction-intensity and Rothermel-rate
+equations gives
+\(I_{R,\mathrm{ref}}=477.3889~\mathrm{kW\,m^{-2}}\) and
+\(R_{\mathrm{ref}}=1.069455~\mathrm{m\,min^{-1}}\).
+At \(r=1.00\), the polynomial is zero, giving numerical references
+\(I_R=3.91\times10^{-13}\) and
+\(R=6.45\times10^{-16}\), both treated as zero; at \(r=1.10\) they are
+exactly zero by the piecewise definition.
+For nonzero references,
+\(e_R=|R_{\max}-R_{\mathrm{ref}}|/
+\max(|R_{\mathrm{ref}}|,10^{-8})\) and \(e_I\) is analogous.
+The near-extinction intensity metric instead uses
+\(\max|I_{R,\mathrm{sim}}-I_{R,\mathrm{ref}}|
+\leq0.001~\mathrm{kW\,m^{-2}}\).  Propagating simulation conditions additionally use
+\(R_{\mathrm{TOA}}=60/b\) from \(t=a+bx\) and
+\(R^2=1-SSE/SST\), with \(\max e_{\mathrm{TOA}}\leq0.05\) and
+\(\min R^2\geq0.995\); the direct limits are 0.02 for ROS and 0.01 for
+reaction intensity.
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+Maximum relative errors are 0.02 for direct ROS and nonzero reaction intensity. Analytically extinguished intensity instead uses an absolute tolerance of \SI{0.001}{kW.m^{-2}}, so floating-point residuals are not divided by a near-zero reference.  Simulation conditions predicted to spread at least \SI{0.10}{m.min^{-1}} additionally require time of arrival (TOA)-derived ROS error at most 0.05 and regression $R^2\ge0.995$; slower simulation conditions cannot cross three \SI{10}{m} cells within the capped practical duration and are decided by direct ROS and intensity.  Extinguished simulation conditions require zero ROS and reaction intensity within the stated absolute residual tolerance; TOA is not used to invent a velocity where no propagation occurs.  All 16 simulation conditions are mandatory.
+
+\section{Simulation configuration and predicted outcome}
+
+The finite-strip PHI raster is a signed-distance field clipped to ELMFIRE's supported $[-1,1]$ interval, preserving both an ignited interior and a resolved front gradient. For every positive reference spread rate, the prescribed and maximum timesteps use the whole-second value obtained by rounding the 5\%-of-cell target downward, with a one-second minimum; every generated value remains below the configured Courant--Friedrichs--Lewy (CFL) limit of 0.2. The stop time is rounded upward to an exact integer multiple of that step. This avoids a shortened final step that can trigger ELMFIRE's stalled-front branch and corrupt the terminal timestamp. A zero-ROS simulation condition retains a 5 s step and is evaluated from direct fields without requiring TOA propagation. The evaluator always requires uniquely named rasters tied to one final dump record. After subtracting the configured meteorology interval, an ordinary stalled-final record must reconstruct the stop time within one timestep. An early stalled-final record is accepted only for a simulation condition whose independent reference calculation predicts zero ROS, and only when the reconstructed pre-jump time is finite, lies between zero and the stop time, and is aligned to the configured timestep grid. Making TOA optional does not authorize an early stall.
+The sweep ratios are 0.10, 0.25, 0.50, 0.70, 0.85, 0.95, 1.00, and 1.10.  Domains use \SI{10}{m} cells and a finite ignition strip with a planar east face in the interior measurement corridor; the strip terminates inside the lateral boundaries.  Wind and slope are zero, live moisture is fixed, and no coupled fire processes are enabled.  Intensity and ROS should decrease toward zero and remain zero beyond extinction.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.24\textwidth}p{0.12\textwidth}p{0.32\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 1400 m square; 10 & m/cell & Planar interior propagation \\
+Fuel models & \FuelSet & code/name & Two extinction-moisture states \\
+Dead-moisture ratio & \RatioSet & fraction & Independent damping variable \\
+Wind/slope & 0 / 0 & mph / degrees & Isolates moisture damping \\
+Timing & generated whole-second step and exact-multiple stop & s & Terminal-evidence compatibility \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+The available results cover \CompletedVariantCount{} of \RequiredVariantCount{} required simulation conditions and reports \textbf{\VerificationStatus}. For a stalled extinction simulation condition, the recorded result records the configured timestep, stop time, meteorology interval, recorded final time, reconstructed pre-jump time, and evidence-selection mode.
+\ifnum\CompletedVariantCount>0
+\IfFileExists{../figures/sweep_response.pdf}{\begin{figure}[H]\centering\includegraphics[width=0.95\textwidth]{sweep_response.pdf}\caption{Independent calculations (open diamonds, solid lines) and ELMFIRE predictions (filled circles, dashed lines) for the dead-moisture response through extinction. Each fuel-model pair uses the same color.}\end{figure}}{}
+\fi
+
+\section{Calculated metrics and verification decision}
+\begin{center}\small\begin{tabular}{@{}llll@{}}\toprule Metric & Limit & Calculated & Status\\\midrule\MetricRows\bottomrule\end{tabular}\end{center}
+The authoritative decision is \textbf{\VerificationStatus}.
+
+\section{Technical interpretation}
+The \VerificationStatus{} decision is driven by the component statuses in the generated table. Direct observables use the upper envelope of the sparse diagnostic raster, excluding zero-filled and off-axis cells from the head-spread comparison. For direct ROS, the largest relative discrepancy is \WorstRosRelativeError{}. Its independent value is \WorstRosExpected{}~m/min; ELMFIRE gives \WorstRosMeasured{}~m/min. For reaction intensity, the largest relative discrepancy is \WorstIrRelativeError{}. Its independent value is \WorstIrExpected{}~kW/m$^2$; ELMFIRE gives \WorstIrMeasured{}~kW/m$^2$. A horizontal shift of the extinction point indicates an $M_x$ or units error. Correct intensity with wrong ROS suggests heat-sink or flux-ratio handling. Nonzero propagation or intensity at extinction indicates an unintended live contribution, adjustment, numerical residual, or stale output.
+
+\section{Scope and limitations}
+The case varies all three dead moisture classes together.  It does not identify an isolated class-indexing defect or validate moisture observations.  Static live moisture is addressed separately by CASE38.

@@ -1,0 +1,38 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=0.85in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,float,graphicx}
+\usepackage[detect-all]{siunitx}
+\usepackage{xcolor,hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\graphicspath{{../figures/}}
+\input{case_metadata.tex}
+\input{case_macros.tex}
+\input{technical_macros.tex}
+\IfFileExists{metrics_macros.tex}{\input{metrics_macros.tex}}{%
+  \newcommand{\VerificationStatus}{NOT EVALUABLE}
+  \newcommand{\WorkflowStatus}{NOT RUN}
+  \newcommand{\VerificationReason}{No current metrics supporting result is available.}
+  \newcommand{\ExecutedBinarySHA}{--}
+  \newcommand{\RequiredVariantCount}{8}
+  \newcommand{\CompletedVariantCount}{0}
+  \newcommand{\MetricCount}{0}
+  \newcommand{\PassingMetricCount}{0}}
+\providecommand{\MetricRows}{No generated metric rows & -- & -- & NOT EVALUABLE \\}
+\title{Case \CaseNumber: \CaseTitle}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% Readable body, tables, captions, and page breaks at the final print size.
+\usepackage{array,longtable,caption,seqsplit,needspace}
+\usepackage[section]{placeins}
+\captionsetup{font=normalsize,labelfont=bf,justification=raggedright,singlelinecheck=false}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\emergencystretch}{3em}
+\newcommand{\ReadableHash}[1]{\begingroup\ttfamily\expandafter\seqsplit\expandafter{#1}\endgroup}
+\input{readability_macros.tex}
+
+\input{report_style.tex}
+\begin{document}
+\maketitle
+\input{case_body.tex}
+\end{document}

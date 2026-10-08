@@ -1,0 +1,37 @@
+case_id: "CASE35_WSS"
+case_title: "Case 35: Midflame wind-speed Rothermel sweep"
+category: "Verification/unit_tests"
+source_provenance: "Andrews (2018), RMRS-GTR-371; ELMFIRE Rothermel implementation"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/sweep_response.pdf"
+
+variants:
+  fuel_models: [2, 9, 102, 165, 188]
+  target_midflame_wind_mph: [0, 1, 2, 4, 6, 8, 12]
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        INPUTS.SURFACE_SPREAD_MODEL: "ROTHERMEL"
+        INPUTS.WS_AT_10M: false
+        INPUTS.WS_IN_KPH: false
+        OUTPUTS.DUMP_SPREAD_RATE: true
+        OUTPUTS.DUMP_REACTION_INTENSITY: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        OUTPUTS.SPREAD_RATE_IN_M: true
+        SIMULATOR.NUM_IGNITIONS: 0
+        SIMULATOR.CROWN_FIRE_MODEL: 0
+        SIMULATOR.PHIW_ADJ: 1.0
+        SIMULATOR.SURFACE_ACCELERATION_TIME_CONSTANT: 1.0
+        SPOTTING.ENABLE_SPOTTING: false
+        WUI.USE_BLDG_SPREAD_MODEL: false

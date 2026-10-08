@@ -1,0 +1,3 @@
+# label	config_path	original_guide_case
+extended_attack	elmfire.data.in	Suppression-extended
+initial_attack	variants/initial_attack/elmfire.data.in	Suppression-initial

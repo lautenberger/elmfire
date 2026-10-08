@@ -1,0 +1,50 @@
+{
+  "case_number": "08",
+  "purpose_abbreviation": "FBC",
+  "id": "CASE08_FBC",
+  "chapter": "5",
+  "title": "Deposited Firebrand Consumption",
+  "summary": "Verifies decay of the active deposited-firebrand population by paired consumption-on/off runs and a four-resolution convergence study.",
+  "physical_length_m": 300.0,
+  "physical_width_m": 300.0,
+  "evaluation_time_s": 260.0,
+  "profile_time_s": 260.0,
+  "profile_target_time_s": 250.0,
+  "target_x_m": 200.0,
+  "surface_ros_mps": 0.71,
+  "wind_speed_mph": 15.0,
+  "wind_cfl": 0.5,
+  "grid_sizes_m": [
+    1.0,
+    5.0,
+    10.0,
+    30.0
+  ],
+  "consumption_states": [
+    false,
+    true
+  ],
+  "expected": "At 260 s the consumption-on active firebrand population should be at most 4% of the paired no-consumption population, consistent with the reference observation that more than 96% is consumed. Consumption must not materially change surface-fire TOA, active counts must remain nonnegative, and profiles should converge toward the 1 m result.",
+  "acceptance": {
+    "maximum_retained_fraction": 0.04,
+    "maximum_toa_pair_difference_s": 10.0,
+    "maximum_dx5_normalized_l1_error": 0.15,
+    "require_ordered_profile_convergence": true,
+    "negative_count_tolerance": -1e-06
+  },
+  "source_references": [
+    "Section 5.5.2, Figures 5.19 and 5.20"
+  ],
+  "history_times_s": [
+    50.0,
+    100.0,
+    150.0,
+    200.0,
+    250.0,
+    300.0,
+    350.0,
+    400.0,
+    450.0,
+    500.0
+  ]
+}

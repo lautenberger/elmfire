@@ -1,0 +1,93 @@
+\section{Verification purpose}
+
+This isolated-process case verifies spatial convergence of ELMFIRE's level-set propagation for the same manufactured circular-front problem on four meshes. It exercises raster-derived grid geometry, front initialization, propagation, and level-set field output while holding physical inputs and temporal controls fixed. It can reveal grid-spacing misuse, nonconvergent front updates, or resolution-dependent physical configuration. The question is whether all four required meshes complete, the fitted radius-error order is at least \(\MinimumSpatialOrder\), and the finest-grid error is at most 1 m.
+
+\section{Mathematical formulation and numerical implementation}
+
+For \(\partial_t\phi+R_0|\nabla\phi|=0\) with constant \(R_0=0.0116332~\mathrm{m\,s^{-1}}\), the exact circular radius is mesh-independent. ELMFIRE obtains \(\Delta x\) from each GeoTIFF transform. The four simulation conditions use 128, 256, 512, and 1024 cells over the same 256 m domain, so \(\Delta x=\{2,1,0.5,0.25\}\) m.
+
+\section{Derivation of expected behavior}
+
+With \(r_0=20\) m and \(T=360\) s, \(r_\star=20+R_0T=24.187952\) m. For a consistent spatial discretization, the zero-contour equivalent-radius error \(E_h=|r_A-r_\star|\) should decrease as \(h=\Delta x\) decreases and follow \(E_h\approx Ch^p\). A least-squares slope of \(\log E_h\) against \(\log h\) estimates \(p\).
+
+% BEGIN EXPLICIT METRIC DERIVATION
+Every grid simulation condition uses the same manufactured solution.  From the generated
+rate \(R_s=0.0116332~\mathrm{m\,s^{-1}}\), initial radius
+\(r_0=20~\mathrm{m}\), and stop time \(T=360~\mathrm{s}\),
+\[
+ r_{\mathrm{ref}}=20+(0.0116332)(360)=24.187952~\mathrm{m}.
+\]
+For each cell size \(h_i\in\{2,1,0.5,0.25\}~\mathrm{m}\), the area-equivalent
+radius and error are
+\[
+ r_i=\sqrt{\frac{N_{b,i}h_i^2}{\pi}},\qquad E_i=|r_i-24.187952|.
+\]
+The observed spatial order is the ordinary-least-squares slope
+\[
+ p_h=\frac{\sum_i(\ln h_i-\overline{\ln h})(\ln E_i-\overline{\ln E})}
+ {\sum_i(\ln h_i-\overline{\ln h})^2}.
+\]
+Consequently the table tests the explicitly calculated \(p_h\geq0.8\) and
+the finest-grid substitution \(E_{0.25}=|r_{0.25}-24.187952|\leq1~\mathrm{m}\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+The first metric is the fitted order \(p\), selected because it measures the multi-grid trend rather than one favorable mesh; \(p\ge0.8\) allows rasterized-interface effects while requiring approximately first-order behavior. The second is finest-grid \(E_h\le1\) m, preventing a misleading order from large absolute errors. Radius is obtained from the largest closed, linearly interpolated \(\phi=0\) contour, providing a rotationally aggregated subcell measure. The last matching level-set field is required for each simulation condition. All simulation conditions and both metrics must pass; otherwise the decision is NOT EVALUABLE or FAIL as appropriate.
+
+\section{Simulation configuration and predicted outcome}
+
+Each EPSG:32610 simulation condition covers the same 256 m square with uniform inputs, flat terrain, zero wind, centered 20 m signed-distance ignition, \(R_0=0.0116332~\mathrm{m\,s^{-1}}\), and duration 360 s. Only grid resolution varies. The predicted front is circular and \(E_h\) decreases toward the 24.187952 m reference radius.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.22\textwidth}p{0.12\textwidth}p{0.34\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain & 256 by 256 & m & Fixed physical experiment \\
+Meshes & 128, 256, 512, 1024 & cells/side & Spatial refinement sequence \\
+Cell size & 2, 1, 0.5, 0.25 & m & Independent variable \\
+Time control & step 1; stop 360 & s & Fixed temporal discretization \\
+Initial front & centered signed-distance radius 20 & m & Common exact geometry \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+Only the four case-specific simulation condition outputs are read. Current status is \textbf{\VerificationStatus}; \VariantCount{} simulation conditions and \MetricCount{} decision metrics are recorded.
+\begin{figure}[H]\centering
+\IfFileExists{../figures/whole_domain_result.pdf}{\includegraphics[width=0.62\textwidth]{whole_domain_result.pdf}}{\fbox{No finest-grid whole-domain result is available.}}
+\quad
+\IfFileExists{../figures/convergence.pdf}{\includegraphics[width=0.62\textwidth]{convergence.pdf}}{}
+\caption{Finest-grid whole-domain signed level-set result and radius-error convergence across all four completed meshes. The spatial field is dimensionless; radius errors are in metres, and the generated table supplies both acceptance limits.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Metric & Expected value or limit & Calculated value & Status \\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{center}
+The authoritative overall decision is \textbf{\VerificationStatus}. The generated table is sourced directly from the case-specific calculated metrics and is not recomputed in this report.
+
+\section{Technical interpretation}
+
+Low order with small finest error suggests interface-measurement or pre-asymptotic effects; high order with excessive finest error indicates the sequence has not reached useful accuracy. Missing simulation conditions invalidate the convergence fit. Resolution-dependent physical inputs would be a configuration defect.
+
+\section{Scope and limitations}
+
+This case measures convergence of one smooth, radially symmetric front and an area-derived observable. It does not determine formal order for discontinuous fuels, complex terrain, anisotropic spread, or other output fields.
+

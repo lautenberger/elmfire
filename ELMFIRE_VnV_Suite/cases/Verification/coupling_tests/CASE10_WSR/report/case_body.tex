@@ -1,0 +1,381 @@
+\section{Verification purpose}
+
+This case verifies sensitivity of firebrand-driven WUI spread to structural spatial representation. Five simulation conditions cover the baseline grid, native fine and coarse grids, and aligned and misaligned integrated-structure representations under one physical geometry and source definition.
+
+The test quantifies native cell-scale distortion and determines whether integrated representation restores structure-level accumulation, ignition chronology, and spread-rate consistency. Capability-gated simulation conditions remain explicit and are not replaced by a physically different native-cell calculation.
+
+\section{Mathematical formulation and numerical implementation}
+
+\subsection{Heat release and generation}
+
+For a structure ignited at \(t_i\), the design heat-release-rate (HRR) per unit area (HRRPUA) is
+\[
+q''(\tau)=
+\begin{cases}
+q''_{\max}\tau/300,&0<\tau<300,\\
+q''_{\max},&300\le\tau\le3900,\\
+q''_{\max}(4200-\tau)/300,&3900<\tau<4200,\\
+0,&\text{otherwise},
+\end{cases}
+\quad \tau=t-t_i,\qquad q''_{\max}=\SI{400}{kW.m^{-2}}.
+\]
+For footprint \(A_s\), \(\mathrm{HRR}_i=q''A_s\), and the emission rate is
+\[
+\dot N_i(t)=G_R'\mathrm{HRR}_i(t),\qquad
+G_R'=\SI{10}{pcs.MW^{-1}.s^{-1}}.
+\]
+The configuration therefore uses per-MW generation; per-area generation would
+not preserve heat-release-scaled production for this design fire.
+
+\subsection{Himoto transport and analytical load}
+
+The downwind distance is lognormal, with physical-space moments
+\[
+\mu_x/D=0.47(B^*)^{2/3},\qquad \sigma_x/D=0.88(B^*)^{1/3},
+\]
+\[
+B^*=\frac{U}{\sqrt{gD}}
+\left(\frac{\rho_p}{\rho_\infty}\right)^{-3/4}
+\left(\frac{d_p}{D}\right)^{-3/4}
+\left(\frac{\mathrm{HRR}}
+{\rho_\infty c_pT_\infty g^{1/2}D^{5/2}}\right)^{1/2}.
+\]
+Here \(D=\SI{10}{m}\), \(\rho_p=\SI{100}{kg.m^{-3}}\), and
+\(d_p=\SI{5}{mm}\), matching the reference formulation and current source. The postprocessor
+independently evaluates the analytical deposited-load convolution
+\[
+N_k=\sum_{i<k}\int_0^T\dot N_i(t)
+\left[\int_{x_k}^{x_{k+1}}
+f(x-x_i;\mu_i(t),\sigma_i(t))\,dx\right]dt
+\]
+with a \SI{5}{s} quadrature interval. Deposited counts are divided by physical
+footprint area, not a resolution-dependent raster-cell area.
+
+\subsection{Physical ignition and expected chronology}
+
+The configured ignition model uses
+\(N_{\rm crit}=\SI{2928.9}{pcs.m^{-2}}\)~\cite{Qin2025}. At the structure
+spanning \(20\le x\le\SI{30}{m}\), the historical analytical load reaches
+this threshold near \SI{2496.9}{s}. The case-specific postprocessor preserves the
+published composite full-ignition reference of \SI{2858.8}{s}; its difference
+from direct addition of the currently configured delays is quantified
+explicitly below.
+Targets beyond the roughly \SI{80}{m} peak-heat-release rate (HRR) spotting range require
+successive structure ignition and consequently have nonlinear arrival times.
+
+\subsection{Resolution signatures}
+
+On the \SI{2.5}{m} native mesh (native fine-grid simulation condition), one physical structure occupies
+multiple independent cells. Uneven deposition and cell-local ignition should
+produce a nonzero within-structure load range and mean rate of spread (ROS) near
+\SI{0.001}{m.s^{-1}}, compared with about \SI{0.006}{m.s^{-1}} for the
+exact-grid baseline.
+On the \SI{30}{m} native mesh (native coarse-grid simulation condition), mode resampling inflates footprint
+and HRR, causing artificially early spread; the documented response gives a
+baseline-to-coarse load ratio near 1.86~\cite{Qin2025}.
+
+The integrated-structure treatment groups all cells belonging to one structure,
+\[
+\bar N=\frac{\sum_{j\in s}N_j}{A_s},\qquad
+\mathrm{HRR}_s=q''A_s,
+\]
+then redistributes load uniformly and emits from the structure centroid.
+The integrated-aligned simulation condition expects an aligned \SI{2.5}{m} mesh to
+reproduce the baseline. The integrated-misaligned simulation condition permits up to 33\%
+load deviation and 10\% ignition-time deviation
+on a misaligned \SI{3.24}{m} mesh.
+
+\section{Derivation of expected behavior}
+The exact grid should reproduce the analytical structure-load and ignition chronology. Native fine cells should expose within-structure imbalance, native coarse cells should expose footprint inflation, and integrated simulation conditions should recover the physical-structure response independently of alignment.
+
+% BEGIN EXPLICIT EXPECTED-RESULT DERIVATION
+At the \(\SI{400}{kW\,m^{-2}}\) plateau, one physical
+\(10\times10~\mathrm{m}\) structure has
+\[
+ HRR_{\max}=400(100)=40000~\mathrm{kW}=40~\mathrm{MW},
+ \qquad \dot N_{\max}=10(40)=400~\mathrm{pcs\,s^{-1}},
+\]
+and its critical total count is
+\(N_{\mathrm{crit}}=2928.9(100)=292890\) particles.
+Using the postprocessor's adjusted wind
+\(U=0.447(40)/0.87=20.5517~\mathrm{m\,s^{-1}}\) at peak HRR gives
+\[
+ B^*=7.37372,\qquad
+ \bar x=0.47(7.37372)^{2/3}(10)=17.8056~\mathrm{m},
+\]
+\[
+ s_x=0.88(7.37372)^{1/3}(10)=17.1282~\mathrm{m},\qquad
+ (\mu,\sigma)=(2.55195,0.80939).
+\]
+These values are inserted in the cell-cumulative distribution function (CDF) convolution at each 5-s midpoint;
+the HRR dependence is recomputed rather than freezing the peak values.
+
+There is an explicit provenance discrepancy in the historical chronology.
+The case-specific constants give
+\[
+ 2496.9+42.1+300=2839.0~\mathrm{s},
+\]
+whereas the preserved historical composite reference used by postprocessing
+is \(2858.8~\mathrm{s}\), 19.8 s later.  The latter is therefore treated as
+a published numerical estimate, not as the arithmetic result of the three
+displayed constants.  The 19.8-s difference is only
+\(19.8/2858.8=0.00693\), well inside the predeclared 10-percent baseline
+ignition tolerance, so this provenance mismatch cannot change that component's
+decision.
+
+The exact-grid ideal errors are zero for analytical load and the chosen
+historical ignition reference.  Native-grid expected signatures are a
+fine/baseline ROS ratio near \(0.001/0.006=0.1667\) and a coarse load ratio
+near 1.86.  Integrated aligned references are the exact-grid structure loads
+and times; for the misaligned grid, one unresolved boundary strip is
+\(3.24/10=0.324\), motivating the explicit 0.33 load allowance.
+% END EXPLICIT EXPECTED-RESULT DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+The postprocessor calculates every metric explicitly. The exact-grid baseline
+compares structure-integrated load with the analytical convolution defined
+above and second-structure ignition with \SI{2858.8}{s}. The native fine and
+coarse simulation conditions verify the documented cell-local supporting results rather than claiming
+convergence. The integrated aligned and misaligned simulation conditions compare
+physical-structure profiles with the exact-grid baseline. Missing output or
+capability is reported as
+\emph{NOT EVALUABLE}, never as an implicit pass.
+
+\subsection{Justification of metric quantification}
+
+The criteria intentionally separate reproduction of native-grid defects from
+accuracy requirements for the baseline and integrated treatments.  The 10\%
+baseline load and ignition bands accommodate rasterized deposition and
+threshold-crossing time while remaining small relative to the resolution
+effects documented for this configuration~\cite{Qin2025}.  A native fine-grid
+load range of at least 5\% is set above roundoff and output quantization, and a
+ROS ratio no greater than 0.50 requires the material factor-of-two slowdown
+that identifies independent-cell behavior rather than a visually detectable
+but negligible difference.  The coarse-grid load ratio is centered on the
+reported 1.86 response; its 25\% band permits the severe footprint snapping
+intrinsic to a \SI{30}{m} cell without accepting a reversal of the expected
+inflation.
+
+For the aligned integrated grid, exact structure boundaries and conservation
+of integrated load justify the stringent 1\% load limit.  Its 5\% ignition
+limit is wider because ignition is a nonlinear threshold event recorded at a
+discrete time.  For the \SI{3.24}{m} misaligned grid, one boundary-cell width
+relative to a \SI{10}{m} structure is \(3.24/10=0.324\); the 0.33 maximum
+load-error limit therefore admits approximately one unresolved boundary strip
+but not a larger structure-scale bias.  The corresponding 10\% ignition bound
+allows threshold amplification of that overlap error.  Capability and
+completeness are conjunctive because the integrated claims cannot be inferred
+from native-grid substitutes.
+
+\subsection{Predeclared acceptance criteria}
+
+Table~\ref{tab:acceptance-contract} summarizes the metrics fixed before
+inspection of the calculated results. Numerical values and component statuses
+are reported separately in Section~7.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Predeclared verification metrics and acceptance criteria.}
+\label{tab:acceptance-contract}
+\begin{tabular}{@{}p{0.23\linewidth}p{0.47\linewidth}p{0.21\linewidth}@{}}
+\toprule
+Metric & Output, region, and aggregation & Acceptance criterion\\
+\midrule
+Baseline load error & Mean structure-load relative error against the analytical deposition reference, excluding the source structure. & \(\le0.10\) \\
+Baseline ignition error & Relative error of second-structure ignition time against \SI{2858.8}{s}. & \(\le0.10\) \\
+Native fine-grid load distortion & Median within-structure relative load range. & \(\ge0.05\) \\
+Native fine-grid ROS ratio & Fine-grid fitted mean ROS divided by baseline ROS. & \(\le0.50\) \\
+Native coarse-grid load ratio & Baseline structure-4 load divided by coarse structure-2 load. & \(1.86\pm25\%\) \\
+Integrated aligned load error & Mean matched structure-load relative error against baseline. & \(\le0.01\) \\
+Integrated aligned ignition error & Mean matched ignition-time relative error against baseline. & \(\le0.05\) \\
+Integrated misaligned load error & Maximum matched structure-load relative error against baseline. & \(\le0.33\) \\
+Integrated misaligned ignition error & Maximum matched ignition-time relative error against baseline. & \(\le0.10\) \\
+Overall decision & All configured simulation conditions and metrics must be evaluable; unavailable integrated capability prevents a PASS. & PASS only if all rows pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation configuration and predicted outcome}
+
+Figure~\ref{fig:input-configuration} records the prepared spatial inputs for the 10 m baseline grid.
+These panels show the prepared spatial fields, remove the
+two-cell numerical buffer, and retain map coordinates in metres.  The left panel shows
+the most informative fuel or structure layout available for the case; the right panel
+shows the cells selected by the non-positive initial level-set field, making a localized
+ignition or firebrand-emission source explicit.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.42\textheight,keepaspectratio]{../figures/input_configuration.pdf}
+\caption{Whole-domain prepared input configuration for the representative simulation condition.  The
+physical domain is shown without the numerical halo; coordinates, configured wind values,
+fuel or structure layout, and initial ignition/source geometry are identified in the panels.}
+\label{fig:input-configuration}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\caption{Five simulation conditions generated from the common physical problem.}
+\begin{tabular}{llllp{0.31\linewidth}}
+\toprule
+Simulation condition & \(\Delta x\) (m) & \(t_{\max}\) (s) & Treatment & Expected result\\
+\midrule
+Baseline & 10.00 & 22000 & native & analytical deposition and ignition\\
+Native fine & 2.50 & 50000 & native fine & imbalance and slower ROS\\
+Native coarse & 30.00 & 22000 & native coarse & inflated HRR and earlier spread\\
+Integrated aligned & 2.50 & 22000 & integrated aligned & baseline-equivalent profile\\
+Integrated misaligned & 3.24 & 22000 & integrated misaligned & bounded profile error\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each nominal timestep is \(\Delta t_{\mathrm{nominal}}=0.5\Delta x/U\); the generated step is no larger than this bound. All structure rasters reference
+a case-specific model 14 containing the design fire and physical delay. Structures
+form a periodic \(220\times100\)-m two-dimensional lattice. Each represented
+cell uses its true square area, so heat-release rate per unit area (HRRPUA) remains \SI{400}{kW.m^{-2}} and the
+dimensionless ignition-hardening factor remains one at every resolution. Every
+structure in the first upwind column is initialized at \(t=0\).
+The global vegetative surface-spread setting switch remains true to suppress vegetative surface-fire propagation.  In the current source, initialized model-14 buildings independently refresh their transient HRR and therefore remain active under this setting.  The generated non-structure fuel model 93 is also nonburnable, providing a second explicit isolation of the building-only experiment.
+Because the wind Courant--Friedrichs--Lewy (CFL) bound requires a subsecond step, preprocessing computes the
+nominal fractional value.  When that value does not divide the requested duration,
+it uses \(N=\lceil t_{\mathrm{requested}}/\Delta t_{\mathrm{nominal}}\rceil\)
+and reduces the generated step to
+\(\Delta t=t_{\mathrm{requested}}/N\).  The stop therefore remains the exact
+requested duration and an exact timestep multiple; the simulation specification records nominal
+and actual steps, CFL values, and the integer step count.
+
+\subsection{Preprocessing, execution, and postprocessing}
+
+Exact cell--footprint overlap defines the structure fractions and identities;
+mode classification defines the native fine- and coarse-grid experiments.
+Only model-supported structure representations are simulated. Final firebrand
+counts are normalized by physical structure area and aggregated by structure
+identity, together with the fire arrival times. Evaluation requires agreement
+between the prescribed and simulated inputs, successful termination, unique
+stop-time, timestep, and meteorological-interval values, and exact divisibility
+of duration by timestep. One final output-time record and one corresponding
+deposition/arrival-time pair are required. An output beyond the nominal stop
+is accepted only if subtracting the meteorological interval gives a time on
+the timestep grid within one timestep of the stop. Ambiguous, early, off-grid,
+or duplicate evidence remains NOT EVALUABLE.
+
+\clearpage
+\section{Actual simulation results}
+
+Figure~\ref{fig:domain-result} shows the representative time-of-arrival field from the 10 m baseline grid.
+The displayed field is taken from the simulated results, masks missing values, and excludes
+the two-cell numerical buffer.  This completed baseline provides whole-domain evidence even though simulation conditions requiring the unavailable integrated-structure capability remain not evaluable.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.50\textheight,keepaspectratio]{../figures/domain_result.pdf}
+\caption{Whole-domain time-of-arrival field from the representative completed ELMFIRE run.  This
+domain-scale result supplements, rather than replaces, the higher-level verification
+profiles, convergence plots, ensemble statistics, and calculated acceptance metrics below.}
+\label{fig:domain-result}
+\end{figure}
+
+\CompletedVariantCount{} of \RequestedVariantCount{} simulation conditions currently have
+complete, configuration-matched ELMFIRE output. Source-aligned physical-state
+figures are provided for all three native representations; a figure explicitly
+states when its current matching output is unavailable. The two
+integrated-structure simulation conditions remain capability gated.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=\linewidth,height=0.68\textheight,keepaspectratio]{baseline_reference.pdf}
+\caption{Exact-grid baseline observables: structure load, ignition chronology,
+leading-edge trajectory, and instantaneous ROS. Analytical load and
+second-structure timing references are overlaid where available.}
+\label{fig:wsr-baseline}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=\linewidth,height=0.68\textheight,keepaspectratio]{native_fine_reference.pdf}
+\caption{Native fine-grid observables. Cell-scale load variation within each
+physical structure is retained so discretization distortion is visible rather
+than hidden by structure averaging.}
+\label{fig:wsr-fine}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=\linewidth,height=0.68\textheight,keepaspectratio]{native_coarse_reference.pdf}
+\caption{Native coarse-grid observables. Mode resampling changes the represented
+footprint and separation, and the resulting load and ignition histories are
+shown on their actual physical coordinates.}
+\label{fig:wsr-coarse}
+\end{figure}
+
+Figure~\ref{fig:wsr-summary} is the supplemental cross-simulation condition diagnostic. The
+native-test decision is \textbf{\NativeStatus}; the complete-suite decision is
+\textbf{\OverallStatus}.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=\linewidth]{wui_structure_resolution.pdf}
+\caption{Structural-resolution summary. (a) Rasterized layouts; (b) deposited
+load by physical structure; (c) ignition chronology; and (d) component decision
+status, with unsupported components shown as not evaluated.}
+\label{fig:wsr-summary}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{table}[H]
+\centering\small
+\caption{Calculated verification metrics and component decisions.}
+\begin{tabular}{@{}p{0.37\linewidth}p{0.18\linewidth}p{0.17\linewidth}p{0.14\linewidth}@{}}
+\toprule
+Metric & Acceptance limit & Calculated & Status\\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+The cited model description~\cite{Qin2025} states that the integrated-structure method
+had not yet been implemented in ELMFIRE. The preprocessor confirms this against
+the current source. The integrated aligned and misaligned cases are therefore
+generated as prospective simulation conditions
+but are not run while that feature is absent. Substituting the native
+cell-local formulation would change the prescribed experiment and could
+produce misleading conclusions about resolution independence. Earlier input
+configurations are excluded from the present comparison.
+
+\section{Technical interpretation}
+The corrected exact-grid baseline and native coarse simulation condition both terminate at
+an exact \SI{22000}{s} final dump with matching input identity records.  The baseline
+load error is 0.5435 and its ignition-time error is 0.1861, both above the
+0.10 limits; these are genuine numerical failures.  The coarse
+baseline-to-coarse load ratio is 1.622 and passes the prescribed
+\(1.86\pm25\%\) band.
+
+The native fine-grid member was executed toward its prescribed
+\SI{50000}{s} endpoint but could not complete safely.  It reached
+\SI{36000.065}{s}; resident memory grew from approximately 204 MB near
+\SI{15000}{s} to 960 MB, while successive \SI{500}{s} dump intervals slowed
+from roughly 198 wall seconds to about 11 minutes.  The run was stopped before
+exhausting the shared environment, and no completion input identity record was written,
+so its partial rasters are correctly excluded.  This reproduces an
+implementation resource-scaling limitation in the active ember-tracking path,
+not a stop-time or raster-configuration defect.
+
+The integrated simulation conditions test whether one physical structure remains the source
+and collector; their missing capability is a source-interface limitation and
+is likewise reported as not evaluable rather than as a numerical pass or
+failure.  Consequently the native-test status is \textbf{FAIL}, while the full
+suite remains \textbf{NOT EVALUABLE (capability missing)}.
+
+\section{Scope and limitations}
+The case is an idealized two-dimensional WUI lattice with fixed structure geometry and wind. A representative cross-stream lattice row supplies the one-dimensional structure profiles, while whole-domain maps expose unintended lateral behavior. The case verifies resolution behavior and capability coverage, not the physical accuracy of the structural transport or ignition correlations.
+
+\begin{thebibliography}{9}
+\bibitem{Qin2025}
+Y. Qin, \emph{A Physics-Based Eulerian Framework for Modeling Firebrand
+Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire
+Simulations}, Ph.D. dissertation, University of Maryland, College Park, 2025.
+\end{thebibliography}

@@ -1,0 +1,95 @@
+\section{Verification purpose}
+
+This isolated-process case verifies that ELMFIRE transports a circular level-set front at a prescribed, spatially uniform normal rate. It exercises raster ingestion, the spread-rate adjustment factor, the level-set update, and level-set field/spread rate output without wind, slope, crown fire, spotting, or suppression. It can reveal rate-unit errors, incorrect signs, and failure to couple the calculated rate to front motion. This is numerical verification against a known solution, not comparison with a physical fire. The verification question is whether the final spread-rate and radius satisfy the two stated tolerances at \(t=360\) s.
+
+\section{Mathematical formulation and numerical implementation}
+
+ELMFIRE advances the signed level set by
+\[
+ \frac{\partial\phi}{\partial t}+V_n|\nabla\phi|=0,
+\]
+with \(\phi<0\) burned and \(\phi=0\) the front. Uniform rasters and disabled directional forcing make \(V_n=R_0=\ReferenceROS\). The configured metric spread-rate output option makes the spread rate output use \(\mathrm{m\,min^{-1}}\), while integration time remains seconds. Raster georeferencing supplies the mesh; no obsolete computational-domain namelist is used.
+
+\section{Derivation of expected behavior}
+
+For initial circle radius \(r_0=5\) m and constant outward speed \(R_0\), radial symmetry reduces the level-set equation to \(dr/dt=R_0\). Hence
+\[
+ r(360)=5+(0.0116332)(360)=9.187952~\mathrm{m},
+ \qquad R_0=0.697992~\mathrm{m\,min^{-1}}.
+\]
+These are independent consequences of the prescribed input rate and elapsed time.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The numerical reference values and the reported metrics follow directly from the generated rate raster.  The raster value is \(R_s=0.0116332~\mathrm{m\,s^{-1}}\), so the report-unit spread rate is
+\[
+ R_{\mathrm{ref}}=60R_s=60(0.0116332)=0.697992~\mathrm{m\,min^{-1}}.
+\]
+With \(r_0=5~\mathrm{m}\) and \(T=360~\mathrm{s}\), the exact final radius is
+\[
+ r_{\mathrm{ref}}=r_0+R_sT=5+(0.0116332)(360)=9.187952~\mathrm{m}.
+\]
+The two calculated errors are \(e_R=|R_{\max}-0.697992|/0.697992\) and
+\(e_r=|\sqrt{N_b(1~\mathrm{m})^2/\pi}-9.187952|\), where \(N_b\) is the
+number of final cells with \(\phi<0\).  Thus the acceptance substitutions are
+\(e_R\leq0.05\) and \(e_r\leq2~\mathrm{m}\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+The maximum finite final spread rate value is compared with \(0.697992~\mathrm{m\,min^{-1}}\); a 5 percent relative tolerance catches conversion or propagation-rate errors while allowing front reconstruction effects. The equivalent burned radius
+\(r_A=\sqrt{N_b\Delta x^2/\pi}\), where \(N_b\) counts valid final cells with \(\phi<0\), is compared with 9.187952 m. Area-equivalent radius is less sensitive to pixel stair-stepping than a single axial intercept; its tolerance is two cells. Nodata cells are excluded. The lexicographically last matching final level-set field and spread rate rasters are required. The case passes iff both components pass; missing or malformed required output is NOT EVALUABLE.
+
+\section{Simulation configuration and predicted outcome}
+
+The generated EPSG:32610 domain is 200 m square with 200 cells per side (\(\Delta x=1\) m), uniform fuel/moisture/terrain/weather fields, and a centered 5 m ignition circle. Duration is \FinalTime. The predicted final field is circular, with rate \(0.697992~\mathrm{m\,min^{-1}}\) and equivalent radius 9.187952 m.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.22\textwidth}p{0.12\textwidth}p{0.34\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 200 by 200 cells; 1 & m/cell & Resolves the manufactured circle \\
+Initial front & centered radius 5 & m & Exact initial condition \\
+Rate & 0.0116332 & m/s & Constant manufactured normal speed \\
+Time control & step 1; stop 360 & s & Exact final time and timestep multiple \\
+Disabled forcing & wind, slope, crown, spotting, suppression & --- & Isolates level-set transport \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+Only case-specific ELMFIRE rasters are read. Current status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} components pass.
+\begin{figure}[H]\centering
+\IfFileExists{../figures/whole_domain_result.pdf}{\includegraphics[width=0.72\textwidth]{whole_domain_result.pdf}}{\fbox{No case-specific whole-domain result is available.}}
+\caption{Final whole-domain signed level-set field for the completed simulation condition at the final output time, selected from the results of that simulation condition. Values are dimensionless signed-level-set values; the generated table supplies the acceptance limits.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Metric & Expected value or limit & Calculated value & Status \\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{center}
+The authoritative overall decision is \textbf{\VerificationStatus}. The generated table is sourced directly from the case-specific calculated metrics and is not recomputed in this report.
+
+\section{Technical interpretation}
+
+A spread-rate failure points to input scaling, units, or spread rate selection. A radius-only failure indicates level-set integration or front/area discretization. A missing raster is an evidence failure, not a scientific pass.
+
+\section{Scope and limitations}
+
+This case verifies one deterministic constant-rate, flat, no-wind propagation state. It does not validate a fuel model, quantify anisotropy, or test coupled crown, spotting, or suppression behavior.
+

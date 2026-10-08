@@ -1,0 +1,65 @@
+{
+  "case_id": "CASE49_WTC",
+  "title": "WU-E Uniform-Community Temporal Convergence",
+  "purpose": "Measure time-step sensitivity of the intended fixed-FTP WU-E heat accumulation and urban propagation law on a fixed grid, using low- and high-HRR families.",
+  "source_code_path_used": "/Users/yiren/Desktop/MyResearch/ELMFIRE/ELMFIRE_Git/elmfire-nick/build/source",
+  "source_revision": "a2dfbcdf72209733c000e5d3431e44723e15efea",
+  "mapped_source_sha256": {
+    "elmfire_namelists.f90": "2fcd9e57a2bec5df964d96ccef0f658b703e0406abb19c13cb8080af066c78b4",
+    "elmfire_spread_rate.f90": "eed515c2f44b5582c01b1573e41a7e24bf76f0a445870f27ba7d32d281e656a4",
+    "elmfire_level_set.f90": "18c446fce24ac5fac8dd174e38e273bfdddecfa81c9371550b247055b6d833b3"
+  },
+  "source_checkout_note": "The mapped files were byte-identical to the named revision. The inspected checkout also contained pre-existing changes in other files and is not represented as globally clean.",
+  "source_files": [
+    "elmfire_spread_rate.f90: UMD_UCB_BLDG_SPREAD lines 547-565 and WU-E heat accumulation",
+    "elmfire_level_set.f90: WU-E heat update and CFL/RK2 integration"
+  ],
+  "technical_references": [
+    "Thesis(PubLetterIncluded)_YirenQin_20250623.pdf",
+    "WF24102.pdf",
+    "1-s2.0-S1540748924005637-main.pdf"
+  ],
+  "grid_spacing_m": 20.0,
+  "physical_domain_length_m": 240.0,
+  "physical_domain_width_m": 80.0,
+  "initial_source_width_m": 40.0,
+  "building_plan_dimension_m": 20.0,
+  "building_dimension_semantics": "linear characteristic building dimension in metres",
+  "building_separation_m": 10.0,
+  "intended_ftp_crit_kj_m2": 5400.0,
+  "intended_rate_law": "V_i = (L_i/L_total) * Q_total * cell_size / FTP_CRIT * 196.85",
+  "wind_speed_mph": 15.0,
+  "wind_from_degrees": 270.0,
+  "simulation_tstop_s": 300.0,
+  "dump_interval_s": 20.0,
+  "hrr_growth_end_s": 30.0,
+  "hrr_steady_end_s": 270.0,
+  "hrr_decay_end_s": 300.0,
+  "landmark_x_m": [70.0, 110.0, 150.0],
+  "time_steps_s": [4.0, 2.0, 1.0, 0.5],
+  "regimes": [
+    {
+      "id": "subthreshold",
+      "label": "low-HRR temporal-convergence family",
+      "building_fuel_model": 14,
+      "hrrpua_peak_kw_m2": 20.0,
+      "sampled_field_expectation": "positive finite received heat at every resolution; no energy-branch change is part of the intended law"
+    },
+    {
+      "id": "threshold_stress",
+      "label": "high-HRR propagating temporal-convergence family",
+      "building_fuel_model": 15,
+      "hrrpua_peak_kw_m2": 800.0,
+      "sampled_field_expectation": "positive finite received heat and complete propagation observables at every timestep"
+    }
+  ],
+  "metrics": {
+    "source_deviation_diagnostic_kj": 30000.0,
+    "finest_pair_landmark_toa_relative_l2_max": 0.05,
+    "finest_pair_ros_relative_change_max": 0.05,
+    "finest_pair_total_heat_relative_change_max": 0.05,
+    "minimum_observed_order": 0.5,
+    "minimum_toa_fit_r2": 0.95,
+    "maximum_logged_step_deviation_s": 0.051
+  }
+}

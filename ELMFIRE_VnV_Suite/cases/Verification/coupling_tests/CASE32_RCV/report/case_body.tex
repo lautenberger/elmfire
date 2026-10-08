@@ -1,0 +1,79 @@
+\section{Verification purpose}
+
+This case verifies that ELMFIRE's raster indexing and level-set transport are covariant under a \RotationAngle{} rotation. It is the portable successor to Adam Laird's orientation of the prescribed input fields scenario.
+
+\section{Mathematical formulation and numerical implementation}
+
+For homogeneous isotropic forcing, the operator $\mathcal{L}$ in $\partial_t\phi=\mathcal{L}(\phi)$ commutes with any rigid rotation $Q$: $\mathcal{L}(\phi\circ Q^{-1})=(\mathcal{L}\phi)\circ Q^{-1}$. A square north-up raster rotated by exactly 90 degrees requires no interpolation, so cell-by-cell comparison is available.
+
+\section{Derivation of expected behavior}
+
+The rotated simulation condition is generated with a rotation through a multiple of 90 degrees from the asymmetric L-shaped initial negative-$\phi$ region. Fuel, moisture, slope, and wind are spatially uniform. Therefore the rotated arrival-time validity mask and values must equal a 90-degree rotation of the original result, apart from bounded grid-level roundoff.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The reference array is generated directly from the original ELMFIRE
+arrival-time result by a 90-degree counterclockwise rotation,
+\(T_{\mathrm{ref}}=\operatorname{rot90}(T_{\mathrm{original}})\); no
+arrival values are invented.  With
+\(V=\{i:T_{\mathrm{ref},i}\text{ and }T_{\mathrm{rot},i}\text{ finite}\}\)
+and \(U=\{i:\text{either value is finite}\}\), finite-mask agreement is
+\[
+ A_m=\frac{|V|}{|U|},
+\]
+whose exact rotational reference is 1 and whose substituted test is
+\(A_m\geq0.99\).  On the mutual finite mask, the value metric is
+\[
+ E_T=\frac{|V|^{-1}\sum_{i\in V}
+ |T_{\mathrm{ref},i}-T_{\mathrm{rot},i}|}
+ {\max[P_{90}(T_{\mathrm{ref},i}:i\in V),1~\mathrm{s}]},
+\]
+with exact reference zero and acceptance substitution \(E_T\leq0.02\).
+The asymmetric generated ignition mask makes this comparison sensitive to
+an erroneous reflection or transposition.
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+Finite-mask intersection over union must be at least 0.99. On mutually finite cells, normalized mean absolute arrival-time error must be at most 0.02. Mask agreement detects row/column reversal and georeferencing errors; value error detects orientation-dependent numerical evolution.
+
+\section{Simulation configuration and predicted outcome}
+
+Both simulation conditions use a 2000 m square domain at \CellSize{}, Fuel Model 10, flat terrain, zero wind, and identical timing. The only changed scientific input is the exact raster rotation of level-set field. The second result is predicted to be the corresponding rotation of the first.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.22\textwidth}p{0.12\textwidth}p{0.34\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 2000 m square; 5 & m/cell & Exact square raster rotation \\
+Fuel/forcing & FM10; flat; calm & --- & Isotropic homogeneous operator \\
+Time control & step 1, maximum 5; stop 7200 & s & Common exact comparison time \\
+Initial field & asymmetric L shape & --- & Makes orientation errors observable \\
+Simulation condition transform & 90-degree rotation & degrees & Exact no-interpolation covariance test \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prescribed asymmetric initial level-set geometry. Coordinates are grid-cell indices on the 5 m grid; the dark region identifies the initial ignition geometry.}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+The generated status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} metrics pass across \VariantCount{} simulation conditions. Missing output produces NOT EVALUABLE.
+\begin{figure}[H]\centering\IfFileExists{../figures/verification_summary.pdf}{\includegraphics[width=\textwidth]{verification_summary.pdf}}{\fbox{No result figure is available.}}\caption{Original, independently rotated, and difference arrival-time fields.}\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}\begin{tabular}{@{}llll@{}}\toprule Metric & Expected & Calculated & Status \\\midrule \MetricRows \bottomrule\end{tabular}\end{center}
+The authoritative decision is \textbf{\VerificationStatus} from calculated verification and validation metrics.
+
+\section{Technical interpretation}
+
+Mask disagreement indicates inconsistent raster orientation, bounds, or row/column indexing. Value disagreement with matching masks indicates a directional bias in transport or output serialization.
+
+\section{Scope and limitations}
+
+The 90-degree test avoids resampling and therefore does not assess arbitrary-angle reprojection. It verifies executable behavior, not the internal bilinear-interpolation routine in isolation.

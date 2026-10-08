@@ -1,0 +1,32 @@
+case_id: "CASE41_CFP"
+case_title: "Case 41: Custom fuel-parameter Rothermel sweep"
+category: "Verification/unit_tests"
+source_provenance: "Andrews (2018), RMRS-GTR-371; ELMFIRE custom fuel-table interface"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/sweep_response.pdf"
+
+variants:
+  one_at_a_time_parameters: [dead_1h_load, dead_1h_sav, fuel_bed_depth,
+    dead_extinction_moisture, heat_content]
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        INPUTS.SURFACE_SPREAD_MODEL: "ROTHERMEL"
+        OUTPUTS.DUMP_SPREAD_RATE: true
+        OUTPUTS.DUMP_REACTION_INTENSITY: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        SIMULATOR.NUM_IGNITIONS: 0
+        SIMULATOR.CROWN_FIRE_MODEL: 0
+        SPOTTING.ENABLE_SPOTTING: false
+        WUI.USE_BLDG_SPREAD_MODEL: false

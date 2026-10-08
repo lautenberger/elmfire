@@ -1,0 +1,29 @@
+{
+  "case_id": "CASE16_NSP",
+  "overall_status": "PASS",
+  "verification_passed": true,
+  "required_outputs_complete": true,
+  "cell_size_m": 1.0,
+  "source_files": [
+    "data/outputs/phi_0000001_d0000010.tif",
+    "data/outputs/vs_0000001_0003601.tif"
+  ],
+  "metrics": [
+    {
+      "name": "maximum absolute spread rate",
+      "expected": 0.0,
+      "calculated": 0.0,
+      "units": "m/min",
+      "tolerance": "<= 1e-06",
+      "status": "PASS"
+    },
+    {
+      "name": "equivalent burned radius",
+      "expected": 0.0,
+      "calculated": 0.5641895835477563,
+      "units": "m",
+      "tolerance": "<= 2.5 cells (2.5 m)",
+      "status": "PASS"
+    }
+  ]
+}

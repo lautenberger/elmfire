@@ -1,0 +1,12 @@
+\newcommand{\CaseID}{thomas\_fire}
+\newcommand{\CaseTitle}{2017 Thomas Fire Landscape Reconstruction}
+\newcommand{\EventStart}{4 December 2017 at 18:30 PST}
+\newcommand{\SimulationDuration}{17 hours}
+\newcommand{\ComparisonTime}{5 December 2017 at 11:30 PST (19:30 UTC)}
+\newcommand{\GridDescription}{2491 by 1779 cells at 30 m in EPSG:26911}
+\newcommand{\WeatherDescription}{29-band weather rasters; bands 1--25 are selected at one-hour intervals}
+\newcommand{\IgnitionDescription}{two prescribed point ignitions at archived coordinates and times}
+\newcommand{\ArchiveName}{Thomas\_VAL.rar}
+\newcommand{\ArchiveSha}{\seqsplit{642689c45406337886a8dea52e08ff413fd3e7c2a933dcc6e0f7f07954a3a044}}
+\newcommand{\InputCaveat}{The active elevation raster contains values of -10000 even though its declared nodata value is -9999.  The statistics retain those cells exactly as ELMFIRE sees them; the source owner must determine whether -10000 is a valid value or an undocumented sentinel before scientific interpretation.}
+\newcommand{\CompatibilityNote}{Obsolete domain-description and diagnostic settings were omitted. The earlier spotting choices were expressed as fire-power-proportional generation, empirical transport distance, Eulerian accumulation, and physical ignition. Archived building spread type 3 was mapped to current University of California, Berkeley/University of Maryland building-spread formulation (type 2).}

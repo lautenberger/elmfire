@@ -1,0 +1,120 @@
+\section{Verification purpose}
+
+This case verifies coupling among the simulation clock, solar burn-period calculation, and surface-fire diurnal multiplier. With uniform fuel, moisture, wind, and slope, the question is whether ELMFIRE reduces and restores radial advance at the prescribed clock hours, each within \SI{1}{hour}. The case exposes clock offsets, failed midnight wrapping, reversed interval tests, or an unapplied multiplier; it does not calibrate the multiplier.
+
+The scientific setup and historical expected response are reconstructed from Section~3.2 of the supplied \emph{ELMFIRE Guide}. The Guide is used as reference provenance, not as an instruction or a substitute for evidence. Configuration statements below are checked against the generated GeoTIFFs and namelist; current results and decisions come only from case-specific outputs and generated metrics. Where the generated experiment differs from the historical example, the report states that difference explicitly.
+
+\section{Mathematical formulation and numerical implementation}
+
+For simulation time $t$ seconds and forecast start $H_0$, ELMFIRE uses
+\begin{equation}H(t)=\operatorname{mod}\!\left(H_0+t/3600,24\right).\end{equation}
+The solar routine calculates sunrise and sunset from the lower-left coordinate, year, and hour of year. With default center fraction $f_c=0.667$ and burn length $L_b=\SI{10}{hour}$,
+\begin{align}H_c&=H_{\rm rise}+f_c(H_{\rm set}-H_{\rm rise}),\\H_b&=H_c-L_b/2,&H_e&=H_c+L_b/2.\end{align}
+The stop hour is wrapped above 24. For this non-wrapping interval,
+\begin{equation}D(t)=\begin{cases}1,&H_b\le H(t)\le H_e,\\0.1,&H(t)<H_b\ \text{or}\ H(t)>H_e.\end{cases}\end{equation}
+The spread-rate calculation multiplies its unadjusted rate by $D(t)$. Uniform flat, wind-free conditions produce an approximately circular fire whose equivalent radius $r(t)=\sqrt{A(t)/\pi}$ has full and reduced slope plateaus.
+
+\section{Derivation of expected behavior}
+
+The controlled response specifies burn-period start \SI{7.5}{hour} and stop \SI{17.5}{hour}. Full-to-reduced and reduced-to-full transitions are therefore expected at those respective clock hours. Since $H_0=\SI{10}{hour}$, the events first occur approximately \SI{7.5}{hour} and \SI{21.5}{hour} after ignition and repeat during the three-day run. This reference calculation follows from the controlled targets and clock equations; calculated times are independently inferred from the arrival raster.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+For the generated astronomical inputs, local sunrise and sunset are
+approximately \(H_r=4.5\) h and \(H_s=16.5\) h.  The operational cutoff
+with fractional daylight \(f_c=0.667\) is
+\[
+ H_c=H_r+f_c(H_s-H_r)=4.5+0.667(16.5-4.5)
+ =12.504~\mathrm{h}\simeq12.5~\mathrm{h}.
+\]
+A ten-hour operating window centered on \(H_c\) therefore has bounds
+\(H_c\pm5=\{7.5,17.5\}\) h.  Relative to the 10:00 forecast start, the
+first reduction occurs after
+\((17.5-10)(3600)=27000~\mathrm{s}\); after midnight wrapping, full
+operation resumes after \((24-10+7.5)(3600)=77400~\mathrm{s}\).
+The transition metrics compare detected changes with these reference
+times using the tabulated timing tolerance.
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+The evaluator selects the lexically latest fire arrival time GeoTIFF, masks nodata and values outside $0\le t<10^{8}$ seconds, and requires 50 burned cells. Analysis ends at the earliest domain-edge arrival so boundary truncation cannot mimic slowdown. At \SI{30}{minute} intervals, burned-cell count is converted to equivalent radius and differenced. After radius exceeds three cells, rates below half the 80th percentile of positive rates are reduced. Median full-to-reduced and reduced-to-full clock hours are then calculated.
+
+\begin{center}\begin{tabular}{@{}llll@{}}
+\toprule Metric & Target & Acceptance rule & Role \\
+\midrule
+Reduction starts & \SI{17.5}{hour} & absolute error $\le\SI{1}{hour}$ & burn-period stop \\
+Reduction ends & \SI{7.5}{hour} & absolute error $\le\SI{1}{hour}$ & burn-period start \\
+\bottomrule\end{tabular}\end{center}
+
+Both rows are required. A missing raster, insufficient burned area or duration, or undetected transition produces NOT EVALUABLE, never PASS.
+
+\section{Simulation configuration and predicted outcome}
+
+\begin{center}\begin{tabular}{@{}lll@{}}
+\toprule Input & Value & Verification role \\
+\midrule
+Domain/grid & $126\times126$; \SI{30}{m} & circular-front resolution \\
+CRS & EPSG:32635 & location for solar calculation \\
+Fuel/terrain & uniform FM3; zero slope & constant baseline spread \\
+Wind/dead moisture & zero; 6, 7, 8 percent & constant forcing \\
+Live moisture & herb 60; woody 90 percent & constant forcing \\
+Ignition & $(1890,1890)$ m at $t=0$ & centered radial growth \\
+Time control & \SI{1}{s}; \SI{259200}{s} stop & three daily cycles \\
+Calendar & year 2025; hour 2890; start 10 & clock coupling \\
+Diurnal control & enabled; factor 0.1 & two rate plateaus \\
+Output & final time of arrival (TOA), spread rate, FLIN & case-specific evidence \\
+\bottomrule\end{tabular}\end{center}
+
+The predicted arrival field is concentric; contour spacing contracts overnight and expands during the burn period, with both transitions inside their acceptance bands.
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+The current calculated status is \textbf{\VerificationStatus};
+\PassingMetricCount{} of \MetricCount{} required comparisons pass across
+\VariantCount{} completed simulation conditions. The displayed measurements
+come from these simulations, not from the historical Guide. Missing evidence
+would remain NOT EVALUABLE.
+
+\begin{figure}[H]
+\centering
+\IfFileExists{../figures/whole_domain_result.pdf}{\includegraphics[width=0.82\textwidth,height=0.58\textheight,keepaspectratio]{whole_domain_result.pdf}}{\fbox{\parbox{0.85\textwidth}{No case-specific whole-domain arrival-time raster is available.}}}
+\caption{Final whole-domain time of arrival, in seconds, when a case-specific result figure has been generated. The figure must identify its selected GeoTIFF and simulation condition; the generated metrics table, not visual appearance, determines acceptance.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}\begin{tabular}{@{}llll@{}}
+\toprule Simulation condition / metric & Expected & Calculated & Status \\
+\midrule
+\MetricRows
+\bottomrule\end{tabular}\end{center}
+
+The table and the decision \textbf{\VerificationStatus} report the existing
+calculated metrics. Missing required evidence yields NOT EVALUABLE; no
+metric values are inferred from the appearance of the simulated fire.
+
+\section{Technical interpretation}
+
+The recorded transition measurements satisfy the stated one-hour bands,
+supporting the coupling between simulation time, the solar window, and the
+diurnal spread factor for the prescribed conditions. A common shift in both
+transitions would instead suggest an error in the clock, calendar, coordinates,
+or solar timing; missing contrast would suggest an unapplied multiplier or
+insufficient simulation history before the transition. This interpretation
+uses the established calculated metrics and does not extend the claim beyond
+the configured experiment.
+
+\section{Scope and limitations}
+
+This synthetic case covers one date, location, fuel, factor, and grid. It does not validate factor magnitude, other seasons or coordinate systems, a burn interval wrapping midnight, heterogeneity, wind, or crown-fire, spotting, suppression, and interpolation interactions. The estimator assumes circular growth, discards post-edge behavior, samples every \SI{30}{minute}, and infers rather than records the internal factor. This is implementation verification, not validation of real-fire nocturnal behavior.

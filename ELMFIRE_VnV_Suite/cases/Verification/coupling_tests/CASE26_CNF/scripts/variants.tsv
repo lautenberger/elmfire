@@ -1,0 +1,4 @@
+# label	config_path	original_guide_case
+1mph	variants/1mph/elmfire.data.in	Canopy-1mph
+5mph	elmfire.data.in	Canopy-5mph
+10mph	variants/10mph/elmfire.data.in	Canopy-10mph
