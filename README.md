@@ -93,8 +93,7 @@ The mathematical formulation of ELMFIRE is described in its
 
 ## License
 
-ELMFIRE is open-source software released under the Eclipse Public
-License 2.0 (EPLv2). See [`LICENSE.md`](LICENSE.md).
+ELMFIRE is licensed subject to the "Commons Clause" License Condition v1.0. See [`LICENSE.md`](LICENSE.md) for the applicable terms.
 
 ## Support
 
