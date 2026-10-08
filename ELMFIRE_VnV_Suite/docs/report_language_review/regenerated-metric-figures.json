@@ -1,0 +1,42 @@
+[
+  {
+    "case": "CASE22_VSL",
+    "figure": "cases/Verification/coupling_tests/CASE22_VSL/figures/verification_summary.pdf"
+  },
+  {
+    "case": "CASE28_OVA",
+    "figure": "cases/Verification/coupling_tests/CASE28_OVA/figures/verification_summary.pdf"
+  },
+  {
+    "case": "CASE27_FBT",
+    "figure": "cases/Verification/coupling_tests/CASE27_FBT/figures/verification_summary.pdf"
+  },
+  {
+    "case": "CASE24_CXI",
+    "figure": "cases/Verification/coupling_tests/CASE24_CXI/figures/verification_summary.pdf"
+  },
+  {
+    "case": "CASE23_FQD",
+    "figure": "cases/Verification/coupling_tests/CASE23_FQD/figures/verification_summary.pdf"
+  },
+  {
+    "case": "CASE26_CNF",
+    "figure": "cases/Verification/coupling_tests/CASE26_CNF/figures/verification_summary.pdf"
+  },
+  {
+    "case": "CASE21_WDE",
+    "figure": "cases/Verification/coupling_tests/CASE21_WDE/figures/verification_summary.pdf"
+  },
+  {
+    "case": "CASE29_SUP",
+    "figure": "cases/Verification/coupling_tests/CASE29_SUP/figures/verification_summary.pdf"
+  },
+  {
+    "case": "CASE25_MQD",
+    "figure": "cases/Verification/coupling_tests/CASE25_MQD/figures/verification_summary.pdf"
+  },
+  {
+    "case": "CASE20_PIG",
+    "figure": "cases/Verification/coupling_tests/CASE20_PIG/figures/verification_summary.pdf"
+  }
+]

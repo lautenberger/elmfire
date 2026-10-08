@@ -47,7 +47,7 @@ REAL :: SURFACE_ACCELERATION_FACTOR, F_METEOROLOGY, R0, TAU, ACRES, ACRES_SDI, E
 
 REAL(8) :: TOTALENERGY, T, T_LAST_EXTENDED_ATTACK, T_LAST_INTERPOLATE_M1, T_LAST_INTERPOLATE_M10, T_LAST_INTERPOLATE_M100, &
         T_LAST_INTERPOLATE_MLH, T_LAST_INTERPOLATE_MLW, T_LAST_INTERPOLATE_FMC, T_LAST_INTERPOLATE_WIND, &
-        T_LAST_WIND_FLUCTUATIONS
+        T_LAST_WIND_FLUCTUATIONS, T_EMISSION_START, T_EMISSION_END
 
 REAL, SAVE :: ACRES_PER_PIXEL, RCELLSIZE, HALFRCELLSIZE, TSTOP
 REAL, ALLOCATABLE, SAVE, DIMENSION(:) :: X,Y
@@ -56,7 +56,7 @@ REAL, POINTER, DIMENSION(:,:), SAVE :: M1_LO, M1_HI, M10_LO, M10_HI, M100_LO, M1
 REAL, POINTER, SAVE, DIMENSION(:,:,:) :: A_TIMES_BURNED
 
 LOGICAL :: IA_HAS_OCCURRED, LOPEN, GO, CALL_SPOTTING, JUST_INTERPOLATED, DUMP_SMOKE_OUTPUTS, RUN, &
-            INITIATED, START_CALCS, IS_FINAL_DUMP
+            INITIATED, START_CALCS, IS_FINAL_DUMP, HAS_PENDING_SPOTTING_SOURCE
 LOGICAL, SAVE :: FIRSTCALL
 LOGICAL, DIMENSION(1:100) :: ALREADY_IGNITED
 
@@ -499,9 +499,9 @@ DO WHILE (T .le. totalDuration)
       IT_EA=0
 
       CALL ACCUMULATE_CPU_USAGE(33, IT1, IT2)
-
-      ! IF (DUMP_EMBER_FLUX .AND. (.NOT. ACCUMULATE_EMBER_FLUX) ) EMBER_FLUX%R4(:,:,1) = 0
-
+      
+      IF (ENABLE_SPOTTING .AND. ASSOCIATED(EMBER_FLUX%R4)) EMBER_FLUX%R4(:,:,1) = 0.0
+      
       IF (USE_BARRIERS) BANDTHICKNESS = 1
       ! new suppression model
       FIRE_LINE_THICKNESS = MIN(REAL(BANDTHICKNESS), FIRE_LINE_THICKNESS)  
@@ -1124,10 +1124,17 @@ DO WHILE (T .le. totalDuration)
 
          ENDIF
 #endif
-            C%BURNED               = .TRUE.
-            C%TIME_OF_ARRIVAL      = T
-            SURFACE_FIRE   (IX,IY) = 1
-            TIME_OF_ARRIVAL(IX,IY) = T
+            C%BURNED = .TRUE.
+            ! DIRECT spotting may have assigned a substep arrival before this
+            ! tagged cell is promoted to LIST_BURNED. Preserve that earliest
+            ! physical time instead of replacing it with the solver boundary.
+            IF (TIME_OF_ARRIVAL(IX,IY) .LT. 0.0) THEN
+               TIME_OF_ARRIVAL(IX,IY) = T
+            ELSE
+               TIME_OF_ARRIVAL(IX,IY) = MIN(TIME_OF_ARRIVAL(IX,IY), T)
+            ENDIF
+            C%TIME_OF_ARRIVAL = TIME_OF_ARRIVAL(IX,IY)
+            SURFACE_FIRE(IX,IY) = 1
             
             IF (C%CROWN_FIRE .LT. 0) C%CROWN_FIRE = 0
             
@@ -1257,24 +1264,50 @@ DO WHILE (T .le. totalDuration)
 
       ENDDO ! I = 1, LIST_TAGGED%NUM_NODES
 
+      HAS_PENDING_SPOTTING_SOURCE = .FALSE.
 #ifdef _UMDSPOTTING
       IF (ENABLE_SPOTTING .AND. (.NOT. USE_SUPERSEDED_SPOTTING)) THEN
          C => LIST_BURNED%HEAD
          DO I = 1, LIST_BURNED%NUM_NODES
 
 #ifdef _WUI
-            ! Refresh transient HRRPUA for Hamada model, to be used in eulerian firebrand model
-            IF(USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 1) CALL HRR_TRANSIENT(C, T)
+            ! Refresh the source node itself for every WUI model type.  Model 2
+            ! also updates HRR_TRANSIENT_MAP through LIST_WUI_BURNING, but the
+            ! spotting loop operates on the separate LIST_BURNED node.
+            IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 91) CALL HRR_TRANSIENT(C, T)
 #endif
             CALL_SPOTTING = .FALSE.
             IF (.NOT. C%SPOTTING_DURATION_CALCULATED) CALL CALC_SPOTTING_DURATION(C)
 
-            ! Set DT_SPOTTING to the overlap length between [T, T+DT] and [C%T_END_SPOTTING,C%T_START_SPOTTING]
-            DT_SPOTTING = MIN(T+DT, C%T_END_SPOTTING)-MAX(T, C%T_START_SPOTTING)
-            DT_SPOTTING = MAX(0.0,DT_SPOTTING)
+            ! Tracker lists can legitimately be empty during the growth phase
+            ! of a source or between emission and transport intervals.  Record
+            ! whether this source can still emit so the generic small-fire
+            ! termination test below does not end the simulation prematurely.
+            IF (C%SPOTTING_DURATION_CALCULATED) THEN
+               IF (REAL(C%T_END_SPOTTING, 8) .GT. T) HAS_PENDING_SPOTTING_SOURCE = .TRUE.
+#ifdef _WUI
+            ELSE IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 91 .AND. C%IBLDGFM .NE. NO_DATA) THEN
+               IF (T .LT. C%TIME_OF_ARRIVAL + REAL(BUILDING_FUEL_MODEL_TABLE(C%IBLDGFM)%T_DECAY, 8)) &
+                  HAS_PENDING_SPOTTING_SOURCE = .TRUE.
+#endif
+            ENDIF
+
+            ! Integrate each eligible part of the source emission history once.
+            ! A cell can enter LIST_BURNED after its recorded arrival, so T
+            ! alone would omit the first physical emission interval.
+            IF (C%T_LAST_SPOTTING_UPDATE .LT. 0.0) THEN
+               T_EMISSION_START = MAX(C%TIME_OF_ARRIVAL, REAL(C%T_START_SPOTTING, 8))
+            ELSE
+               T_EMISSION_START = MAX(C%T_LAST_SPOTTING_UPDATE, REAL(C%T_START_SPOTTING, 8))
+            ENDIF
+            T_EMISSION_END = MIN(T + REAL(DT, 8), REAL(C%T_END_SPOTTING, 8))
+            DT_SPOTTING = MAX(0.0, REAL(T_EMISSION_END - T_EMISSION_START))
             IF (DT_SPOTTING .GT. 1E-5) THEN
                IF(C%IFBFM .EQ. 91 .AND. USE_BLDG_SPREAD_MODEL) THEN
-                  FLIN = C%HRR_TRANSIENT+1E-5
+                  ! Convert physical HRRPUA to fireline intensity.  The former
+                  ! numerical epsilon could create a tracker at large DT but
+                  ! not small DT, making run survival depend on resolution.
+                  FLIN = MAX(0.0, C%HRR_TRANSIENT) * ANALYSIS_CELLSIZE
                ELSE
                   FLIN = C%FLIN_SURFACE
                ENDIF
@@ -1285,9 +1318,12 @@ DO WHILE (T .le. totalDuration)
                ENDIF
                
                IF (CALL_SPOTTING) THEN ! If using Eulerian firebrand solver, no trajectory calculated at this step, only initiate trackers
-                  CALL SPOTTING(C%IX,C%IY,C%WS20_NOW,FLIN, ICASE, DT_SPOTTING, T, &
+                  CALL SPOTTING(C%IX,C%IY,C%WS20_NOW,FLIN, ICASE, DT_SPOTTING, T_EMISSION_START, &
                               SOURCE_FUEL_IGN_MULT(FBFM%I2(C%IX,C%IY,1)),  C%IFBFM, LIST_EMBER_TRACKER, BAND_L)
                ENDIF
+               ! Advance even when stochastic selection produces no tracker,
+               ! so the same emission interval cannot be sampled twice.
+               C%T_LAST_SPOTTING_UPDATE = T_EMISSION_END
             ENDIF
             ! C%TAU_EMBERGEN = MIN (TAU_EMBERGEN, C%TAU_EMBERGEN + DT)
             C => C%NEXT
@@ -1427,8 +1463,9 @@ DO WHILE (T .le. totalDuration)
             rank_finished = 1
             DT = DT_METEOROLOGY
          ELSE
-            IF((trim(ACCUMULATION_MODEL) .eq. 'EULERIAN' .AND. LIST_EMBER_TRACKER%NUM_NODES .LT. 1) .OR. &
-               (trim(ACCUMULATION_MODEL) .eq. 'LAGRANGIAN' .AND. NUM_TRACKED_EMBERS .LT. 1)) THEN
+            IF (.NOT. HAS_PENDING_SPOTTING_SOURCE .AND. &
+               ((trim(ACCUMULATION_MODEL) .eq. 'EULERIAN' .AND. LIST_EMBER_TRACKER%NUM_NODES .LT. 1) .OR. &
+                (trim(ACCUMULATION_MODEL) .eq. 'LAGRANGIAN' .AND. NUM_TRACKED_EMBERS .LT. 1))) THEN
                if (FEEDBACK_LEVEL .ge. 3) then
                WRITE(LOG_MSG,'(A,I0,A)') '[',ICASE,'] STOPPING: LESS THAN 2 NODES TAGGED FOR FIRE SPREAD'
                WRITE(*,'(A)') TRIM(LOG_MSG)
@@ -2294,7 +2331,7 @@ INTEGER, INTENT(IN) :: ISTEP
 TYPE(NODE), POINTER :: C
 
 REAL :: PHIMAG, PHIWX, PHIWY, PHIX, PHIY, WSMFEFF, BOH, APHIS, APHIW, SINASPMPI, COSASPMPI, &
-        RPHIMAG, SQRT_LOW2_M1
+        RPHIMAG, SQRT_LOW2_M1, LOCAL_SPREAD_SPEED
 INTEGER :: IASP, I, ILH, NITER
 REAL, PARAMETER :: KWPM2_TO_BTUPFT2MIN = 60. * 0.3048 * 0.3048 / 1.055, FTPMIN_TO_MPS = 0.3048 / 60.
 LOGICAL :: DONE, CROWN_FIRE_AT_START, CROWN_FIRE_AT_END
@@ -2427,11 +2464,16 @@ ELSE !ISTEP .EQ. 2
          endif
 
 #ifdef _UMDSPOTTING
-         IF ((.NOT. USE_SUPERSEDED_SPOTTING) .AND. USE_PHYSICAL_SPOTTING_DURATION .and. ENABLE_SPOTTING) THEN
-            IF(ABS(C%UX)> 1E-3 .AND. ABS(C%UY)> 1E-3) C%LOCAL_EMBERGEN_DURATION = ANALYSIS_CELLSIZE/MIN(ABS(C%UX), ABS(C%UY)) ! seconds
-            IF(ABS(C%UX)> 1E-3 .AND. ABS(C%UY)<=1E-3) C%LOCAL_EMBERGEN_DURATION = ANALYSIS_CELLSIZE/ABS(C%UX) ! seconds
-            IF(ABS(C%UX)<=1E-3 .AND. ABS(C%UY)> 1E-3) C%LOCAL_EMBERGEN_DURATION = ANALYSIS_CELLSIZE/ABS(C%UY) ! seconds
-            IF(ABS(C%UX)<=1E-3 .AND. ABS(C%UY)<=1E-3) C%LOCAL_EMBERGEN_DURATION = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR * 60 ! seconds
+         IF ((.NOT. USE_SUPERSEDED_SPOTTING) .AND. USE_PHYSICAL_SPOTTING_DURATION .AND. ENABLE_SPOTTING) THEN
+
+            LOCAL_SPREAD_SPEED = SQRT(C%UX*C%UX + C%UY*C%UY)
+            
+            IF (LOCAL_SPREAD_SPEED > 1.0E-6) THEN
+               C%LOCAL_EMBERGEN_DURATION = ANALYSIS_CELLSIZE / LOCAL_SPREAD_SPEED
+            ELSE
+               C%LOCAL_EMBERGEN_DURATION = FUEL_MODEL_TABLE_2D(C%IFBFM,ILH)%TR * 60.0
+            ENDIF
+
          ENDIF
 #endif
 
@@ -2852,6 +2894,7 @@ INTEGER, INTENT(IN) :: NX_ELM, NY_ELM, MINIMUM_CURRENT_WX_BAND
 TYPE (NODE), POINTER :: C => NULL(), NEXT_C => NULL()
 INTEGER :: IX, IY, ICOL, IROW
 REAL :: WS20
+REAL(8) :: T_IGNITION
 
 ! Move all trackers forward by 1 level-set time step (tracker trajectories are solved using smaller time steps)
 ! It avoids allocating a big table to memorize firebrands that will be deposited in the future steps.
@@ -2891,16 +2934,30 @@ DO
             C => NEXT_C
             CYCLE
          ENDIF
-      ELSE IF (trim(IGNITION_MODEL) .eq. 'DIRECT') THEN
-         ! Ignite the target immediately if any firebrand landed
-         IF (EMBER_TOA(IX,IY) .GT. T_ELMFIRE+DT_ELMFIRE .OR. EMBER_TOA(IX,IY) .LT. 0) THEN
+
+         T_IGNITION = T_ELMFIRE + DT_ELMFIRE
+
+      ELSE IF (TRIM(IGNITION_MODEL) .EQ. 'DIRECT') THEN
+         IF (EMBER_TOA(IX,IY) .LT. 0.0 .OR. &
+            EMBER_TOA(IX,IY) .GT. T_ELMFIRE + DT_ELMFIRE) THEN
             C => NEXT_C
             CYCLE
          ENDIF
+
+         ! DIRECT ignition occurs at the calculated ember landing time.
+         T_IGNITION = EMBER_TOA(IX,IY)
       ENDIF
 
       IF (ADJ%R4(IX,IY,1) .GT. 0. .AND. (.NOT. ISNONBURNABLE(IX,IY) ) ) THEN
-         CALL TAG_BAND(NX_ELM, NY_ELM, IX, IY, T_ELMFIRE+DT_ELMFIRE)
+         CALL TAG_BAND(NX_ELM, NY_ELM, IX, IY, T_IGNITION)
+
+         ! Preserve the earliest valid arrival if multiple ignition mechanisms
+         ! reach this cell during the same or neighboring solver steps.
+         IF (TIME_OF_ARRIVAL(IX,IY) .LT. 0.0) THEN
+            TIME_OF_ARRIVAL(IX,IY) = T_IGNITION
+         ELSE
+            TIME_OF_ARRIVAL(IX,IY) = MIN(TIME_OF_ARRIVAL(IX,IY), T_IGNITION)
+         ENDIF
          PHIP           (IX,IY) = -1.0
          ! Record firebrand ignited cells
          IF (DUMP_EMBER_IGNITION) EMBER_IGNITION_MAP%I2(IX,IY,1) = 1
@@ -2930,6 +2987,7 @@ INTEGER, INTENT(IN) :: NX_ELM, NY_ELM
 INTEGER :: I, IX, IY, ICOL, IROW
 TYPE (NODE), POINTER :: C => NULL(), NEXT_C => NULL()
 REAL :: WS20
+REAL(8) :: T_IGNITION
 
 DO I = 1, NUM_TRACKED_EMBERS
    IF (SPOTTING_STATS(I)%TIGN .LT. 0.0) CYCLE
@@ -2961,8 +3019,14 @@ DO I = 1, NUM_TRACKED_EMBERS
       IY = SPOTTING_STATS(I)%IY_TO
 
       IF (SURFACE_FIRE(IX,IY) .LE. 0 .AND. ADJ%R4(IX,IY,1) .GT. 0. .AND. (.NOT. ISNONBURNABLE(IX,IY) ) ) THEN
-         CALL TAG_BAND(NX_ELM, NY_ELM, IX, IY, T_ELMFIRE)
-         TIME_OF_ARRIVAL(IX,IY) = T_ELMFIRE
+         ! The Lagrangian trajectory supplies the continuous landing time.
+         T_IGNITION = SPOTTING_STATS(I)%TIGN
+         CALL TAG_BAND(NX_ELM, NY_ELM, IX, IY, T_IGNITION)
+         IF (TIME_OF_ARRIVAL(IX,IY) .LT. 0.0) THEN
+            TIME_OF_ARRIVAL(IX,IY) = T_IGNITION
+         ELSE
+            TIME_OF_ARRIVAL(IX,IY) = MIN(TIME_OF_ARRIVAL(IX,IY), T_IGNITION)
+         ENDIF
          PHIP           (IX,IY) = -1.0
       ENDIF
 
@@ -2997,7 +3061,9 @@ IF (TRIM(IGNITION_MODEL) .NE. 'DIRECT') THEN
          ENDIF
 
          IF (ADJ%R4(IX,IY,1) .GT. 0. .AND. (.NOT. ISNONBURNABLE(IX,IY) ) ) THEN
-            CALL TAG_BAND(NX_ELM, NY_ELM, IX, IY, T_ELMFIRE+DT_ELMFIRE)
+            T_IGNITION = T_ELMFIRE + DT_ELMFIRE
+            CALL TAG_BAND(NX_ELM, NY_ELM, IX, IY, T_IGNITION)
+            TIME_OF_ARRIVAL(IX,IY) = T_IGNITION
             PHIP           (IX,IY) = -1.0
             ! Record firebrand ignited cells
             IF (DUMP_EMBER_IGNITION) EMBER_IGNITION_MAP%I2(IX,IY,1) = 1

@@ -1,0 +1,17 @@
+[
+  {
+    "case": "camp_fire",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/regenerated/camp_fire/regeneration.log"
+  },
+  {
+    "case": "thomas_fire",
+    "exit_code": 1,
+    "log": "/private/tmp/vnv-language-review/regenerated/thomas_fire/regeneration.log"
+  },
+  {
+    "case": "tubbs_fire",
+    "exit_code": 0,
+    "log": "/private/tmp/vnv-language-review/regenerated/tubbs_fire/regeneration.log"
+  }
+]

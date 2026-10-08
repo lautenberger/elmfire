@@ -1,0 +1,4 @@
+interface:
+  display_name: "ELMFIRE Verification Cases"
+  short_description: "Create self-contained ELMFIRE verification cases"
+  default_prompt: "Use $elmfire-verification-case to create a self-contained ELMFIRE verification case."

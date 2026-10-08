@@ -1,0 +1,62 @@
+# ELMFIRE verification cases run one case per Slurm job.
+#SBATCH --job-name=elmfire-verification
+#SBATCH --account=co_gollner
+#SBATCH --partition=savio4_htc
+#SBATCH --qos=gollner_htc4_normal
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --time=10-01:00:00
+#SBATCH --output=slurm-%x-%j.stdout
+#SBATCH --error=slurm-%x-%j.stderr
+
+set -euo pipefail
+
+module purge
+module load gcc
+module load openmpi
+module load gdal
+module load anaconda3
+
+# Prevent packages under ~/.local from shadowing the selected environment.
+export PYTHONNOUSERSITE=1
+
+# Require an explicit environment so batch jobs cannot silently use the
+# Anaconda module's base Python. The variable must be exported before sbatch.
+if [[ -z "${ELMFIRE_VNV_CONDA_ENV:-}" ]]; then
+  echo "[ERROR] ELMFIRE_VNV_CONDA_ENV is not set in the Slurm job environment." >&2
+  echo "[ERROR] Export its environment name or absolute path before submission." >&2
+  exit 2
+fi
+
+source "$(conda info --base)/etc/profile.d/conda.sh"
+CONDA_BASE=$(conda info --base)
+echo "[INFO] Requested Conda environment: $ELMFIRE_VNV_CONDA_ENV"
+conda activate "$ELMFIRE_VNV_CONDA_ENV"
+
+if [[ -z "${CONDA_PREFIX:-}" || "$CONDA_PREFIX" == "$CONDA_BASE" ]]; then
+  echo "[ERROR] Conda activation resolved to the base environment: ${CONDA_PREFIX:-unset}" >&2
+  echo "[ERROR] ELMFIRE_VNV_CONDA_ENV must identify the dedicated suite environment." >&2
+  exit 2
+fi
+echo "[INFO] Activated Conda environment: $CONDA_PREFIX"
+
+# Export the interpreter selected after Conda activation. Case runners honor
+# PYTHON_BIN, so preprocessing and postprocessing cannot silently fall back to
+# a different system python3 executable.
+PYTHON_BIN="$CONDA_PREFIX/bin/python"
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  echo "[ERROR] Activated environment has no executable Python: $PYTHON_BIN" >&2
+  exit 2
+fi
+export PYTHON_BIN
+
+echo "[INFO] Verification Python: $PYTHON_BIN"
+"$PYTHON_BIN" -c 'import sys; print("[INFO] Python version:", sys.version.split()[0])'
+if ! "$PYTHON_BIN" -c 'import numpy, matplotlib, yaml, rasterio'; then
+  echo "[ERROR] Verification Python dependencies are unavailable in: $PYTHON_BIN" >&2
+  echo "[ERROR] Install requirements.txt into ELMFIRE_VNV_CONDA_ENV before submitting." >&2
+  exit 2
+fi
+"$PYTHON_BIN" -c \
+  'import rasterio; print("[INFO] Rasterio:", rasterio.__version__, rasterio.__file__)'

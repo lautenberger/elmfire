@@ -1,0 +1,122 @@
+{
+  "case_number": "07",
+  "purpose_abbreviation": "IPC",
+  "id": "CASE07_IPC",
+  "chapter": "5",
+  "title": "Ignition Probability and SFT Convergence",
+  "dx": 10.0,
+  "nx": 360,
+  "ny": 14,
+  "tstop": 240.0,
+  "physical_length_m": 3600.0,
+  "physical_width_m": 300.0,
+  "ensemble": {
+    "members": 10,
+    "base_seed": 51400,
+    "confidence_level": 0.95
+  },
+  "sft_delay_ensemble": {
+    "dx": 10.0,
+    "pign": 0.9,
+    "tau_s": 10.0,
+    "members": 10,
+    "minimum_samples": 1000,
+    "quantile_absolute_error_max_s": 1.0,
+    "bootstrap_ci95_halfwidth_max_s": 1.0,
+    "bootstrap_replicates": 2000
+  },
+  "wui": false,
+  "no_surface": true,
+  "ignition": true,
+  "consumption": false,
+  "summary": "Combines the ensemble-convergence case delay-distribution check with Figure 5.14: the sampled SFT delay quantile must converge to the prescribed 10 s model time scale, while ensemble-mean ROS must respond consistently to Pign,small across resolution.",
+  "expected": "The time-averaged leading-edge ROS normalized by Uwind should increase monotonically with Pign,small and should show weak sensitivity to dx = 5, 10, 20, and 30 m. The Pign,small = 0 limit approaches zero spotting-driven spread, while Pign,small = 1 approaches Uwind.",
+  "variants": [
+    {
+      "dx": 5.0,
+      "pign": 0.0
+    },
+    {
+      "dx": 5.0,
+      "pign": 0.25
+    },
+    {
+      "dx": 5.0,
+      "pign": 0.5
+    },
+    {
+      "dx": 5.0,
+      "pign": 0.75
+    },
+    {
+      "dx": 5.0,
+      "pign": 1.0
+    },
+    {
+      "dx": 10.0,
+      "pign": 0.0
+    },
+    {
+      "dx": 10.0,
+      "pign": 0.25
+    },
+    {
+      "dx": 10.0,
+      "pign": 0.5
+    },
+    {
+      "dx": 10.0,
+      "pign": 0.75
+    },
+    {
+      "dx": 10.0,
+      "pign": 1.0
+    },
+    {
+      "dx": 20.0,
+      "pign": 0.0
+    },
+    {
+      "dx": 20.0,
+      "pign": 0.25
+    },
+    {
+      "dx": 20.0,
+      "pign": 0.5
+    },
+    {
+      "dx": 20.0,
+      "pign": 0.75
+    },
+    {
+      "dx": 20.0,
+      "pign": 1.0
+    },
+    {
+      "dx": 30.0,
+      "pign": 0.0
+    },
+    {
+      "dx": 30.0,
+      "pign": 0.25
+    },
+    {
+      "dx": 30.0,
+      "pign": 0.5
+    },
+    {
+      "dx": 30.0,
+      "pign": 0.75
+    },
+    {
+      "dx": 30.0,
+      "pign": 1.0
+    }
+  ],
+  "metric_name": "ros_over_uwind",
+  "reference_value": "monotone_0_to_1",
+  "acceptance": "All 200 response members and all 10 SFT-delay members must produce usable output. Response means must be monotone within uncertainty, cross-resolution spread must be <=0.10, and every Pign,small=1 mean must be >=0.90. The pooled SFT ensemble must contain at least 1000 actual ignition-delay samples; its 90th percentile must be within 1 s of 10 s and its bootstrap 95% half-width must be <=1 s.",
+  "source_references": [
+    "ensemble-convergence case, Figures 5.13 and 5.14"
+  ]
+}

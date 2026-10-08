@@ -1,0 +1,145 @@
+{
+  "case_number": "03",
+  "purpose_abbreviation": "ETC",
+  "id": "CASE03_ETC",
+  "chapter": 4,
+  "title": "Eulerian Firebrand Transport Convergence",
+  "objective": "Verify convergence of firebrand-driven leading-edge spread to the wind speed across spatial resolution and wind-based CFL number.",
+  "physical_domain": {
+    "length_m": 2400.0,
+    "width_m": 300.0,
+    "buffer_cells_each_boundary": 2
+  },
+  "wind_speed_mps": 6.71,
+  "wind_speed_mph": 15.0,
+  "wind_direction_deg": 270.0,
+  "emission_duration_s": 10.0,
+  "surface_spread": false,
+  "crosswind_distribution": false,
+  "ignition_model": "DIRECT",
+  "simulation_tstop_s": 260.0,
+  "phi_output_every_step": true,
+  "observable": "Time-weighted mean of stepwise leading-edge ROS from the centerline phi=0 contour",
+  "fit_interval_m": [
+    300.0,
+    1500.0
+  ],
+  "acceptance": {
+    "maximum_relative_error": 0.1,
+    "applies_through_wind_cfl": 0.8
+  },
+  "variants": [
+    {
+      "dx_m": 5.0,
+      "wind_cfl": 0.2
+    },
+    {
+      "dx_m": 5.0,
+      "wind_cfl": 0.4
+    },
+    {
+      "dx_m": 5.0,
+      "wind_cfl": 0.5
+    },
+    {
+      "dx_m": 5.0,
+      "wind_cfl": 0.6
+    },
+    {
+      "dx_m": 5.0,
+      "wind_cfl": 0.8
+    },
+    {
+      "dx_m": 5.0,
+      "wind_cfl": 1.0
+    },
+    {
+      "dx_m": 5.0,
+      "wind_cfl": 1.2
+    },
+    {
+      "dx_m": 10.0,
+      "wind_cfl": 0.2
+    },
+    {
+      "dx_m": 10.0,
+      "wind_cfl": 0.4
+    },
+    {
+      "dx_m": 10.0,
+      "wind_cfl": 0.5
+    },
+    {
+      "dx_m": 10.0,
+      "wind_cfl": 0.6
+    },
+    {
+      "dx_m": 10.0,
+      "wind_cfl": 0.8
+    },
+    {
+      "dx_m": 10.0,
+      "wind_cfl": 1.0
+    },
+    {
+      "dx_m": 10.0,
+      "wind_cfl": 1.2
+    },
+    {
+      "dx_m": 20.0,
+      "wind_cfl": 0.2
+    },
+    {
+      "dx_m": 20.0,
+      "wind_cfl": 0.4
+    },
+    {
+      "dx_m": 20.0,
+      "wind_cfl": 0.5
+    },
+    {
+      "dx_m": 20.0,
+      "wind_cfl": 0.6
+    },
+    {
+      "dx_m": 20.0,
+      "wind_cfl": 0.8
+    },
+    {
+      "dx_m": 20.0,
+      "wind_cfl": 1.0
+    },
+    {
+      "dx_m": 20.0,
+      "wind_cfl": 1.2
+    },
+    {
+      "dx_m": 30.0,
+      "wind_cfl": 0.2
+    },
+    {
+      "dx_m": 30.0,
+      "wind_cfl": 0.4
+    },
+    {
+      "dx_m": 30.0,
+      "wind_cfl": 0.5
+    },
+    {
+      "dx_m": 30.0,
+      "wind_cfl": 0.6
+    },
+    {
+      "dx_m": 30.0,
+      "wind_cfl": 0.8
+    },
+    {
+      "dx_m": 30.0,
+      "wind_cfl": 1.0
+    },
+    {
+      "dx_m": 30.0,
+      "wind_cfl": 1.2
+    }
+  ]
+}

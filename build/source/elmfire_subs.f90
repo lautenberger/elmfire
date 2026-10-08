@@ -1821,10 +1821,18 @@ SUBROUTINE XY_TO_LATLON(X, Y, LAT, LON)
 REAL, INTENT(IN)  :: X, Y              ! projected coordinates (meters)
 REAL, INTENT(OUT) :: LAT, LON          ! output lat, lon in degrees
 
-INTEGER :: Z
-CHARACTER(256) :: SHELLSTR, TMPIN, TMPOUT
-INTEGER :: LUIN, LUOUT, IOS
-character(len=32) :: istr
+REAL :: Z
+CHARACTER(:), ALLOCATABLE :: SHELLSTR
+CHARACTER(1024) :: TMPIN, TMPOUT
+CHARACTER(512) :: CMDMSG
+INTEGER :: LUIN, LUOUT, IOS, CMDSTAT, EXITSTAT
+CHARACTER(LEN=32) :: ISTR
+
+! Never expose callers to undefined coordinates if an external GDAL operation
+! fails. Errors below are fatal because the solar calculations require a valid
+! geographic location.
+LAT = 0.0
+LON = 0.0
 
 ! Create simple temp file names (you can do something fancier if needed)
 write(istr,'(I0)') IRANK_WORLD
@@ -1835,7 +1843,7 @@ TMPOUT = TRIM(SCRATCH) // 'gdal_xy_to_ll_out_'//trim(istr)//'.txt'
 OPEN(NEWUNIT=LUIN, FILE=TMPIN, STATUS='REPLACE', ACTION='WRITE', IOSTAT=IOS)
 IF (IOS /= 0) THEN
    WRITE(*,*) 'Error opening temp input file for gdaltransform, IOSTAT=', IOS
-   RETURN
+   ERROR STOP 'Could not create gdaltransform input.'
 END IF
 WRITE(LUIN,'(F24.8,1X,F24.8)') X, Y
 CLOSE(LUIN)
@@ -1843,21 +1851,33 @@ CLOSE(LUIN)
 ! 2. Build gdaltransform command:
 !    gdaltransform -s_srs SRC_SRS -t_srs EPSG:4326 < TMPIN > TMPOUT
 SHELLSTR = TRIM(PATH_TO_GDAL) // 'gdaltransform -s_srs "' // TRIM(A_SRS) // '"' // &
-            ' -t_srs EPSG:4326 < ' // TRIM(TMPIN) // ' > ' // TRIM(TMPOUT) // ' 2>/dev/null'
+            ' -t_srs EPSG:4326 < "' // TRIM(TMPIN) // '" > "' // TRIM(TMPOUT) // '"'
 
 ! WRITE(*,*) 'Running: ', TRIM(SHELLSTR)
-CALL EXECUTE_COMMAND_LINE(TRIM(SHELLSTR), EXITSTAT=IOS)
+CMDSTAT = 0
+EXITSTAT = 0
+CMDMSG = ''
+CALL EXECUTE_COMMAND_LINE(SHELLSTR, EXITSTAT=EXITSTAT, CMDSTAT=CMDSTAT, CMDMSG=CMDMSG)
 
-IF (IOS /= 0) THEN
-   WRITE(*,*) 'gdaltransform failed, EXITSTAT=', IOS
-   RETURN
+IF (CMDSTAT /= 0) THEN
+   WRITE(*,'(A,I0,2A)') 'Could not execute gdaltransform, CMDSTAT=', CMDSTAT, ': ', TRIM(CMDMSG)
+   WRITE(*,'(2A)') 'Source CRS: ', TRIM(A_SRS)
+   ERROR STOP 'Could not execute gdaltransform.'
+ENDIF
+
+IF (EXITSTAT /= 0) THEN
+   WRITE(*,'(A,I0)') 'gdaltransform failed, EXITSTAT=', EXITSTAT
+   WRITE(*,'(2A)') 'Source CRS: ', TRIM(A_SRS)
+   ERROR STOP 'gdaltransform failed.'
 END IF
 
 ! 3. Read lon, lat, z from output file
 OPEN(NEWUNIT=LUOUT, FILE=TMPOUT, STATUS='OLD', ACTION='READ', IOSTAT=IOS)
 IF (IOS /= 0) THEN
    WRITE(*,*) 'Error opening temp output file from gdaltransform, IOSTAT=', IOS
-   RETURN
+   WRITE(*,'(2A)') 'Expected output file: ', TRIM(TMPOUT)
+   WRITE(*,'(2A)') 'Source CRS: ', TRIM(A_SRS)
+   ERROR STOP 'Could not open gdaltransform output.'
 END IF
 
 ! gdaltransform outputs: lon lat z
@@ -1866,7 +1886,9 @@ CLOSE(LUOUT)
 
 IF (IOS .NE. 0) THEN
    WRITE(*,*) 'Error reading gdaltransform output, IOSTAT=', IOS
-   RETURN
+   WRITE(*,'(2A)') 'Output file: ', TRIM(TMPOUT)
+   WRITE(*,'(2A)') 'Source CRS: ', TRIM(A_SRS)
+   ERROR STOP 'gdaltransform returned no valid coordinate.'
 END IF
 
 ! 4. (Optional) clean up temp files
@@ -1880,9 +1902,11 @@ subroutine read_geotiff_meta_gdalinfo()
 ! Reads spatial metadata for the analysis grid from the aspect raster by running
 ! GDAL 'gdalinfo'/'gdalsrsinfo' and parsing their output, then sets the global
 ! ANALYSIS_CELLSIZE, ANALYSIS_XLLCORNER, ANALYSIS_YLLCORNER, and A_SRS. Requires
-! the CRS to use metre linear units (error-stops otherwise).
+! the CRS to use metre linear units (error-stops otherwise). A recognized EPSG
+! code is preferred; otherwise the complete PROJ.4 definition is retained.
    character(len=1024) :: cmd, line
-   character(len=256)  :: tmpfile, tmpfile_epsg, tempFilename, istr
+   character(len=256)  :: tmpfile, tmpfile_epsg, tmpfile_proj4, tempFilename, istr
+   character(len=len(A_SRS)) :: proj4_srs
    integer :: iu, ios
    integer :: ncols, nrows
    real(8) :: x0, y0, dx, dy
@@ -1897,11 +1921,13 @@ subroutine read_geotiff_meta_gdalinfo()
    dx = 0d0
    dy = 0d0
    epsg = -1
+   proj4_srs = ''
    is_metre = .false.
 
    write(istr,'(I0)') IRANK_WORLD
    tmpfile      = trim(SCRATCH) // '/' // '._gdalinfo_tmp_'//trim(istr)//'.txt'
    tmpfile_epsg = trim(SCRATCH) // '/' // '._gdalsrsinfo_tmp_'//trim(istr)//'.txt'
+   tmpfile_proj4 = trim(SCRATCH) // '/' // '._gdalsrsinfo_proj4_tmp_'//trim(istr)//'.txt'
 
    ! When a combined landscape file is used the individual layer filenames are
    ! blank, so derive the analysis grid metadata from the landscape file instead.
@@ -1918,6 +1944,7 @@ subroutine read_geotiff_meta_gdalinfo()
 
    call read_basic_raster_meta()
    call read_epsg_with_gdalsrsinfo()
+   if (epsg <= 0) call read_proj4_with_gdalsrsinfo()
 
    if (.not. is_metre) then
       error stop 'DEM CRS does not appear to use metre linear units.'
@@ -1932,8 +1959,10 @@ subroutine read_geotiff_meta_gdalinfo()
 
    if (epsg > 0) then
       A_SRS = 'EPSG:' // trim(int_to_str(epsg))
+   else if (len_trim(proj4_srs) > 0) then
+      A_SRS = trim(proj4_srs)
    else
-      A_SRS = 'UNKNOWN'
+      error stop 'Could not determine raster CRS with gdalsrsinfo.'
    end if
 
 contains
@@ -1991,6 +2020,44 @@ contains
 
       close(iu)
    end subroutine read_epsg_with_gdalsrsinfo
+
+   subroutine read_proj4_with_gdalsrsinfo()
+   ! If no EPSG authority code is available, retain the complete PROJ.4 string
+   ! reported by gdalsrsinfo. Reading with an '(A)' edit descriptor is important:
+   ! list-directed input would stop at the first blank and lose CRS parameters.
+      integer :: first, last
+      character(len=1024) :: text
+
+      write(cmd,'(a)') 'gdalsrsinfo -o proj4 "' // trim(FUELS_AND_TOPOGRAPHY_DIRECTORY) // '/' // &
+                     trim(tempFilename) // '" > "' // trim(tmpfile_proj4) // '"'
+      call execute_command_line(trim(cmd))
+
+      open(newunit=iu, file=trim(tmpfile_proj4), status='old', action='read', iostat=ios)
+      if (ios /= 0) return
+
+      do
+         read(iu, '(A)', iostat=ios) line
+         if (ios /= 0) exit
+
+         text = adjustl(line)
+         first = index(text, '+proj=')
+         if (first <= 0) cycle
+
+         last = len_trim(text)
+         if (text(last:last) == "'" .or. text(last:last) == '"') last = last - 1
+         if (last < first) cycle
+
+         if (last - first + 1 > len(proj4_srs)) then
+            close(iu)
+            error stop 'PROJ.4 CRS exceeds A_SRS storage length.'
+         end if
+
+         proj4_srs = text(first:last)
+         exit
+      end do
+
+      close(iu)
+   end subroutine read_proj4_with_gdalsrsinfo
 
    pure logical function contains_ci(s, pat)
    ! Returns .true. if string s contains pattern pat, compared case-insensitively.

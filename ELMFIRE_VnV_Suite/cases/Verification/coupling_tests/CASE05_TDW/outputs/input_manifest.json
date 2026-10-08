@@ -1,0 +1,23 @@
+{
+  "equation": "u(x,t)=6.71+3.355 sin(2 pi x/100) sin(2 pi t/60) m/s",
+  "dx_m": 10.0,
+  "nx": 124,
+  "ny": 14,
+  "interior_nx": 120,
+  "interior_ny": 10,
+  "buffer_cells": 2,
+  "physical_length_m": 1200.0,
+  "physical_width_m": 100.0,
+  "meteorology_dt_s": 1.0,
+  "meteorology_bands": 121,
+  "wind_min_mps": 3.3550000190734863,
+  "wind_max_mps": 10.0649995803833,
+  "wind_cfl": 0.5,
+  "simulation_dt_s": 0.49677098857426727,
+  "emission_duration_s": 10.0,
+  "generation_model": "PER-AREA",
+  "ember_gr_pcs_m2_s": 1.0,
+  "ignition_row": 7,
+  "ignition_column": 2,
+  "ignition_x_m": 5.0
+}

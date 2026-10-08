@@ -1,0 +1,30 @@
+{
+  "case_id": "CASE15_CRO",
+  "overall_status": "PASS",
+  "verification_passed": true,
+  "required_outputs_complete": true,
+  "reference_ros_m_per_s": 0.0116332,
+  "cell_size_m": 1.0,
+  "source_files": [
+    "data/outputs/phi_0000001_d0000006.tif",
+    "data/outputs/vs_0000001_0000360.tif"
+  ],
+  "metrics": [
+    {
+      "name": "maximum spread rate",
+      "expected": 0.697992,
+      "calculated": 0.6985318660736084,
+      "units": "m/min",
+      "tolerance": "5% relative",
+      "status": "PASS"
+    },
+    {
+      "name": "equivalent final radius",
+      "expected": 9.187952,
+      "calculated": 9.373021315815206,
+      "units": "m",
+      "tolerance": "2 cells (2 m)",
+      "status": "PASS"
+    }
+  ]
+}

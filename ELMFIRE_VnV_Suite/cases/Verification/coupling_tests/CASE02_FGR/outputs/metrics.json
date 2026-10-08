@@ -1,0 +1,40 @@
+{
+  "case_id": "CASE02_FGR",
+  "objective": "Verify finite-duration generation is independent of simulation timestep",
+  "generation_rate_pcs_s": 10.0,
+  "residence_time_s": 10.0,
+  "expected_total_firebrands": 100.0,
+  "analytical_profile": "100 times the cell-integrated lognormal PDF truncated and normalized at P=0.99",
+  "total_relative_tolerance": 0.005,
+  "profile_l1_tolerance": 0.01,
+  "status": "pass",
+  "num_variants": 2,
+  "num_variants_computed": 2,
+  "variants": [
+    {
+      "name": "dt0p13",
+      "dt_s": 0.13,
+      "dx_m": 10.0,
+      "status": "pass",
+      "expected_total_firebrands": 100.0,
+      "kmax": 15,
+      "output_raster": "variants/dt0p13/outputs/ember_flux_0000001_0003641.tif",
+      "observed_total_firebrands": 99.99994802474976,
+      "total_relative_error": 5.197525024414063e-07,
+      "profile_l1_relative_error": 8.964743028877508e-07
+    },
+    {
+      "name": "dt12p7",
+      "dt_s": 12.7,
+      "dx_m": 10.0,
+      "status": "pass",
+      "expected_total_firebrands": 100.0,
+      "kmax": 15,
+      "output_raster": "variants/dt12p7/outputs/ember_flux_0000001_0003625.tif",
+      "observed_total_firebrands": 100.00000239908695,
+      "total_relative_error": 2.3990869522094728e-08,
+      "profile_l1_relative_error": 3.4492124785512335e-07
+    }
+  ],
+  "verification_passed": true
+}

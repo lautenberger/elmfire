@@ -1,0 +1,145 @@
+{
+  "case_id": "thomas_fire",
+  "source_archive": {
+    "relative_path": "../../3_FIRES/Thomas_VAL.rar",
+    "sha256": "642689c45406337886a8dea52e08ff413fd3e7c2a933dcc6e0f7f07954a3a044"
+  },
+  "fuel_directory": "data/archive_payload/fuels",
+  "weather_directory": "data/archive_payload/weather",
+  "required_fuel_rasters": [
+    "adj",
+    "asp",
+    "cbd",
+    "cbh",
+    "cc",
+    "ch",
+    "dem",
+    "fbfm40b",
+    "slp",
+    "phi",
+    "ignition_mask",
+    "baa_m",
+    "ff",
+    "bfm13",
+    "nbf",
+    "ssd_min"
+  ],
+  "minimum_weather_bands": 25,
+  "payload_files": [
+    {
+      "relative_path": "data/archive_payload/fuels/adj.tif",
+      "size": 103638,
+      "sha256": "a159083c52040a261a76bb87fa3de8b59c61119178234d0e6e861135b7aeca16"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/asp.tif",
+      "size": 3749316,
+      "sha256": "1a7791cc246f4eab36704b3cf591a0644ea6c786705cfbe74f47ac91d1c228b8"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/baa_m.tif",
+      "size": 17737006,
+      "sha256": "3b775efe8f00c1892ff1c1f307fb20f73bb6a8e75d8abcb9d9029c653b766f65"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/bfm13.tif",
+      "size": 8874028,
+      "sha256": "b634c63caff253cc657e9b5aa2fb2e17f03537b60403a839912fa7c71a0740b7"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/cbd.tif",
+      "size": 598553,
+      "sha256": "d0f4188cae8f1e936d34f90fd834bf50842abce8bba38483e1dad5a3bfc77115"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/cbh.tif",
+      "size": 729812,
+      "sha256": "97edfe18f95eacb0e97a0a46aa5fd181cda6abeaaaf222e47e7eef7334adaeea"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/cc.tif",
+      "size": 633795,
+      "sha256": "1840317795b8a3e243bc96a13eb410b0c97a6d55d4e706480a9d10d494531631"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/ch.tif",
+      "size": 788995,
+      "sha256": "3d2b9376bed8dfe970a04c0ad91182418a7af171ee84c1b0d105da5b73450e82"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/dem.tif",
+      "size": 3997756,
+      "sha256": "efd05c2d1f13522a0caa0a262092c513b9a020c058aaa3427d368fd322bca9e2"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/fbfm40b.tif",
+      "size": 989281,
+      "sha256": "7bbd0672fd1702bf0e2b4d8f9ea59fe8166ea8cb066e48870d9c663c4188acb8"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/ff.tif",
+      "size": 17737006,
+      "sha256": "eb5d900e02b0422b765d2c120bcfeb27cdf970cf38e6dac7dad37bf472d3e592"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/ignition_mask.tif",
+      "size": 95364,
+      "sha256": "4bb9c6015c88076a63ce30357cb7b35b87e765cf4dbe6c7583f5bbb5334497ea"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/nbf.tif",
+      "size": 17737006,
+      "sha256": "5a8d650453599b589809573494fe4f9b91edf3e723395a4a4a43cc94d8b7e109"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/phi.tif",
+      "size": 103638,
+      "sha256": "a159083c52040a261a76bb87fa3de8b59c61119178234d0e6e861135b7aeca16"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/slp.tif",
+      "size": 2379329,
+      "sha256": "17ecbdd5c9da6b73bd5124e1a80fd6b0f145572c24b29e0445a18dde3e023cbb"
+    },
+    {
+      "relative_path": "data/archive_payload/fuels/ssd_min.tif",
+      "size": 17737006,
+      "sha256": "b7bbdde7b01e5fa94110275a13f3a33499e756be22085ef6b48d49340113a458"
+    },
+    {
+      "relative_path": "data/archive_payload/misc/building_fuel_models.csv",
+      "size": 1180,
+      "sha256": "ade4d3c620b0261a42ecd907f19aca3e06a816ec3accf208859dec109a50dd66"
+    },
+    {
+      "relative_path": "data/archive_payload/misc/fuel_models.csv",
+      "size": 3886,
+      "sha256": "22b50f3b3dc3b95d1372601a02ff998e197745aff8ee4f96f2c513865e724acb"
+    },
+    {
+      "relative_path": "data/archive_payload/weather/m1.tif",
+      "size": 25272433,
+      "sha256": "1e3347ef3a177a2663f18ce0b767b3b1fd4921e3fd40caad10439a8050f1e1ef"
+    },
+    {
+      "relative_path": "data/archive_payload/weather/m10.tif",
+      "size": 25109978,
+      "sha256": "567c9c995df2f79258153d08c91166a1c5327283e44306e6dc29f9b31f16ed2d"
+    },
+    {
+      "relative_path": "data/archive_payload/weather/m100.tif",
+      "size": 24637091,
+      "sha256": "491d985fc9b3cf481b88f409f13763592f2b8328bd80ba45a57f090975a3b50c"
+    },
+    {
+      "relative_path": "data/archive_payload/weather/wd.tif",
+      "size": 6331126,
+      "sha256": "5e847e3ab51a64471614d3f9dbea968e8759fd29dda2ec6159ccc37cff37a265"
+    },
+    {
+      "relative_path": "data/archive_payload/weather/ws.tif",
+      "size": 8376401,
+      "sha256": "0533bbf61b387363f2692a400dd36fdc07d0af10f6abde108a2ba6c607232532"
+    }
+  ]
+}

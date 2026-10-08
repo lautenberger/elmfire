@@ -1,0 +1,305 @@
+\section{Verification purpose}
+
+This case defines a parametric verification of the resolution-independent WUI response to generation rate, inter-structure separation, and wind speed. The two controlled response families contain 270 requested points with duplicate baselines removed.
+
+The response test is valid only when the integrated-structure capability is available. The current source gates that capability, so this case verifies design completeness and reports the limitation explicitly instead of substituting the native cell-local model.
+
+\section{Mathematical formulation and numerical implementation}
+
+Each physical structure is a square of side \(a=\SI{10}{m}\). Although the
+computational grid uses \(\Delta x=\SI{2.5}{m}\), all cells belonging to one
+structure must act as one source and one collector. For physical structure
+\(s\), the required formulation is
+\[
+ \mathrm{HRR}_s(t)=q^{\prime\prime}(t)a^2,
+ \qquad \dot N_s(t)=GR\times\mathrm{HRR}_s(t),
+ \qquad N_s(t)=\sum_{j\in s}N_j(t).
+\]
+Transport is evaluated once for the structure-scale heat-release rate (HRR), deposition is
+accumulated over its physical footprint, and the resulting load
+\(N_s/a^2\) drives the physical ignition criterion. This grouping is the key
+difference from the native multiple-discrete-cell treatment, in which one
+physical structure is fragmented into independently emitting and igniting
+raster cells.
+
+The level-set time step is
+\[
+ \Delta t=0.5\frac{\Delta x}{U_{\rm wind}},
+\]
+and surface spread is disabled. Spread success therefore means that the
+firebrand process alone propagates through the structural array. For each
+parameter point, mean rate of spread (ROS) is obtained by fitting structure position
+against first-ignition time.
+
+The first family varies
+\[
+ d=2.5,5,\ldots,30\ \mathrm{m},
+ \qquad GR=5,10,\ldots,50\
+ \mathrm{pcs\,MW^{-1}\,s^{-1}},
+\]
+with a fixed 40~mph wind. The second fixes the separation at 10~m, uses the
+same generation rates, and varies wind speed from 10 to 150~mph in 10~mph
+increments.
+
+\section{Derivation of expected behavior}
+Increasing separation moves targets into lower-probability transport tails, while increasing generation raises deposited load. Wind produces competing reach and ignition-cooling effects, so the critical generation boundary should rise at both low and high wind speeds.
+
+% BEGIN EXPLICIT EXPECTED-RESULT DERIVATION
+The design count follows directly from the generated parameter products:
+\[
+ 12\ \text{separations}\times10\ GR=120,\qquad
+ 15\ \text{winds}\times10\ GR=150,\qquad
+ N_{\mathrm{design}}=120+150=270.
+\]
+The two baseline-equivalent coordinates remain distinct members of their
+respective response families.  At the design-fire plateau, a physical
+structure has \(HRR_{\max}=400(100)=40~\mathrm{MW}\); consequently the tested
+generation range corresponds to
+\[
+ \dot N_{\max}=GR(40)=200,\ 400,\ldots,2000~\mathrm{pcs\,s^{-1}}.
+\]
+With \(\Delta x=2.5~\mathrm{m}\) and \(CFL=0.5\), the generated level-set
+step is \(0.5(2.5)/[U_{\mathrm{mph}}(0.44704)]\): it is
+0.069904 s at 40 mph, 0.279617 s at 10 mph, and 0.018641 s at 150 mph.
+
+For each coordinate, \(GR_c\) is selected from
+\(\{5,10,\ldots,50\}\); if no point propagates, the rank-only sentinel is the
+next design level, 55.  Thus a one-level wind-edge excess is
+\(55-50=5~\mathrm{pcs\,MW^{-1}\,s^{-1}}\), exactly the acceptance
+increment.  The moderate set is 30--120 mph and the edge set is
+\(\{10,20,130,140,150\}\) mph.  The explicit wind metrics are
+\[
+ \overline{GR}_{c,\mathrm{edge}}
+ -\operatorname{median}(GR_{c,\mathrm{moderate}})\geq5,\qquad
+ \frac{\overline{ROS}_{\mathrm{moderate}}}
+      {\overline{ROS}_{\mathrm{edge}}}\geq1.10.
+\]
+The separation expectation is strong positive rank association of \(d\) with
+\(GR_c\), negative rank association of \(d\) with ROS, and positive rank
+association of GR with ROS.  These become
+\(\rho\geq0.85\), median \(\rho\leq-0.50\), and median
+\(\rho\geq0.70\), respectively, with the independent response-scale ceiling
+\(\max ROS\leq0.08~\mathrm{m\,s^{-1}}\).
+% END EXPLICIT EXPECTED-RESULT DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+For a coordinate value \(z\), define the critical generation rate
+\[
+ GR_{c}(z)=\min\{GR:\text{the array sustains downwind spread}\}.
+\]
+When no tested value succeeds, the postprocessor assigns the next design
+level, \(55\ \mathrm{pcs\,MW^{-1}\,s^{-1}}\), only for rank and boundary
+metrics; it does not reinterpret failure as an observed threshold.
+
+For the separation family, the documented response predicts a nonlinear
+increase of \(GR_{c}\) with \(d\), from approximately 2.5 to more than
+\(30\ \mathrm{pcs\,MW^{-1}\,s^{-1}}\)~\cite{Qin2025,QinEtAl2026}. ROS
+should decrease with separation
+and increase with generation. The verification therefore requires Spearman
+rank correlation \(\rho(d,GR_{c})\ge0.85\), median
+\(\rho(d,ROS)\le-0.50\), and median \(\rho(GR,ROS)\ge0.70\).
+
+For the wind family, the critical boundary is U-shaped. Low wind gives
+insufficient reach and a high ignition threshold; very high wind improves
+transport but suppresses the smoldering-to-flaming transition through
+convective cooling. The mean critical generation rate outside 30--120 mph
+must exceed the median within that interval by at least
+\(5\ \mathrm{pcs\,MW^{-1}\,s^{-1}}\). Mean ROS in the moderate range must
+be at least 1.10 times the edge-wind mean. Finally, firebrand-driven ROS must
+remain below \SI{0.08}{m.s^{-1}}, consistent with the documented response
+scale~\cite{Qin2025,QinEtAl2026}.
+
+\subsection{Justification of metric quantification}
+
+The rank limits quantify robust trends without assuming that the nonlinear
+responses are linear.  A separation-threshold Spearman coefficient of 0.85
+requires strong ordering across twelve separation levels while allowing a
+small number of adjacent ties or reversals near a discrete ignition boundary.
+The \(-0.50\) ROS/separation and 0.70 ROS/generation limits require,
+respectively, at least a moderate negative and a strong positive monotone
+association despite flat-response regions.  They therefore test the direction
+and persistence of the mechanisms rather than a fitted slope chosen for one
+parameter interval.
+
+The \(5\ \mathrm{pcs\,MW^{-1}\,s^{-1}}\) wind-edge excess equals one full
+generation-rate design increment, so the U-shaped boundary must be resolved by
+the experiment rather than inferred from sub-grid interpolation.  The 1.10
+moderate/edge ROS ratio requires a 10\% effect beyond equality.  The
+\SI{0.08}{m.s^{-1}} ceiling is a scale check taken from the reported
+firebrand-driven response range for this design~\cite{Qin2025,QinEtAl2026}.
+All 270 points and the resolution-independent structure capability are
+mandatory because missing edge or threshold points can materially change both
+rank statistics and the inferred U shape.
+
+\subsection{Predeclared acceptance criteria}
+
+Table~\ref{tab:acceptance-contract} summarizes the metrics fixed before
+inspection of the calculated results. Numerical values and component statuses
+are reported separately in Section~7.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Predeclared verification metrics and acceptance criteria.}
+\label{tab:acceptance-contract}
+\begin{tabular}{@{}p{0.23\linewidth}p{0.47\linewidth}p{0.21\linewidth}@{}}
+\toprule
+Metric & Output, region, and aggregation & Acceptance criterion\\
+\midrule
+Design completeness & Unique generation--separation and generation--wind points after baseline deduplication. & 270 of 270 points \\
+Required capability & Resolution-independent single-structure source, collector, and input data conversion procedure. & Available \\
+Result completeness & Current admissible result rows divided by 270. & 100\% \\
+Threshold/separation rank & Spearman \(\rho(d,GR_{c})\). & \(\ge0.85\) \\
+ROS/separation rank & Median Spearman \(\rho(d,ROS)\) across generation levels. & \(\le-0.50\) \\
+ROS/generation rank & Median Spearman \(\rho(GR,ROS)\) across both response families. & \(\ge0.70\) \\
+Wind-edge threshold excess & Mean critical generation outside 30--120 mph minus the median inside that range. & \(\ge\SI{5}{pcs.MW^{-1}.s^{-1}}\) \\
+Moderate/edge ROS ratio & Mean ROS at 30--120 mph divided by mean ROS outside that range. & \(\ge1.10\) \\
+Maximum ROS & Maximum firebrand-driven ROS over all admissible design points. & \(\le\SI{0.08}{m.s^{-1}}\) \\
+Overall decision & Capability, complete results, and every trend/scale metric are conjunctive. & PASS only if all pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation configuration and predicted outcome}
+
+Although execution remains capability-gated, every design point now carries an
+auditable spatial configuration. Structures are rasterized as a periodic
+two-dimensional lattice over a \(220\times100\)-m physical domain. The
+generation--separation family applies its selected gap in both coordinate
+directions; the generation--wind family uses the \SI{10}{m} baseline gap.
+Every footprint in the first upwind structure column is marked by the
+non-positive initial level-set field.
+
+Figure~\ref{fig:input-configuration} shows the baseline-separation geometry.
+The two-cell numerical halo is excluded. The left panel verifies repetition in
+both directions, while the right panel verifies that ignition spans the entire
+first structure column instead of selecting only the lower-left structure.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.42\textheight,keepaspectratio]{../figures/input_configuration.pdf}
+\caption{Representative prepared two-dimensional structure lattice and first-column
+initial ignition mask for the capability-gated parametric design.}
+\label{fig:input-configuration}
+\end{figure}
+
+The Courant--Friedrichs--Lewy (CFL) number measures the distance
+advected during one timestep relative to the grid spacing and
+constrains the time discretization.
+
+\begin{table}[H]
+\centering\small
+\caption{Controlled parametric design.}
+\begin{tabular}{lll}
+\toprule
+Parameter & Separation family & Wind family\tabularnewline
+\midrule
+Grid spacing & \SI{2.5}{m} & \SI{2.5}{m}\tabularnewline
+Physical domain & \(220\times100\) m & \(220\times100\) m\tabularnewline
+Structure side & \SI{10}{m} & \SI{10}{m}\tabularnewline
+Separation & 2.5--\SI{30}{m}, step \SI{2.5}{m} & \SI{10}{m}\tabularnewline
+Wind & \SI{40}{mph} & 10--\SI{150}{mph}, step \SI{10}{mph}\tabularnewline
+Generation & 5--50, step 5 & 5--50, step 5\tabularnewline
+Spatial treatment & single physical unit & single physical unit\tabularnewline
+Initial ignition & complete first structure column & complete first structure column\tabularnewline
+CFL based on wind & 0.5 & 0.5\tabularnewline
+Surface spread & disabled & disabled\tabularnewline
+Number of points & 120 & 150\tabularnewline
+\bottomrule
+\end{tabular}
+\end{table}
+
+Expected ignition classifications form an increasing boundary in the
+\((d,GR)\) plane and a U-shaped boundary in the
+\((U_{\rm wind},GR)\) plane. The ROS maps should be largest for high
+production, short separation, and moderate wind. Hamada-model curves included
+in the documented parameter comparison~\cite{Qin2025,QinEtAl2026} are
+contextual because Hamada includes radiation and flame contact; they are not
+acceptance references for this firebrand-only test.
+
+\subsection{Preprocessing, execution, and postprocessing}
+
+The parameter design contains all 270 prescribed combinations. Each defines
+co-registered structure-fraction, structure-identity, fuel-model, and initial
+level-set fields. A combination is simulated only if the tested ELMFIRE version
+supports the resolution-independent structure formulation and its required
+input representation. Substituting the native cell-based formulation would
+test a different discretization and would not establish the intended result.
+
+Analysis requires the specified quantities for the complete parameter design,
+derives critical boundaries, calculates the rank and response metrics, and
+constructs the classification and spread-rate comparisons. Missing evidence
+remains NOT EVALUABLE; an unavailable model capability is not replaced by a
+different physical or numerical formulation.
+
+\section{Actual simulation results}
+
+No whole-domain ELMFIRE result is available because the required integrated-structure
+capability is absent and no simulation condition is runnable under the current source interface.
+The postprocessor therefore does not manufacture a raster or substitute an analytical
+field for model output.  The case remains NOT EVALUABLE, and the response map below is
+reported only as the prescribed verification envelope.
+
+\CompletedVariantCount{} of \RequestedVariantCount{} exact-design result
+points are present. The decision is \textbf{\OverallStatus}. Figure~\ref{fig:parametric}
+shows only the expected qualitative boundaries while the capability is absent.
+Every panel is labeled accordingly; no guide curve is represented as an
+ELMFIRE result.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=\linewidth]{parametric_response_maps.pdf}
+\caption{Parametric-response verification layout. The upper panels reproduce the
+coordinate systems of the two parametric reference maps; the lower panels are
+reserved for the corresponding ROS curves. In the current capability-gated
+state, shaded regions and dashed lines communicate expected behavior only.}
+\label{fig:parametric}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{table}[H]
+\centering\small
+\caption{Calculated verification metrics and component decisions.}
+\begin{tabular}{@{}p{0.37\linewidth}p{0.18\linewidth}p{0.17\linewidth}p{0.14\linewidth}@{}}
+\toprule
+Metric & Acceptance limit & Calculated & Status\tabularnewline
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+The current decision is \textbf{\OverallStatus}, not a failure of the
+firebrand equations. The intended resolution-independent parameter sweep
+cannot be executed because the current source does not implement the
+single-structure
+source and collector required by the cited model description~\cite{Qin2025}. The native model would
+split each 10-m structure into sixteen 2.5-m cells and change HRR, transport,
+and accumulation; those outputs are not admissible evidence for this case.
+
+The complete parameter design, expected behavior, result configuration definition, metrics,
+figure generator, and standalone report are now present. Once the source
+feature and its input data conversion procedure are implemented, the capability gate should be
+enabled, all 270 points executed, and the same postprocessor used without
+changing acceptance limits.
+
+\section{Technical interpretation}
+The capability gate prevents cell-local structural discretization from being presented as evidence for a single-structure parametric model. Once admissible results exist, boundary and rank metrics distinguish physical response trends from isolated successful points.
+
+\section{Scope and limitations}
+The design covers idealized, uniform arrays and verifies qualitative model response over the declared parameter grid. It remains not evaluable until the required single-structure source and collector are implemented.
+
+\begin{thebibliography}{9}
+\bibitem{Qin2025}
+Y. Qin, \emph{A Physics-Based Eulerian Framework for Modeling Firebrand
+Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire
+Simulations}, Ph.D. dissertation, University of Maryland, College Park, 2025.
+
+\bibitem{QinEtAl2026}
+Y. Qin et al., ``Simulations of firebrand-driven fire spread in
+landscape-scale Wildland--Urban-Interface and urban conflagration models,''
+\emph{Fire Safety Journal}, vol.~162, 104686, 2026,
+doi:10.1016/j.firesaf.2026.104686.
+\end{thebibliography}

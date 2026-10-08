@@ -1,0 +1,1284 @@
+[
+  {
+    "id": "CASE01_BET",
+    "path": "cases/Verification/coupling_tests/CASE01_BET",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE01_BET/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE01_BET/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE01_BET/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE01_BET/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE01_BET/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE01_BET/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE01_BET/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE01_BET/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE01_BET/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE01_BET/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE01_BET/figures/emission_time_resolution.pdf",
+      "cases/Verification/coupling_tests/CASE01_BET/figures/input_configuration.pdf"
+    ]
+  },
+  {
+    "id": "CASE02_FGR",
+    "path": "cases/Verification/coupling_tests/CASE02_FGR",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE02_FGR/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE02_FGR/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE02_FGR/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE02_FGR/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE02_FGR/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE02_FGR/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE02_FGR/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE02_FGR/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE02_FGR/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE02_FGR/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE02_FGR/figures/generation_residence_time.pdf",
+      "cases/Verification/coupling_tests/CASE02_FGR/figures/input_configuration.pdf"
+    ]
+  },
+  {
+    "id": "CASE03_ETC",
+    "path": "cases/Verification/coupling_tests/CASE03_ETC",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE03_ETC/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE03_ETC/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE03_ETC/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE03_ETC/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE03_ETC/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE03_ETC/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE03_ETC/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE03_ETC/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE03_ETC/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE03_ETC/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE03_ETC/figures/eulerian_transport_convergence.pdf",
+      "cases/Verification/coupling_tests/CASE03_ETC/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE03_ETC/figures/representative_front_extraction.pdf"
+    ]
+  },
+  {
+    "id": "CASE04_STI",
+    "path": "cases/Verification/coupling_tests/CASE04_STI",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE04_STI/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE04_STI/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE04_STI/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE04_STI/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE04_STI/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE04_STI/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE04_STI/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE04_STI/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE04_STI/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE04_STI/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE04_STI/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE04_STI/figures/steady_transport_reference.pdf"
+    ]
+  },
+  {
+    "id": "CASE05_TDW",
+    "path": "cases/Verification/coupling_tests/CASE05_TDW",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE05_TDW/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE05_TDW/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE05_TDW/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE05_TDW/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE05_TDW/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE05_TDW/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE05_TDW/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE05_TDW/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE05_TDW/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE05_TDW/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE05_TDW/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE05_TDW/figures/time_dependent_wind_errors.pdf",
+      "cases/Verification/coupling_tests/CASE05_TDW/figures/time_dependent_wind_transport.pdf"
+    ]
+  },
+  {
+    "id": "CASE06_F2D",
+    "path": "cases/Verification/coupling_tests/CASE06_F2D",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE06_F2D/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE06_F2D/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE06_F2D/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE06_F2D/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE06_F2D/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE06_F2D/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE06_F2D/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE06_F2D/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE06_F2D/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE06_F2D/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE06_F2D/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE06_F2D/figures/two_dimensional_fireline_evolution.pdf",
+      "cases/Verification/coupling_tests/CASE06_F2D/figures/two_dimensional_transport_fields.pdf"
+    ]
+  },
+  {
+    "id": "CASE07_IPC",
+    "path": "cases/Verification/coupling_tests/CASE07_IPC",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE07_IPC/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE07_IPC/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE07_IPC/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE07_IPC/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE07_IPC/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE07_IPC/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE07_IPC/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE07_IPC/scripts/case_support.py",
+      "cases/Verification/coupling_tests/CASE07_IPC/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE07_IPC/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE07_IPC/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE07_IPC/figures/ignition_probability_convergence.pdf",
+      "cases/Verification/coupling_tests/CASE07_IPC/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE07_IPC/figures/sft_delay_distribution.pdf",
+      "cases/Verification/coupling_tests/CASE07_IPC/figures/sft_delay_ensemble_convergence.pdf"
+    ]
+  },
+  {
+    "id": "CASE08_FBC",
+    "path": "cases/Verification/coupling_tests/CASE08_FBC",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE08_FBC/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE08_FBC/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE08_FBC/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE08_FBC/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE08_FBC/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE08_FBC/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE08_FBC/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE08_FBC/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE08_FBC/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE08_FBC/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE08_FBC/figures/firebrand_consumption_convergence.pdf",
+      "cases/Verification/coupling_tests/CASE08_FBC/figures/firebrand_consumption_state.pdf",
+      "cases/Verification/coupling_tests/CASE08_FBC/figures/firebrand_consumption_verification.pdf",
+      "cases/Verification/coupling_tests/CASE08_FBC/figures/input_configuration.pdf"
+    ]
+  },
+  {
+    "id": "CASE09_MMD",
+    "path": "cases/Verification/coupling_tests/CASE09_MMD",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE09_MMD/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE09_MMD/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE09_MMD/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE09_MMD/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE09_MMD/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE09_MMD/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE09_MMD/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE09_MMD/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE09_MMD/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE09_MMD/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE09_MMD/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE09_MMD/figures/mixed_mode_delay_effect.pdf",
+      "cases/Verification/coupling_tests/CASE09_MMD/figures/mixed_mode_reference.pdf",
+      "cases/Verification/coupling_tests/CASE09_MMD/figures/surface_dominated_reference.pdf"
+    ]
+  },
+  {
+    "id": "CASE10_WSR",
+    "path": "cases/Verification/coupling_tests/CASE10_WSR",
+    "decision": "NOT EVALUABLE",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE10_WSR/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE10_WSR/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE10_WSR/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE10_WSR/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE10_WSR/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE10_WSR/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE10_WSR/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE10_WSR/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE10_WSR/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE10_WSR/figures/baseline_reference.pdf",
+      "cases/Verification/coupling_tests/CASE10_WSR/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE10_WSR/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE10_WSR/figures/native_coarse_reference.pdf",
+      "cases/Verification/coupling_tests/CASE10_WSR/figures/native_fine_reference.pdf",
+      "cases/Verification/coupling_tests/CASE10_WSR/figures/wui_structure_resolution.pdf"
+    ]
+  },
+  {
+    "id": "CASE11_WSC",
+    "path": "cases/Verification/coupling_tests/CASE11_WSC",
+    "decision": "NOT EVALUABLE",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE11_WSC/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE11_WSC/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE11_WSC/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE11_WSC/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE11_WSC/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE11_WSC/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE11_WSC/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE11_WSC/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE11_WSC/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE11_WSC/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE11_WSC/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE11_WSC/figures/surface_coupled_reference.pdf",
+      "cases/Verification/coupling_tests/CASE11_WSC/figures/surface_coupling_comparison.pdf"
+    ]
+  },
+  {
+    "id": "CASE12_TRS",
+    "path": "cases/Verification/coupling_tests/CASE12_TRS",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE12_TRS/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE12_TRS/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE12_TRS/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE12_TRS/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE12_TRS/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE12_TRS/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE12_TRS/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE12_TRS/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE12_TRS/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE12_TRS/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE12_TRS/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE12_TRS/figures/temporal_resolution_error.pdf",
+      "cases/Verification/coupling_tests/CASE12_TRS/figures/temporal_resolution_profiles.pdf"
+    ]
+  },
+  {
+    "id": "CASE13_PRM",
+    "path": "cases/Verification/coupling_tests/CASE13_PRM",
+    "decision": "NOT EVALUABLE",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE13_PRM/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE13_PRM/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE13_PRM/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE13_PRM/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE13_PRM/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE13_PRM/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE13_PRM/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE13_PRM/scripts/postprocess.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE13_PRM/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE13_PRM/figures/parametric_response_maps.pdf"
+    ]
+  },
+  {
+    "id": "CASE14_SRS",
+    "path": "cases/Verification/coupling_tests/CASE14_SRS",
+    "decision": "NOT EVALUABLE",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE14_SRS/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE14_SRS/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE14_SRS/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE14_SRS/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE14_SRS/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE14_SRS/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE14_SRS/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE14_SRS/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE14_SRS/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE14_SRS/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE14_SRS/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE14_SRS/figures/spatial_resolution_sweep.pdf"
+    ]
+  },
+  {
+    "id": "CASE15_CRO",
+    "path": "cases/Verification/unit_tests/CASE15_CRO",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/unit_tests/CASE15_CRO/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE15_CRO/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE15_CRO/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE15_CRO/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE15_CRO/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE15_CRO/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE15_CRO/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE15_CRO/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE15_CRO/scripts/postprocess.py",
+      "cases/Verification/unit_tests/CASE15_CRO/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE15_CRO/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE15_CRO/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE15_CRO/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE16_NSP",
+    "path": "cases/Verification/unit_tests/CASE16_NSP",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/unit_tests/CASE16_NSP/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE16_NSP/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE16_NSP/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE16_NSP/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE16_NSP/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE16_NSP/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE16_NSP/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE16_NSP/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE16_NSP/scripts/postprocess.py",
+      "cases/Verification/unit_tests/CASE16_NSP/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE16_NSP/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE16_NSP/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE16_NSP/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE17_SCV",
+    "path": "cases/Verification/unit_tests/CASE17_SCV",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/unit_tests/CASE17_SCV/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE17_SCV/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE17_SCV/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE17_SCV/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE17_SCV/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE17_SCV/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE17_SCV/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE17_SCV/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE17_SCV/scripts/postprocess.py",
+      "cases/Verification/unit_tests/CASE17_SCV/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE17_SCV/figures/convergence.pdf",
+      "cases/Verification/unit_tests/CASE17_SCV/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE17_SCV/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE17_SCV/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE18_TCV",
+    "path": "cases/Verification/unit_tests/CASE18_TCV",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/unit_tests/CASE18_TCV/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE18_TCV/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE18_TCV/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE18_TCV/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE18_TCV/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE18_TCV/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE18_TCV/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE18_TCV/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE18_TCV/scripts/postprocess.py",
+      "cases/Verification/unit_tests/CASE18_TCV/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE18_TCV/figures/convergence.pdf",
+      "cases/Verification/unit_tests/CASE18_TCV/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE18_TCV/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE19_WTH",
+    "path": "cases/Verification/coupling_tests/CASE19_WTH",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE19_WTH/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE19_WTH/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE19_WTH/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE19_WTH/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE19_WTH/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE19_WTH/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE19_WTH/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE19_WTH/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE19_WTH/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE19_WTH/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE19_WTH/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE19_WTH/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE19_WTH/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE19_WTH/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE20_PIG",
+    "path": "cases/Verification/coupling_tests/CASE20_PIG",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE20_PIG/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE20_PIG/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE20_PIG/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE20_PIG/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE20_PIG/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE20_PIG/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE20_PIG/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE20_PIG/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE20_PIG/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE20_PIG/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE20_PIG/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE20_PIG/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE20_PIG/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE21_WDE",
+    "path": "cases/Verification/coupling_tests/CASE21_WDE",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE21_WDE/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE21_WDE/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE21_WDE/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE21_WDE/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE21_WDE/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE21_WDE/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE21_WDE/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE21_WDE/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE21_WDE/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE21_WDE/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE21_WDE/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE21_WDE/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE21_WDE/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE22_VSL",
+    "path": "cases/Verification/coupling_tests/CASE22_VSL",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE22_VSL/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE22_VSL/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE22_VSL/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE22_VSL/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE22_VSL/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE22_VSL/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE22_VSL/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE22_VSL/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE22_VSL/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE22_VSL/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE22_VSL/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE22_VSL/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE22_VSL/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE23_FQD",
+    "path": "cases/Verification/coupling_tests/CASE23_FQD",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE23_FQD/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE23_FQD/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE23_FQD/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE23_FQD/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE23_FQD/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE23_FQD/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE23_FQD/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE23_FQD/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE23_FQD/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE23_FQD/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE23_FQD/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE23_FQD/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE23_FQD/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE24_CXI",
+    "path": "cases/Verification/coupling_tests/CASE24_CXI",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE24_CXI/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE24_CXI/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE24_CXI/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE24_CXI/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE24_CXI/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE24_CXI/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE24_CXI/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE24_CXI/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE24_CXI/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE24_CXI/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE24_CXI/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE24_CXI/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE24_CXI/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE25_MQD",
+    "path": "cases/Verification/coupling_tests/CASE25_MQD",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE25_MQD/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE25_MQD/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE25_MQD/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE25_MQD/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE25_MQD/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE25_MQD/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE25_MQD/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE25_MQD/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE25_MQD/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE25_MQD/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE25_MQD/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE25_MQD/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE25_MQD/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE26_CNF",
+    "path": "cases/Verification/coupling_tests/CASE26_CNF",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE26_CNF/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE26_CNF/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE26_CNF/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE26_CNF/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE26_CNF/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE26_CNF/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE26_CNF/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE26_CNF/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE26_CNF/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE26_CNF/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE26_CNF/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE26_CNF/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE26_CNF/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE27_FBT",
+    "path": "cases/Verification/coupling_tests/CASE27_FBT",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE27_FBT/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE27_FBT/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE27_FBT/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE27_FBT/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE27_FBT/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE27_FBT/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE27_FBT/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE27_FBT/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE27_FBT/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE27_FBT/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE27_FBT/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE27_FBT/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE27_FBT/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE28_OVA",
+    "path": "cases/Verification/coupling_tests/CASE28_OVA",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE28_OVA/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE28_OVA/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE28_OVA/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE28_OVA/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE28_OVA/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE28_OVA/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE28_OVA/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE28_OVA/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE28_OVA/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE28_OVA/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE28_OVA/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE28_OVA/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE28_OVA/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE29_SUP",
+    "path": "cases/Verification/coupling_tests/CASE29_SUP",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE29_SUP/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE29_SUP/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE29_SUP/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE29_SUP/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE29_SUP/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE29_SUP/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE29_SUP/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE29_SUP/scripts/case_adapter.py",
+      "cases/Verification/coupling_tests/CASE29_SUP/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE29_SUP/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE29_SUP/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE29_SUP/figures/verification_summary.pdf",
+      "cases/Verification/coupling_tests/CASE29_SUP/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE30_MIT",
+    "path": "cases/Verification/coupling_tests/CASE30_MIT",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE30_MIT/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE30_MIT/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE30_MIT/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE30_MIT/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE30_MIT/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE30_MIT/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE30_MIT/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE30_MIT/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE30_MIT/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE30_MIT/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE30_MIT/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE30_MIT/figures/verification_summary.pdf"
+    ]
+  },
+  {
+    "id": "CASE31_PFT",
+    "path": "cases/Verification/coupling_tests/CASE31_PFT",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE31_PFT/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE31_PFT/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE31_PFT/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE31_PFT/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE31_PFT/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE31_PFT/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE31_PFT/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE31_PFT/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE31_PFT/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE31_PFT/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE31_PFT/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE31_PFT/figures/verification_summary.pdf"
+    ]
+  },
+  {
+    "id": "CASE32_RCV",
+    "path": "cases/Verification/coupling_tests/CASE32_RCV",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE32_RCV/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE32_RCV/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE32_RCV/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE32_RCV/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE32_RCV/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE32_RCV/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE32_RCV/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE32_RCV/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE32_RCV/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE32_RCV/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE32_RCV/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE32_RCV/figures/verification_summary.pdf"
+    ]
+  },
+  {
+    "id": "CASE33_SDO",
+    "path": "cases/Verification/coupling_tests/CASE33_SDO",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE33_SDO/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE33_SDO/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE33_SDO/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE33_SDO/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE33_SDO/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE33_SDO/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE33_SDO/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE33_SDO/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE33_SDO/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE33_SDO/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE33_SDO/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE33_SDO/figures/verification_summary.pdf"
+    ]
+  },
+  {
+    "id": "CASE34_FMS",
+    "path": "cases/Verification/unit_tests/CASE34_FMS",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/unit_tests/CASE34_FMS/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE34_FMS/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE34_FMS/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE34_FMS/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE34_FMS/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE34_FMS/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE34_FMS/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE34_FMS/scripts/evaluate_outputs.py",
+      "cases/Verification/unit_tests/CASE34_FMS/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE34_FMS/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE34_FMS/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE34_FMS/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE34_FMS/figures/sweep_response.pdf"
+    ]
+  },
+  {
+    "id": "CASE35_WSS",
+    "path": "cases/Verification/unit_tests/CASE35_WSS",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/unit_tests/CASE35_WSS/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE35_WSS/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE35_WSS/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE35_WSS/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE35_WSS/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE35_WSS/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE35_WSS/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE35_WSS/scripts/evaluate_outputs.py",
+      "cases/Verification/unit_tests/CASE35_WSS/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE35_WSS/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE35_WSS/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE35_WSS/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE35_WSS/figures/sweep_response.pdf"
+    ]
+  },
+  {
+    "id": "CASE36_SLS",
+    "path": "cases/Verification/unit_tests/CASE36_SLS",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/unit_tests/CASE36_SLS/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE36_SLS/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE36_SLS/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE36_SLS/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE36_SLS/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE36_SLS/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE36_SLS/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE36_SLS/scripts/evaluate_outputs.py",
+      "cases/Verification/unit_tests/CASE36_SLS/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE36_SLS/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE36_SLS/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE36_SLS/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE36_SLS/figures/sweep_response.pdf"
+    ]
+  },
+  {
+    "id": "CASE37_DMS",
+    "path": "cases/Verification/unit_tests/CASE37_DMS",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/unit_tests/CASE37_DMS/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE37_DMS/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE37_DMS/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE37_DMS/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE37_DMS/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE37_DMS/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE37_DMS/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE37_DMS/scripts/evaluate_outputs.py",
+      "cases/Verification/unit_tests/CASE37_DMS/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE37_DMS/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE37_DMS/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE37_DMS/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE37_DMS/figures/sweep_response.pdf"
+    ]
+  },
+  {
+    "id": "CASE38_LMS",
+    "path": "cases/Verification/unit_tests/CASE38_LMS",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/unit_tests/CASE38_LMS/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE38_LMS/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE38_LMS/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE38_LMS/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE38_LMS/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE38_LMS/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE38_LMS/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE38_LMS/scripts/evaluate_outputs.py",
+      "cases/Verification/unit_tests/CASE38_LMS/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE38_LMS/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE38_LMS/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE38_LMS/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE38_LMS/figures/sweep_response.pdf"
+    ]
+  },
+  {
+    "id": "CASE39_DHC",
+    "path": "cases/Verification/unit_tests/CASE39_DHC",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/unit_tests/CASE39_DHC/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE39_DHC/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE39_DHC/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE39_DHC/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE39_DHC/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE39_DHC/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE39_DHC/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE39_DHC/scripts/evaluate_outputs.py",
+      "cases/Verification/unit_tests/CASE39_DHC/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE39_DHC/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE39_DHC/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE39_DHC/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE39_DHC/figures/sweep_response.pdf"
+    ]
+  },
+  {
+    "id": "CASE40_WSD",
+    "path": "cases/Verification/coupling_tests/CASE40_WSD",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE40_WSD/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE40_WSD/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE40_WSD/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE40_WSD/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE40_WSD/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE40_WSD/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE40_WSD/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE40_WSD/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE40_WSD/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE40_WSD/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE40_WSD/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE40_WSD/figures/vector_response.pdf"
+    ]
+  },
+  {
+    "id": "CASE41_CFP",
+    "path": "cases/Verification/unit_tests/CASE41_CFP",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/unit_tests/CASE41_CFP/report/case_body.tex",
+      "cases/Verification/unit_tests/CASE41_CFP/report/case_macros.tex",
+      "cases/Verification/unit_tests/CASE41_CFP/report/case_metadata.tex",
+      "cases/Verification/unit_tests/CASE41_CFP/report/case_report.tex",
+      "cases/Verification/unit_tests/CASE41_CFP/report/metrics_macros.tex",
+      "cases/Verification/unit_tests/CASE41_CFP/report/report_style.tex",
+      "cases/Verification/unit_tests/CASE41_CFP/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/unit_tests/CASE41_CFP/scripts/evaluate_outputs.py",
+      "cases/Verification/unit_tests/CASE41_CFP/scripts/metrics_to_macro.py",
+      "cases/Verification/unit_tests/CASE41_CFP/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/unit_tests/CASE41_CFP/figures/domain_result.pdf",
+      "cases/Verification/unit_tests/CASE41_CFP/figures/input_configuration.pdf",
+      "cases/Verification/unit_tests/CASE41_CFP/figures/sweep_response.pdf"
+    ]
+  },
+  {
+    "id": "CASE42_WAF",
+    "path": "cases/Verification/coupling_tests/CASE42_WAF",
+    "decision": "PASS",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE42_WAF/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE42_WAF/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE42_WAF/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE42_WAF/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE42_WAF/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE42_WAF/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE42_WAF/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE42_WAF/scripts/evaluate_outputs.py",
+      "cases/Verification/coupling_tests/CASE42_WAF/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE42_WAF/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE42_WAF/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE42_WAF/figures/sweep_response.pdf"
+    ]
+  },
+  {
+    "id": "CASE43_WER",
+    "path": "cases/Verification/coupling_tests/CASE43_WER",
+    "decision": "NOT EVALUABLE",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE43_WER/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE43_WER/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE43_WER/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE43_WER/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE43_WER/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE43_WER/report/readability_macros.tex",
+      "cases/Verification/coupling_tests/CASE43_WER/report/readable_results.tex",
+      "cases/Verification/coupling_tests/CASE43_WER/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE43_WER/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE43_WER/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE43_WER/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE43_WER/scripts/preprocess.py",
+      "cases/Verification/coupling_tests/CASE43_WER/scripts/report_readability.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE43_WER/figures/expected_response.pdf",
+      "cases/Verification/coupling_tests/CASE43_WER/figures/input_configuration.pdf"
+    ]
+  },
+  {
+    "id": "CASE44_WHP",
+    "path": "cases/Verification/coupling_tests/CASE44_WHP",
+    "decision": "NOT EVALUABLE",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE44_WHP/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE44_WHP/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE44_WHP/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE44_WHP/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE44_WHP/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE44_WHP/report/readability_macros.tex",
+      "cases/Verification/coupling_tests/CASE44_WHP/report/readable_results.tex",
+      "cases/Verification/coupling_tests/CASE44_WHP/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE44_WHP/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE44_WHP/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE44_WHP/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE44_WHP/scripts/preprocess.py",
+      "cases/Verification/coupling_tests/CASE44_WHP/scripts/report_readability.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE44_WHP/figures/expected_response.pdf",
+      "cases/Verification/coupling_tests/CASE44_WHP/figures/input_configuration.pdf"
+    ]
+  },
+  {
+    "id": "CASE45_HRS",
+    "path": "cases/Verification/coupling_tests/CASE45_HRS",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE45_HRS/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE45_HRS/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE45_HRS/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE45_HRS/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE45_HRS/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE45_HRS/report/readability_macros.tex",
+      "cases/Verification/coupling_tests/CASE45_HRS/report/readable_results.tex",
+      "cases/Verification/coupling_tests/CASE45_HRS/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE45_HRS/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE45_HRS/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE45_HRS/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE45_HRS/scripts/preprocess.py",
+      "cases/Verification/coupling_tests/CASE45_HRS/scripts/report_readability.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE45_HRS/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE45_HRS/figures/heat_stimulus.pdf",
+      "cases/Verification/coupling_tests/CASE45_HRS/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE45_HRS/figures/input_stimulus.pdf",
+      "cases/Verification/coupling_tests/CASE45_HRS/figures/response_summary.pdf"
+    ]
+  },
+  {
+    "id": "CASE46_WUT",
+    "path": "cases/Verification/coupling_tests/CASE46_WUT",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE46_WUT/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE46_WUT/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE46_WUT/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE46_WUT/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE46_WUT/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE46_WUT/report/readability_macros.tex",
+      "cases/Verification/coupling_tests/CASE46_WUT/report/readable_results.tex",
+      "cases/Verification/coupling_tests/CASE46_WUT/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE46_WUT/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE46_WUT/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE46_WUT/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE46_WUT/scripts/preprocess.py",
+      "cases/Verification/coupling_tests/CASE46_WUT/scripts/report_readability.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE46_WUT/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE46_WUT/figures/transition_observations.pdf"
+    ]
+  },
+  {
+    "id": "CASE47_UWT",
+    "path": "cases/Verification/coupling_tests/CASE47_UWT",
+    "decision": "NOT EVALUABLE",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE47_UWT/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE47_UWT/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE47_UWT/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE47_UWT/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE47_UWT/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE47_UWT/report/readability_macros.tex",
+      "cases/Verification/coupling_tests/CASE47_UWT/report/readable_results.tex",
+      "cases/Verification/coupling_tests/CASE47_UWT/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE47_UWT/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE47_UWT/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE47_UWT/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE47_UWT/scripts/preprocess.py",
+      "cases/Verification/coupling_tests/CASE47_UWT/scripts/report_readability.py",
+      "cases/Verification/coupling_tests/CASE47_UWT/scripts/spatial_evidence.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE47_UWT/figures/arrival_controls.pdf",
+      "cases/Verification/coupling_tests/CASE47_UWT/figures/implementation_characterization.pdf",
+      "cases/Verification/coupling_tests/CASE47_UWT/figures/input_configuration.pdf",
+      "cases/Verification/coupling_tests/CASE47_UWT/figures/whole_domain_result.pdf"
+    ]
+  },
+  {
+    "id": "CASE48_WGC",
+    "path": "cases/Verification/coupling_tests/CASE48_WGC",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE48_WGC/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE48_WGC/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE48_WGC/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE48_WGC/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE48_WGC/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE48_WGC/report/readability_macros.tex",
+      "cases/Verification/coupling_tests/CASE48_WGC/report/readable_results.tex",
+      "cases/Verification/coupling_tests/CASE48_WGC/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE48_WGC/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE48_WGC/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE48_WGC/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE48_WGC/scripts/preprocess.py",
+      "cases/Verification/coupling_tests/CASE48_WGC/scripts/report_readability.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE48_WGC/figures/convergence.pdf",
+      "cases/Verification/coupling_tests/CASE48_WGC/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE48_WGC/figures/input_configuration.pdf"
+    ]
+  },
+  {
+    "id": "CASE49_WTC",
+    "path": "cases/Verification/coupling_tests/CASE49_WTC",
+    "decision": "FAIL",
+    "reports": [
+      "cases/Verification/coupling_tests/CASE49_WTC/report/case_body.tex",
+      "cases/Verification/coupling_tests/CASE49_WTC/report/case_macros.tex",
+      "cases/Verification/coupling_tests/CASE49_WTC/report/case_metadata.tex",
+      "cases/Verification/coupling_tests/CASE49_WTC/report/case_report.tex",
+      "cases/Verification/coupling_tests/CASE49_WTC/report/metrics_macros.tex",
+      "cases/Verification/coupling_tests/CASE49_WTC/report/readability_macros.tex",
+      "cases/Verification/coupling_tests/CASE49_WTC/report/readable_results.tex",
+      "cases/Verification/coupling_tests/CASE49_WTC/report/report_style.tex",
+      "cases/Verification/coupling_tests/CASE49_WTC/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Verification/coupling_tests/CASE49_WTC/scripts/metrics_to_macro.py",
+      "cases/Verification/coupling_tests/CASE49_WTC/scripts/postprocess.py",
+      "cases/Verification/coupling_tests/CASE49_WTC/scripts/preprocess.py",
+      "cases/Verification/coupling_tests/CASE49_WTC/scripts/report_readability.py"
+    ],
+    "figures": [
+      "cases/Verification/coupling_tests/CASE49_WTC/figures/convergence.pdf",
+      "cases/Verification/coupling_tests/CASE49_WTC/figures/domain_result.pdf",
+      "cases/Verification/coupling_tests/CASE49_WTC/figures/input_configuration.pdf"
+    ]
+  },
+  {
+    "id": "camp_fire",
+    "path": "cases/Validation/landscape_scale/camp_fire",
+    "decision": "CHARACTERIZED",
+    "reports": [
+      "cases/Validation/landscape_scale/camp_fire/report/case_body.tex",
+      "cases/Validation/landscape_scale/camp_fire/report/case_macros.tex",
+      "cases/Validation/landscape_scale/camp_fire/report/case_metadata.tex",
+      "cases/Validation/landscape_scale/camp_fire/report/case_report.tex",
+      "cases/Validation/landscape_scale/camp_fire/report/metrics_macros.tex",
+      "cases/Validation/landscape_scale/camp_fire/report/report_style.tex",
+      "cases/Validation/landscape_scale/camp_fire/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Validation/landscape_scale/camp_fire/scripts/metrics_to_macro.py",
+      "cases/Validation/landscape_scale/camp_fire/scripts/postprocess.py",
+      "cases/Validation/landscape_scale/camp_fire/scripts/preprocess.py"
+    ],
+    "figures": [
+      "cases/Validation/landscape_scale/camp_fire/figures/arrival_time_summary.pdf",
+      "cases/Validation/landscape_scale/camp_fire/figures/burned_area_growth.pdf",
+      "cases/Validation/landscape_scale/camp_fire/figures/input_overview.pdf",
+      "cases/Validation/landscape_scale/camp_fire/figures/observation_summary.pdf",
+      "cases/Validation/landscape_scale/camp_fire/figures/optional_output_fields.pdf",
+      "cases/Validation/landscape_scale/camp_fire/figures/validation_comparison.pdf",
+      "cases/Validation/landscape_scale/camp_fire/figures/weather_summary.pdf",
+      "cases/Validation/landscape_scale/camp_fire/figures/weather_time_series.pdf"
+    ]
+  },
+  {
+    "id": "thomas_fire",
+    "path": "cases/Validation/landscape_scale/thomas_fire",
+    "decision": "CHARACTERIZED",
+    "reports": [
+      "cases/Validation/landscape_scale/thomas_fire/report/case_body.tex",
+      "cases/Validation/landscape_scale/thomas_fire/report/case_macros.tex",
+      "cases/Validation/landscape_scale/thomas_fire/report/case_metadata.tex",
+      "cases/Validation/landscape_scale/thomas_fire/report/case_report.tex",
+      "cases/Validation/landscape_scale/thomas_fire/report/metrics_macros.tex",
+      "cases/Validation/landscape_scale/thomas_fire/report/report_style.tex",
+      "cases/Validation/landscape_scale/thomas_fire/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Validation/landscape_scale/thomas_fire/scripts/landscape_validation_helpers.py",
+      "cases/Validation/landscape_scale/thomas_fire/scripts/metrics_to_macro.py",
+      "cases/Validation/landscape_scale/thomas_fire/scripts/postprocess.py",
+      "cases/Validation/landscape_scale/thomas_fire/scripts/preprocess.py"
+    ],
+    "figures": [
+      "cases/Validation/landscape_scale/thomas_fire/figures/arrival_time_summary.pdf",
+      "cases/Validation/landscape_scale/thomas_fire/figures/burned_area_growth.pdf",
+      "cases/Validation/landscape_scale/thomas_fire/figures/input_overview.pdf",
+      "cases/Validation/landscape_scale/thomas_fire/figures/observation_summary.pdf",
+      "cases/Validation/landscape_scale/thomas_fire/figures/optional_output_fields.pdf",
+      "cases/Validation/landscape_scale/thomas_fire/figures/validation_comparison.pdf",
+      "cases/Validation/landscape_scale/thomas_fire/figures/weather_summary.pdf",
+      "cases/Validation/landscape_scale/thomas_fire/figures/weather_time_series.pdf"
+    ]
+  },
+  {
+    "id": "tubbs_fire",
+    "path": "cases/Validation/landscape_scale/tubbs_fire",
+    "decision": "CHARACTERIZED",
+    "reports": [
+      "cases/Validation/landscape_scale/tubbs_fire/report/case_body.tex",
+      "cases/Validation/landscape_scale/tubbs_fire/report/case_macros.tex",
+      "cases/Validation/landscape_scale/tubbs_fire/report/case_metadata.tex",
+      "cases/Validation/landscape_scale/tubbs_fire/report/case_report.tex",
+      "cases/Validation/landscape_scale/tubbs_fire/report/metrics_macros.tex",
+      "cases/Validation/landscape_scale/tubbs_fire/report/report_style.tex",
+      "cases/Validation/landscape_scale/tubbs_fire/report/technical_macros.tex"
+    ],
+    "producers": [
+      "cases/Validation/landscape_scale/tubbs_fire/scripts/landscape_validation_helpers.py",
+      "cases/Validation/landscape_scale/tubbs_fire/scripts/metrics_to_macro.py",
+      "cases/Validation/landscape_scale/tubbs_fire/scripts/postprocess.py",
+      "cases/Validation/landscape_scale/tubbs_fire/scripts/preprocess.py"
+    ],
+    "figures": [
+      "cases/Validation/landscape_scale/tubbs_fire/figures/arrival_time_summary.pdf",
+      "cases/Validation/landscape_scale/tubbs_fire/figures/burned_area_growth.pdf",
+      "cases/Validation/landscape_scale/tubbs_fire/figures/input_overview.pdf",
+      "cases/Validation/landscape_scale/tubbs_fire/figures/observation_summary.pdf",
+      "cases/Validation/landscape_scale/tubbs_fire/figures/optional_output_fields.pdf",
+      "cases/Validation/landscape_scale/tubbs_fire/figures/validation_comparison.pdf",
+      "cases/Validation/landscape_scale/tubbs_fire/figures/weather_summary.pdf",
+      "cases/Validation/landscape_scale/tubbs_fire/figures/weather_time_series.pdf"
+    ]
+  }
+]

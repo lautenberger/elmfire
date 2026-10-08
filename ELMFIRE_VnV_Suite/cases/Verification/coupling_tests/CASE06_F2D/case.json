@@ -1,0 +1,20 @@
+{
+  "case_number": "06",
+  "purpose_abbreviation": "F2D",
+  "id": "CASE06_F2D",
+  "chapter": "4",
+  "title": "Two-Dimensional Firebrand-Driven Spread",
+  "dx": 10,
+  "nx": 84,
+  "ny": 34,
+  "tstop": 120,
+  "wui": false,
+  "no_surface": false,
+  "ignition": true,
+  "consumption": false,
+  "summary": "Reference two-dimensional transport case: a surface headfire and secondary spot fires evolve under a manufactured two-component, space-time wind field.",
+  "expected": "Nested two-dimensional fire perimeters at 30, 60, 90, and 120 s advance substantially beyond the surface-fire-only bound.",
+  "source_references": [
+    "two-dimensional transport case"
+  ]
+}

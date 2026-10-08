@@ -1,0 +1,50 @@
+case_id: "thomas_fire"
+case_title: "2017 Thomas Fire landscape reconstruction"
+case_type: "validation"
+category: "landscape_scale"
+source_archive: "../../3_FIRES/Thomas_VAL.rar"
+
+elmfire:
+  bin: "elmfire"
+  config: "elmfire.data.in"
+  mpi_ranks: 50
+  runtime_limit_s: 1200000
+
+validation:
+  observation: "VIIRS active-fire detections"
+  event_start: "2017-12-04 18:30 America/Los_Angeles"
+  comparison_time_s: 61200
+  probability_threshold: 0.5
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_overview.pdf"
+    - "figures/weather_summary.pdf"
+    - "figures/weather_time_series.pdf"
+    - "figures/observation_summary.pdf"
+    - "figures/validation_comparison.pdf"
+    - "figures/arrival_time_summary.pdf"
+    - "figures/burned_area_growth.pdf"
+    - "figures/optional_output_fields.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        TIME_CONTROL.SIMULATION_TSTOP: 61200.0
+        TIME_CONTROL.TARGET_CFL: 0.45
+        SIMULATOR.NUM_IGNITIONS: 2
+        SIMULATOR.CROWN_FIRE_MODEL: 2
+        MONTE_CARLO.NUM_ENSEMBLE_MEMBERS: 50
+        MONTE_CARLO.SEED: 2023
+        MONTE_CARLO.RANDOM_IGNITIONS: false
+        MONTE_CARLO.USE_IGNITION_MASK: false
+        SPOTTING.GENERATION_MODEL: "PER-MW"
+        SPOTTING.SPOTTING_DISTANCE_MODEL: "EMPIRICAL"
+        SPOTTING.ACCUMULATION_MODEL: "EULERIAN"
+        SPOTTING.IGNITION_MODEL: "PHYSICAL"
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        OUTPUTS.DUMP_FLAME_LENGTH: true

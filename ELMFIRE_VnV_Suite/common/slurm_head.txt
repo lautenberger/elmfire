@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH --job-name=tubbs
+#SBATCH --account=co_gollner
+#SBATCH --partition=savio4_htc
+#SBATCH --qos=gollner_htc4_normal
+#SBATCH --ntasks=1
+#SBATCH --time=10-01:00:00
+
+module purge
+module load gcc
+module load openmpi
+module load gdal
+module load anaconda3

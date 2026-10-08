@@ -1,0 +1,391 @@
+\section{Verification purpose}
+
+This case verifies how firebrand ignition delay alters spread when surface propagation and spotting operate together. The surface-fire-dominated transport simulation condition delays firebrand development until the surface front controls advance; combined surface-fire and firebrand transport permits sufficiently distant deposits to develop ahead of that front.
+
+The paired design exposes incorrect delay application, a missing transition between propagation modes, or an inconsistent surface-rate reference. Success requires surface-controlled behavior in the first simulation condition and quantified earlier arrival, spot ignition, and leading-edge gain in the second.
+
+\section{Mathematical formulation and numerical implementation}
+
+\subsection{Surface-fire and firebrand time scales}
+
+The verification configuration is a flat, uniform fire behavior fuel model (FBFM) 102 grassland with wind
+speed $U_w=\SI{6.71}{\metre\per\second}$. The surface head-fire spread rate
+$U_s$ is read from the surface-dominated simulation condition spread rate raster produced by the Rothermel
+model in the tested ELMFIRE executable. For the reported run,
+$U_s=\SI{\Metric{surfacerosreferencemps}}{\metre\per\second}$. In the absence of a successful
+firebrand-induced ignition, the exact one-dimensional solution is
+\begin{equation}
+  t_s(x)=\frac{x}{U_s}, \qquad
+  x_{\mathrm{LE},s}(t)=U_s t, \qquad
+  \overline{\mathrm{ROS}}_{\mathrm{LE},s}=U_s .
+  \label{eq:surface}
+\end{equation}
+
+For a firebrand emitted at $x_s$ and transported a downwind distance $X$, the
+earliest time at which it can produce a fully developed fire is
+\begin{equation}
+ t_{\mathrm{spot}}(x_s,X)
+ = \frac{x_s}{U_s}+\frac{X}{U_w}
+   +t_{\mathrm{ign,small}}+t_{\mathrm{ign,large}} .
+ \label{eq:spot-time}
+\end{equation}
+The surface front reaches the same target location at
+$t_s(x_s+X)=(x_s+X)/U_s$. With immediate smoldering-to-flaming transition,
+a spot fire can lead the surface front only when
+\begin{equation}
+ X\left(\frac{1}{U_s}-\frac{1}{U_w}\right)
+ > t_{\mathrm{ign,large}} .
+ \label{eq:lead-condition}
+\end{equation}
+
+\subsection{ELMFIRE implementation exercised}
+
+The current implementation uses the non-superseded spotting path with these
+explicit selectors:
+\begin{itemize}
+\item generation proportional to fire power;
+\item an empirical transport-distance distribution; and
+\item Eulerian accumulation.
+\end{itemize}
+For each burning cell, the firebrand-generation calculation evaluates
+\begin{equation}
+ \dot N_{\mathrm{cell}}
+ = \frac{I_f\,\Delta y}{1000}\,GR^* ,
+ \label{eq:generation}
+\end{equation}
+where $I_f$ is fireline intensity in \si{\kilo\watt\per\metre},
+$\Delta y$ is the cell width, and
+$GR^*=\SI{33.3}{\per\second\per\mega\watt}$. The factor
+$I_f\Delta y/1000$ is the heat-release rate of the cell in MW. The Eulerian
+transport calculation deposits these particles according to the configured
+Sardoy-type distribution ($\mu=2.18$, $\sigma=1.23$), truncated at an
+effective maximum distance of approximately \SI{150}{\metre}.
+
+The ignition calculation first converts the deposited number to a number per unit
+area. In the surface-dominated simulation condition, the physical ignition model
+applies the
+wildland mass-load criterion before sampling SFT, with
+$\vartheta_{\mathrm{ign,small}}=\SI{42}{\second}$ and
+$t_{\mathrm{ign,large}}=\SI{300}{\second}$. For this parameter set, the
+documented limiting behavior predicts that deposited mass remains below the
+physical threshold, so the SFT probability is zero~\cite{Qin2025}. In the
+mixed-mode simulation condition, the simple ignition model
+prescribes immediate
+SFT and a \SI{150}{\second} development delay. When the development delay
+expires, the level-set state, arrival-time field, and ember-ignition diagnostic
+are updated by the same firebrand ignition event.
+
+\section{Derivation of expected behavior}
+
+At the maximum transport distance $X_{\max}=\SI{150}{\metre}$, flight takes
+\[
+ t_f=\frac{150}{6.71}=\SI{22.4}{\second},
+ \qquad
+ t_s(150)=\frac{150}{0.577}=\SI{260.0}{\second}.
+\]
+For surface-dominated simulation condition, even the deliberately optimistic assumption of immediate SFT
+would give $t_f+t_{\mathrm{ign,large}}=\SI{322.4}{\second}$, later than the
+surface arrival. The expected result is therefore Equation~\ref{eq:surface},
+with no cells attributed to firebrand ignition.
+
+For mixed-mode simulation condition, the earliest full spot fire at $X_{\max}$ occurs at
+$22.4+150=\SI{172.4}{\second}$. Moreover, the left side of
+Equation~\ref{eq:lead-condition} is \SI{237.6}{\second}, which exceeds the
+\SI{150}{\second} development delay. Long-distance deposits can therefore
+mature ahead of the primary front. The expected signature is an acceleration
+near \SI{170}{\second}, at least one firebrand-ignited cell, a leading edge
+ahead of $U_s t$, and a mean spread rate greater than $U_s$ over the common
+analysis interval. These are the qualitative features expected from mixed-mode spread.
+
+% BEGIN EXPLICIT EXPECTED-RESULT DERIVATION
+The lead condition can also be solved for the minimum useful spotting
+distance:
+\[
+ X_{\mathrm{crit}}=
+ \frac{t_{\mathrm{ign,large}}}{1/U_s-1/U_w},\qquad
+ \frac{1}{0.577}-\frac{1}{6.71}=1.584071~\mathrm{s\,m^{-1}}.
+\]
+For the surface-dominated 300-s delay,
+\(X_{\mathrm{crit}}=300/1.584071=189.39~\mathrm{m}\), which exceeds the
+configured \(X_{\max}=150~\mathrm{m}\); even the longest deposit cannot lead.
+For the mixed 150-s delay,
+\(X_{\mathrm{crit}}=94.69~\mathrm{m}<150~\mathrm{m}\), so the tail
+\(94.69<X\leq150~\mathrm{m}\) can mature ahead of the surface front.
+At \(X=150~\mathrm{m}\),
+\[
+ t_f=150/6.71=22.3547~\mathrm{s},\quad
+ t_s=150/0.577=259.9653~\mathrm{s},\quad
+ t_s-t_f=237.6106~\mathrm{s}.
+\]
+Thus the mixed earliest full-spot scale is
+\(22.3547+150=172.3547~\mathrm{s}\), whereas the
+surface-dominated optimistic scale is
+\(22.3547+300=322.3547~\mathrm{s}>t_s\).
+These substitutions yield the explicit reference signatures used by the
+metrics: zero surface-dominated ember ignitions, positive mixed-mode ember
+ignitions, mixed \(ROS/U_s\geq1.10\), at least 20 m edge and paired-time of arrival (TOA)
+advantages, and onset in the 120--220 s interval around 172.35 s.
+% END EXPLICIT EXPECTED-RESULT DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+The postprocessor excludes the two-cell halo and operates on the centre-row
+TOA and spread-rate profiles. It converts the positive median Rothermel
+spread rate value from ft/min to m/s and uses it as $U_s$ throughout the
+reference calculations. It fits $t=a+x/U$ over
+$\SI{50}{\metre}\le x\le\SI{280}{\metre}$ using at least 12 cells.
+The following independently informative conditions must all pass:
+
+\begin{enumerate}
+\item surface-dominated simulation condition mean TOA relative error against $x/U_s$ is at most 0.10.
+\item surface-dominated simulation condition fitted rate of spread (ROS) relative error against $U_s$ is at most 0.10.
+\item surface-dominated simulation condition contains no firebrand-ignited physical cells.
+\item mixed-mode simulation condition contains at least one firebrand-ignited physical cell.
+\item mixed-mode simulation condition fitted ROS is at least $1.10U_s$.
+\item At \SI{250}{\second}, its leading edge is at least \SI{20}{\metre}
+      ahead of $U_s t$.
+\item Its first one-cell leading-edge gain occurs from 120 to
+      \SI{220}{\second}, bracketing the derived \SI{172.4}{\second} scale.
+\item Its median TOA is at least \SI{20}{\second} earlier than surface-dominated simulation condition over
+      the shared fitting interval.
+\end{enumerate}
+
+Missing outputs do not pass by default. Both simulation conditions must provide final TOA,
+accumulated-firebrand, and ember-ignition GeoTIFFs before any case-level pass
+decision is possible.
+
+\subsection{Justification of metric quantification}
+
+The two 10\% surface-baseline limits allow cell-centred TOA and regression
+quantization while requiring agreement with the run-derived Rothermel speed
+over a \SI{230}{m} fitting interval, more than twenty grid cells.  The zero
+spot count in the surface-dominated simulation condition and the positive count in the
+mixed simulation condition are exact mechanism checks and therefore have no numerical
+tolerance.  For the mixed mode, \(ROS/U_s\ge1.10\) requires a 10\% effect
+beyond the baseline fitting band, while the \SI{20}{m} edge and paired-TOA
+leads equal two spatial cells and are too large to arise from one-cell front
+classification alone.
+
+The 120--\SI{220}{s} onset window brackets the independently derived
+\SI{172.4}{s} earliest full-spot scale by approximately \(\pm50\) s.  That
+width accommodates stochastic deposition, cell crossing, and the fact that
+the metric detects the first full-cell gain rather than a continuous event,
+but still rejects acceleration unrelated to the predicted delay regime.  The
+eight behavior checks are conjunctive because a faster fitted front without
+ember attribution, timing consistency, and a paired TOA lead would not verify
+firebrand-delay coupling.
+
+\subsection{Predeclared acceptance criteria}
+
+Table~\ref{tab:acceptance-contract} summarizes the metrics fixed before
+inspection of the calculated results. Numerical values and component statuses
+are reported separately in Section~7.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Predeclared verification metrics and acceptance criteria.}
+\label{tab:acceptance-contract}
+\begin{tabular}{@{}p{0.23\linewidth}p{0.47\linewidth}p{0.21\linewidth}@{}}
+\toprule
+Metric & Output, region, and aggregation & Acceptance criterion\\
+\midrule
+Output completeness & Final TOA, accumulated-firebrand, and ember-ignition rasters for both current simulation conditions; halo and nodata excluded. & 2 of 2 simulation conditions \\
+Surface-dominated TOA error & Mean relative error against \(x/U_s\) on 50--\SI{280}{m}; at least 12 cells. & \(\le0.10\) \\
+Surface-dominated ROS error & Relative error of fitted ROS against run-derived Rothermel \(U_s\). & \(\le0.10\) \\
+Surface-dominated spot count & Number of ember-ignited physical cells. & 0 \\
+Mixed-mode spot count & Number of ember-ignited physical cells. & \(\ge1\) \\
+Mixed-mode ROS ratio & Fitted mixed-mode ROS divided by \(U_s\). & \(\ge1.10\) \\
+Mixed-mode edge gain & Leading-edge distance ahead of \(U_st\) at \SI{250}{s}. & \(\ge\SI{20}{m}\) \\
+Acceleration onset & First time the leading edge exceeds the surface reference by one cell. & 120--\SI{220}{s} \\
+Paired TOA lead & Median surface-dominated minus mixed-mode TOA over common fitting cells. & \(\ge\SI{20}{s}\) \\
+Overall decision & Conjunction of completeness and all eight behavior checks. & PASS only if all pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation configuration and predicted outcome}
+
+Figure~\ref{fig:input-configuration} records the prepared spatial inputs for combined surface-fire and firebrand transport.
+These panels show the prepared spatial fields, remove the
+two-cell numerical buffer, and retain map coordinates in metres.  The left panel shows
+the most informative fuel or structure layout available for the case; the right panel
+shows the cells selected by the non-positive initial level-set field, making a localized
+ignition or firebrand-emission source explicit.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.42\textheight,keepaspectratio]{../figures/input_configuration.pdf}
+\caption{Whole-domain prepared input configuration for the representative simulation condition.  The
+physical domain is shown without the numerical halo; coordinates, configured wind values,
+fuel or structure layout, and initial ignition/source geometry are identified in the panels.}
+\label{fig:input-configuration}
+\end{figure}
+
+The Courant--Friedrichs--Lewy (CFL) number measures the distance
+advected during one timestep relative to the grid spacing and
+constrains the time discretization.
+
+\begin{table}[htbp]
+\centering
+\caption{Parameters common to both verification simulation conditions.}
+\label{tab:common-config}
+\begin{tabular}{lll}
+\toprule
+Parameter & Value & Verification role \\
+\midrule
+Physical domain & $300\times100$ m & one-dimensional centre transect \\
+Raster domain & $34\times14$ cells & includes two-cell halo \\
+Cell size & \SI{10}{\metre} & controlled baseline resolution \\
+Time step / wind CFL & \SI{0.742574}{\second} / 0.4979 & common exact-duration divisor \\
+Fuel and terrain & FBFM 102, flat & homogeneous surface spread \\
+Wind & \SI{6.71}{\metre\per\second} toward $+x$ & firebrand transport \\
+Ignition geometry & full crosswind line at $x=\SI{5}{\metre}$ & 1-D behavior \\
+Generation & PER-MW, $GR^*=33.3$ & heat-release-scaled source \\
+Transport / accumulation & empirical / Eulerian & reference transport path \\
+Surface fire & enabled & general coupled fire spread \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Ignition parameters changed by the paired experiment.}
+\label{tab:variant-config}
+\begin{tabular}{p{0.27\textwidth}p{0.12\textwidth}p{0.13\textwidth}p{0.13\textwidth}p{0.17\textwidth}}
+\toprule
+Simulation condition & Ignition model & $t_{\mathrm{ign,small}}$ & $t_{\mathrm{ign,large}}$ & Prediction \\
+\midrule
+surface-dominated simulation condition & PHYSICAL & \SI{42}{\second} scale & \SI{300}{\second} & surface dominated \\
+mixed-mode simulation condition & SIMPLE & \SI{0}{\second} & \SI{150}{\second} & mixed-mode acceleration \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Preprocessing, execution, and postprocessing}
+
+The two simulation conditions use independently prepared, co-registered spatial fields. Both represent flat terrain, fuel model 102, and
+constant wind; places a line ignition across every physical crosswind row; and
+writes explicit model selectors and ignition parameters into each local
+ELMFIRE simulation configuration. The halo is present numerically but is excluded from
+all reported quantities. The nominal 0.5-wind-CFL step is 0.745645~s. Because the controlled stops are 300 and 450~s, their greatest common duration is 150~s; preprocessing selects \(N=\lceil150/0.745645\rceil=202\) and the common \(\Delta t=150/202=0.742574\)~s. Both stops are therefore exact timestep multiples and the actual wind CFL remains below 0.5.
+
+Both prescribed conditions are simulated independently with ELMFIRE. Their
+final physical fields are compared using the surface-rate reference and the
+arrival-time, ignition, and leading-edge measures defined above.
+
+\clearpage
+\section{Actual simulation results}
+
+Figure~\ref{fig:domain-result} shows the representative time-of-arrival field from combined surface-fire and firebrand transport.
+The displayed field is taken from the simulated results, masks missing values, and excludes
+the two-cell numerical buffer.  The domain map complements the spread-rate summaries by showing the combined surface-fire and delayed-firebrand arrival pattern.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.50\textheight,keepaspectratio]{../figures/domain_result.pdf}
+\caption{Whole-domain time-of-arrival field from the representative completed ELMFIRE run.  This
+domain-scale result supplements, rather than replaces, the higher-level verification
+profiles, convergence plots, ensemble statistics, and calculated acceptance metrics below.}
+\label{fig:domain-result}
+\end{figure}
+
+Figures~\ref{fig:surface-dominated-reference} and
+\ref{fig:mixed-mode-reference} first present each ignition regime independently
+using the same four observables: accumulated firebrands, arrival time,
+leading-edge position, and leading-edge ROS. Colored curves are actual ELMFIRE
+outputs; black curves are the Rothermel surface-spread references.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.66\textheight,keepaspectratio]{../figures/surface_dominated_reference.pdf}
+\caption{Long-delay surface-dominated simulation condition. The leading edge remains close
+to the surface-spread characteristic despite continued firebrand deposition.}
+\label{fig:surface-dominated-reference}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.66\textheight,keepaspectratio]{../figures/mixed_mode_reference.pdf}
+\caption{Finite-delay mixed-mode simulation condition. Departure from the surface-only
+arrival, trajectory, and ROS references identifies firebrand-induced advance.}
+\label{fig:mixed-mode-reference}
+\end{figure}
+
+Figure~\ref{fig:delay-effect} overlays the two simulation conditions as a supplemental
+controlled comparison, making the timing and magnitude of their divergence
+easier to identify.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.66\textheight,keepaspectratio]{../figures/mixed_mode_delay_effect.pdf}
+\caption{Paired ELMFIRE comparison of the long-delay surface-dominated and
+finite-delay mixed-mode regimes. Accumulation is crosswind averaged; the other
+panels use the centre-row arrival-time field.}
+\label{fig:delay-effect}
+\end{figure}
+\FloatBarrier
+
+\section{Calculated metrics and verification decision}
+
+Table~\ref{tab:metrics} reads the calculated entries directly from
+calculated verification and validation metrics. An empty simulation result is represented as
+N/A with NOT EVALUABLE, never as an empty table cell or an implicit pass.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Acceptance metrics calculated from the paired ELMFIRE outputs.}
+\label{tab:metrics}
+\begin{tabular}{llll}
+\toprule
+Metric & Acceptance limit & Calculated & Status \\
+\midrule
+Output completeness & 2 simulation conditions & \Metric{completedvariants}/2 & \Metric{status} \\
+surface-dominated simulation condition mean TOA error & $\le 0.10$ & \Metric{surfacedominatedtoameanrelativeerror} & \Metric{surfacedominatedtoastatus} \\
+surface-dominated simulation condition mean ROS (\si{\metre\per\second}) & $\Metric{surfacerosreferencemps}\mathbin{\pm}10\%$ & \Metric{surfacedominatedmeanrosmps} & \Metric{surfacedominatedrosstatus} \\
+surface-dominated simulation condition ember-ignited cells & $\le 0$ & \Metric{surfacedominatedemberignitioncells} & \Metric{surfacedominatedignitionstatus} \\
+mixed-mode simulation condition ROS / $U_s$ & $\ge 1.10$ & \Metric{mixedmoderosratiotosurface} & \Metric{mixedmoderosstatus} \\
+mixed-mode simulation condition ember-ignited cells & $\ge 1$ & \Metric{mixedmodeemberignitioncells} & \Metric{mixedmodeignitionstatus} \\
+mixed-mode simulation condition edge gain at 250 s (m) & $\ge 20$ & \Metric{mixedmodeleadingedgegainm} & \Metric{mixedmodeedgegainstatus} \\
+mixed-mode simulation condition acceleration onset (s) & $120$--$220$ & \Metric{mixedmodeaccelerationonsets} & \Metric{mixedmodeonsetstatus} \\
+Median mixed-mode simulation condition TOA lead (s) & $\ge 20$ & \Metric{pairedmediantoaleads} & \Metric{pairedtoastatus} \\
+\midrule
+Overall decision & all components pass & \Metric{verificationpassed} & \Metric{status} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Technical interpretation}
+
+The current paired execution passes every component. The surface-dominated mean ROS is \Metric{surfacedominatedmeanrosmps}~m/s with no ember-ignited cells. The mixed-mode mean ROS is \Metric{mixedmodemeanrosmps}~m/s (\Metric{mixedmoderosratiotosurface} times the surface reference), with \Metric{mixedmodeemberignitioncells} ember-ignited cells, a \Metric{mixedmodeleadingedgegainm}-m leading-edge gain, acceleration onset at \Metric{mixedmodeaccelerationonsets}~s, and a median TOA lead of \Metric{pairedmediantoaleads}~s.
+
+A pass demonstrates two complementary properties: delayed firebrand states do
+not spuriously outrun the surface solver in the surface-dominated limiting
+case, and reducing the delay activates a resolvable acceleration in the
+mixed-mode simulation condition.
+If surface-dominated simulation condition fails alone, inspect the physical mass threshold, development-state
+timing, and arrival-time update. If mixed-mode simulation condition fails alone, inspect the simple
+ignition probability, persistence of deposited ember states across level-set
+steps, delayed transition to a full ignition, and the coupling that writes
+that ignition to the level set.
+
+This is numerical verification of the controlled formulation, not field validation.
+The ELMFIRE experiment is two-dimensional but deliberately uses a
+uniform crosswind line so the centre transect approximates the corresponding
+one-dimensional calculation. The mixed-mode thresholds diagnose the expected
+mixed regime rather than an unavailable closed-form mixed-mode solution.
+Stochastic ignition means the exact onset may vary, which is why its
+acceptance window brackets rather than equals \SI{172.4}{\second}.
+
+The current analysis note is: \Metric{notes}
+
+\section{Scope and limitations}
+This paired test isolates the interaction between surface propagation and firebrand ignition delay in a uniform domain. It verifies implementation behavior and timing attribution; it does not validate either spread mechanism against field observations.
+
+\begin{thebibliography}{9}
+\bibitem{Qin2025}
+Y. Qin, \emph{A Physics-Based Eulerian Framework for Modeling Firebrand
+Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire
+Simulations}, Ph.D. dissertation, University of Maryland, College Park, 2025.
+\end{thebibliography}

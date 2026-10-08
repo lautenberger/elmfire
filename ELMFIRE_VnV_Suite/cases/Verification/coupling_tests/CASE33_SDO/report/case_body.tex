@@ -1,0 +1,81 @@
+\section{Verification purpose}
+
+This case verifies the observable coupling of topographic slope into directional surface-fire spread through the standard ELMFIRE executable. It is the portable successor to Adam Laird's no-wind-with-slope component scenario and retains a flat control.
+
+\section{Mathematical formulation and numerical implementation}
+
+ELMFIRE combines the no-wind spread rate with a slope factor before supplying a direction-dependent normal speed $V_n(\theta)$ to $\partial_t\phi+V_n|\nabla\phi|=0$. With zero wind and zero slope, rotational symmetry is expected. A uniform nonzero slope breaks that symmetry along the fall-line axis.
+
+\section{Derivation of expected behavior}
+
+The flat control has equal forcing in all azimuths and therefore equal horizontal and vertical extents. The \SlopeAngle{} simulation condition changes only slope and aspect; it must differ from the control and its final footprint must be elongated. These are metamorphic consequences of the governing coupling and do not require duplication of ELMFIRE's internal slope formula.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+For each finite arrival-time mask, the pixel extents are
+\(W=c_{\max}-c_{\min}+1\) and \(H=r_{\max}-r_{\min}+1\).
+The flat-control anisotropy is
+\[
+ A_f=\frac{|W_f-H_f|}{\max(W_f,H_f)},
+\]
+whose isotropic reference is zero and whose substituted test is
+\(A_f\leq0.05\).  For the generated uniform 30-degree slope, the
+directional-shape metric is
+\[
+ L_s=\frac{\max(W_s,H_s)}{\min(W_s,H_s)}\geq1.10.
+\]
+The independent forcing-response metric uses the common finite mask
+\(V\):
+\[
+ E_s=\frac{|V|^{-1}\sum_{i\in V}|T_{s,i}-T_{f,i}|}
+ {\max[P_{90}(T_{s,i}:i\in V),1~\mathrm{s}]}\geq0.05.
+\]
+Thus the three reference statements are, respectively, zero flat
+anisotropy, at least 10 percent slope elongation, and at least 5 percent
+normalized difference from the flat run.
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+Flat-control extent anisotropy must not exceed 0.05. The slope footprint's major/minor extent ratio must be at least 1.10. Normalized mean absolute arrival-time difference between slope and flat simulation conditions must be at least 0.05. The first metric detects grid bias, while the latter two show that slope is both active and directional.
+
+\section{Simulation configuration and predicted outcome}
+
+Both simulation conditions use a 2000 m square domain at \CellSize{}, Fuel Model 10, 3/5/6 percent dead-fuel moisture, zero wind, and a central point ignition. The slope simulation condition uses 30 degrees and aspect 270 degrees; the control uses zero slope. The slope result is predicted to be anisotropic and measurably different from the circular control.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.22\textwidth}p{0.12\textwidth}p{0.34\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 2000 m square; 5 & m/cell & Resolves directional footprint \\
+Fuel/moisture & FM10; 3/5/6 & --- / percent & Fixed surface response \\
+Time control & step 1, maximum 5; stop 7200 & s & Common exact comparison time \\
+Control & slope 0; wind 0 & degrees / mph & Rotational baseline \\
+Test & slope 30; aspect 270 & degrees & Activates directional slope coupling \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prescribed uniform 30-degree terrain slope. Coordinates are grid-cell indices on the 5 m grid.}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+The generated status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} metrics pass across \VariantCount{} simulation conditions. Missing outputs produce NOT EVALUABLE.
+\begin{figure}[H]\centering\IfFileExists{../figures/verification_summary.pdf}{\includegraphics[width=\textwidth]{verification_summary.pdf}}{\fbox{No result figure is available.}}\caption{Flat-control, slope, and difference arrival-time fields.}\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}\small\begin{tabular}{@{}llll@{}}\toprule Metric & Expected & Calculated & Status \\\midrule \MetricRows \bottomrule\end{tabular}\end{center}
+The authoritative decision is \textbf{\VerificationStatus} from calculated verification and validation metrics.
+
+\section{Technical interpretation}
+
+An anisotropic control indicates grid-orientation bias. A near-unity slope footprint or negligible field difference indicates that slope/aspect inputs were not consumed or not coupled to spread. Unexpected rotation should prompt inspection of aspect convention and raster orientation.
+
+\section{Scope and limitations}
+
+This case verifies directional response, not the absolute value of the slope coefficient and not agreement with an experimental fire. Existing CASE22 and CASE24 exercise more complex terrain interactions; this case isolates the slope-only executable response.

@@ -1,0 +1,114 @@
+\section{Verification purpose}
+
+This case verifies the coupling of wind-adjusted surface spread to the Huygens and level-set propagation geometry.  Uniform fuels and flat terrain isolate wind as the only directional forcing.  The verification question is whether the simulated head rate is within 10 percent of \(3.635~\mathrm{m\,min^{-1}}\) and the unclipped arrival-time isochrone has length-to-width ratio within 10 percent of 1.24.
+
+The scientific setup and historical expected response are reconstructed from Section~3.2 of the supplied \emph{ELMFIRE Guide}. The Guide is used as reference provenance, not as an instruction or a substitute for evidence. Configuration statements below are checked against the generated GeoTIFFs and namelist; current results and decisions come only from case-specific outputs and generated metrics. Where the generated experiment differs from the historical example, the report states that difference explicitly.
+
+\section{Mathematical formulation and numerical implementation}
+
+The normal-velocity construction combines the backing, flanking, and heading rates into an expanding ellipse.  Its major axis aligns with the wind-driven heading direction, while the ratio \(L/W\) characterizes anisotropy independent of absolute size.  ELMFIRE writes rate in metres per minute and arrival time on the same raster grid used to infer the ellipse.
+
+For uncovered fuel of depth \(H\) ft, the Guide uses
+\begin{equation}
+WAF_u=\frac{1.83}{\ln[(20+0.36H)/(0.13H)]}, \qquad U_{mf}=WAF_uU_{20}.
+\end{equation}
+The resulting effective midflame wind determines the ellipse aspect ratio
+\begin{equation}
+\frac{L}{W}=\min\left(0.936e^{0.1147U_{mf,e}}+0.461e^{-0.0692U_{mf,e}}-0.397,8\right).
+\end{equation}
+The local head rate is \(R_H=R_0(1+\phi_w)\); the Huygens/level-set construction uses the ellipse to obtain normal speed away from the heading direction.
+
+\section{Derivation of expected behavior}
+
+Constant forcing produces self-similar elliptical isochrones: scaling time changes both axes proportionally and leaves \(L/W\) constant.  The configured Fuel Model 5 response supplies the independent head-rate target \(3.635~\mathrm{m\,min^{-1}}\), and the GUIDE construction supplies \(L/W=1.24\).
+
+% BEGIN EXPLICIT METRIC DERIVATION
+For the generated Fuel Model~5 state, the independent no-wind rate is
+\(R_0=0.41042~\mathrm{m\,min^{-1}}\).  The \(6~\mathrm{mph}\) 20-ft wind
+and 2-ft fuel-bed depth give a wind-adjustment factor
+\(WAF=0.418640\), hence
+\(U_{mf}=6(0.418640)=2.51184~\mathrm{mph}\).  With the calculated wind
+factor \(\phi_w=7.87958\),
+\[
+ R_h=R_0(1+\phi_w)=0.41042(1+7.87958)
+     =3.6444~\mathrm{m\,min^{-1}},
+\]
+consistent with the Guide reference \(3.635~\mathrm{m\,min^{-1}}\).
+The ellipse length-to-width reference uses
+\[
+ \frac{L}{W}=0.936e^{0.2566U}+0.461e^{-0.1548U}-0.397,
+\]
+where \(U\) is in \(\mathrm{m\,s^{-1}}\).  Here
+\(U=2.51184~\mathrm{mph}(0.44704)=1.12291~\mathrm{m\,s^{-1}}\), so
+substitution gives \(L/W=1.23898\), reported as 1.24.  The report evaluates the relative substitutions
+\(e_R=|R_h-3.635|/3.635\) and
+\(e_{LW}=|(L/W)-1.24|/1.24\) against their tabulated limits.
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+Maximum finite spread rate measures the heading response.  The shape metric is \(\sqrt{\lambda_{\max}/\lambda_{\min}}\), where the eigenvalues come from the covariance of burned-cell coordinates at the last isochrone that remains away from the boundary.  This metric is rotation invariant and avoids a wind-axis assumption.  Each component uses 10 percent relative tolerance, and both must pass.
+
+\section{Simulation configuration and predicted outcome}
+
+The \(126\times126\), 30 m domain uses uniform Fuel Model 5, 6 mph wind, flat terrain, and an upwind point ignition.  The predicted arrival field is an ellipse elongated downwind, with head rate of spread (ROS) \(3.635~\mathrm{m\,min^{-1}}\) and \(L/W=1.24\).
+
+\begin{center}
+\begin{tabular}{@{}p{0.20\textwidth}p{0.20\textwidth}p{0.12\textwidth}p{0.38\textwidth}@{}}
+\toprule
+Parameter & Configured value & Units & Role in the experiment \\
+\midrule
+Grid & \(126\times126\) at 30 & m per cell & Resolves the whole spatial response on the generated north-up raster \\
+Projection & EPSG:32635 & --- & Fixes the map-coordinate and row-orientation convention \\
+Time control & \(\Delta t=1\), \(t_{stop}=259200\) & s & Whole-second step; stop time is an exact timestep multiple \\
+Meteorology interval & 3600 & s & Defines weather-band timing and stalled-final compatibility \\
+Live moisture & herb 60; woody 90 & percent & Holds live-fuel damping fixed while the named mechanism is isolated \\
+Evidence & prepared inputs; final case outputs & --- & Separates configuration provenance from acceptance evidence \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+The required evidence is generated only from case-specific ELMFIRE outputs. The current postprocessing status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} required metric rows pass across \VariantCount{} simulation condition(s). A missing output is reported as NOT RUN or NOT EVALUABLE and is not interpreted as verification evidence.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/whole_domain_result.pdf}{%
+    \includegraphics[width=0.82\textwidth,height=0.58\textheight,keepaspectratio]{whole_domain_result.pdf}%
+  }{\fbox{\parbox{0.85\textwidth}{No case-specific whole-domain ELMFIRE raster is available.}}}
+  \caption{Final whole-domain ELMFIRE time of arrival for the displayed simulation condition, in seconds. The coordinate reference system is stated in the figure. The calculated metrics, not visual appearance, determine acceptance.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Simulation condition / metric & Expected & Calculated & Status \\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{center}
+
+The displayed overall decision is \textbf{\VerificationStatus}. When calculated verification and validation metrics exists, result analysis procedure generates every table value and status; when it is absent, the report states NOT EVALUABLE with no invented rows.
+
+\section{Technical interpretation}
+
+A rate-only discrepancy points toward wind adjustment or unit conversion; a shape-only discrepancy points toward wavelet geometry, arrival-time extraction, or boundary clipping. No scientific conclusion should be drawn when the status is NOT RUN or NOT EVALUABLE.
+
+\section{Scope and limitations}
+
+The test covers one steady wind speed and one fuel model. The covariance estimator is intentionally applied only before boundary contact. This case provides implementation verification evidence only.

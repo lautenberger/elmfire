@@ -1,0 +1,29 @@
+case_id: "CASE23_FQD"
+case_title: "Case 23: Spatially varying fuel quadrants"
+category: "Verification/coupling_tests"
+guide_section: "3.2.4"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+variants:
+  - id: "main"
+    guide_case: "Quadrant"
+    config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figure: "figures/verification_summary.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        TIME_CONTROL.SIMULATION_TSTOP: 259200.0
+        TIME_CONTROL.TARGET_CFL: 0.2
+        SIMULATOR.NUM_IGNITIONS: 1
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        OUTPUTS.DUMP_SPREAD_RATE: true

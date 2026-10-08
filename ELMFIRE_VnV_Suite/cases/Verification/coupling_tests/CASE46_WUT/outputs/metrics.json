@@ -1,0 +1,557 @@
+{
+  "schema_version": 2,
+  "case_id": "CASE46_WUT",
+  "source_commit": "a2dfbcdf72209733c000e5d3431e44723e15efea",
+  "overall_status": "FAIL",
+  "workflow_status": "COMPLETE",
+  "verification_passed": false,
+  "required_outputs_complete": true,
+  "required_variant_count": 7,
+  "completed_variant_count": 7,
+  "runtime_input_fingerprint_sha256": "1785c84ce84d2647c8daf520c134f64b3e82d50d1561ee376120cce8ed1cdf69",
+  "oracle_artifact_fingerprint_sha256": "1ca1265308e8c82900f62f064aa06bb799ea6906dfd00536d8c05e86650c02d6",
+  "preflight": "outputs/source_selector_preflight.json",
+  "selector_preflight_status": "NOT EVALUABLE",
+  "selector_gate_passed": false,
+  "reason": "One or more intended heat/FTP transition checks failed; optional FLIN-shortcut diagnostics do not control this decision.",
+  "executable": {
+    "resolved_path": "/workspaces/elmfire-nick/ELMFIRE_VnV_Suite/diagnostics/CASE43_CASE49/bin/elmfire",
+    "sha256": "bc2d27483ed3cf409cea0a04fd879e290cfe5b57a0c84b215282ff9d18c458a9",
+    "version": "ELMFIRE 2025.1002"
+  },
+  "metrics": [
+    {
+      "name": "evidence and exact dump ledger",
+      "expected": "61 rows: indices 1..61, times 0..60 s, only row 61 final",
+      "calculated": "7/7 exact; FLIN/TOA time stamp 0000060; PHI dump index d0000061",
+      "units": "--",
+      "status": "PASS"
+    },
+    {
+      "name": "source fireline-intensity setup",
+      "expected": "maximum absolute error <=0.5 kW/m and source TOA=0 s",
+      "calculated": {
+        "max_abs_error_kw_m": 1001.0,
+        "all_source_toa_zero": true
+      },
+      "units": "kW/m",
+      "status": "FAIL"
+    },
+    {
+      "name": "terminal PHI/TOA state consistency",
+      "expected": "PHI<=0 iff TOA is finite at each designated target",
+      "calculated": {
+        "contiguous_below": true,
+        "contiguous_equal": true,
+        "contiguous_above": true,
+        "isolated_d1_insufficient": true,
+        "isolated_d1_sufficient": true,
+        "isolated_d2_sufficient": true,
+        "zero_control": true
+      },
+      "units": "--",
+      "status": "PASS"
+    },
+    {
+      "name": "intended W-to-U receiver heat exposure",
+      "expected": "positive DFC+radiation at sufficient-heat receivers",
+      "calculated": {
+        "contiguous_above": 84.52081632614136,
+        "isolated_d1_sufficient": 61.923187255859375
+      },
+      "units": "kW/m2",
+      "status": "PASS"
+    },
+    {
+      "name": "intended W-to-U finite ignition delay",
+      "expected": "finite target TOA with delay > 0 s",
+      "calculated": {
+        "contiguous_above": 49.0,
+        "isolated_d1_sufficient": 51.0
+      },
+      "units": "s",
+      "status": "PASS"
+    },
+    {
+      "name": "contiguous strict-threshold matrix",
+      "expected": "below=false, equal=false, above=true",
+      "calculated": {
+        "contiguous_below": true,
+        "contiguous_equal": true,
+        "contiguous_above": true
+      },
+      "units": "--",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "isolated distance/threshold matrix",
+      "expected": "d1-insufficient=false, d1-sufficient=true, d2-sufficient=false",
+      "calculated": {
+        "isolated_d1_insufficient": true,
+        "isolated_d1_sufficient": true,
+        "isolated_d2_sufficient": false
+      },
+      "units": "--",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "first-update transition timing",
+      "expected": "eligible target TOA=0 s and target-source delay=0 s",
+      "calculated": {
+        "contiguous_above": {
+          "target_toa_s": 49.0,
+          "target_source_delay_s": 49.0
+        },
+        "isolated_d1_sufficient": {
+          "target_toa_s": 51.0,
+          "target_source_delay_s": 51.0
+        }
+      },
+      "units": "s",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "zero-source control",
+      "expected": "target remains PHI>0 with nodata TOA",
+      "calculated": {
+        "target_phi": 0.5502481460571289,
+        "target_toa_s": null
+      },
+      "units": "--",
+      "status": "PASS"
+    }
+  ],
+  "variants": [
+    {
+      "id": "contiguous_below",
+      "topology": "contiguous_interface",
+      "distance_cells": 1,
+      "target_row_col": [
+        12,
+        12
+      ],
+      "requested_source_flin_kw_m": 999.0,
+      "adj_float32": 38.43002700805664,
+      "designed_source_flin_kw_m": 999.0,
+      "binary32_input_design": {
+        "adjustment_float32": 38.43002700805664,
+        "surface_ros_ft_min": 187.21087646484375,
+        "source_flin_kw_m": 999.0
+      },
+      "equality_realization": "not applicable",
+      "intended_threshold_result": "do_not_ignite",
+      "intended_criterion": "vegetative source, urban target, Euclidean distance <= 1 cell, FLIN_SURFACE > 1000 kW/m",
+      "expected_target_ignited": false,
+      "expected_target_toa_s": null,
+      "expected_target_terminal_phi": "> 0",
+      "expected_source_toa_s": 0.0,
+      "runtime_input_fingerprint_sha256": "772faa08e61605b372d61f490f25bf006ca63361d83be023b580cf67f8ed3442",
+      "measured_source_flin_kw_m": 0.0,
+      "source_flin_abs_error_kw_m": 999.0,
+      "source_toa_s": 0.0,
+      "source_toa_all_zero": true,
+      "target_terminal_phi": -0.1328601837158203,
+      "target_toa_s": 49.0,
+      "target_phi_burning": true,
+      "target_toa_finite": true,
+      "target_state_consistent": true,
+      "target_ignited_observation": true,
+      "transition_ignition_delay_s": 49.0,
+      "target_peak_dfc_kw_m2": 80.12958526611328,
+      "target_peak_radiation_kw_m2": 4.279073715209961,
+      "target_peak_total_heat_kw_m2": 84.40865898132324,
+      "dump_ledger": {
+        "path": "variants/contiguous_below/outputs/dump_times_0000001.csv",
+        "row_count": 61,
+        "first": {
+          "dump_index": 1,
+          "time_seconds": 0.0,
+          "is_final_dump": false
+        },
+        "last": {
+          "dump_index": 61,
+          "time_seconds": 60.0,
+          "is_final_dump": true
+        }
+      },
+      "selected_evidence": {
+        "flin": "variants/contiguous_below/outputs/flin_0000001_0000060.tif",
+        "toa": "variants/contiguous_below/outputs/time_of_arrival_0000001_0000060.tif",
+        "phi": "variants/contiguous_below/outputs/phi_0000001_d0000061.tif"
+      },
+      "completion_receipt": "variants/contiguous_below/outputs/run_complete.json",
+      "stdout": "variants/contiguous_below/logs/elmfire.stdout"
+    },
+    {
+      "id": "contiguous_equal",
+      "topology": "contiguous_interface",
+      "distance_cells": 1,
+      "target_row_col": [
+        12,
+        12
+      ],
+      "requested_source_flin_kw_m": 1000.0,
+      "adj_float32": 38.4684944152832,
+      "designed_source_flin_kw_m": 1000.0,
+      "binary32_input_design": {
+        "adjustment_float32": 38.4684944152832,
+        "surface_ros_ft_min": 187.3982696533203,
+        "source_flin_kw_m": 1000.0
+      },
+      "equality_realization": "exact binary32 realization",
+      "intended_threshold_result": "do_not_ignite",
+      "intended_criterion": "vegetative source, urban target, Euclidean distance <= 1 cell, FLIN_SURFACE > 1000 kW/m",
+      "expected_target_ignited": false,
+      "expected_target_toa_s": null,
+      "expected_target_terminal_phi": "> 0",
+      "expected_source_toa_s": 0.0,
+      "runtime_input_fingerprint_sha256": "2995081f8617b6ee0ad6fb2f04d560afc751748408fdc71a7aeea74e1239662b",
+      "measured_source_flin_kw_m": 0.0,
+      "source_flin_abs_error_kw_m": 1000.0,
+      "source_toa_s": 0.0,
+      "source_toa_all_zero": true,
+      "target_terminal_phi": -0.13375575840473175,
+      "target_toa_s": 49.0,
+      "target_phi_burning": true,
+      "target_toa_finite": true,
+      "target_state_consistent": true,
+      "target_ignited_observation": true,
+      "transition_ignition_delay_s": 49.0,
+      "target_peak_dfc_kw_m2": 80.18146514892578,
+      "target_peak_radiation_kw_m2": 4.283287048339844,
+      "target_peak_total_heat_kw_m2": 84.46475219726562,
+      "dump_ledger": {
+        "path": "variants/contiguous_equal/outputs/dump_times_0000001.csv",
+        "row_count": 61,
+        "first": {
+          "dump_index": 1,
+          "time_seconds": 0.0,
+          "is_final_dump": false
+        },
+        "last": {
+          "dump_index": 61,
+          "time_seconds": 60.0,
+          "is_final_dump": true
+        }
+      },
+      "selected_evidence": {
+        "flin": "variants/contiguous_equal/outputs/flin_0000001_0000060.tif",
+        "toa": "variants/contiguous_equal/outputs/time_of_arrival_0000001_0000060.tif",
+        "phi": "variants/contiguous_equal/outputs/phi_0000001_d0000061.tif"
+      },
+      "completion_receipt": "variants/contiguous_equal/outputs/run_complete.json",
+      "stdout": "variants/contiguous_equal/logs/elmfire.stdout"
+    },
+    {
+      "id": "contiguous_above",
+      "topology": "contiguous_interface",
+      "distance_cells": 1,
+      "target_row_col": [
+        12,
+        12
+      ],
+      "requested_source_flin_kw_m": 1001.0,
+      "adj_float32": 38.506961822509766,
+      "designed_source_flin_kw_m": 1001.0,
+      "binary32_input_design": {
+        "adjustment_float32": 38.506961822509766,
+        "surface_ros_ft_min": 187.58566284179688,
+        "source_flin_kw_m": 1001.0
+      },
+      "equality_realization": "not applicable",
+      "intended_threshold_result": "ignite",
+      "intended_criterion": "vegetative source, urban target, Euclidean distance <= 1 cell, FLIN_SURFACE > 1000 kW/m",
+      "expected_target_ignited": true,
+      "expected_target_toa_s": 0.0,
+      "expected_target_terminal_phi": "<= 0",
+      "expected_source_toa_s": 0.0,
+      "runtime_input_fingerprint_sha256": "09224abceaf733ea4e0e60f9cea573c5bd7a2ccc85ec8764c11a2a43cb2c8e1f",
+      "measured_source_flin_kw_m": 0.0,
+      "source_flin_abs_error_kw_m": 1001.0,
+      "source_toa_s": 0.0,
+      "source_toa_all_zero": true,
+      "target_terminal_phi": -0.13597047328948975,
+      "target_toa_s": 49.0,
+      "target_phi_burning": true,
+      "target_toa_finite": true,
+      "target_state_consistent": true,
+      "target_ignited_observation": true,
+      "transition_ignition_delay_s": 49.0,
+      "target_peak_dfc_kw_m2": 80.23331451416016,
+      "target_peak_radiation_kw_m2": 4.287501811981201,
+      "target_peak_total_heat_kw_m2": 84.52081632614136,
+      "dump_ledger": {
+        "path": "variants/contiguous_above/outputs/dump_times_0000001.csv",
+        "row_count": 61,
+        "first": {
+          "dump_index": 1,
+          "time_seconds": 0.0,
+          "is_final_dump": false
+        },
+        "last": {
+          "dump_index": 61,
+          "time_seconds": 60.0,
+          "is_final_dump": true
+        }
+      },
+      "selected_evidence": {
+        "flin": "variants/contiguous_above/outputs/flin_0000001_0000060.tif",
+        "toa": "variants/contiguous_above/outputs/time_of_arrival_0000001_0000060.tif",
+        "phi": "variants/contiguous_above/outputs/phi_0000001_d0000061.tif"
+      },
+      "completion_receipt": "variants/contiguous_above/outputs/run_complete.json",
+      "stdout": "variants/contiguous_above/logs/elmfire.stdout"
+    },
+    {
+      "id": "isolated_d1_insufficient",
+      "topology": "isolated_pixel",
+      "distance_cells": 1,
+      "target_row_col": [
+        12,
+        12
+      ],
+      "requested_source_flin_kw_m": 999.0,
+      "adj_float32": 38.43002700805664,
+      "designed_source_flin_kw_m": 999.0,
+      "binary32_input_design": {
+        "adjustment_float32": 38.43002700805664,
+        "surface_ros_ft_min": 187.21087646484375,
+        "source_flin_kw_m": 999.0
+      },
+      "equality_realization": "not applicable",
+      "intended_threshold_result": "do_not_ignite",
+      "intended_criterion": "vegetative source, urban target, Euclidean distance <= 1 cell, FLIN_SURFACE > 1000 kW/m",
+      "expected_target_ignited": false,
+      "expected_target_toa_s": null,
+      "expected_target_terminal_phi": "> 0",
+      "expected_source_toa_s": 0.0,
+      "runtime_input_fingerprint_sha256": "e080b1981e54a9374445bc7373588df0ed293ab515dd0db6a7a1ee0af60d56b5",
+      "measured_source_flin_kw_m": 0.0,
+      "source_flin_abs_error_kw_m": 999.0,
+      "source_toa_s": 0.0,
+      "source_toa_all_zero": true,
+      "target_terminal_phi": -0.06527474522590637,
+      "target_toa_s": 52.0,
+      "target_phi_burning": true,
+      "target_toa_finite": true,
+      "target_state_consistent": true,
+      "target_ignited_observation": true,
+      "transition_ignition_delay_s": 52.0,
+      "target_peak_dfc_kw_m2": 57.5893440246582,
+      "target_peak_radiation_kw_m2": 4.210126876831055,
+      "target_peak_total_heat_kw_m2": 61.79947090148926,
+      "dump_ledger": {
+        "path": "variants/isolated_d1_insufficient/outputs/dump_times_0000001.csv",
+        "row_count": 61,
+        "first": {
+          "dump_index": 1,
+          "time_seconds": 0.0,
+          "is_final_dump": false
+        },
+        "last": {
+          "dump_index": 61,
+          "time_seconds": 60.0,
+          "is_final_dump": true
+        }
+      },
+      "selected_evidence": {
+        "flin": "variants/isolated_d1_insufficient/outputs/flin_0000001_0000060.tif",
+        "toa": "variants/isolated_d1_insufficient/outputs/time_of_arrival_0000001_0000060.tif",
+        "phi": "variants/isolated_d1_insufficient/outputs/phi_0000001_d0000061.tif"
+      },
+      "completion_receipt": "variants/isolated_d1_insufficient/outputs/run_complete.json",
+      "stdout": "variants/isolated_d1_insufficient/logs/elmfire.stdout"
+    },
+    {
+      "id": "isolated_d1_sufficient",
+      "topology": "isolated_pixel",
+      "distance_cells": 1,
+      "target_row_col": [
+        12,
+        12
+      ],
+      "requested_source_flin_kw_m": 1001.0,
+      "adj_float32": 38.506961822509766,
+      "designed_source_flin_kw_m": 1001.0,
+      "binary32_input_design": {
+        "adjustment_float32": 38.506961822509766,
+        "surface_ros_ft_min": 187.58566284179688,
+        "source_flin_kw_m": 1001.0
+      },
+      "equality_realization": "not applicable",
+      "intended_threshold_result": "ignite",
+      "intended_criterion": "vegetative source, urban target, Euclidean distance <= 1 cell, FLIN_SURFACE > 1000 kW/m",
+      "expected_target_ignited": true,
+      "expected_target_toa_s": 0.0,
+      "expected_target_terminal_phi": "<= 0",
+      "expected_source_toa_s": 0.0,
+      "runtime_input_fingerprint_sha256": "7f67929a8d154dfaae28e571937068fd6e8c535baea46c0d811b4fd165bee4fe",
+      "measured_source_flin_kw_m": 0.0,
+      "source_flin_abs_error_kw_m": 1001.0,
+      "source_toa_s": 0.0,
+      "source_toa_all_zero": true,
+      "target_terminal_phi": -0.0707964152097702,
+      "target_toa_s": 51.0,
+      "target_phi_burning": true,
+      "target_toa_finite": true,
+      "target_state_consistent": true,
+      "target_ignited_observation": true,
+      "transition_ignition_delay_s": 51.0,
+      "target_peak_dfc_kw_m2": 57.70463180541992,
+      "target_peak_radiation_kw_m2": 4.218555450439453,
+      "target_peak_total_heat_kw_m2": 61.923187255859375,
+      "dump_ledger": {
+        "path": "variants/isolated_d1_sufficient/outputs/dump_times_0000001.csv",
+        "row_count": 61,
+        "first": {
+          "dump_index": 1,
+          "time_seconds": 0.0,
+          "is_final_dump": false
+        },
+        "last": {
+          "dump_index": 61,
+          "time_seconds": 60.0,
+          "is_final_dump": true
+        }
+      },
+      "selected_evidence": {
+        "flin": "variants/isolated_d1_sufficient/outputs/flin_0000001_0000060.tif",
+        "toa": "variants/isolated_d1_sufficient/outputs/time_of_arrival_0000001_0000060.tif",
+        "phi": "variants/isolated_d1_sufficient/outputs/phi_0000001_d0000061.tif"
+      },
+      "completion_receipt": "variants/isolated_d1_sufficient/outputs/run_complete.json",
+      "stdout": "variants/isolated_d1_sufficient/logs/elmfire.stdout"
+    },
+    {
+      "id": "isolated_d2_sufficient",
+      "topology": "isolated_pixel",
+      "distance_cells": 2,
+      "target_row_col": [
+        12,
+        13
+      ],
+      "requested_source_flin_kw_m": 1001.0,
+      "adj_float32": 38.506961822509766,
+      "designed_source_flin_kw_m": 1001.0,
+      "binary32_input_design": {
+        "adjustment_float32": 38.506961822509766,
+        "surface_ros_ft_min": 187.58566284179688,
+        "source_flin_kw_m": 1001.0
+      },
+      "equality_realization": "not applicable",
+      "intended_threshold_result": "do_not_ignite",
+      "intended_criterion": "vegetative source, urban target, Euclidean distance <= 1 cell, FLIN_SURFACE > 1000 kW/m",
+      "expected_target_ignited": false,
+      "expected_target_toa_s": null,
+      "expected_target_terminal_phi": "> 0",
+      "expected_source_toa_s": 0.0,
+      "runtime_input_fingerprint_sha256": "0f6e81bb5bf578b604c626b4dcd032c10b9c6ae573d503a74b2e56cab103d08e",
+      "measured_source_flin_kw_m": 0.0,
+      "source_flin_abs_error_kw_m": 1001.0,
+      "source_toa_s": 0.0,
+      "source_toa_all_zero": true,
+      "target_terminal_phi": 0.9998418688774109,
+      "target_toa_s": null,
+      "target_phi_burning": false,
+      "target_toa_finite": false,
+      "target_state_consistent": true,
+      "target_ignited_observation": false,
+      "transition_ignition_delay_s": null,
+      "target_peak_dfc_kw_m2": 14.376708984375,
+      "target_peak_radiation_kw_m2": 1.9652786254882812,
+      "target_peak_total_heat_kw_m2": 16.34198760986328,
+      "dump_ledger": {
+        "path": "variants/isolated_d2_sufficient/outputs/dump_times_0000001.csv",
+        "row_count": 61,
+        "first": {
+          "dump_index": 1,
+          "time_seconds": 0.0,
+          "is_final_dump": false
+        },
+        "last": {
+          "dump_index": 61,
+          "time_seconds": 60.0,
+          "is_final_dump": true
+        }
+      },
+      "selected_evidence": {
+        "flin": "variants/isolated_d2_sufficient/outputs/flin_0000001_0000060.tif",
+        "toa": "variants/isolated_d2_sufficient/outputs/time_of_arrival_0000001_0000060.tif",
+        "phi": "variants/isolated_d2_sufficient/outputs/phi_0000001_d0000061.tif"
+      },
+      "completion_receipt": "variants/isolated_d2_sufficient/outputs/run_complete.json",
+      "stdout": "variants/isolated_d2_sufficient/logs/elmfire.stdout"
+    },
+    {
+      "id": "zero_control",
+      "topology": "isolated_pixel",
+      "distance_cells": 1,
+      "target_row_col": [
+        12,
+        12
+      ],
+      "requested_source_flin_kw_m": 0.0,
+      "adj_float32": 0.0,
+      "designed_source_flin_kw_m": 0.0,
+      "binary32_input_design": {
+        "adjustment_float32": 0.0,
+        "surface_ros_ft_min": 0.0,
+        "source_flin_kw_m": 0.0
+      },
+      "equality_realization": "not applicable",
+      "intended_threshold_result": "do_not_ignite",
+      "intended_criterion": "vegetative source, urban target, Euclidean distance <= 1 cell, FLIN_SURFACE > 1000 kW/m",
+      "expected_target_ignited": false,
+      "expected_target_toa_s": null,
+      "expected_target_terminal_phi": "> 0",
+      "expected_source_toa_s": 0.0,
+      "runtime_input_fingerprint_sha256": "3f68d6aad0c03eb974cc5d370e5bea96fb238d9fb21d3b122f8e27b54e48ede0",
+      "measured_source_flin_kw_m": 0.0,
+      "source_flin_abs_error_kw_m": 0.0,
+      "source_toa_s": 0.0,
+      "source_toa_all_zero": true,
+      "target_terminal_phi": 0.5502481460571289,
+      "target_toa_s": null,
+      "target_phi_burning": false,
+      "target_toa_finite": false,
+      "target_state_consistent": true,
+      "target_ignited_observation": false,
+      "transition_ignition_delay_s": null,
+      "target_peak_dfc_kw_m2": 0.0,
+      "target_peak_radiation_kw_m2": 0.0,
+      "target_peak_total_heat_kw_m2": 0.0,
+      "dump_ledger": {
+        "path": "variants/zero_control/outputs/dump_times_0000001.csv",
+        "row_count": 61,
+        "first": {
+          "dump_index": 1,
+          "time_seconds": 0.0,
+          "is_final_dump": false
+        },
+        "last": {
+          "dump_index": 61,
+          "time_seconds": 60.0,
+          "is_final_dump": true
+        }
+      },
+      "selected_evidence": {
+        "flin": "variants/zero_control/outputs/flin_0000001_0000060.tif",
+        "toa": "variants/zero_control/outputs/time_of_arrival_0000001_0000060.tif",
+        "phi": "variants/zero_control/outputs/phi_0000001_d0000061.tif"
+      },
+      "completion_receipt": "variants/zero_control/outputs/run_complete.json",
+      "stdout": "variants/zero_control/logs/elmfire.stdout"
+    }
+  ],
+  "evidence_paths": {
+    "expected_matrix": "variants/expected.json",
+    "oracle_and_runtime_fingerprints": "variants/run_fingerprints.json",
+    "selector_preflight": "outputs/source_selector_preflight.json",
+    "variant_metadata_pattern": "variants/<variant_id>/variant.json",
+    "completion_receipt_pattern": "variants/<variant_id>/outputs/run_complete.json",
+    "stdout_pattern": "variants/<variant_id>/logs/elmfire.stdout",
+    "terminal_flin_pattern": "variants/<variant_id>/outputs/flin_*_0000060.tif",
+    "terminal_toa_pattern": "variants/<variant_id>/outputs/time_of_arrival_*_0000060.tif",
+    "terminal_phi_pattern": "variants/<variant_id>/outputs/phi_*_d0000061.tif"
+  }
+}

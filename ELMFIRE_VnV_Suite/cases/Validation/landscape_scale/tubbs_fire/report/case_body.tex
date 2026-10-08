@@ -1,0 +1,309 @@
+\section{Validation objective and scope}
+
+This case asks whether ELMFIRE can reconstruct the landscape-scale spatial
+growth of the \CaseTitle{} through \SimulationDuration{} when driven by the
+supplied landscape, weather, moisture, ignition, spotting, and wildland--urban
+interface (WUI) inputs.  The comparison evidence is a time-filtered set of active-fire detections from the
+Visible Infrared Imaging Radiometer Suite (VIIRS).
+The case exercises the coupled surface- and crown-fire, level-set, firebrand,
+ember-ignition, Monte Carlo, and building-spread processes.  It does not isolate
+or verify any single algorithm, and it does not establish predictive skill for
+events outside the three received reconstructions.
+
+The scientific question is deliberately two-sided: does the ensemble overlap
+the observation-derived footprint, and does it do so without achieving overlap
+by excessive fire growth?  Overlap, omission, commission, area, and
+probabilistic error are therefore reported together.  The archive provides no
+independent, predeclared acceptance thresholds, so completed runs are
+\emph{characterized}; they are not labeled PASS or FAIL.
+
+\section{Reference event, experiment, and observations}
+
+The configured event start, expressed in Pacific daylight time (PDT), is
+\EventStart{}. The comparison instant is \ComparisonTime{}, with UTC
+indicating Coordinated Universal Time.  The supplied observation dataset contains
+\InputMetric{observation_total_detection_count} point records in the
+geographic coordinate system defined by EPSG:4326; \InputMetric{observation_retained_detection_count} occur
+on or before the comparison cutoff.  The observation attributes identify the instrument
+as VIIRS and are consistent
+with the National Aeronautics and Space Administration (NASA) Fire Information
+for Resource Management System (FIRMS) active-fire product.  NASA describes VIIRS
+active-fire data as nominal 375-m thermal detections, not mapped fire
+perimeters.  General product information is available from
+\href{https://firms.modaps.eosdis.nasa.gov/active_fire/}{NASA FIRMS active-fire product documentation} and
+\href{https://www.earthdata.nasa.gov/data/catalog/lancemodis-vnp14img-nrt-2}{NASA Earthdata VIIRS near-real-time product documentation}.
+
+The exact FIRMS collection, granules, download URL, acquisition date, filtering
+history, and license are not recorded in the case material.  Consequently the
+NASA attribution is inferred from the observation attributes rather than
+established by complete provenance. Integrity checks identify the supplied
+observations, which remain unchanged during preprocessing.
+
+For raster comparison, detections through the cutoff are projected to the
+simulation coordinate reference system (CRS) and enclosed by a concave hull with ratio 0.2 and no holes.  If
+the installed geometry library lacks that operation, the postprocessor reports
+and uses a convex-hull fallback.  This converts intermittent points into a
+comparison support; it is a declared comparison assumption, not an observed final
+perimeter.  Cloud, smoke, overpass timing, geolocation error, false detections,
+and the hull choice remain observation uncertainties.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.76\textwidth,height=0.52\textheight,keepaspectratio]{observation_summary.pdf}
+  \caption{Supplied VIIRS detections retained through the comparison cutoff,
+  colored by elapsed time from the configured event start.}
+\end{figure}
+
+\section{Input data provenance and characterization}
+
+The supplied historical-fire reconstruction is identified by the SHA-256
+checksum \texttt{\ArchiveSha}. The extracted source data are retained unchanged,
+and their identities are checked before analysis.  The collection's only supplied
+provenance note is ``From Dwi.''  Upstream product names, providers, vintages,
+acquisition dates, processing history, and licenses for fuels, terrain,
+meteorology, moisture, WUI, and ignition data are unknown.  The report therefore
+describes the archived values but does not infer unsupported product identities
+such as LANDFIRE or a specific weather analysis.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Field & Minimum & Mean & Standard deviation & Maximum \\
+\midrule
+Elevation & \InputMetric{dem_minimum} & \InputMetric{dem_mean} & \InputMetric{dem_standard_deviation} & \InputMetric{dem_maximum} \\
+Slope & \InputMetric{slp_minimum} & \InputMetric{slp_mean} & \InputMetric{slp_standard_deviation} & \InputMetric{slp_maximum} \\
+Wind speed & \InputMetric{ws_minimum} & \InputMetric{ws_mean} & \InputMetric{ws_standard_deviation} & \InputMetric{ws_maximum} \\
+1-h moisture & \InputMetric{m1_minimum} & \InputMetric{m1_mean} & \InputMetric{m1_standard_deviation} & \InputMetric{m1_maximum} \\
+10-h moisture & \InputMetric{m10_minimum} & \InputMetric{m10_mean} & \InputMetric{m10_standard_deviation} & \InputMetric{m10_maximum} \\
+100-h moisture & \InputMetric{m100_minimum} & \InputMetric{m100_mean} & \InputMetric{m100_standard_deviation} & \InputMetric{m100_maximum} \\
+\bottomrule
+\end{tabular}
+\caption{Input statistics over valid cells and the 25 weather bands selected by
+the namelist.  Wind speed is interpreted as 20-ft mph and dead-fuel moisture as
+percent from the archived flags and inspected current source; upstream metadata
+that would independently confirm these units is absent.}
+\end{table}
+
+\InputCaveat{}
+
+Aspect and wind direction are circular quantities.  Their arithmetic means are
+not used as directional summaries; the circular means are
+\InputMetric{asp_circular_mean_degrees}$^\circ$ and
+\InputMetric{wd_circular_mean_degrees}$^\circ$, respectively.  Exact means and
+standard deviations use every valid selected value.  Reported quantiles use a deterministic nearest-neighbor
+sample of at most $512\times512$ cells per band, and are labeled accordingly.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth,height=0.61\textheight,keepaspectratio]{input_overview.pdf}
+  \caption{Active elevation, slope, fuel-model, and ignition-mask inputs.  These
+  plots characterize model forcing; they are not validation evidence.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth,height=0.58\textheight,keepaspectratio]{weather_summary.pdf}
+  \caption{Distributions sampled deterministically from the 25 weather and
+  dead-fuel-moisture bands selected by the namelist.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.90\textwidth,height=0.58\textheight,keepaspectratio]{weather_time_series.pdf}
+  \caption{Exact domain-mean wind and dead-fuel-moisture values by active band.}
+\end{figure}
+
+\section{Model configuration and rationale}
+
+The active domain is \GridDescription{}.  Weather is \WeatherDescription{}, and
+the ignition treatment is \IgnitionDescription{}.  The simulation uses
+\EnsembleSize{} members, a target Courant--Friedrichs--Lewy (CFL) number of 0.45, crown-fire model 2, and fire-power-proportional
+firebrand generation with empirical transport distance, Eulerian accumulation,
+and physical ignition.  These physical values, seeds, uncertainty ranges,
+ignition choices, and WUI settings are retained from the received archive except
+for the documented removal of a contradictory fixed Tubbs ignition.  In
+the available material they are \emph{documented by configuration} but their
+scientific selection rationale is unsupported; they must not be described as
+independently derived or literature-justified.
+
+The original settings were adapted only where required for compatibility
+with the inspected ELMFIRE formulation at source revision
+\texttt{efa0b8fa3935ea4cd30a2bd054c7e9b83db81163}, which already
+contained additional modifications when inspected. \CompatibilityNote{}
+The required physical values are retained in the case specification; this
+compatibility review does not establish their scientific justification.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.27\textwidth}p{0.20\textwidth}p{0.43\textwidth}@{}}
+\toprule
+Choice & Evidence class & Basis and limitation \\
+\midrule
+Landscape, weather, ignition, Monte Carlo, spotting, and WUI values & documented & Retained from the received archive; upstream derivation and event-specific tuning history are unknown. \\
+Model-setting compatibility & derived & Required by the choices supported by the inspected model formulation; no physical values were tuned. \\
+Comparison time & documented & Fixed in the case specification and consistent with the supplied reconstruction procedure; original scientific rationale is absent. \\
+$p\geq\ProbabilityThreshold$ footprint & selected for this comparison & Majority-ensemble interpretation used for reproducibility; it is not an acceptance threshold and sensitivity should be reported for scientific use. \\
+VIIRS hull ratio 0.2 & selected for this comparison & Compact cumulative support for point detections; not calibrated to an uncertainty-bounded perimeter. \\
+\bottomrule
+\end{tabular}
+\caption{Provenance of consequential configuration and comparison choices.}
+\end{table}
+
+\section{Preprocessing and reproducibility}
+
+Preprocessing verifies the supplied reconstruction and observations by size
+and SHA-256 checksum.  It checks that required landscape rasters share a grid, confirms that
+the namelist-selected weather rasters contain at least 25 bands, computes input
+and observation statistics, and regenerates the four input figures.  The resulting statistics and figures characterize the source data without
+modifying the original evidence.
+
+Simulation is followed by analysis of the complete ensemble. The declared
+default allocation is 50 Message Passing Interface (MPI) processes, one per
+ensemble member, without an additional coordinating process. The original
+simulation results remain available for examination.  Reproducible input identity does not by itself guarantee result
+reproducibility: each run must also record the actual ELMFIRE revision,
+compiler, dependencies, and platform.
+
+\section{Validation metrics and comparison method}
+
+For member $i$, let $\tau_i(\mathbf{x})$ be the time-of-arrival raster and $t_c$
+the declared comparison time.  The ensemble burn probability and thresholded
+footprint are
+\begin{equation}
+ p(\mathbf{x})=\frac{1}{N}\sum_{i=1}^{N}
+ \mathbf{1}\!\left[0<\tau_i(\mathbf{x})\le t_c\right],\qquad
+ P=\{\mathbf{x}:p(\mathbf{x})\ge\ProbabilityThreshold\}.
+\end{equation}
+For the rasterized observation support $O$, intersection $I=|P\cap O|$, and
+valid-cell count $M$, the analysis reports
+\begin{align}
+ J&=\frac{|P\cap O|}{|P\cup O|}, &
+ \mathrm{precision}&=\frac{I}{|P|}, &
+ \mathrm{recall}&=\frac{I}{|O|},\\
+ F_1&=\frac{2\,\mathrm{precision}\,\mathrm{recall}}
+ {\mathrm{precision}+\mathrm{recall}}, &
+ R_A&=\frac{|P|}{|O|}, &
+ \mathrm{Brier}&=\frac{1}{M}\sum_{\mathbf{x}}(p-y)^2.
+\end{align}
+Jaccard is a symmetric footprint-overlap summary.  Precision diagnoses
+commission/overgrowth, recall diagnoses omission/undergrowth, and $F_1$ balances
+those errors.  The area ratio exposes size compensation that overlap alone can
+hide.  The Brier score retains ensemble probabilities, although the large
+unburned domain can dominate it.  Burned-area growth and conditional median
+arrival time add temporal context.  VIIRS detections and their derived hull are
+the observational baseline; no previous simulation result is used as truth.
+
+Metrics are calculated only when exactly \EnsembleSize{} uniquely identified
+members reach the comparison time and share one grid and CRS.  This completeness
+requirement prevents partial runs from being reported as scientific results.
+The static aspect raster defines the analysis-domain mask.  Member-specific
+NoData cells in time-of-arrival outputs represent cells not burned by that
+member; they are therefore retained as zero burn outcomes rather than treated
+as a grid-mask mismatch.
+
+\section{Simulation results and field-level comparison}
+
+The current scientific status is \textbf{\Metric{status}}.  \Metric{reason}
+Metrics and figures are generated only from the complete, current
+ensemble.  If that ensemble is unavailable, the analysis reports the result as
+not evaluable rather than substituting legacy outputs or zero-valued metrics.
+
+\IfFileExists{../figures/validation_comparison.pdf}{%
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.96\textwidth]{validation_comparison.pdf}
+  \caption{Ensemble burn probability, VIIRS-derived support, and cell-level
+  true-positive, false-positive, and false-negative regions.}
+\end{figure}}{}
+
+\IfFileExists{../figures/arrival_time_summary.pdf}{%
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{arrival_time_summary.pdf}
+  \caption{Conditional median arrival time among members that burn each cell by
+  the comparison time.  Conditioning is stated because it omits no-burn members.}
+\end{figure}}{}
+
+\IfFileExists{../figures/optional_output_fields.pdf}{%
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.96\textwidth]{optional_output_fields.pdf}
+  \caption{Applicable final-time two-dimensional fields found by the
+  postprocessor.  Omission of this panel means no recognized optional field was
+  available; it does not imply a zero field.}
+\end{figure}}{}
+
+The simulation requests flame length and ember flux in addition to arrival
+time.  It does not request a structure-damage count or damage-time output, so a
+damaged-structures time series is not reported and must not be inferred from WUI
+input rasters alone.
+
+\section{Integrated statistics and calculated metrics}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lr@{}}
+\toprule
+Metric & Current value \\
+\midrule
+Jaccard overlap & \Metric{jaccard} \\
+Precision & \Metric{precision} \\
+Recall & \Metric{recall} \\
+$F_1$ score & \Metric{f1} \\
+Brier score & \Metric{brier_score} \\
+Predicted/observed area ratio & \Metric{area_ratio} \\
+Predicted area (km$^2$) & \Metric{predicted_area_km2} \\
+Observation-support area (km$^2$) & \Metric{observed_area_km2} \\
+Ensemble members found & \Metric{ensemble_members_found} \\
+\bottomrule
+\end{tabular}
+\caption{Calculated statistics.  \textbf{MISSING} is intentionally conspicuous
+when the completeness requirement prevents evaluation.}
+\end{table}
+
+\IfFileExists{../figures/burned_area_growth.pdf}{%
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.84\textwidth]{burned_area_growth.pdf}
+  \caption{Median and 5th--95th percentile ensemble burned-area growth.}
+\end{figure}}{}
+
+These values are compared with the observation-derived support and not with a
+stored ELMFIRE baseline.  Because neither metric thresholds nor observation
+uncertainty bounds were declared independently, a populated table supports
+scientific characterization only.
+
+\section{Interpretation and uncertainty}
+
+A low Jaccard value with high recall and low precision indicates spatial
+overgrowth; high precision with low recall indicates undergrowth or a displaced
+trajectory.  An area ratio near one cannot establish spatial agreement.  The
+Brier score must be read with the footprint metrics because correct prediction
+of the large unburned domain may obscure errors near the fire.
+
+The dominant limitations are incomplete input provenance, an observation
+product that samples thermal anomalies rather than perimeter, uncertain hull
+sensitivity, unknown event-specific calibration history, and absence of
+predeclared acceptance bounds.  Model-form error, uncertain fuels and moisture,
+meteorological representation, ignition timing/location, spotting parameters,
+and WUI parameters are not separable using these aggregate metrics alone.  The
+50 archived perturbations characterize one configured ensemble; they do not by
+themselves quantify all epistemic uncertainty.
+
+\section{Conclusions and limitations}
+
+This case characterizes the agreement between a complete simulated ensemble
+and a spatial support derived from active-fire detections. Input statistics
+describe the forcing, spatial comparisons distinguish omission and commission,
+and integrated quantities provide context for the overlap metrics.  Its current
+scientific result is \textbf{\Metric{status}}; the accompanying reason states
+whether the complete current ensemble supported quantitative characterization.
+
+To support a defensible validation decision, future case owners must supply the
+upstream input citations and licenses, exact VIIRS collection/granule and
+acquisition provenance, the derivation or literature basis for ignition,
+spotting, WUI, and perturbation settings, disclosure of any calibration against
+this event, and acceptance thresholds fixed before inspecting the evaluated
+run.  Until then, even a completed run is correctly labeled CHARACTERIZED, not
+PASS or FAIL.

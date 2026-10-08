@@ -1,0 +1,80 @@
+{
+  "case_id": "CASE13_PRM",
+  "overall_status": "NOT EVALUABLE",
+  "completed_result_points": 0,
+  "requested_result_points": 270,
+  "capability": {
+    "required_feature": "USE_RESOLUTION_INDEPENDENT_STRUCTURES",
+    "required_feature_available": false,
+    "source_adapter_implemented": false,
+    "runnable_points": 0,
+    "total_points": 270,
+    "status": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES",
+    "design_fingerprint": "4cc2f40b522a1739c45b7d68220cd4a43118f1f1bcf17ac83685bc096c3ab944"
+  },
+  "metrics": [
+    {
+      "metric": "Parameter-design completeness",
+      "limit": "270/270",
+      "calculated": "270",
+      "status": "PASS",
+      "note": ""
+    },
+    {
+      "metric": "Exact single-structure capability",
+      "limit": "available",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES"
+    },
+    {
+      "metric": "Current result completeness",
+      "limit": "100%",
+      "calculated": "0",
+      "status": "NOT EVALUABLE",
+      "note": ""
+    },
+    {
+      "metric": "Critical GR versus separation Spearman rho",
+      "limit": ">= 0.85",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "All 270 current-design outputs are required."
+    },
+    {
+      "metric": "ROS versus separation median Spearman rho",
+      "limit": "<= -0.50",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "All 270 current-design outputs are required."
+    },
+    {
+      "metric": "ROS versus generation median Spearman rho",
+      "limit": ">= 0.70",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "All 270 current-design outputs are required."
+    },
+    {
+      "metric": "Low/high-wind threshold excess",
+      "limit": ">= 5 pcs/MW/s",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "All 270 current-design outputs are required."
+    },
+    {
+      "metric": "Moderate/edge-wind ROS ratio",
+      "limit": ">= 1.10",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "All 270 current-design outputs are required."
+    },
+    {
+      "metric": "Maximum firebrand-driven ROS",
+      "limit": "<= 0.08 m/s",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "All 270 current-design outputs are required."
+    }
+  ]
+}

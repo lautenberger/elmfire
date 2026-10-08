@@ -1,0 +1,82 @@
+\section{Verification purpose}
+
+This case verifies the scalar Rothermel slope response for \FuelSet{} over \SlopeSet{} rise over run.  It tests slope-raster units, conversion to $\tan^2\phi$, fuel-dependent packing response, and ELMFIRE's slope-factor cap without wind.  The verification question is whether all 35 simulation conditions reproduce independently calculated intensity and slope-enhanced rate of spread (ROS) within the stated tolerances.
+
+\section{Mathematical formulation and numerical implementation}
+The no-wind response is
+\begin{equation}R=R_0(1+\phi_s),\qquad \phi_s=5.275\,\beta^{-0.3}\tan^2\phi .\end{equation}
+Here reported slope percent is rise/run times 100 and the raster value is the angle $\phi=\tan^{-1}(s/100)$ in degrees.  The formulation follows Andrews (2018), RMRS-GTR-371.  The inspected ELMFIRE source additionally caps $\phi_s$ at the maximum wind factor derived from its wind limit; the reference calculation reproduces and reports that implementation policy.
+
+\section{Derivation of expected behavior}
+Before the cap, plotting $\phi_s$ against $\tan\phi$ on logarithmic axes has slope two.  For each fuel and raster angle, the local reference calculation calculates $R_0$, the uncapped factor, the cap, and final $R$.  Because the initial level set is planar and aligned with the upslope direction, the output normal speed equals this scalar head-spread prediction.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The slope-only reference uses
+\[
+ \phi_s=5.275\,\beta^{-0.3}\tan^2\theta,\qquad
+ R=R_0(1+\phi_s).
+\]
+As an explicit generated substitution, the requested 20 percent slope is
+stored as the integer raster angle \(\theta=11\) degrees
+(\(100\tan11^\circ=19.4380\) percent).  For Fuel Model~2,
+\(\beta=0.00575\), \(R_0=0.8237955~\mathrm{m\,min^{-1}}\), and
+\[
+ \begin{gathered}\phi_s=5.275(0.00575)^{-0.3}\tan^2(11^\circ)=0.936756,\\
+ R_{\mathrm{ref}}=0.8237955(1+0.936756)
+ =1.595491~\mathrm{m\,min^{-1}}.\end{gathered}
+\]
+Reaction intensity is unchanged by slope; here it is
+\(675.184~\mathrm{kW\,m^{-2}}\).  Every other generated fuel/slope pair
+uses the same equations with its stored integer angle and fuel packing
+ratio.  Simulation condition errors are
+\(e_R=|R_{\max}-R_{\mathrm{ref}}|/\max(|R_{\mathrm{ref}}|,10^{-8})\)
+and analogously \(e_I\).  From \(t=a+bx_{\mathrm{surface}}\),
+\(R_{\mathrm{TOA}}=60/b\) and \(R^2=1-SSE/SST\).
+The aggregate substitutions are \(\max e_R\leq0.02\),
+\(\max e_I\leq0.01\), \(\max e_{\mathrm{TOA}}\leq0.05\), and
+\(\min R^2\geq0.995\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+Maximum relative errors are 0.02 for direct ROS, 0.01 for reaction intensity, and 0.05 for time of arrival (TOA)-derived ROS; TOA regression requires $R^2\ge0.995$. The direct and reference calculation ROS values are slope-surface speeds. Accordingly, the TOA regression converts map easting to distance along the sloping surface using $x_s=x_0+(x-x_0)/\cos\theta$ before fitting speed. Pointwise analytical errors are used instead of a trend-only test because degrees-versus-percent mistakes can preserve monotonicity.  All simulation conditions and output fields must exist.
+
+\section{Simulation configuration and predicted outcome}
+
+The finite-strip PHI raster is a signed-distance field clipped to ELMFIRE's supported $[-1,1]$ interval, preserving both an ignited interior and a resolved front gradient. For every positive reference spread rate, the prescribed and maximum timesteps use the whole-second value obtained by rounding the 5\%-of-cell target downward, with a one-second minimum; every generated value remains below the configured Courant--Friedrichs--Lewy (CFL) limit of 0.2. The stop time is rounded upward to an exact integer multiple of that step. This avoids a shortened final step that can trigger ELMFIRE's stalled-front branch and corrupt the terminal timestamp. A zero-ROS simulation condition retains a 5 s step and is evaluated from direct fields without requiring TOA propagation. The evaluator always requires uniquely named rasters tied to one final dump record. It accepts a stalled-final record only when subtracting the configured meteorology interval reconstructs the requested stop time within one configured timestep. A TOA-required simulation condition must reach the prescribed stop time in its generated namelist; a direct-only simulation condition may terminate early because lack of propagation is part of the state being tested.
+Each \SI{1400}{m} square domain uses \SI{10}{m} cells and a finite ignition strip with a planar east face in the interior analysis corridor.  The strip does not touch the lateral grid boundaries.  Wind is zero, dead moisture is fixed at 5/7/9\%, and live moisture is 90\%.  Aspect is chosen so upslope is aligned with propagation.  Slope inputs are generated as explicit integer degrees after applying the positive-value equivalent of Fortran NINT; the expected response and slope-surface coordinate conversion use that same generated angle.  ROS should rise quadratically in $\tan\phi$ before any source-defined plateau.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.24\textwidth}p{0.12\textwidth}p{0.32\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 1400 m square; 10 & m/cell & Planar upslope propagation \\
+Fuel sweep & \FuelSet & code/name & Fuel-dependent packing response \\
+Slope sweep & \SlopeSet & percent rise/run & Independent terrain target \\
+Wind/moisture & calm; dead 5/7/9, live 90/90 & mph / percent & Isolates slope factor \\
+Timing & generated whole-second step and exact-multiple stop & s & CFL-safe terminal evidence \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+The available results cover \CompletedVariantCount{} of \RequiredVariantCount{} simulation conditions and has state \textbf{\VerificationStatus}.
+\ifnum\CompletedVariantCount>0
+\IfFileExists{../figures/sweep_response.pdf}{\begin{figure}[H]\centering\includegraphics[width=0.95\textwidth]{sweep_response.pdf}\caption{Independent calculations (open diamonds, solid lines) and ELMFIRE predictions (filled circles, dashed lines). Each fuel-model pair uses the same color.}\end{figure}}{}
+\fi
+
+\section{Calculated metrics and verification decision}
+\begin{center}\begin{tabular}{@{}llll@{}}\toprule Metric & Limit & Calculated & Status\\\midrule\MetricRows\bottomrule\end{tabular}\end{center}
+The overall decision is \textbf{\VerificationStatus}.
+
+\section{Technical interpretation}
+Large errors growing with slope indicate a units or tangent error.  Fuel-dependent errors implicate packing ratio or table selection.  A premature or absent plateau indicates changed cap semantics.  An accurate direct field but biased TOA indicates propagation or coordinate handling.
+
+\section{Scope and limitations}
+This test covers uniform positive slopes aligned with the front.  It does not verify vector competition between wind and slope, complex terrain, or experimental fire behavior; CASE40 covers the directional coupling.

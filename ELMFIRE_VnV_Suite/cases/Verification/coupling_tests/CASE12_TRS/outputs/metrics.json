@@ -1,0 +1,86 @@
+{
+  "case_id": "CASE12_TRS",
+  "overall_status": "FAIL",
+  "completed_variants": [
+    "cfl0p5_dt0p28",
+    "cfl1_dt0p56",
+    "cfl10_dt5p59",
+    "cfl200_dt111p86"
+  ],
+  "unrun_variants": [],
+  "metrics": [
+    {
+      "metric": "Output completeness",
+      "limit": "4 variants",
+      "calculated": "4/4",
+      "status": "PASS",
+      "note": "Only outputs matching the current input fingerprint are counted."
+    },
+    {
+      "metric": "CFL 0.5 analytical-load mean error",
+      "limit": "<= 0.01",
+      "calculated": 0.543453881740602,
+      "status": "FAIL",
+      "note": ""
+    },
+    {
+      "metric": "CFL 1 analytical-load maximum error",
+      "limit": "<= 0.001",
+      "calculated": 0.8270090886508965,
+      "status": "FAIL",
+      "note": ""
+    },
+    {
+      "metric": "CFL 10 analytical-load maximum error",
+      "limit": "<= 0.001",
+      "calculated": 0.8269027331309461,
+      "status": "FAIL",
+      "note": ""
+    },
+    {
+      "metric": "CFL 200 analytical-load maximum error",
+      "limit": "<= 0.1",
+      "calculated": 0.8392707849919627,
+      "status": "FAIL",
+      "note": ""
+    },
+    {
+      "metric": "CFL 1 ignition-time mean relative error",
+      "limit": "<= 0.001",
+      "calculated": 0.007294913351744227,
+      "status": "FAIL",
+      "note": ""
+    },
+    {
+      "metric": "CFL 10 ignition-time mean relative error",
+      "limit": "<= 0.001",
+      "calculated": 0.013257912643702388,
+      "status": "FAIL",
+      "note": ""
+    },
+    {
+      "metric": "CFL 1 accumulation-history NRMSE",
+      "limit": "<= 0.05",
+      "calculated": 0.008465921503353038,
+      "status": "PASS",
+      "note": ""
+    },
+    {
+      "metric": "CFL 10 accumulation-history NRMSE",
+      "limit": "<= 0.05",
+      "calculated": 0.008442530409417021,
+      "status": "PASS",
+      "note": ""
+    }
+  ],
+  "diagnostics": {
+    "cfl_1_mean_ignition_relative_error": 0.007294913351744227,
+    "cfl_1_mean_first_deposition_relative_error": 0.0005589714923551332,
+    "cfl_10_mean_ignition_relative_error": 0.013257912643702388,
+    "cfl_10_mean_first_deposition_relative_error": 0.006148707864630079,
+    "cfl_200_mean_ignition_relative_error": 0.05733302272355939,
+    "cfl_200_mean_first_deposition_relative_error": 0.11794298967387835
+  },
+  "normalization": "deposited ember count divided by the 10 m by 10 m physical structure footprint",
+  "first_deposition_resolution_s": 500.0
+}

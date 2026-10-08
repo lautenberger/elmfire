@@ -1,0 +1,4 @@
+interface:
+  display_name: "ELMFIRE Spotting Verification Suite"
+  short_description: "Build and validate ELMFIRE spotting cases"
+  default_prompt: "Use $spotting-suite to build or update an independent ELMFIRE spotting verification case."

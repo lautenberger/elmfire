@@ -1,0 +1,23 @@
+% Generated mechanically after strict semantic validation; do not edit.
+\newcommand{\VerificationStatus}{FAIL}
+\newcommand{\WorkflowStatus}{COMPLETE}
+\newcommand{\VerificationReason}{One or more intended heat/FTP transition checks failed; optional FLIN-shortcut diagnostics do not control this decision.}
+\newcommand{\SelectorStatus}{NOT EVALUABLE}
+\newcommand{\RequiredVariants}{7}
+\newcommand{\CompletedVariants}{7}
+\newcommand{\RuntimeFingerprint}{1785c84c\allowbreak{}e84d2647\allowbreak{}c8daf520\allowbreak{}c134f64b\allowbreak{}3e82d50d\allowbreak{}1561ee37\allowbreak{}6120cce8\allowbreak{}ed1cdf69\allowbreak{}}
+\newcommand{\OracleFingerprint}{1ca12653\allowbreak{}08e8c829\allowbreak{}00f62f06\allowbreak{}4aa06bb7\allowbreak{}99ea6906\allowbreak{}dfd00536\allowbreak{}d8c05e86\allowbreak{}650c02d6\allowbreak{}}
+\newcommand{\ExecutablePath}{/\allowbreak{}workspac\allowbreak{}es/\allowbreak{}elmfire-\allowbreak{}nick/\allowbreak{}ELMFIRE\_\allowbreak{}VnV\_Suit\allowbreak{}e/\allowbreak{}diagnost\allowbreak{}ics/\allowbreak{}CASE43\_C\allowbreak{}ASE49/\allowbreak{}bin/\allowbreak{}elmfire}
+\newcommand{\ExecutableHash}{bc2d2748\allowbreak{}3ed3cf40\allowbreak{}9cea0a04\allowbreak{}fd879e29\allowbreak{}0cfe5b57\allowbreak{}a0c84b21\allowbreak{}5282ff9d\allowbreak{}18c458a9\allowbreak{}}
+\newcommand{\ExecutableVersion}{ELMFIRE 2025.1002}
+\newcommand{\MetricRows}{%
+evidence and exact dump ledger & 61 rows: indices 1..61, times 0..60 s, only row 61 final & 7/7 exact; FLIN/TOA time stamp 0000060; PHI dump index d0000061 & PASS \\
+source fireline-intensity setup & maximum absolute error \ensuremath{\leq}0.5 kW/m and source TOA=0 s & \{"all\_source\_toa\_zero":true,"max\_abs\_error\_kw\_m":1001.0\} kW/m & FAIL \\
+terminal PHI/TOA state consistency & PHI\ensuremath{\leq}0 iff TOA is finite at each designated target & \{"contiguous\_above":true,"contiguous\_below":true,"contiguous\_equal":true,"isolated\_d1\_insufficient":true,"isolated\_d1\_sufficient":true,"isolated\_d2\_sufficient":true,"zero\_control":true\} & PASS \\
+intended W-to-U receiver heat exposure & positive DFC+radiation at sufficient-heat receivers & \{"contiguous\_above":84.52081632614136,"isolated\_d1\_sufficient":61.923187255859375\} kW/m2 & PASS \\
+intended W-to-U finite ignition delay & finite target TOA with delay \ensuremath{>} 0 s & \{"contiguous\_above":49.0,"isolated\_d1\_sufficient":51.0\} s & PASS \\
+contiguous strict-threshold matrix & below=false, equal=false, above=true & \{"contiguous\_above":true,"contiguous\_below":true,"contiguous\_equal":true\} & NOT EVALUABLE \\
+isolated distance/threshold matrix & d1-insufficient=false, d1-sufficient=true, d2-sufficient=false & \{"isolated\_d1\_insufficient":true,"isolated\_d1\_sufficient":true,"isolated\_d2\_sufficient":false\} & NOT EVALUABLE \\
+first-update transition timing & eligible target TOA=0 s and target-source delay=0 s & \{"contiguous\_above":\{"target\_source\_delay\_s":49.0,"target\_toa\_s":49.0\},"isolated\_d1\_sufficient":\{"target\_source\_delay\_s":51.0,"target\_toa\_s":51.0\}\} s & NOT EVALUABLE \\
+zero-source control & target remains PHI\ensuremath{>}0 with nodata TOA & \{"target\_phi":0.5502481460571289,"target\_toa\_s":null\} & PASS \\
+}

@@ -1,0 +1,290 @@
+{
+  "case_id": "CASE14_SRS",
+  "overall_status": "NOT EVALUABLE",
+  "completed_variants": [
+    "dx1",
+    "dx3",
+    "dx5",
+    "dx7",
+    "dx10",
+    "dx13",
+    "dx17",
+    "dx20",
+    "dx25",
+    "dx30",
+    "dx40"
+  ],
+  "executed_variants": [
+    "dx1",
+    "dx3",
+    "dx5",
+    "dx7",
+    "dx10",
+    "dx13",
+    "dx15",
+    "dx17",
+    "dx20",
+    "dx23",
+    "dx25",
+    "dx27",
+    "dx30",
+    "dx40",
+    "dx50"
+  ],
+  "terminal_evidence_rejected_variants": [
+    "dx15",
+    "dx23",
+    "dx27",
+    "dx50"
+  ],
+  "unrun_variants": [],
+  "metrics": [
+    {
+      "metric": "Prepared resolution variants",
+      "limit": ">= 100%",
+      "calculated": "1",
+      "status": "PASS",
+      "note": ""
+    },
+    {
+      "metric": "dx=10 m footprint error",
+      "limit": "<= 0.01",
+      "calculated": "0",
+      "status": "PASS",
+      "note": ""
+    },
+    {
+      "metric": "dx=10 m separation error",
+      "limit": "<= 0.01",
+      "calculated": "0",
+      "status": "PASS",
+      "note": ""
+    },
+    {
+      "metric": "dx=7 m component-area range",
+      "limit": "49 to 196 m2",
+      "calculated": "49 to 196",
+      "status": "PASS",
+      "note": ""
+    },
+    {
+      "metric": "dx=30 m median footprint error",
+      "limit": "<= 0.01",
+      "calculated": "0",
+      "status": "PASS",
+      "note": ""
+    },
+    {
+      "metric": "Current-fingerprint run completeness",
+      "limit": "15 variants",
+      "calculated": "11/15",
+      "status": "NOT EVALUABLE",
+      "note": "Every process may have exited, but strict terminal evidence was not accepted for every variant."
+    },
+    {
+      "metric": "10-m ELMFIRE ROS anchor",
+      "limit": "finite fitted ROS",
+      "calculated": "N/A",
+      "status": "NOT RUN",
+      "note": "Requires the complete ELMFIRE sweep."
+    },
+    {
+      "metric": "ROS-evaluable resolution fraction",
+      "limit": ">= 100%",
+      "calculated": "N/A",
+      "status": "NOT RUN",
+      "note": "Requires the complete ELMFIRE sweep."
+    },
+    {
+      "metric": "ROS mesh-dependence CV",
+      "limit": "<= 0.25",
+      "calculated": "N/A",
+      "status": "NOT RUN",
+      "note": "Requires the complete ELMFIRE sweep."
+    },
+    {
+      "metric": "Maximum ROS deviation from 10-m anchor",
+      "limit": "<= 0.50",
+      "calculated": "N/A",
+      "status": "NOT RUN",
+      "note": "Requires the complete ELMFIRE sweep."
+    }
+  ],
+  "geometry_status": "PASS",
+  "runtime_metric_count": 5,
+  "dx10_reference_ros_m_s": 0.011226026729184359,
+  "dx10_reference_definition": "Run-derived mean community ROS from the current dx=10 m ELMFIRE output.",
+  "selected_toa_file_by_dx": {
+    "1.0": "time_of_arrival_0000001_0150000.tif",
+    "3.0": "time_of_arrival_0000001_0150000.tif",
+    "5.0": "time_of_arrival_0000001_0150000.tif",
+    "7.0": "time_of_arrival_0000001_0150000.tif",
+    "10.0": "time_of_arrival_0000001_0150000.tif",
+    "13.0": "time_of_arrival_0000001_0151851.tif",
+    "15.0": null,
+    "17.0": "time_of_arrival_0000001_0150111.tif",
+    "20.0": "time_of_arrival_0000001_0150000.tif",
+    "23.0": null,
+    "25.0": "time_of_arrival_0000001_0152759.tif",
+    "27.0": null,
+    "30.0": "time_of_arrival_0000001_0150000.tif",
+    "40.0": "time_of_arrival_0000001_0150000.tif",
+    "50.0": null
+  },
+  "terminal_evidence_by_dx": {
+    "1.0": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "final_time_s": 150000.0,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null,
+      "expected_no_propagation": true
+    },
+    "3.0": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "final_time_s": 150000.0,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null,
+      "expected_no_propagation": true
+    },
+    "5.0": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "final_time_s": 150000.0,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null,
+      "expected_no_propagation": false
+    },
+    "7.0": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "final_time_s": 150000.328125,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null,
+      "expected_no_propagation": true
+    },
+    "10.0": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "final_time_s": 150000.0,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null,
+      "expected_no_propagation": false
+    },
+    "13.0": {
+      "selection_path": "stalled-final compatibility",
+      "reason": "accepted",
+      "final_time_s": 151850.7940814495,
+      "pre_jump_time_s": 148250.7940814495,
+      "timestep_grid_residual_s": 0.0782618360244669,
+      "expected_no_propagation": true
+    },
+    "15.0": {
+      "selection_path": null,
+      "reason": "terminal record is neither a regular final dump nor a compatible timestep-aligned stalled final dump",
+      "final_time_s": 152833.5919770002,
+      "pre_jump_time_s": 149233.5919770002,
+      "timestep_grid_residual_s": 0.30189110184437595,
+      "expected_no_propagation": false
+    },
+    "17.0": {
+      "selection_path": "stalled-final compatibility",
+      "reason": "accepted",
+      "final_time_s": 150111.0860939026,
+      "pre_jump_time_s": 146511.0860939026,
+      "timestep_grid_residual_s": 0.020294787478633225,
+      "expected_no_propagation": true
+    },
+    "20.0": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "final_time_s": 150000.0,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null,
+      "expected_no_propagation": false
+    },
+    "23.0": {
+      "selection_path": null,
+      "reason": "terminal record is neither a regular final dump nor a compatible timestep-aligned stalled final dump",
+      "final_time_s": 150107.0595088005,
+      "pre_jump_time_s": 146507.0595088005,
+      "timestep_grid_residual_s": 0.6355520441720728,
+      "expected_no_propagation": true
+    },
+    "25.0": {
+      "selection_path": "stalled-final compatibility",
+      "reason": "accepted",
+      "final_time_s": 152758.9345228672,
+      "pre_jump_time_s": 149158.9345228672,
+      "timestep_grid_residual_s": 0.022568679647520185,
+      "expected_no_propagation": true
+    },
+    "27.0": {
+      "selection_path": null,
+      "reason": "terminal record is neither a regular final dump nor a compatible timestep-aligned stalled final dump",
+      "final_time_s": 151842.9090356827,
+      "pre_jump_time_s": 148242.9090356827,
+      "timestep_grid_residual_s": 0.7045112034829799,
+      "expected_no_propagation": true
+    },
+    "30.0": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "final_time_s": 150000.0,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null,
+      "expected_no_propagation": false
+    },
+    "40.0": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "final_time_s": 150000.0,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null,
+      "expected_no_propagation": false
+    },
+    "50.0": {
+      "selection_path": null,
+      "reason": "terminal record is neither a regular final dump nor a compatible timestep-aligned stalled final dump",
+      "final_time_s": 151836.1982667446,
+      "pre_jump_time_s": 148236.1982667446,
+      "timestep_grid_residual_s": 0.022533029492478818,
+      "expected_no_propagation": false
+    }
+  },
+  "ignited_structure_columns_by_dx": {
+    "1.0": 0,
+    "3.0": 38,
+    "5.0": 52,
+    "7.0": 57,
+    "10.0": 59,
+    "13.0": 0,
+    "15.0": 0,
+    "17.0": 2,
+    "20.0": 59,
+    "23.0": 0,
+    "25.0": 1,
+    "27.0": 0,
+    "30.0": 19,
+    "40.0": 29,
+    "50.0": 0
+  },
+  "ros_m_s_by_dx": {
+    "1.0": null,
+    "3.0": 0.005117395932521061,
+    "5.0": 0.006998330753606764,
+    "7.0": 0.007704358296403613,
+    "10.0": 0.011226026729184359,
+    "13.0": null,
+    "15.0": null,
+    "17.0": null,
+    "20.0": 0.026167209617844186,
+    "23.0": null,
+    "25.0": null,
+    "27.0": null,
+    "30.0": 0.01612041781573532,
+    "40.0": 0.040355675570718626,
+    "50.0": null
+  }
+}

@@ -1,0 +1,81 @@
+% Replace authoring prompts with a case-specific scientific argument.
+% Visible filenames, paths, scripts, and routine names are prohibited.
+% Explain terms at first use in prose or beside equations; no glossary section.
+
+
+\documentclass[../report/case_report.tex]{subfiles}
+\begin{document}
+
+\section{Verification purpose}
+\textbf{Objective:} State the physical or numerical behavior being verified,
+its importance to ELMFIRE, controlled processes, and the precise comparison
+question. Distinguish verification from validation against observations.
+
+
+\section{Mathematical formulation and numerical implementation}
+List assumptions concisely:
+\begin{itemize}[nosep]
+\item Homogeneous fuel; no spotting; steady uniform wind.
+\item 2D structured grid, constant \(\Delta x = \Delta y\).
+\item Boundary conditions: specify.
+\end{itemize}
+
+
+\section{Derivation of expected behavior}
+Derive the reference response for the prescribed conditions. Identify whether
+it is analytical, independently calculated, or based on conservation, symmetry,
+convergence, or a limiting response. Restate and cite necessary external theory.
+
+\section{Verification metrics and acceptance criteria}
+Define each metric, its selection rationale, region, mask, normalization, time
+and ensemble selection, and justified tolerance. State the complete decision
+rule. Missing evidence is NOT EVALUABLE, never evidence of PASS.
+
+\section{Simulation configuration and predicted outcome}
+Describe physical and numerical choices by scientific meaning and units, not
+configuration identifiers. State predicted responses before measured results.
+
+
+\subsection{Input data}
+Describe each input's physical quantity, units, value or spatial distribution,
+domain extent, grid dimensions and resolution, coordinate reference system,
+and time basis. Explain fuels, moisture, wind height and direction, terrain,
+canopy or structures, ignition geometry and timing, buffers, missing and
+nonburnable cells, transformations, and random distributions/seeds as applicable.
+Cite external data sources. For unknown details state ``not documented in the
+available case materials.'' Never invent a reproducibility claim.
+
+
+\subsection{Numerical controls}
+Describe mesh resolution, timestep, the Courant--Friedrichs--Lewy (CFL)
+stability condition, and the level-set discretization.
+
+
+\section{Actual simulation results}
+Present available evidence, completeness, and the ELMFIRE release or source
+revision if known. Describe physical output quantities and their unique
+time/member selection. Distinguish simulation from prediction and observation.
+
+
+\section{Calculated metrics and verification decision}
+Present expected limits, calculated values, and component decisions from the
+established metric calculations. Preserve PASS, FAIL, CHARACTERIZED, and
+NOT EVALUABLE. Report preparation cannot establish scientific agreement.
+
+
+\section{Technical interpretation}
+Explain agreement or disagreement using the derivation, resolution, assumptions,
+uncertainty, and available evidence. Do not merely restate the results table.
+
+
+Captions identify the field, units, conditions, spatial and temporal context,
+and scientific purpose. Define abbreviations and keep labels readable. Do not
+display filenames, operational paths, or software-development terminology.
+
+
+\section{Scope and limitations}
+State what the evidence demonstrates and what remains unverified. Explain
+limits on extrapolation beyond the prescribed conditions.
+
+
+\end{document}

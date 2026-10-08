@@ -1,0 +1,83 @@
+{
+  "case_id": "CASE26_CNF",
+  "case_title": "Case 26: Surface, passive-crown, and active-crown fire",
+  "overall_status": "PASS",
+  "workflow_status": "COMPLETE",
+  "metric_count": 6,
+  "passing_metric_count": 6,
+  "variants": [
+    {
+      "label": "1mph",
+      "guide_case": "Canopy-1mph",
+      "configuration": "variants/1mph/elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "crown class",
+          "target": 0,
+          "measured": 0.0,
+          "percent_error": null,
+          "units": "-",
+          "status": "PASS"
+        },
+        {
+          "name": "max ROS",
+          "target": 1.809,
+          "measured": 1.7451090812683105,
+          "percent_error": -3.5318363035759757,
+          "units": "m/min",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "label": "5mph",
+      "guide_case": "Canopy-5mph",
+      "configuration": "elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "crown class",
+          "target": 1,
+          "measured": 1.0,
+          "percent_error": 0.0,
+          "units": "-",
+          "status": "PASS"
+        },
+        {
+          "name": "max ROS",
+          "target": 10.06,
+          "measured": 10.08432388305664,
+          "percent_error": 0.24178810195467323,
+          "units": "m/min",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "label": "10mph",
+      "guide_case": "Canopy-10mph",
+      "configuration": "variants/10mph/elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "crown class",
+          "target": 2,
+          "measured": 2.0,
+          "percent_error": 0.0,
+          "units": "-",
+          "status": "PASS"
+        },
+        {
+          "name": "max ROS",
+          "target": 35.3,
+          "measured": 35.44330596923828,
+          "percent_error": 0.4059659185220513,
+          "units": "m/min",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "source": "ELMFIRE Guide verification section"
+}
