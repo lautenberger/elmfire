@@ -594,18 +594,18 @@ DO WHILE (T .le. totalDuration)
 #endif
 
 #ifdef _SUPPRESSION
-         ! new suppression model :: modified below
-         IF (ENABLE_EXTENDED_ATTACK) THEN
-            IF (EXTENDED_ATTACK_MODEL .EQ. 0) THEN
-               IF (USE_SDI) C%SDI = SDI_FACTOR * SDI%R4(ICOL,IROW,1)
-            ELSE IF (EXTENDED_ATTACK_MODEL .EQ. 1) THEN
-               C%SDI = SDI%R4(ICOL,IROW,1)
-               C%PCL = PCL%R4(ICOL,IROW,1)
-            ELSE
-               WRITE(*,*) 'Error: "EXTENDED_ATTACK_MODEL" should be 0 or 1 in namelist!'
-               STOP
-            ENDIF
-         ENDIF
+               ! new suppression model :: modified below
+               IF (ENABLE_EXTENDED_ATTACK) THEN
+                  IF (EXTENDED_ATTACK_MODEL .EQ. 0) THEN
+                     IF (USE_SDI) LIST_BURNED%TAIL%SDI = SDI_FACTOR * SDI%R4(ICOL,IROW,1)
+                  ELSE IF (EXTENDED_ATTACK_MODEL .EQ. 1) THEN
+                     LIST_BURNED%TAIL%SDI = SDI%R4(ICOL,IROW,1)
+                     LIST_BURNED%TAIL%PCL = PCL%R4(ICOL,IROW,1)
+                  ELSE
+                     WRITE(*,*) 'Error: "EXTENDED_ATTACK_MODEL" should be 0 or 1 in namelist!'
+                     STOP
+                  ENDIF
+               ENDIF
 #endif
             ENDIF
          ENDDO
