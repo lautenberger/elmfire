@@ -164,7 +164,7 @@ IF (USE_BLDG_SPREAD_MODEL) THEN
 ENDIF
 
 IF (USE_PYROMES) CALL MPI_BCAST(PYROMES%I2, FUEL_TOPO_COUNT, MPI_SHORT, 0, MPI_COMM_HOST_IRANK0, IERR)
-
+IF (USE_BARRIERS) CALL MPI_BCAST(BARRIER_WIDTH%R4, FUEL_TOPO_COUNT, MPI_REAL, 0, MPI_COMM_HOST_IRANK0, IERR)
 ! *****************************************************************************
 END SUBROUTINE BCAST_FUEL_TOPOGRAPHY
 ! *****************************************************************************
