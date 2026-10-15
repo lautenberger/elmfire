@@ -1844,12 +1844,6 @@ DO WHILE (T .le. totalDuration)
 
    T = T + DT
 
-   ! Rank-0 progress line, overwritten in place each timestep (NPROC=1 has its own status line above)
-   IF (NPROC .GT. 1 .AND. IRANK_WORLD .EQ. 0) THEN
-      WRITE(*,'(A,A,I0,A,F12.1,A,F12.1)', advance='no') char(13), '[',ICASE,'] Rank 0 T: ', T, ' of ', REAL(totalDuration)
-      call flush(6)
-   ENDIF
-
    IF ((T .ge. TSTOP) .and. START_CALCS) THEN ! END SIM
       if (FEEDBACK_LEVEL .ge. 3) then
          WRITE(LOG_MSG,'(A,I0,A,F12.1)') '[',ICASE,'] LEVEL SET CASE OUTPUT STARTED AT T ',T
