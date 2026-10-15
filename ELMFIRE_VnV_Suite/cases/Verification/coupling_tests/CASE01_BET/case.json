@@ -1,0 +1,20 @@
+{
+  "case_number": "01",
+  "purpose_abbreviation": "BET",
+  "id": "CASE01_BET",
+  "chapter": "3",
+  "title": "Biomass Emission-Time Resolution Independence",
+  "dx": 10,
+  "nx": 340,
+  "ny": 14,
+  "tstop": 500,
+  "wui": false,
+  "no_surface": false,
+  "ignition": false,
+  "consumption": false,
+  "summary": "Verifies biomass emission duration t_emission = dx / ROS_surface across grid resolutions.",
+  "expected": "Far-field accumulated firebrands should approach about 149.54 pcs/m for the GR2 reference setup.",
+  "source_references": [
+    "Figure 3.3 / Eq. 3.11"
+  ]
+}

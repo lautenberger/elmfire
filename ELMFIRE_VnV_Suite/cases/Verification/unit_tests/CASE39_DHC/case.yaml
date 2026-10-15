@@ -1,0 +1,36 @@
+case_id: "CASE39_DHC"
+case_title: "Case 39: Dynamic herbaceous curing sweep"
+category: "Verification/unit_tests"
+source_provenance: "Andrews (2018), RMRS-GTR-371; ELMFIRE Rothermel implementation"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/sweep_response.pdf"
+
+variants:
+  fuel_models: [102, 123]
+  live_herb_moisture_percent: [30, 45, 60, 75, 90, 100, 110, 120, 135, 200]
+  target_midflame_wind_mph: 6.0
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        INPUTS.SURFACE_SPREAD_MODEL: "ROTHERMEL"
+        INPUTS.LIVE_MC_IN_PERCENT: true
+        INPUTS.USE_CONSTANT_LH: true
+        OUTPUTS.DUMP_SPREAD_RATE: true
+        OUTPUTS.DUMP_REACTION_INTENSITY: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        SIMULATOR.NUM_IGNITIONS: 0
+        SIMULATOR.CROWN_FIRE_MODEL: 0
+        SIMULATOR.PHIW_ADJ: 1.0
+        SPOTTING.ENABLE_SPOTTING: false
+        WUI.USE_BLDG_SPREAD_MODEL: false

@@ -1,0 +1,24 @@
+{
+  "case_number": "05",
+  "purpose_abbreviation": "TDW",
+  "id": "CASE05_TDW",
+  "chapter": "4",
+  "title": "Firebrand Transport in Time-Dependent Wind",
+  "dx_m": 10.0,
+  "physical_length_m": 1200.0,
+  "physical_width_m": 100.0,
+  "buffer_cells": 2,
+  "simulation_tstop_s": 120.0,
+  "wind_mean_mps": 6.71,
+  "wind_amplitude_mps": 3.355,
+  "wind_wavelength_m": 100.0,
+  "wind_period_s": 60.0,
+  "meteorology_dt_s": 1.0,
+  "wind_cfl": 0.5,
+  "emission_duration_s": 10.0,
+  "ember_gr_pcs_m2_s": 1.0,
+  "summary": "Reconstruct reference time-dependent-wind case and verify Eulerian leading-edge motion under sinusoidal space-time wind forcing.",
+  "source_references": [
+    "Section 4.4.2, time-dependent-wind case (Eulerian)"
+  ]
+}

@@ -1,0 +1,1671 @@
+[
+  {
+    "path": "cases/Verification/coupling_tests/CASE01_BET/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Accumulated firebrand distribution variants/dx10"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Accumulated firebrand distribution variants/dx10"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "ember_flux_0000001_0000500.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE01_BET/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration            variants/dx10; WS=15 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration            variants/dx10; WS=15 mph, WD=270 deg"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE02_FGR/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Accumulated firebrand distribution variants/dt0p13"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Accumulated firebrand distribution variants/dt0p13"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "ember_flux_0000001_0003641.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE02_FGR/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration      variants/dt0p13; WS=10 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration      variants/dt0p13; WS=10 mph, WD=270 deg"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE03_ETC/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Transported level-set field variants/dx10_cfl0p2"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Transported level-set field variants/dx10_cfl0p2"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "phi_0000001_d0000873.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE03_ETC/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration      variants/dx10_cfl0p2; WS=15 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration      variants/dx10_cfl0p2; WS=15 mph, WD=270 deg"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE04_STI/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Accumulated firebrand distribution variants/transport_impulse"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Accumulated firebrand distribution variants/transport_impulse"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "ember_flux_0000001_0000100.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE04_STI/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration       variants/transport_impulse; WS=15 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration       variants/transport_impulse; WS=15 mph, WD=270 deg"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE05_TDW/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0000120.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE06_F2D/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "ember_flux_0000001_0000120.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE07_IPC/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Ember-ignition field variants/sft_dx10_pign0p9_r10"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Ember-ignition field variants/sft_dx10_pign0p9_r10"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "ember_ignition_0000001_0000240.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE07_IPC/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration   variants/sft_dx10_pign0p9_r10; WS=15 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration   variants/sft_dx10_pign0p9_r10; WS=15 mph, WD=270 deg"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE08_FBC/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Accumulated firebrand distribution variants/dx10_consumption_on"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Accumulated firebrand distribution variants/dx10_consumption_on"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "ember_flux_0000001_0000260.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE08_FBC/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration       variants/dx10_consumption_on; WS=15 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration       variants/dx10_consumption_on; WS=15 mph, WD=270 deg"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE09_MMD/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/mixed_mode"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/mixed_mode"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0000300.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE09_MMD/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "terminology",
+        "text": "fbfm40                    variants/mixed_mode; WS=15"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "internal_path",
+        "text": "fbfm40                    variants/mixed_mode; WS=15"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE09_MMD/figures/mixed_mode_delay_effect.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "surface-dominated variant"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "terminology",
+        "text": "12000                                                                                              500       mixed-mode variant"
+      },
+      {
+        "page": 1,
+        "line": 18,
+        "kind": "terminology",
+        "text": "surface-dominated variant"
+      },
+      {
+        "page": 1,
+        "line": 19,
+        "kind": "terminology",
+        "text": "mixed-mode variant"
+      },
+      {
+        "page": 1,
+        "line": 23,
+        "kind": "terminology",
+        "text": "surface-dominated variant                                                                                            surface-dominated variant"
+      },
+      {
+        "page": 1,
+        "line": 24,
+        "kind": "terminology",
+        "text": "250       mixed-mode variant                                                                                                   mixed-mode variant"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE10_WSR/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 4,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/baseline_dx10          16000"
+      },
+      {
+        "page": 1,
+        "line": 4,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/baseline_dx10          16000"
+      },
+      {
+        "page": 1,
+        "line": 5,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0022000.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE10_WSR/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration   variants/baseline_dx10; WS=40 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration   variants/baseline_dx10; WS=40 mph, WD=270 deg"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE10_WSR/figures/wui_structure_resolution.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "terminology",
+        "text": "integrated misaligned variant"
+      },
+      {
+        "page": 1,
+        "line": 9,
+        "kind": "terminology",
+        "text": "integrated aligned variant                                                                                                                                                       5000"
+      },
+      {
+        "page": 1,
+        "line": 11,
+        "kind": "terminology",
+        "text": "native coarse-grid variant"
+      },
+      {
+        "page": 1,
+        "line": 14,
+        "kind": "terminology",
+        "text": "native fine-grid variant"
+      },
+      {
+        "page": 1,
+        "line": 31,
+        "kind": "terminology",
+        "text": "native fine-grid variant within-structure load range"
+      },
+      {
+        "page": 1,
+        "line": 33,
+        "kind": "terminology",
+        "text": "native fine-grid variant ROS ratio to baseline"
+      },
+      {
+        "page": 1,
+        "line": 34,
+        "kind": "terminology",
+        "text": "10000                                                            native coarse-grid variant baseline/coarse load ratio"
+      },
+      {
+        "page": 1,
+        "line": 35,
+        "kind": "terminology",
+        "text": "7500                                                           integrated aligned variant structure-load relative error"
+      },
+      {
+        "page": 1,
+        "line": 37,
+        "kind": "terminology",
+        "text": "5000                                                            integrated aligned variant ignition-time relative error"
+      },
+      {
+        "page": 1,
+        "line": 39,
+        "kind": "terminology",
+        "text": "2500                                                        integrated misaligned variant structure-load relative error"
+      },
+      {
+        "page": 1,
+        "line": 41,
+        "kind": "terminology",
+        "text": "integrated misaligned variant ignition-time relative error"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE11_WSC/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/no_surface_dx2p5"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/no_surface_dx2p5"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0006000.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE11_WSC/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration    variants/no_surface_dx2p5; WS=40 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration    variants/no_surface_dx2p5; WS=40 mph, WD=270 deg"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE12_TRS/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 4,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/cfl0p5_dt0p28          16000"
+      },
+      {
+        "page": 1,
+        "line": 4,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/cfl0p5_dt0p28          16000"
+      },
+      {
+        "page": 1,
+        "line": 5,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0022000.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE12_TRS/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration   variants/cfl0p5_dt0p28; WS=40 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration   variants/cfl0p5_dt0p28; WS=40 mph, WD=270 deg"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE14_SRS/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/dx10"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/dx10"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0150000.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE14_SRS/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 4,
+        "kind": "terminology",
+        "text": "fraction                     variants/dx10; WS=40"
+      },
+      {
+        "page": 1,
+        "line": 4,
+        "kind": "internal_path",
+        "text": "fraction                     variants/dx10; WS=40"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE15_CRO/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0000360.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE16_NSP/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0003601.tif        0.100"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE17_SCV/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field data/512"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0000360.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE17_SCV/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration                      data/256; WS=0 mph, WD=0 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared fbfm40.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE18_TCV/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared fbfm40.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE19_WTH/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0007969.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE19_WTH/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared isolated_adj.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE20_PIG/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0266400.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE20_PIG/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared landscape.tif, band 4"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE20_PIG/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "main: time_of_arrival_0000001_0266400.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "filename",
+        "text": "0 source: outputs/time_of_arrival_0000001_0266400.tif; CRS: EPSG:32635          0"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "internal_path",
+        "text": "0 source: outputs/time_of_arrival_0000001_0266400.tif; CRS: EPSG:32635          0"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE21_WDE/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0266400.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE21_WDE/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared ws.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE21_WDE/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "main: time_of_arrival_0000001_0266400.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 28,
+        "kind": "filename",
+        "text": "0 source: outputs/time_of_arrival_0000001_0266400.tif; CRS: EPSG:32635          0"
+      },
+      {
+        "page": 1,
+        "line": 28,
+        "kind": "internal_path",
+        "text": "0 source: outputs/time_of_arrival_0000001_0266400.tif; CRS: EPSG:32635          0"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE22_VSL/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0259200.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE22_VSL/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared landscape.tif, band 2"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE22_VSL/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "main: time_of_arrival_0000001_0259200.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "filename",
+        "text": "0 source: outputs/time_of_arrival_0000001_0259200.tif; CRS: EPSG:32635          0"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "internal_path",
+        "text": "0 source: outputs/time_of_arrival_0000001_0259200.tif; CRS: EPSG:32635          0"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE23_FQD/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0259200.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE23_FQD/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared landscape.tif, band 4"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE23_FQD/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "main: time_of_arrival_0000001_0259200.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "filename",
+        "text": "0 source: outputs/time_of_arrival_0000001_0259200.tif; CRS: EPSG:32635          0"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "internal_path",
+        "text": "0 source: outputs/time_of_arrival_0000001_0259200.tif; CRS: EPSG:32635          0"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE24_CXI/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0259200.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE24_CXI/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared landscape.tif, band 4"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE24_CXI/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "main: time_of_arrival_0000001_0259200.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "filename",
+        "text": "0 source: outputs/time_of_arrival_0000001_0259200.tif; CRS: EPSG:32635          0"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "internal_path",
+        "text": "0 source: outputs/time_of_arrival_0000001_0259200.tif; CRS: EPSG:32635          0"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE25_MQD/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0259200.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE25_MQD/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared m1.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE25_MQD/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "main: time_of_arrival_0000001_0259200.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "filename",
+        "text": "0 source: outputs/time_of_arrival_0000001_0259200.tif; CRS: EPSG:32635          0"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "internal_path",
+        "text": "0 source: outputs/time_of_arrival_0000001_0259200.tif; CRS: EPSG:32635          0"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE26_CNF/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/1mph"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/1mph"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0259200.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE26_CNF/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration                       variants/1mph/data; WS=1 mph, WD=0 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration                       variants/1mph/data; WS=1 mph, WD=0 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared landscape.tif, band 5"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE26_CNF/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "1mph: time_of_arrival_0000001_0266400.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "terminology",
+        "text": "0 source: variants/1mph/outputs/time_of_arrival_0000001_0266400.tif; CRS: EPSG:32635   0"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "filename",
+        "text": "0 source: variants/1mph/outputs/time_of_arrival_0000001_0266400.tif; CRS: EPSG:32635   0"
+      },
+      {
+        "page": 1,
+        "line": 27,
+        "kind": "internal_path",
+        "text": "0 source: variants/1mph/outputs/time_of_arrival_0000001_0266400.tif; CRS: EPSG:32635   0"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE27_FBT/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0000100.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE27_FBT/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared landscape.tif, band 4"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE27_FBT/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "main: time_of_arrival_0000001_0000100.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 26,
+        "kind": "filename",
+        "text": "0 source: outputs/time_of_arrival_0000001_0000100.tif; CRS: EPSG:32635          0"
+      },
+      {
+        "page": 1,
+        "line": 26,
+        "kind": "internal_path",
+        "text": "0 source: outputs/time_of_arrival_0000001_0000100.tif; CRS: EPSG:32635          0"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE28_OVA/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0259200.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE28_OVA/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared m1.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE28_OVA/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "main: time_of_arrival_0000001_0266400.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 25,
+        "kind": "filename",
+        "text": "0 source: outputs/time_of_arrival_0000001_0266400.tif; CRS: EPSG:32635          0"
+      },
+      {
+        "page": 1,
+        "line": 25,
+        "kind": "internal_path",
+        "text": "0 source: outputs/time_of_arrival_0000001_0266400.tif; CRS: EPSG:32635          0"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE29_SUP/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0268205.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE29_SUP/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared landscape.tif, band 4"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE29_SUP/figures/whole_domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "filename",
+        "text": "extended_attack: time_of_arrival_0000001_0252001.tif (whole domain)"
+      },
+      {
+        "page": 1,
+        "line": 28,
+        "kind": "filename",
+        "text": "0 source: outputs/time_of_arrival_0000001_0252001.tif; CRS: EPSG:32635           0.100"
+      },
+      {
+        "page": 1,
+        "line": 28,
+        "kind": "internal_path",
+        "text": "0 source: outputs/time_of_arrival_0000001_0252001.tif; CRS: EPSG:32635           0.100"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE34_FMS/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/fuel_188"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/fuel_188"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0021600.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE34_FMS/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration               variants/fuel_102; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration               variants/fuel_102; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared fbfm40.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE35_WSS/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/fuel_188_u_8p0"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/fuel_188_u_8p0"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0004375.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE35_WSS/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration   variants/fuel_102_u_2p0; WS=5.51 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration   variants/fuel_102_u_2p0; WS=5.51 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared ws.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE36_SLS/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/fuel_188_s_100"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/fuel_188_s_100"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0004396.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE36_SLS/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration    variants/fuel_102_s_030; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration    variants/fuel_102_s_030; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared slp.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE37_DMS/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/fuel_186_r_110"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/fuel_186_r_110"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_*******.tif              0.100"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE37_DMS/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration    variants/fuel_186_r_010; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration    variants/fuel_186_r_010; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared m1.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE38_LMS/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/fuel_148_m_050"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/fuel_148_m_050"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0021604.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE38_LMS/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration   variants/fuel_146_m_090; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration   variants/fuel_146_m_090; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared fbfm40.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE39_DHC/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/fuel_123_lh_200"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/fuel_123_lh_200"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0021609.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE39_DHC/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration   variants/fuel_123_lh_030; WS=14.7 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration   variants/fuel_123_lh_030; WS=14.7 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared fbfm40.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE40_WSD/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration           variants/angle_090; WS=11 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration           variants/angle_090; WS=11 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared wd.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE41_CFP/figures/domain_result.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Time-of-arrival field variants/sav_low"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Time-of-arrival field variants/sav_low"
+      },
+      {
+        "page": 1,
+        "line": 2,
+        "kind": "filename",
+        "text": "time_of_arrival_0000001_0021700.tif"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/unit_tests/CASE41_CFP/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration              variants/load_high; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration              variants/load_high; WS=0 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared fbfm40.tif, band 1"
+      }
+    ]
+  },
+  {
+    "path": "cases/Verification/coupling_tests/CASE42_WAF/figures/input_configuration.pdf",
+    "extraction_exit_code": 0,
+    "pages": 1,
+    "findings": [
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "terminology",
+        "text": "Whole-domain input configuration   variants/cc_030_ch_015; WS=10 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 1,
+        "kind": "internal_path",
+        "text": "Whole-domain input configuration   variants/cc_030_ch_015; WS=10 mph, WD=270 deg"
+      },
+      {
+        "page": 1,
+        "line": 3,
+        "kind": "filename",
+        "text": "Prepared cc.tif, band 1"
+      }
+    ]
+  }
+]

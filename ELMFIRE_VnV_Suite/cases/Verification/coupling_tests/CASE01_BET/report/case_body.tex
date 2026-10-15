@@ -1,0 +1,302 @@
+\section{Verification purpose}
+
+This case verifies that biomass-emission duration is represented as a physical residence time rather than a grid-dependent number of solver steps. Changing cell size must preserve accumulated firebrand density for the same unit-width source and forcing.
+
+The test exposes incorrect conversion between per-cell and unit-width generation rates, timestep-dependent source integration, and unintended cell-width scaling. Success requires overlapping downwind profiles and mesh-independent far-field accumulation within tolerance.
+
+\section{Mathematical formulation and numerical implementation}
+A surface-fire cell emits firebrands while the flame front crosses that cell.
+For a square cell of size $\Delta x=\Delta y$ and surface-fire spread rate
+$V_s$, the emission duration is
+\[
+  t_{\mathrm{emission}}=\frac{\Delta x}{V_s}.
+\]
+Without this duration scaling, changing the resolution would change the time
+for which a burning cell acts as a firebrand source and would therefore change
+the accumulated deposition solely through a discretization effect.
+
+This case represents a one-dimensional firebrand-transport problem with a
+1~m-wide strip perpendicular to the transport direction. The unit-width
+firebrand generation rate is
+\[
+  \mathrm{GR}_{1\mathrm{m}}=33.3\;\mathrm{pcs\,s^{-1}\,MW^{-1}}.
+\]
+ELMFIRE applies the vegetation firebrand production coefficient per unit fire power to the total fire power of
+a computational pixel. A pixel with fireline intensity $I_B$ and cross-stream
+width $\Delta y$ has fire power $I_B\Delta y$. Its firebrand generation rate
+is therefore
+\[
+  \dot N_{\mathrm{pixel}}
+  =I_B\Delta y\,\mathrm{GR}_{\mathrm{ELMFIRE}}.
+\]
+To keep the represented source equal to the 1~m-wide source at every grid
+resolution, preprocessing sets
+\[
+  \mathrm{GR}_{\mathrm{ELMFIRE}}
+  =\frac{\mathrm{GR}_{1\mathrm{m}}}{\Delta y}
+  =\frac{33.3}{\Delta x}
+  \quad [\mathrm{pcs\,s^{-1}\,MW^{-1}}].
+\]
+The configured production coefficients are consequently
+6.66, 3.33, and 1.11~pcs/s/MW for the 5, 10, and 30~m simulation conditions. In all three
+simulation conditions,
+$\mathrm{GR}_{\mathrm{ELMFIRE}}\Delta y=\mathrm{GR}_{1\mathrm{m}}$, so the
+unit-width source strength is independent of cell size.
+
+\subsection{Physical and numerical processes}
+
+The documented residence-time formulation requires a burning cell to emit only
+while the flame resides in that cell~\cite{Qin2025}.
+ELMFIRE applies the prescribed fire-power-proportional source parameters to
+each burning cell, converting its fire power to firebrand production. The
+emission duration is determined from the flame residence time. Transport and
+deposition then distribute the emitted firebrands over the downwind cells.
+The comparison checks both parts of the discretization: source preparation
+preserves the intensive one-metre source strength by scaling the configured
+rate with cross-stream cell size, and analysis derives the expected density
+from simulated fireline intensity and spread rate at the same physical state.
+A source-duration or cell-power scaling error would create a systematic
+resolution trend. This controlled numerical verification does not validate
+the empirical generation coefficient or transport distribution against experiments.
+
+\section{Derivation of expected behavior}
+Combining the pixel generation rate with the emission duration gives the
+number emitted while the front crosses one cell. Dividing that number by the
+represented bin area eliminates $\Delta x$ and gives the expected accumulated
+density:
+\[
+  N''_{\mathrm{ref}}
+  =\frac{I_B\Delta y\,\mathrm{GR}_{\mathrm{ELMFIRE}}
+          (\Delta x/V_s)}{\Delta x(1~\mathrm{m})}
+  =\mathrm{GR}_{1\mathrm{m}}\frac{I_B}{V_s}
+  \quad [\mathrm{pcs\,m^{-2}}].
+\]
+Thus, the reference is calculated separately from the fire behavior actually
+produced by each simulation; it is not a fixed nominal number. The
+postprocessor finds the maximum positive fireline intensity in the usable
+interior of the latest fireline-intensity field and reads the spread rate from
+the corresponding cell of the spread-rate field. ELMFIRE writes these fields
+in kW/m and ft/min for this configuration, so the implemented conversion is
+\[
+  N''_{\mathrm{ref}}
+  =33.3\,\frac{I_{B,\mathrm{sim}}/1000}
+                    {V_{s,\mathrm{sim}}(0.3048/60)}
+  \quad [\mathrm{pcs\,m^{-2}}].
+\]
+For the current outputs, the mean values across the simulation conditions are
+$I_{B,\mathrm{sim}}=\Metric{meanreferenceflinmwperm}$~MW/m and
+$V_{s,\mathrm{sim}}=\Metric{meanreferencerosmpers}$~m/s. These values give
+$N''_{\mathrm{ref}}=\Metric{meansimulationreferencedensitypcsm2}$~pcs/m$^2$.
+The per-simulation condition values and selected raster cells are retained in
+calculated verification and validation metrics.
+
+% BEGIN EXPLICIT EXPECTED-RESULT DERIVATION
+The generated numerical substitutions make the cancellation visible.  With
+\(CFL_w=0.5\) and \(U=6.71~\mathrm{m\,s^{-1}}\),
+\[
+\begin{array}{c|ccc}
+\Delta x~(\mathrm{m})&5&10&30\\\hline
+\Delta t_{\rm generated}~(\mathrm{s})&0.372578&0.745156&2.000000\\
+GR_{\mathrm{ELM}}=33.3/\Delta x&6.66&3.33&1.11\\
+GR_{\mathrm{ELM}}\Delta y&33.3&33.3&33.3
+\end{array}
+\]
+in \(\mathrm{pcs\,s^{-1}\,MW^{-1}}\) for the last two rows. The 5- and 10-m Courant--Friedrichs--Lewy (CFL) steps divide the requested 500-s duration exactly. At 30~m, the nominal CFL step is 2.235469~s; preprocessing selects the conservative whole-second divisor 2~s, giving 250 steps and preserving the 500-s stop while keeping \(CFL_w=0.4473<0.5\). Thus the
+source-scaling reference is exactly 33.3 in all three simulation conditions, and its
+relative error is
+\[
+ e_{GR}=\max_i\frac{|GR_i\Delta y_i-33.3|}{33.3},
+ \qquad e_{GR,\mathrm{ref}}=0.
+\]
+The run-derived FLIN and VS values enter only as controlled fire-behavior
+normalizers; the ember-flux field being tested does not determine them.  With
+\(0.3048/60=0.00508\),
+\[
+ N''_{\mathrm{ref}}
+ =33.3\frac{FLIN/1000}{VS(0.00508)}
+ =6.555118\,\frac{FLIN~[\mathrm{kW\,m^{-1}}]}
+                   {VS~[\mathrm{ft\,min^{-1}}]}
+ \quad\mathrm{pcs\,m^{-2}}.
+\]
+For each generated mesh the expected far-field error is therefore zero, and
+the substituted decision requires
+\[\operatorname{mean}_{150<x\leq200}|N''-N''_{\mathrm{ref}}|/
+N''_{\mathrm{ref}}\leq0.05.\]
+% END EXPLICIT EXPECTED-RESULT DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+For each resolution, the centre-row accumulated count \(N_i\) is converted to
+an areal density for the represented one-metre strip,
+\[
+ n_i''=\frac{N_i}{\Delta x\,(1\ \mathrm{m})}.
+\]
+The independent reference uses the maximum-FLIN valid interior cell from the
+same run,
+\[
+ n''_{\mathrm{ref}}=GR_{1m}\,
+ \frac{FLIN/1000}{VS\,(0.3048/60)},
+\]
+where FLIN is read in \si{kW.m^{-1}}, VS in \si{ft.min^{-1}}, and
+\(G_{R,1m}=\SI{33.3}{pcs.s^{-1}.MW^{-1}}\). The comparison mask contains
+finite physical cells with \(150<x\le\SI{200}{m}\); the two-cell halo is
+excluded.
+
+\subsection{Justification of metric quantification}
+
+The source-scaling check is an algebraic invariant rather than an empirical
+model tolerance.  Preprocessing computes \(G_{R,\Delta x}\Delta x\) from the
+same double-precision inputs used to write the namelist, so a relative allowance
+of \(10^{-12}\) admits only floating-point roundoff and still detects any omitted
+or duplicated width factor.  The 5\% density-error limit is applied to a
+far-field mean because the derived expectation is a developed plateau, not a
+pointwise subcell solution.  It permits the cell integration, discrete selection
+of the run-derived FLIN/VS reference cell, and finite-window averaging to differ
+slightly while remaining far below the order-one, resolution-proportional error
+caused by incorrect extensive/intensive scaling.  Requiring the limit at every
+resolution makes the criterion a grid-consistency test rather than an agreement
+obtained by cancellation in one simulation condition.  Completeness and the conjunctive
+decision are logical requirements: without every source and reference raster,
+neither the normalization nor the claimed resolution independence is testable.
+
+\subsection{Predeclared acceptance criteria}
+
+Table~\ref{tab:acceptance-contract} summarizes the metrics fixed before
+inspection of the calculated results. Numerical values and component statuses
+are reported separately in Section~7.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Predeclared verification metrics and acceptance criteria.}
+\label{tab:acceptance-contract}
+\begin{tabular}{@{}p{0.23\linewidth}p{0.47\linewidth}p{0.21\linewidth}@{}}
+\toprule
+Metric & Output, region, and aggregation & Acceptance criterion\\
+\midrule
+Output completeness & Final accumulated firebrand deposition, fireline intensity, and spread rate rasters for each prescribed simulation condition; shape, cell size, nodata, and halo are validated. & 3 of 3 simulation conditions usable \\
+Unit-width source scaling & Configured rate multiplied by cross-stream cell width, \(G_{R,\Delta x}\Delta x\). & \(33.3\ \mathrm{pcs\,s^{-1}\,MW^{-1}}\) to \(10^{-12}\) relative tolerance \\
+Far-field mean relative error & \(E_r=\operatorname{mean}_{150<x\le200}|n_i''-n''_{\mathrm{ref}}|/n''_{\mathrm{ref}}\), evaluated separately for every resolution. & \(E_r\le0.05\) for every simulation condition \\
+Overall decision & Conjunction of completeness, source scaling, and all per-resolution error decisions. & PASS only if every component passes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation configuration and predicted outcome}
+
+Figure~\ref{fig:input-configuration} records the prepared spatial inputs for a 10 m grid.
+These panels show the prepared spatial fields, remove the
+two-cell numerical buffer, and retain map coordinates in metres.  The left panel shows
+the most informative fuel or structure layout available for the case; the right panel
+shows the cells selected by the non-positive initial level-set field, making a localized
+ignition or firebrand-emission source explicit.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.42\textheight,keepaspectratio]{../figures/input_configuration.pdf}
+\caption{Whole-domain prepared input configuration for the representative simulation condition.  The
+physical domain is shown without the numerical halo; coordinates, configured wind values,
+fuel or structure layout, and initial ignition/source geometry are identified in the panels.}
+\label{fig:input-configuration}
+\end{figure}
+
+The preprocessor creates flat, uniform fire behavior fuel model (FBFM) 102 domains at
+$\Delta x=\Delta y=5$, 10, and 30~m. The physical simulation domain is the
+same for every resolution. Each raster also includes a two-cell numerical
+buffer outside each side of that physical domain. The ignition is placed in
+the first usable column rather than in the buffer. Crosswind transport and
+secondary firebrand ignition are disabled so the accumulated deposition can
+be evaluated as a one-dimensional profile.
+
+ELMFIRE writes the accumulated number of deposited firebrands in each target
+pixel. The area represented by a streamwise bin in the unit-width problem is
+$\Delta x\times1~\mathrm{m}$, so the postprocessor converts the pixel count
+$N_i$ to density using
+\[
+  N''(x_i)=\frac{N_i}{\Delta x(1~\mathrm{m})}
+  =\frac{N_i}{\Delta x}
+  \quad [\mathrm{pcs\,m^{-2}}].
+\]
+The two buffer columns on each end are excluded from this profile.
+
+For each completed simulation condition, the mean accumulated density over
+$150<x\leq200$~m is compared with that simulation condition's FLIN/VS-derived reference.
+The mean relative error must not exceed 5\%. The case passes only when all
+three simulation conditions have valid outputs and pass independently. Agreement across the
+three resolutions demonstrates that both the emission duration and the
+unit-width generation-rate scaling are resolution independent.
+
+\section{Actual simulation results}
+
+Figure~\ref{fig:domain-result} shows the representative accumulated firebrand density from a 10 m grid.
+The displayed field is taken from the simulated results, masks missing values, and excludes
+the two-cell numerical buffer.  Firebrand counts are normalized by the cell length and the represented 1-m cross-stream strip, giving units of pcs m$^{-2}$.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.50\textheight,keepaspectratio]{../figures/domain_result.pdf}
+\caption{Whole-domain accumulated firebrand density from the representative completed ELMFIRE run.  This
+domain-scale result supplements, rather than replaces, the higher-level verification
+profiles, convergence plots, ensemble statistics, and calculated acceptance metrics below.}
+\label{fig:domain-result}
+\end{figure}
+
+Figure~\ref{fig:biomass-emission-resolution} first presents the physical
+observable in the same three-resolution arrangement used to define the test.
+All bars are calculated from final ELMFIRE ember-flux rasters, and each dashed
+line uses the FLIN and spread rate extracted from that same simulation condition.
+
+\begin{figure}[H]
+  \centering
+  \EvidenceFigure[width=\textwidth,height=0.68\textheight,keepaspectratio]{../figures/emission_time_resolution.pdf}
+  \caption{Accumulated firebrand density for the 5, 10, and 30~m grids. The
+  dashed red line in each panel is the run-derived reference. The two-cell
+  numerical halo is excluded from every profile.}
+  \label{fig:biomass-emission-resolution}
+\end{figure}
+
+% Figure~\ref{fig:biomass-emission-error} supplements the physical profiles with
+% the resolution trend of the two calculated errors. The mean-error limit is
+% shown explicitly so the plotted evidence and the acceptance decision can be
+% read together.
+
+% \begin{figure}[H]
+%   \centering
+%   \EvidenceFigure[width=0.78\textwidth,height=0.42\textheight,keepaspectratio]{../figures/emission_time_error.pdf}
+%   \caption{Far-field mean and maximum relative density errors versus grid
+%   spacing. The dotted horizontal line is the predeclared mean-error limit.}
+%   \label{fig:biomass-emission-error}
+% \end{figure}
+
+\section{Calculated metrics and verification decision}
+\begin{table}[h]
+\centering
+\begin{tabular}{lr}
+\toprule
+Quantity & Value \\
+\midrule
+Overall status & \Metric{status} \\
+Mean reference fireline intensity & \Metric{meanreferenceflinmwperm} MW/m \\
+Mean reference spread rate & \Metric{meanreferencerosmpers} m/s \\
+Calculated accumulation reference & \Metric{meansimulationreferencedensitypcsm2} pcs/m$^2$ \\
+Simulation conditions configured & \Metric{numvariants} \\
+Simulation conditions computed & \Metric{numvariantscomputed} \\
+\bottomrule
+\end{tabular}
+\caption{Biomass emission-time verification summary.}
+\end{table}
+
+The overall decision from the calculated metrics is \textbf{\Metric{status}}.
+
+\section{Technical interpretation}
+Agreement between the accumulated deposition density and the independently calculated FLIN/VS reference verifies the complete chain from biomass consumption through emission duration, per-unit-area source scaling, transport, and raster accumulation. Consistent agreement across the three grids further indicates that the implemented source normalization is not tied to cell area.
+
+\section{Scope and limitations}
+This case isolates a uniform, one-dimensional transport problem with crosswind dispersion, delayed ignition, and secondary spotting disabled. It verifies emission-time scaling and accumulated deposition, but does not by itself validate stochastic trajectories or ignition physics. The preprocessing parameters, simulation specification, calculated raster samples, and metric values are retained with the case so that the reported decision can be reproduced.
+
+\begin{thebibliography}{9}
+\bibitem{Qin2025}
+Y. Qin, \emph{A Physics-Based Eulerian Framework for Modeling Firebrand
+Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire
+Simulations}, Ph.D. dissertation, University of Maryland, College Park, 2025.
+\end{thebibliography}

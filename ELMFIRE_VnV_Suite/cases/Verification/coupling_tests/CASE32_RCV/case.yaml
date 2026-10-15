@@ -1,0 +1,28 @@
+case_id: "CASE32_RCV"
+case_title: "Case 32: Raster-orientation covariance"
+category: "Verification/coupling_tests"
+source_provenance: "Adam Laird inputs-orientation component test"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+variants:
+  - id: "original"
+  - id: "rotated_ccw"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/verification_summary.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        SIMULATOR.NUM_IGNITIONS: 0
+        TIME_CONTROL.SIMULATION_TSTOP: 7200.0

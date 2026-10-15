@@ -1,0 +1,28 @@
+case_id: "CASE33_SDO"
+case_title: "Case 33: Slope-driven directional spread"
+category: "Verification/coupling_tests"
+source_provenance: "Adam Laird no-wind-with-slope component test"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+variants:
+  - id: "flat"
+  - id: "slope_30"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/verification_summary.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        SIMULATOR.NUM_IGNITIONS: 1
+        TIME_CONTROL.SIMULATION_TSTOP: 7200.0

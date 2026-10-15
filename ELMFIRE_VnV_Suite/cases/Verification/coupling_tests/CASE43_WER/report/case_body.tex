@@ -1,0 +1,270 @@
+\section{Verification purpose}
+
+This case verifies the coupled response from Wildland--Urban ELMFIRE (WU--E) source wind and building
+geometry through the model-2 ellipse and heat-flux routines to the
+transient direct-flame-contact (DFC) and radiation rasters.  It is capable of
+exposing an incorrect wind-unit conversion, a wrong branch predicate, a
+regression-coefficient or ellipse-construction error, a wind-direction sign or
+raster-orientation error, failure of the separation clamp, and disagreement
+between constant and raster building-parameter input paths.
+
+One initially burning structure is held stationary by a zero spread-adjustment
+raster.  Spotting, terrain, moisture variation, and secondary propagation are
+disabled. Twenty-three deterministic simulation conditions exercise both source-wind branch
+boundaries, Hamada parameters (A) and (D), four right-angle rotations, and
+constant/raster equivalence, plus the intended source fuel-reach factors 1 for
+structures and 1/3 for vegetation. The reference calculation implements the intended downscaled
+WU--E formulation.  The pinned source is the system under test, so a mismatch
+is reported rather than copied into the expected result.
+
+\textbf{Verification question.} Do all required simulation conditions reproduce the
+intended heat-release rate (HRR) per unit area (HRRPUA) and full-domain DFC/radiation maps within normalized
+$L_1$ error \HeatMapTolerance, preserve the paired clamp, rotation, and
+constant/raster invariants, and create no additional burning cell?
+
+\ReportOverview
+
+\section{Mathematical formulation and numerical implementation}
+
+The source converts the 20-ft input wind from miles per hour to metres per
+second as $V=0.447W$.  The regression is linear when $V<10$, quadratic when
+$10\le V\le17.3$, and linear with a distinct coefficient set when
+$V>17.3$.  In each branch it produces downwind, upwind, and sidewind reaches
+$(K_d,K_u,K_s)$ from $(V,A,D)$, after enforcing
+
+\begin{equation}
+  D_{\mathrm{eff}}=\min(D,\SI{50}{\metre}).
+\end{equation}
+
+The stored ellipse quantities are
+
+\begin{align}
+ B &= \frac{K_d+K_u}{2}, &
+ E &= \min\left(\frac{B}{2},B-K_u\right), &
+ A_e &= \frac{K_s}{\sqrt{1-(E/B)^2}}.
+\end{align}
+
+Here $B$, $A_e$, and $E$ retain the source nomenclature major,
+minor, and eccentricity; all three are lengths.  For comparison, the pinned
+source currently constructs the following continuous angular boundary, which
+is a documented deviation from the intended three-sector model:
+
+\begin{equation}
+ r_e(\theta_f)=
+ \frac{0.3K_d(B-E)}{A_e^2}\,
+ \frac{A_e^2}{B-E\cos\theta_f},
+ \qquad \theta_f=\operatorname{atan2}(\Delta y,\Delta x)
+                  -\frac{\pi}{180}(270-WD).
+\end{equation}
+
+The intended model uses a three-sector reach and a physical-distance
+correction.  With $L_c=\texttt{BLDG\_AREA}$ interpreted as a linear
+characteristic building dimension in metres and $s_{sd}$ the separation,
+
+\begin{align}
+ \beta_{ssd}&=\min\!\left(1,\frac{s_{sd}+L_c}{\Delta x}\right),\\
+ K_\theta&=\begin{cases}B+E,&\cos\theta_f>0.7,\\B-E,&\cos\theta_f<-0.7,\\2A_e,&\text{otherwise},\end{cases}
+\end{align}
+
+and the target-cell overlap factors are clipped to $[0,1]$:
+
+\begin{align}
+ f_d &= \operatorname{clip}\!\left(
+       \frac{K_\theta+\Delta x/2-r\beta_{ssd}}{\Delta x},0,1\right),\\
+ f_r &= \operatorname{clip}\!\left(
+       \frac{HAZ+\Delta x/2-r\beta_{ssd}c}{\Delta x},0,1\right)(1-f_d).
+\end{align}
+
+With $A_s=L_c^2$, $C_h=A_s/[\pi(cB)(cA_e)]$, default $c=1$, target
+nonburnable fraction $n_b=0$, and absorptivity $\alpha=0.8$, the expected
+fields are
+
+\begin{align}
+ q''_{\DFC} &= g_f\eta(W)\,0.65(1-n_b)f_d\,\HRRPUA(t)C_h,\\
+ q''_{rad} &= g_f\eta(W)\frac{0.35(1-n_b)\alpha f_r\HRRPUA(t)A_s}
+                         {4\pi (r\beta_{ssd}c)^2},\\
+ \eta(W)&=\frac{3.25}{1+\exp[-0.05(W-75)]}+0.5,\qquad
+ g_f=\min\!\left[\left(\frac{\Delta x}{L_c}\right)^2,1\right].
+\end{align}
+
+The physical heat-affecting zone is $HAZ=100$ m and its search radius is
+$\lceil HAZ/\Delta x\rceil$. Radiation is complementary to DFC through
+$(1-f_d)$. The source instead uses a continuous angular ellipse, 0.3 heat
+factors, cell-area normalization, and a cell-count band; these are explicit
+deviation targets. Preprocessing assigns the prescribed parameter values
+independently to each simulation condition.
+
+\section{Derivation of expected behavior}
+
+The ellipse-regression coefficients and branch predicates were independently
+transcribed from the specified WU-E spread-rate formulation. The reviewed
+configuration interpretation, spread-rate calculation, and level-set formulation
+were identical to the specified ELMFIRE source revision; this identity claim
+does not extend to all other model components. Purnomo et al. describe the wind-responsive urban flame ellipse
+and heat-transfer coupling in the peer-reviewed WU--E publications
+\cite{PurnomoPCI2024,PurnomoIJWF2024}.  The detailed equations above document
+the intended implemented model directly. The executable snapshot is evaluated against, rather than substituted
+for, this formulation.
+
+At $V=10$ and $V=17.3~\si{\metre\per\second}$, equality belongs to the quadratic
+branch.  The immediate neighboring simulation conditions on each side must instead use the
+linear low- or high-wind coefficients.  The $D=75~\si{\metre}$ field must be
+identical to $D=50~\si{\metre}$.  A raster parameter field equal to the constants
+must produce the same heat maps.  With all other inputs invariant, rotating
+the wind-from direction by $90^\circ$ must rotate the complete DFC-plus-
+radiation field by the same angle on this square grid.
+
+The HRRPUA curve rises from zero to $100~\si{\kilo\watt\per\square\metre}$ over one second,
+remains at the peak through $t=100~\si{\second}$, decays linearly to zero at
+$t=110~\si{\second}$, and stays zero.  The $t=60~\si{\second}$ dump consequently gives
+an exact nonzero full-map comparison without conflating ellipse response with
+the HRR transient.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{expected_response.pdf}
+  \caption{Intended-model reference calculation for the branch, characteristic building
+  dimension, and separation sweeps. These are predicted values, not ELMFIRE output.}
+\end{figure}
+
+\section{Verification metrics and acceptance criteria}
+
+For any reference raster $R$ and ELMFIRE raster $E$, the primary metric is
+
+\begin{equation}
+ \nLone=\frac{\sum_{i,j}|E_{ij}-R_{ij}|}{\sum_{i,j}|R_{ij}|}.
+\end{equation}
+
+The sum covers every grid cell, including zeros outside the WUI update band;
+nodata and malformed rasters are rejected rather than omitted.  HRRPUA and
+both heat fields use the same metric over all dump times and cells, which also
+detects an unintended secondary source and requires the final transient maps
+to be zero after ELMFIRE's step-level reset.  A 0.5-percent map tolerance permits single-
+precision raster output while remaining much smaller than any intended branch
+or parameter response.  Paired algebraic invariants use $10^{-5}$; rotation
+uses the primary 0.5-percent tolerance because trigonometric evaluation occurs
+in single precision. Each simulation condition must have a confirmed successful
+completion with matching SHA-256 identities for the simulation settings,
+spatial inputs, both fuel-property tables, reference and analysis methods,
+ELMFIRE program, simulation record, and all results. Because ELMFIRE's first
+scheduled dump occurs after one scheduled output interval, the dump simulation specification
+must contain exactly 60 and
+120 seconds, with a unique final record at the
+configured stop. Output labels alone cannot establish a valid simulation.
+The model-program identity is retained, but its relationship to the stated
+source revision must be established separately.
+
+\begin{center}
+
+\begin{longtable}{@{}P{0.23\textwidth}P{0.30\textwidth} P{0.18\textwidth}P{0.15\textwidth}@{}}
+\toprule
+Expected property & Observable and metric & Criterion & Failure sensitivity\\
+\midrule
+Piecewise source curve & All HRR transient rasters; normalized $L_1$ & $\le0.005$ & timing or source contamination\\
+Ellipse heat kernel & Full DFC and radiation maps at peak HRRPUA & each $\le0.005$ & branches, coefficients, orientation\\
+$D$ clamp and input paths & Pairwise full-map normalized $L_1$ & each $\le10^{-5}$ & clamp or I/O divergence\\
+Rotation covariance & Rotated DFC-plus-radiation maps & $\le0.005$ & angle, sign, or raster orientation\\
+Vegetation-source factor & Full DFC/radiation maps for the forest-source simulation condition & each $\le0.005$ & unused 1/3 factor or initial-source HRR suppression\\
+No propagation & Final time of arrival (TOA) and off-source HRR cells & zero additional cells & confounding source creation\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+All 23 simulation conditions and all required fields must be present. Overall PASS requires
+every metric to pass; missing, duplicate, malformed, stale, or mistimed
+evidence produces NOT EVALUABLE.
+
+\section{Simulation configuration and predicted outcome}
+
+\begin{center}
+
+\begin{longtable}{@{}P{0.22\textwidth}P{0.30\textwidth}P{0.42\textwidth}@{}}
+\toprule
+Parameter & Configured value & Isolation role\\
+\midrule
+Grid & \CaseGridSize, \CaseCellSize\ m cells & full heat-kernel domain\\
+CRS & EPSG:32610 & explicit metric coordinates\\
+Time & $\Delta t=1$ s, stop 120 s, dump 60 s & exact peak-HRR dump\\
+Initial source & one central fire behavior fuel model (FBFM) 91 cell & stationary WU-E source\\
+Background & nonburnable FBFM93, adjustment 0 & prevents propagation\\
+Spotting/terrain & disabled/flat & removes confounders\\
+Model selector & WUI model type 2 & UMD/UCB implementation\\
+Ellipse adjustment & 1.0 & intended default effective-flame factor\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+The generated constant fields and rasters use identical north-up georeferencing,
+nodata, dimensions, and data types.  The point ignition scheduled at 121 s is
+deliberately after the 120 s stop; it prevents generic stalled-front termination
+without adding a physical source during the experiment.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{input_configuration.pdf}
+  \caption{Whole-domain prepared configuration generated from the
+  the 270-degree wind-direction condition GeoTIFF inputs.  The single negative PHI cell is the
+  initial WU-E source; FBFM93 and zero adjustment prevent secondary spread.}
+\end{figure}
+
+The predicted output is a fixed-source HRR history and wind-oriented DFC and
+radiation fields.  Branch-adjacent simulation conditions may jump because the source itself
+uses distinct regressions; the test checks that behavior rather than imposing
+continuity absent from the implementation.
+
+\section{Actual simulation results}
+
+The current analysis procedure state is
+\textbf{\WorkflowStatus}; the scientific decision is
+\textbf{\VerificationStatus}, with \CompletedVariantCount{} of
+\RequiredVariantCount{} required simulation conditions having evaluable execution evidence.
+Reason: \VerificationReason.  The common executed-binary SHA-256 is
+\ReadableHash{\ExecutedBinarySHA}.
+
+\IfFileExists{../figures/heat_map_comparison.pdf}{%
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{heat_map_comparison.pdf}
+  \caption{Representative whole-domain ELMFIRE result, independent reference calculation, and
+  difference.  This figure is generated only from completed case-specific output.}
+\end{figure}
+}{\noindent\fbox{\parbox{0.96\textwidth}{Actual-result figure unavailable because the
+required ELMFIRE simulation conditions have not been evaluated.}}}
+
+\section{Calculated metrics and verification decision}
+
+\input{readable_results.tex}
+
+\textbf{Current decision: \VerificationStatus.}  NOT RUN is a analysis procedure state,
+not evidence of verification and never maps to PASS.
+
+\section{Technical interpretation}
+
+The current result is limited by missing time-history evidence, rather than a
+calculated heat-map discrepancy. The solver's low-tagged-node stopping rule
+terminates this isolated-source setup before the required scheduled heat dumps.
+The post-stop ignition disables a different, stalled-PHI shortcut; it does not
+bypass the low-node rule. The lone overrun dump cannot replace the missing
+history and is not interpreted as a measurement at the configured stop time.
+
+The intended heat kernel also differs from the reviewed source in its angular
+sectors, heat fractions, wind efficiency, and spatial normalization. These
+source differences identify what a complete future run should test; they are
+not numerical verification results from the incomplete run. After the source
+can sustain a stationary thermal calculation, passing HRR with failing heat
+maps would isolate the discrepancy to ellipse geometry or heat transfer.
+
+\section{Scope and limitations}
+
+This case covers the deterministic model-2 source ellipse and transient heat
+distribution for a stationary structure.  It does not verify physical
+calibration, propagation speed, ignition thresholds, embers, interface
+transition, fuel consumption, or Statewide WU-E.  It intentionally treats
+the pinned source as the implementation under test and excludes the distinct
+Statewide WU--E formulation. CASE44 addresses the
+HRR and heat-parameter response not isolated here.
+
+\begin{thebibliography}{9}
+\bibitem{PurnomoPCI2024} D. M. J. Purnomo et al., ``Reconstructing modes of destruction in wildland--urban interface fires using a semi-physical level-set model,'' \emph{Proceedings of the Combustion Institute}, 40 (2024), 105755. \href{https://doi.org/10.1016/j.proci.2024.105755}{doi:10.1016/j.proci.2024.105755}.
+\bibitem{PurnomoIJWF2024} D. M. J. Purnomo et al., ``Integrating an urban fire model into an operational wildland fire model to simulate one dimensional wildland--urban interface fires: a parametric study,'' \emph{International Journal of Wildland Fire}, 33 (2024), WF24102. \href{https://doi.org/10.1071/WF24102}{doi:10.1071/WF24102}.
+\end{thebibliography}

@@ -1,0 +1,141 @@
+{
+  "case_id": "CASE10_WSR",
+  "overall_status": "NOT EVALUABLE (capability missing)",
+  "native_tests_status": "FAIL",
+  "completed_variants": [
+    "baseline",
+    "native_coarse"
+  ],
+  "executed_variants": [
+    "baseline_dx10",
+    "native_coarse_dx30"
+  ],
+  "terminal_evidence_rejected_variants": [],
+  "unrun_variants": [
+    {
+      "name": "native_fine_dx2p5",
+      "reason": "incomplete execution: last recorded dump at 36000.065 s; completion fingerprint absent"
+    },
+    {
+      "name": "integrated_aligned_dx2p5",
+      "reason": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES"
+    },
+    {
+      "name": "integrated_misaligned_dx3p24",
+      "reason": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES"
+    }
+  ],
+  "terminal_evidence_by_variant": {
+    "baseline_dx10": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "process_success": true,
+      "final_time_s": 22000.0,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null
+    },
+    "native_fine_dx2p5": {
+      "selection_path": null,
+      "reason": "incomplete execution: last recorded dump at 36000.065 s; completion fingerprint absent",
+      "process_success": false,
+      "final_time_s": null,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null,
+      "last_recorded_time_s": 36000.0649353936
+    },
+    "native_coarse_dx30": {
+      "selection_path": "regular terminal dump",
+      "reason": "accepted",
+      "process_success": true,
+      "final_time_s": 22000.0,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null
+    },
+    "integrated_aligned_dx2p5": {
+      "selection_path": null,
+      "reason": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES",
+      "process_success": false,
+      "final_time_s": null,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null
+    },
+    "integrated_misaligned_dx3p24": {
+      "selection_path": null,
+      "reason": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES",
+      "process_success": false,
+      "final_time_s": null,
+      "pre_jump_time_s": null,
+      "timestep_grid_residual_s": null
+    }
+  },
+  "metrics": [
+    {
+      "metric": "exact-grid baseline load mean relative error",
+      "limit": "<= 0.1",
+      "calculated": "0.5435",
+      "status": "FAIL",
+      "note": ""
+    },
+    {
+      "metric": "exact-grid baseline ignition-time relative error",
+      "limit": "<= 0.1",
+      "calculated": "0.1861",
+      "status": "FAIL",
+      "note": ""
+    },
+    {
+      "metric": "native fine-grid variant within-structure load range",
+      "limit": ">= 0.05",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": ""
+    },
+    {
+      "metric": "native fine-grid variant ROS ratio to baseline",
+      "limit": "<= 0.5",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": ""
+    },
+    {
+      "metric": "native coarse-grid variant baseline/coarse load ratio",
+      "limit": "1.86 +/- 25%",
+      "calculated": "1.622",
+      "status": "PASS",
+      "note": ""
+    },
+    {
+      "metric": "integrated aligned variant structure-load relative error",
+      "limit": "<= 0.01",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES"
+    },
+    {
+      "metric": "integrated aligned variant ignition-time relative error",
+      "limit": "<= 0.05",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES"
+    },
+    {
+      "metric": "integrated misaligned variant structure-load relative error",
+      "limit": "<= 0.33",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES"
+    },
+    {
+      "metric": "integrated misaligned variant ignition-time relative error",
+      "limit": "<= 0.1",
+      "calculated": "N/A",
+      "status": "NOT EVALUABLE",
+      "note": "NOT EVALUABLE: case metadata does not enable USE_RESOLUTION_INDEPENDENT_STRUCTURES"
+    }
+  ],
+  "normalization": "ember count divided by physical structure area (10 m times cross-grid width)",
+  "reference_times_s": {
+    "critical_load_crossing": 2496.9,
+    "full_ignition": 2858.8
+  }
+}

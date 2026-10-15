@@ -1,0 +1,35 @@
+{
+  "case_id": "CASE28_OVA",
+  "case_title": "Case 28: Overnight spread-rate adjustment",
+  "overall_status": "PASS",
+  "workflow_status": "COMPLETE",
+  "metric_count": 2,
+  "passing_metric_count": 2,
+  "variants": [
+    {
+      "label": "main",
+      "guide_case": "Overnight",
+      "configuration": "elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "reduction starts (hr)",
+          "target": 17.5,
+          "measured": 17.75,
+          "percent_error": 1.4285714285714286,
+          "units": "hr",
+          "status": "PASS"
+        },
+        {
+          "name": "reduction ends (hr)",
+          "target": 7.5,
+          "measured": 7.75,
+          "percent_error": 3.3333333333333335,
+          "units": "hr",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "source": "ELMFIRE Guide verification section"
+}

@@ -1,0 +1,252 @@
+\section{Verification purpose}
+
+This case verifies the response of the intended downscaled Wildland--Urban ELMFIRE (WU--E) model-2 heat
+calculation to the design-fire curve, target building-fuel properties,
+heat-release-rate (HRR) ellipse adjustment, the radiation cutoff, and multiple simultaneous
+sources.  It is designed to expose breakpoint errors, confusion between a
+plateau duration and its absolute end time, use of the wrong target-property
+path, incorrect heat-area normalization, missing cutoff logic, a failure to
+accumulate transient heat, or nonlinear source aggregation.
+
+Nineteen deterministic simulation conditions use one or two stationary WU-E sources.
+Nonburnable fire behavior fuel model (FBFM) 93 background and a zero spread-adjustment raster suppress
+propagation; spotting, terrain, and weather variation are disabled.  The
+intended downscaled formulation is the numerical acceptance reference. The
+reviewed configuration interpretation, spread-rate calculation, and level-set
+formulation were identical to the specified ELMFIRE source revision; this
+identity claim does not extend to all other model components. Differences
+between the simulated response and the intended equations below are reported
+as deviations.
+
+\textbf{Verification question.} Do all simulation conditions reproduce the complete
+time-dependent heat-release rate per unit area (HRRPUA), direct-flame-contact (DFC), radiation, and accumulated-heat
+fields within \HeatMapTolerance{} normalized $L_1$ error, while satisfying
+the exact parameter scalings, radiation support, source-superposition, and
+no-propagation invariants?
+
+\ReportOverview
+
+\section{Mathematical formulation and numerical implementation}
+
+For elapsed burning time $t$, the implementation reads four values from the
+source building-fuel-model row: growth endpoint $t_e$, absolute plateau
+endpoint $t_f$, decay endpoint $t_d$, and peak HRRPUA $H$.  It evaluates
+
+\begin{equation}
+ \HRRPUA(t)=
+ \begin{cases}
+   Ht/t_e, & t\le t_e,\\
+   H, & t_e<t\le t_f,\\
+   H(t-t_d)/(t_f-t_d), & t_f<t\le t_d,\\
+   0, & t>t_d.
+ \end{cases}
+\end{equation}
+
+The fixed wind and geometry determine the UCB ellipse once per source. With
+linear characteristic building dimension $L_c=\texttt{BLDG\_AREA}$ in metres,
+source area $A_s=L_c^2$, ellipse major and minor radii $B$ and $A_e$, and
+$c=\texttt{HRR\_ELLIPSE\_ADJ}$, the intended spatial normalization is
+
+\begin{equation}
+ C_h=\frac{A_s}{\pi(cB)(cA_e)},\qquad c_{default}=1.
+\end{equation}
+
+For target cell $j$, define
+$\beta_{ssd}=\min[1,(s_{sd}+L_c)/\Delta x]$ and select
+$K_\theta=B+E$, $B-E$, or $2A_e$ for downwind, upwind, or sidewind sectors.
+The clipped DFC coverage is
+$f_d=\operatorname{clip}[(K_\theta+\Delta x/2-r\beta_{ssd})/\Delta x,0,1]$.
+Radiation uses $r_{eff}=r\beta_{ssd}c$, physical $HAZ=100$ m, and the
+complementary factor $(1-f_d)$. Spatial nonburnable fraction $n_j$ takes
+precedence when supplied; the building-model/default value is the fallback.
+The table supplies absorptivity $\alpha_j$. Each source $s$ contributes
+
+\begin{align}
+ q''_{\mathrm{DFC},s,j} &= g_f\eta(W)0.65(1-n_j)f_{d,s,j}\,\dot q''_{\mathrm{HRR},s}(t)C_h,\\
+ q''_{\mathrm{rad},s,j} &= g_f\eta(W)\frac{0.35(1-n_j)\alpha_j f_{r,s,j}
+                 \dot q''_{\mathrm{HRR},s}(t)A_s}{4\pi r_{\mathrm{eff},s,j}^2},\\
+ \eta(W)&=\frac{3.25}{1+\exp[-0.05(W-75)]}+0.5,\qquad
+ g_f=\min[(\Delta x/L_c)^2,1].
+\end{align}
+
+Radiation overlap is exactly zero outside the physical heat-affecting zone,
+with half-cell clipping. Transient maps sum all burning
+sources.  Total received heat is updated every one-second solver step as
+
+\begin{equation}
+ Q^{\mathrm{total}}_j \mathrel{+}=q''_j(t)\,\Delta t\,\Delta x^2.
+\end{equation}
+
+The independent case-specific Python reference calculation implements these equations directly;
+it imports no ELMFIRE code and has no execution source-tree dependency. The
+pinned source currently omits $\eta$, uses 0.3 rather than 0.35 radiation,
+omits the 0.65 DFC factor and grid corrections, and uses cell area in $C_h$.
+
+\section{Derivation of expected behavior}
+
+The four source curves deliberately sample every breakpoint.  The base curve
+uses $(t_e,t_f,t_d,H)=(4,8,12,100)$ in SI units; the peak simulation condition doubles
+$H$, the short curve uses $(2,4,6,100)$, and the long-plateau curve uses
+$(4,10,14,100)$.  Because every heat term is linear in HRRPUA, doubling $H$
+must double the HRR and both heat-flux maps at every dump.
+
+At fixed geometry, DFC scales with spatial $1-n_j$, while radiation scales with
+$(1-n_j)\alpha_j$. The spatial input therefore predicts exact response ratios
+for $n_j\in\{0,0.2,0.5,1\}$ and
+$\alpha_j\in\{0,0.4,0.8,1\}$.  DFC must not change in the absorptivity sweep.
+At fixed $B$ and $A_e$, both heat fields scale as $c^{-2}$ for
+$c\in\{0.25,0.5,0.75,1\}$.
+
+The sum from a left and a right source must equal the two-source result cell
+by cell and dump by dump.  Likewise, the final accumulated rasters must equal
+the sum of every one-second transient raster times $\Delta t\Delta x^2$.
+Finally, two simulation conditions change the spatial nonburnable-fraction raster from zero
+to one while retaining the same building-fuel-model table. The fully
+nonburnable target must receive zero DFC and radiation; equality would expose
+the current source's table-only behavior.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{expected_response.pdf}
+  \caption{Independent predictions for the HRR curve families, spatial target
+  coefficients, and inverse-square ellipse normalization.  These curves are
+  generated before, and independently of, an ELMFIRE run.}
+\end{figure}
+
+The peer-reviewed WU--E papers support the transient design-fire, target heat,
+and multi-source coupling concepts \cite{PurnomoPCI2024,PurnomoIJWF2024}.
+The detailed formulation above is stated explicitly. The ends of growth,
+fully developed burning, and decay are specified as absolute transition times.
+
+\section{Verification metrics and acceptance criteria}
+
+For nonzero reference array $R$ and output array $E$, the principal metric is
+
+\begin{equation}
+ \nLone=\frac{\sum |E-R|}{\sum |R|}.
+\end{equation}
+
+The sums cover all 16 scheduled dump times and every raster cell.  A zero-reference
+array uses absolute $L_1$ error, so a supposedly suppressed component cannot
+pass through a zero denominator.  Nodata, non-finite values, unexpected
+shapes, duplicate result fields, and output times other than exactly 1 through
+16 seconds are rejected.  The prescribed HRR curves include $t=0$, but
+ELMFIRE's first scheduled output occurs after one scheduled output interval.
+A confirmed successful completion must have matching SHA-256 identities for
+the simulation settings, spatial inputs, both fuel-property tables, reference
+and analysis methods, ELMFIRE program, simulation record, and all results.
+Output labels alone are not sufficient evidence. The relationship between the
+identified model program and the stated source revision must be established
+separately.
+
+\begin{center}
+
+\begin{longtable}{@{}P{0.22\textwidth}P{0.30\textwidth} P{0.17\textwidth}P{0.17\textwidth}@{}}
+\toprule
+Expected property & Observable and metric & Criterion & Failure sensitivity\\
+\midrule
+HRR breakpoints & Full HRR raster stack versus reference calculation & $\nLone\le0.005$ & timing, curve row, peak\\
+Spatial heat fields & Full DFC/radiation stacks versus reference calculation & each $\nLone\le0.005$ & coefficients, cutoff, kernel\\
+Exact parameter response & Scaled-pair raster errors & each $\le10^{-5}$ & spatial $n_b$, absorptivity, or $c^{-2}$\\
+Time accumulation & Transient sums versus final totals & $\nLone\le0.005$ & update/dump ordering\\
+Source aggregation & Pair versus sum of two singles & $\le10^{-5}$ & aggregation defect\\
+Isolation & time of arrival (TOA) and off-source HRR & zero extra cells & unintended propagation\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Overall PASS requires every metric and all 19 simulation conditions.  Incomplete, stale,
+ambiguous, or malformed evidence yields NOT EVALUABLE, never PASS.
+
+\section{Simulation configuration and predicted outcome}
+
+\begin{center}
+
+\begin{longtable}{@{}P{0.22\textwidth}P{0.30\textwidth}P{0.42\textwidth}@{}}
+\toprule
+Parameter & Configured value & Isolation role\\
+\midrule
+Grid & \CaseGridSize, \CaseCellSize\ m cells & contains full update band\\
+CRS & EPSG:32610 & explicit metric coordinates\\
+Time & $\Delta t=1$ s; stop 16 s; dump 1 s & exact breakpoints/integration\\
+Wind & 12 m/s toward raster east & fixed ellipse geometry\\
+Sources & one center or two separated cells & single/superposition pair\\
+Background & FBFM93 with zero adjustment & prevents propagation\\
+Spotting/terrain & disabled/flat & removes confounders\\
+Model selector & WUI model type 2 & UMD/UCB source path\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+The point ignition is scheduled at 17 seconds, just beyond the 16-second stop.
+It prevents generic stalled-front termination without adding a physical source
+during the test.  All input rasters are regenerated with common dimensions,
+CRS, transform, nodata value, and explicit data types.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{input_configuration.pdf}
+  \caption{Prepared two-source configuration read back from generated
+  GeoTIFFs.  Source model IDs override the uniform target-table ID only at the
+  two initially burning cells.}
+\end{figure}
+
+The predicted result is a stationary source set whose heat maps follow each
+source curve, vanish beyond the implementation's support, add linearly, and
+integrate exactly into the final received-heat fields.
+
+\section{Actual simulation results}
+
+The current analysis procedure state is
+\textbf{\WorkflowStatus}; the scientific decision is
+\textbf{\VerificationStatus}, with \CompletedVariantCount{} of
+\RequiredVariantCount{} required simulation conditions having evaluable execution evidence.
+Reason: \VerificationReason.  The common executed-binary SHA-256 is
+\ReadableHash{\ExecutedBinarySHA}.
+
+\IfFileExists{../figures/heat_response_comparison.pdf}{%
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{heat_response_comparison.pdf}
+  \caption{Representative whole-domain ELMFIRE result, independent reference calculation,
+  and difference.  This figure is generated only from completed output.}
+\end{figure}
+}{\noindent\fbox{\parbox{0.96\textwidth}{Actual-result figure unavailable because the
+required ELMFIRE simulation conditions have not been evaluated.}}}
+
+\section{Calculated metrics and verification decision}
+
+\input{readable_results.tex}
+
+\textbf{Current decision: \VerificationStatus.}  NOT RUN is a analysis procedure state,
+not evidence of verification and never maps to PASS.
+
+\section{Technical interpretation}
+
+The required transient stacks are unavailable because the solver stops when
+this one- or two-source setup has too few tagged propagation cells. The dormant
+ignition controls the separate PHI-stall test, not this low-node stopping rule.
+An overrun final dump does not contain the missing rise, plateau, and decay
+history, so the current decision remains NOT EVALUABLE.
+
+Once complete histories exist, the comparisons separate distinct causes:
+HRR errors indicate curve timing or source-state problems; correct HRR with
+incorrect heat maps indicates transfer coefficients, support, or normalization;
+a transient-to-total mismatch indicates accumulation or dump timing. The
+spatial-nonburnable and source-superposition controls test their respective
+input and aggregation paths without substituting planned values for output.
+
+\section{Scope and limitations}
+
+This case verifies deterministic source HRR and heat-transfer mechanics for a
+fixed model-2 ellipse.  It does not verify physical calibration, flame-shape
+regressions across wind and geometry (CASE43), ignition thresholds, rate of spread (ROS),
+wildland--urban transitions, embers, fuel consumption, or convergence.  Its
+intended spatial-property interpretation is tested against the pinned source
+revision. The reference calculation is evaluated independently of the
+ELMFIRE simulation.
+
+\begin{thebibliography}{9}
+\bibitem{PurnomoPCI2024} D. M. J. Purnomo et al., ``Reconstructing modes of destruction in wildland--urban interface fires using a semi-physical level-set model,'' \emph{Proceedings of the Combustion Institute}, 40 (2024), 105755. \href{https://doi.org/10.1016/j.proci.2024.105755}{doi:10.1016/j.proci.2024.105755}.
+\bibitem{PurnomoIJWF2024} D. M. J. Purnomo et al., ``Integrating an urban fire model into an operational wildland fire model to simulate one dimensional wildland--urban interface fires: a parametric study,'' \emph{International Journal of Wildland Fire}, 33 (2024), WF24102. \href{https://doi.org/10.1071/WF24102}{doi:10.1071/WF24102}.
+\end{thebibliography}

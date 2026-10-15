@@ -1,0 +1,39 @@
+case_id: "CASE40_WSD"
+case_title: "Case 40: Wind-slope vector and direction sweep"
+category: "Verification/coupling_tests"
+source_provenance: "Andrews (2018), RMRS-GTR-371; ELMFIRE level-set implementation"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/vector_response.pdf"
+
+variants:
+  wind_to_upslope_degrees: [0, 45, 90, 135, 180]
+  slope_percent: 50.0
+  target_midflame_wind_mph: 4.0
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        INPUTS.SURFACE_SPREAD_MODEL: "ROTHERMEL"
+        INPUTS.LH_MOISTURE_CONTENT: 60.0
+        INPUTS.LW_MOISTURE_CONTENT: 90.0
+        OUTPUTS.DUMP_REACTION_INTENSITY: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        TIME_CONTROL.SIMULATION_TSTOP: 1800.0
+        TIME_CONTROL.TARGET_CFL: 0.2
+        SIMULATOR.NUM_IGNITIONS: 0
+        SIMULATOR.CROWN_FIRE_MODEL: 0
+        SIMULATOR.PHIS_ADJ: 1.0
+        SIMULATOR.PHIW_ADJ: 1.0
+        SIMULATOR.SURFACE_ACCELERATION_TIME_CONSTANT: 1.0
+        SPOTTING.ENABLE_SPOTTING: false
+        WUI.USE_BLDG_SPREAD_MODEL: false

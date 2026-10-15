@@ -1,0 +1,11 @@
+**/data/inputs/
+**/logs/
+**/scratch/
+**/outputs/*
+!*/outputs/metrics.json
+**/report/*.aux
+**/report/*.fdb_latexmk
+**/report/*.fls
+**/report/*.log
+**/report/*.out
+**/report/*.synctex.gz

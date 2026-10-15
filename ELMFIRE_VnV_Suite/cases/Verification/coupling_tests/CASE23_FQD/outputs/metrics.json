@@ -1,0 +1,51 @@
+{
+  "case_id": "CASE23_FQD",
+  "case_title": "Case 23: Spatially varying fuel quadrants",
+  "overall_status": "PASS",
+  "workflow_status": "COMPLETE",
+  "metric_count": 4,
+  "passing_metric_count": 4,
+  "variants": [
+    {
+      "label": "main",
+      "guide_case": "Quadrant",
+      "configuration": "elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "FB8 head ROS",
+          "target": 0.08,
+          "measured": 0.07955236732959747,
+          "percent_error": -0.5595408380031607,
+          "units": "m/min",
+          "status": "PASS"
+        },
+        {
+          "name": "FB7 head ROS",
+          "target": 0.472,
+          "measured": 0.4705793857574463,
+          "percent_error": -0.3009775937613742,
+          "units": "m/min",
+          "status": "PASS"
+        },
+        {
+          "name": "FB4 head ROS",
+          "target": 1.492,
+          "measured": 1.4932564496994019,
+          "percent_error": 0.08421244634060741,
+          "units": "m/min",
+          "status": "PASS"
+        },
+        {
+          "name": "FB2 head ROS",
+          "target": 0.871,
+          "measured": 0.8717562556266785,
+          "percent_error": 0.08682613394701152,
+          "units": "m/min",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "source": "ELMFIRE Guide verification section"
+}

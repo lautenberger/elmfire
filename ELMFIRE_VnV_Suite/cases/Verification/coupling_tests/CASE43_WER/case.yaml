@@ -1,0 +1,67 @@
+case_id: "CASE43_WER"
+case_title: "Case 43: WU-E ellipse response"
+category: "Verification/coupling_tests"
+parameter_interpretation:
+  BLDG_AREA: "linear characteristic building dimension in metres"
+
+source_provenance:
+  commit: "a2dfbcdf72209733c000e5d3431e44723e15efea"
+  spread_rate_sha256: "eed515c2f44b5582c01b1573e41a7e24bf76f0a445870f27ba7d32d281e656a4"
+  namelist_sha256: "2fcd9e57a2bec5df964d96ccef0f658b703e0406abb19c13cb8080af066c78b4"
+  level_set_sha256: "18c446fce24ac5fac8dd174e38e273bfdddecfa81c9371550b247055b6d833b3"
+  design_note: "The inspected working tree also had modifications to elmfire.f90, elmfire_io.f90, and elmfire_subs.f90 plus untracked directories. The WU-E-mapped namelist, spread-rate, and level-set files were byte-identical to the pinned commit; no source checkout is used at runtime."
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/expected_response.pdf"
+    - "figures/heat_map_comparison.pdf"
+
+variants:
+  generator: "scripts/preprocess.py"
+  families:
+    - "source-wind branch boundaries at 10 and 17.3 m/s"
+    - "Hamada A and D response, including the D > 50 m clamp"
+    - "four wind-from directions separated by 90 degrees"
+    - "constant and raster building-parameter equivalence"
+    - "urban versus vegetation source fuel-reach factor (1 versus 1/3)"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      template: true
+      invariants:
+        INPUTS.SURFACE_SPREAD_MODEL: "ROTHERMEL"
+        INPUTS.FBFM_FILENAME: "fbfm40"
+        INPUTS.PHI_FILENAME: "phi"
+        INPUTS.BLDG_AREA_FILENAME: "bldg_area"
+        INPUTS.BLDG_SEPARATION_DIST_FILENAME: "bldg_separation"
+        INPUTS.BLDG_NONBURNABLE_FRAC_FILENAME: "bldg_nonburnable"
+        INPUTS.BLDG_FOOTPRINT_FRAC_FILENAME: "bldg_footprint"
+        INPUTS.BLDG_FUEL_MODEL_FILENAME: "bldg_fuel_model"
+        OUTPUTS.DUMP_HRR_TRANSIENT: true
+        OUTPUTS.DUMP_TRANSIENT_DFC: true
+        OUTPUTS.DUMP_TRANSIENT_RAD: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        TIME_CONTROL.SIMULATION_TSTOP: 120.0
+        TIME_CONTROL.SIMULATION_DT: 1.0
+        TIME_CONTROL.SIMULATION_DTMAX: 1.0
+        TIME_CONTROL.TARGET_CFL: 0.2
+        SIMULATOR.NUM_IGNITIONS: 1
+        SIMULATOR.T_IGN(1): 121.0
+        SPOTTING.ENABLE_SPOTTING: false
+        SPOTTING.ENABLE_SURFACE_FIRE_SPOTTING: false
+        WUI.BLDG_FUEL_MODEL_CONSTANT: 1
+        WUI.BLDG_SPREAD_MODEL_TYPE: 2
+        WUI.USE_BLDG_SPREAD_MODEL: true
+        WUI.INTERFACE_MODEL_TYPE: 1
+        WUI.BANDTHICKNESS_WUI: 24
+        WUI.CRITICL_HF_WUI: 0.0
+        WUI.HRR_ELLIPSE_ADJ: 1.0

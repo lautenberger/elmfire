@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "case_id": "camp_fire",
+  "event_start_utc": "2018-11-08T22:00:00Z",
+  "comparison_time_s": 129600,
+  "comparison_time_utc": "2018-11-10T10:00:00Z",
+  "model_inputs": {
+    "source": "Camp_VAL.rar, received in the 3_FIRES collection identified only as 'From Dwi'",
+    "archive_namelist_sha256": "6e0a9dac2c4be01794b61d30aac531858657157d6515d0692600910fc567e9b6",
+    "upstream_products": "unknown",
+    "provider": "unknown",
+    "acquisition_dates": "unknown",
+    "license": "unknown"
+  },
+  "analysis": {
+    "weather_bands_used": 25,
+    "weather_interval_s": 3600,
+    "wind_speed_units": "mph at 20 ft (inferred from current ELMFIRE source and archived flags)",
+    "wind_direction_units": "degrees",
+    "dead_fuel_moisture_units": "percent",
+    "topography_units": {"dem": "m (archive convention; upstream metadata absent)", "slp": "degrees", "asp": "degrees"}
+  },
+  "observation": {
+    "description": "VIIRS 375 m active-fire point detections with NASA FIRMS-compatible fields",
+    "source_attribution": "NASA FIRMS / VIIRS active-fire product inferred from field schema; exact collection, granules, download URL, acquisition date, and chain of custody are not recorded locally",
+    "source_url": "https://firms.modaps.eosdis.nasa.gov/active_fire/",
+    "product_reference_url": "https://www.earthdata.nasa.gov/data/catalog/lancemodis-vnp14img-nrt-2",
+    "crs": "EPSG:4326",
+    "geometry": "Point",
+    "comparison_cutoff_utc": "2018-11-10T10:00:00Z",
+    "files": [
+      {"relative_path": "data/viirs_observation/viirs_camp.cpg", "size": 5, "sha256": "3ad3031f5503a4404af825262ee8232cc04d4ea6683d42c5dd0a2f2a27ac9824"},
+      {"relative_path": "data/viirs_observation/viirs_camp.dbf", "size": 581334, "sha256": "c8717446b0d91bcd7930c63fab2f9a254563800129b5baf904c6e2e46087a0d9"},
+      {"relative_path": "data/viirs_observation/viirs_camp.prj", "size": 145, "sha256": "a02a27b1d1982c8516d83398e85a3c8b1aef1713c13ef4d84d7bde17430c07c4"},
+      {"relative_path": "data/viirs_observation/viirs_camp.qmd", "size": 1623, "sha256": "e8dd30fbe4e3dfb933702ce596796ec442c09a05fdb587fd38460872910a312c"},
+      {"relative_path": "data/viirs_observation/viirs_camp.shp", "size": 63380, "sha256": "3cee20171a2dfe2859ae2cb82a3c1be5900133bdd4385db67ffbb49807c24fb6"},
+      {"relative_path": "data/viirs_observation/viirs_camp.shx", "size": 18180, "sha256": "3f0e0962e2b3ab644a4e81b5223013538c26bce1f819ec3558b4ce2094768566"}
+    ]
+  },
+  "known_provenance_gaps": [
+    "Upstream fuel, terrain, weather, moisture, WUI, and ignition products are not identified in the received archive.",
+    "The local VIIRS files do not record the exact FIRMS collection/granules, download URL, acquisition date, filtering history, or license.",
+    "The archive does not state whether model parameters were calibrated against this event."
+  ]
+}

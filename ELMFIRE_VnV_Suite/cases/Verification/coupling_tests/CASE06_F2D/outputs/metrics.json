@@ -1,0 +1,54 @@
+{
+  "case_id": "CASE06_F2D",
+  "status": "pass",
+  "verification_passed": true,
+  "required_times_s": [
+    30.0,
+    60.0,
+    90.0,
+    120.0
+  ],
+  "maximum_time_mismatch_s": 2.0,
+  "maximum_nesting_violation_fraction": 0.02,
+  "minimum_front_advance_per_interval_m": 20.0,
+  "minimum_final_crosswind_span_m": 40.0,
+  "minimum_firebrand_excess_advance_m": 30.0,
+  "maximum_observed_nesting_violation_fraction": 0.0,
+  "interval_front_advances_m": [
+    190.0,
+    190.0,
+    180.0
+  ],
+  "final_crosswind_span_m": 220.0,
+  "firebrand_excess_advance_m": 664.8,
+  "ember_ignition_cells": 1097,
+  "nesting_passed": true,
+  "front_progression_passed": true,
+  "two_dimensional_growth_passed": true,
+  "firebrand_driven_advance_passed": true,
+  "completed_perimeter_times_s": [
+    30.443613,
+    60.3962,
+    90.348787,
+    120.0
+  ],
+  "required_perimeters_complete": true,
+  "selected_phi_files": [
+    "phi_0000001_d0000001.tif",
+    "phi_0000001_d0000002.tif",
+    "phi_0000001_d0000003.tif",
+    "phi_0000001_d0000004.tif"
+  ],
+  "downwind_front_m": [
+    195.0,
+    385.0,
+    575.0,
+    755.0
+  ],
+  "nesting_violation_fractions": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "surface_only_front_bound_m": 90.19999999999999
+}

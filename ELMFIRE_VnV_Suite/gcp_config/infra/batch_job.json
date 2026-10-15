@@ -1,0 +1,62 @@
+{
+    "taskGroups": [
+    {
+        "taskCount": __TASK_COUNT__,
+        "parallelism": __PARALLELISM__,
+        "taskSpec": {
+            "runnables": [
+                {
+                    "container": {
+                        "imageUri": "__REGION__-docker.pkg.dev/__PROJECT_ID__/__REPO__/__IMAGE__:__COMMIT_SHA__",
+                        "entrypoint": "python3",
+                        "commands": [
+                            "/elmfire/elmfire/vnv_suite/tools/run_all.py"
+                        ]
+                    },
+                    "environment": {
+                        "variables": {
+                            "COMMIT_SHA": "__COMMIT_SHA__",
+                            "RESULTS_BUCKET": "__RESULTS_BUCKET__",
+                            "RESULTS_PREFIX": "__COMMIT_SHA__/"
+                        }
+                    }       
+                }
+            ], 
+            "computeResource": {
+                "cpuMilli": 1000, 
+                "memoryMib": 8192 
+            },
+            "maxRetryCount": 0,
+            "maxRunDuration": "86400s"  
+        },
+    }
+  ],
+    "allocationPolicy": {
+        "instances": [
+            {
+                "policy": {
+                    "machineType": "e2-standard-4",
+                    "provisioningModel": "STANDARD"
+                }
+            }
+        ],
+        "serviceAccount": {
+            "email": "__JOB_SA__"
+        },
+        "network": {
+            "networkInterfaces": [
+                {
+                    "network": "projects/__PROJECT_ID__/global/networks/default",
+                    "subnetwork": "projects/__PROJECT_ID__/regions/__REGION__/subnetworks/default"
+                }   
+            ]
+        }
+    },
+    "labels": {
+        "app": "elmfire-vnv",
+        "commit": "__COMMIT_SHORT__"
+    },
+    "logsPolicy": {
+        "destination": "CLOUD_LOGGING"
+    }
+}

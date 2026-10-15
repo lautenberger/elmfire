@@ -1,0 +1,40 @@
+{
+  "case_id": "CASE33_SDO",
+  "overall_status": "PASS",
+  "verification_passed": true,
+  "required_outputs_complete": true,
+  "variants": [
+    "flat",
+    "slope_30"
+  ],
+  "metrics": [
+    {
+      "name": "flat-control anisotropy",
+      "expected": "<= 0.05",
+      "calculated": 0.0,
+      "units": "fraction",
+      "tolerance": "5%",
+      "status": "PASS"
+    },
+    {
+      "name": "slope-front elongation ratio",
+      "expected": ">= 1.10",
+      "calculated": 1.1746031746031746,
+      "units": "ratio",
+      "tolerance": "10% directional elongation",
+      "status": "PASS"
+    },
+    {
+      "name": "slope-forcing response",
+      "expected": ">= 0.05",
+      "calculated": 0.5205181936574023,
+      "units": "normalized L1",
+      "tolerance": "5% difference from flat",
+      "status": "PASS"
+    }
+  ],
+  "source_files": [
+    "variants/flat/outputs/time_of_arrival_0000001_0007200.tif",
+    "variants/slope_30/outputs/time_of_arrival_0000001_0007200.tif"
+  ]
+}

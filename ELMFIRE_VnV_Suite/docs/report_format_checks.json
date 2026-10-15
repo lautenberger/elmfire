@@ -1,0 +1,224 @@
+{
+  "cases": 52,
+  "verification_cases": 49,
+  "validation_cases": 3,
+  "non_report_file_count": 1362,
+  "changed_non_report_files": [],
+  "decisions_unchanged": true,
+  "math_expression_changes": [],
+  "detached_definitions_identity_or_duplicate_definition_PDF_findings": [],
+  "layout_warnings": [],
+  "test_exit_code": 0,
+  "standalone_builds": [
+    {
+      "case": "CASE01_BET",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE02_FGR",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE03_ETC",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE05_TDW",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE06_F2D",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE04_STI",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE08_FBC",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE07_IPC",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE09_MMD",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE10_WSR",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE12_TRS",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE11_WSC",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE15_CRO",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE13_PRM",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE14_SRS",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE16_NSP",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE17_SCV",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE18_TCV",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE19_WTH",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE20_PIG",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE21_WDE",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE22_VSL",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE23_FQD",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE24_CXI",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE25_MQD",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE26_CNF",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE27_FBT",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE28_OVA",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE29_SUP",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE30_MIT",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE31_PFT",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE32_RCV",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE33_SDO",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE34_FMS",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE35_WSS",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE36_SLS",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE37_DMS",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE38_LMS",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE39_DHC",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE41_CFP",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE40_WSD",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE42_WAF",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE43_WER",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE44_WHP",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE45_HRS",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE48_WGC",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE46_WUT",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE47_UWT",
+      "exit_code": 0
+    },
+    {
+      "case": "CASE49_WTC",
+      "exit_code": 0
+    },
+    {
+      "case": "camp_fire",
+      "exit_code": 0
+    },
+    {
+      "case": "thomas_fire",
+      "exit_code": 0
+    },
+    {
+      "case": "tubbs_fire",
+      "exit_code": 0
+    }
+  ],
+  "layout": "US Letter; 0.85-inch margins; 15-pt paragraph indentation; 0-pt paragraph spacing plus 1-pt stretch; shared local Times New Roman style",
+  "no_simulations_or_postprocessing_executed": true
+}

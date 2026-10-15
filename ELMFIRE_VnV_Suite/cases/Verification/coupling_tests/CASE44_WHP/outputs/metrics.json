@@ -1,0 +1,128 @@
+{
+  "case_id": "CASE44_WHP",
+  "source_commit": "a2dfbcdf72209733c000e5d3431e44723e15efea",
+  "overall_status": "NOT EVALUABLE",
+  "workflow_status": "INCOMPLETE",
+  "verification_passed": false,
+  "required_outputs_complete": false,
+  "required_variant_count": 19,
+  "completed_variant_count": 0,
+  "executed_binary_sha256": null,
+  "run_attempt": "outputs/run_attempt.json",
+  "missing_evidence": {
+    "curve_base": "dump times [3600.0] do not equal 1..16 s",
+    "curve_double_peak": "dump times [3600.0] do not equal 1..16 s",
+    "curve_short": "dump times [3600.0] do not equal 1..16 s",
+    "curve_long_plateau": "dump times [3600.0] do not equal 1..16 s",
+    "target_nbf_0": "dump times [3600.0] do not equal 1..16 s",
+    "target_nbf_0p5": "dump times [3600.0] do not equal 1..16 s",
+    "target_nbf_1": "dump times [3600.0] do not equal 1..16 s",
+    "target_abs_0": "dump times [3600.0] do not equal 1..16 s",
+    "target_abs_0p4": "dump times [3600.0] do not equal 1..16 s",
+    "target_abs_1": "dump times [3600.0] do not equal 1..16 s",
+    "adj_0p25": "dump times [3600.0] do not equal 1..16 s",
+    "adj_0p5": "dump times [3600.0] do not equal 1..16 s",
+    "adj_0p75": "dump times [3600.0] do not equal 1..16 s",
+    "adj_1p0": "dump times [3600.0] do not equal 1..16 s",
+    "source_left": "dump times [3600.0] do not equal 1..16 s",
+    "source_right": "dump times [3600.0] do not equal 1..16 s",
+    "source_pair": "dump times [3600.0] do not equal 1..16 s",
+    "inert_rasters_low": "dump times [3600.0] do not equal 1..16 s",
+    "inert_rasters_high": "dump times [3600.0] do not equal 1..16 s"
+  },
+  "metrics": [
+    {
+      "name": "maximum HRR curve normalized L1 error",
+      "expected": "<= 0.005",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "double-peak HRR scaling error",
+      "expected": "<= 1e-05",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum DFC full-stack normalized L1 error",
+      "expected": "<= 0.005",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum radiation full-stack normalized L1 error",
+      "expected": "<= 0.005",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "spatial nonburnable scaling error",
+      "expected": "<= 1e-05",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "target-table absorptivity scaling error",
+      "expected": "<= 1e-05",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "HRR_ELLIPSE_ADJ inverse-square error",
+      "expected": "<= 1e-05",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum radiation outside source cutoff",
+      "expected": "<= 1e-06",
+      "calculated": null,
+      "units": "kW m^-2",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum transient-to-total integration error",
+      "expected": "<= 0.005",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "two-source superposition error",
+      "expected": "<= 1e-05",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "spatial nonburnable-raster response",
+      "expected": "fully nonburnable / combustible heat <= 1e-05",
+      "calculated": null,
+      "units": "ratio",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum arrival-mask mismatch count",
+      "expected": "0",
+      "calculated": null,
+      "units": "cells",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum unexpected HRR source count",
+      "expected": "0",
+      "calculated": null,
+      "units": "cells",
+      "status": "NOT EVALUABLE"
+    }
+  ],
+  "variant_results": [],
+  "reason": "ELMFIRE execution was attempted, but no variant has complete current evidence."
+}

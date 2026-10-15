@@ -1,0 +1,145 @@
+\section{Verification purpose}
+
+This case verifies time-step convergence of the intended Wildland--Urban ELMFIRE (WU--E) heat-accumulation and urban-propagation law with a fixed material fire-thermal property (FTP) on one fixed uniform-community grid. It refines the configured step through \TimeStepSet{} for families with low and high heat-release rate (HRR). The 30,000-kJ source branch is retained only as a plotted deviation diagnostic and is not an acceptance boundary.
+
+\ReportOverview
+
+\section{Mathematical formulation and numerical implementation}
+The uniform-community and separation context follows the published WU--E
+parametric study \cite{PurnomoIJWF2024}. The detailed intended equations are
+documented directly here.
+Executable semantics were checked against ELMFIRE spread-rate calculation
+and ELMFIRE level-set formulation at source revision
+\texttt{a2dfbcdf7220}.  The reviewed components were identical to that revision; this identity claim
+does not extend to other modified model components.
+For received heat flux from direct flame contact (DFC) and radiation, $q=q_{\mathrm{DFC}}+q_{\mathrm{rad}}$, ELMFIRE forms
+\begin{equation}
+ E=q\,\Delta t\,\Delta x^2.
+\end{equation}
+The intended routine uses a fixed material property and
+\begin{equation}
+ F_{\mathrm{TP}}=F_{TP,crit}=5400~\si{\kilo\joule\per\square\metre},\qquad
+ U=\frac{60E}{0.3048\,\Delta t\,\Delta x\,F_{TP,crit}}
+  =\frac{196.85q\Delta x}{F_{TP,crit}}.
+\end{equation}
+Thus $\Delta t$ controls numerical integration but not the modeled material
+law. Heat is recomputed from every burning WU-E source before the two-stage
+level-set update. The pinned source's 30,000-kJ switch, dynamic FTP, and
+35-mph divisor are documented deviations expected to degrade convergence.
+
+\section{Derivation of expected behavior}
+For a time-convergent observable $Q_{\Delta t}$,
+\begin{equation}
+ Q_{\Delta t}=Q+C\Delta t^p+o(\Delta t^p),
+ \qquad
+ p\approx\log_2\frac{\lVert Q_{2\Delta t}-Q_{\Delta t}\rVert}
+ {\lVert Q_{\Delta t}-Q_{\Delta t/2}\rVert}.
+\end{equation}
+The low-HRR family supplies a lower-amplitude heat-integration sequence. The
+high-HRR family supplies the time of arrival (TOA) observables used for propagation convergence.
+Both must have positive finite sampled heat; neither is classified by an
+energy branch in the intended model. ELMFIRE feedback level 1
+records every solver-step start time.  The evaluator requires the exact expected
+step count and increments within the log's 0.1 s print precision; any adaptive
+reduction or incomplete log makes the simulation condition NOT EVALUABLE.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+On the fixed $\Delta x=20$ m grid, the sampled heat-field diagnostic for every
+transient dump and physical fire behavior fuel model (FBFM) 91 cell is
+\[
+ E_{i,n}^{*}=(q_{\mathrm{DFC},i,n}+q_{\mathrm{rad},i,n})
+ \Delta t_{\mathrm{configured}}(20)^2.
+\]
+The maximum sampled $E_i^{*}$ is retained as a source-deviation diagnostic
+only. For the high-HRR landmark vector $\mathbf{t}$,
+\[
+ e_t=\frac{\lVert\mathbf{t}_{1}-\mathbf{t}_{0.5}\rVert_2}
+ {\max(\lVert\mathbf{t}_{0.5}\rVert_2,10^{-12})},
+\]
+with analogous scalar changes for fitted rate of spread (ROS) and total received heat.  Observed order uses the 2, 1, and 0.5 s results.
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+All eight exact-stop, input-matched simulation conditions are required, with generated namelists, tables, and rasters matching the case specification, complete transient stacks on the common 20 s dump schedule, and a complete logged solver-step sequence. Both HRR families must have positive finite sampled heat. Every expected logged start time from 0 through $t_{stop}-\Delta t$ must be present within 0.051 s, accommodating the log's 0.1 s print precision. For the two finest high-HRR simulation conditions, landmark-TOA and community-ROS changes must be at most 5\%; total-heat change in each heat family must also be at most 5\%. A resolvable nonzero sequence must have temporal order at least 0.5; a roundoff-flat three-level sequence is the explicit alternative, while a flat finest pair after a nonzero coarse change fails as possible stagnation. High-HRR TOA fits require $R^2\geq0.95$.
+
+These are preregistered diagnostic criteria rather than literature-provided
+uncertainties.  A 5-percent finest-pair limit is large enough to accommodate
+the half-second sampling/TOA quantization yet small enough to indicate practical
+time-step stability.  The positive order floor of 0.5 tests contraction without
+claiming a formal order for this coupled clipped model, and $R^2=0.95$ rejects
+fragmentary propagation profiles before a single ROS is reported.  The limits
+are not tuned after execution.
+
+\section{Simulation configuration and predicted outcome}
+The \SI{240}{m} by \SI{80}{m} community uses a fixed \TemporalGrid{} grid of fire behavior fuel model (FBFM)~91, a \SI{40}{m} initially burning upwind strip, \SI{20}{m} linear characteristic building dimension, and \SI{10}{m} separation. The \SI{15}{mph} wind is from the west. Building models 14 and 15 share a 30--270--300 s piecewise-linear design fire but use peaks of 20 and \SI{800}{kW.m^{-2}}, respectively. Runs end at \TemporalStopTime{}. Firebrands, crown fire, stochastic wind, and suppression are disabled.
+
+\begin{center}
+\begin{longtable}{P{0.22\textwidth}P{0.21\textwidth}P{0.13\textwidth}P{0.32\textwidth}}
+\toprule Quantity & Values & Units & Control intent\\
+\midrule
+Timestep & \TimeStepSet & s & Ratio-two temporal refinement\\
+Grid / stop & 20 / 300 & m / s & Holds space and terminal time fixed\\
+Wind / direction & 15 / 270 & mph / degree from & Fixed ellipse forcing\\
+Low/high HRR peak & 20 / 800 & kW m$^{-2}$ & Two amplitude convergence families\\
+Terminal evidence & TOA and total heat & s / kJ & Chronology, ROS, and energy\\
+Transient/log evidence & DFC, radiation, HRR; step timestamps & kW m$^{-2}$ / s & Sampled heat and executed-step gates\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Figure~\ref{fig:wtc-input} is mechanically rendered from the prepared GeoTIFFs and the two fuel-table design fires.  It precedes result plots and distinguishes prescribed inputs from calculated outputs.
+\begin{figure}[p]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{\includegraphics[width=\textwidth]{input_configuration.pdf}}{\fbox{Prepared-input evidence has not been generated.}}
+  \caption{Prepared high-HRR FBFM and level-set rasters, plus the
+  intended design-fire curves read from the case metadata.  The postprocessor
+  independently checks the copied building-fuel-model rows before any
+  decision; these panels are inputs, not results.}
+  \label{fig:wtc-input}
+\end{figure}
+
+\section{Actual simulation results}
+The analysis procedure state is \textbf{\WorkflowStatus}; the scientific decision is
+\textbf{\VerificationStatus}, with \CompletedVariantCount{} of
+\RequiredVariantCount{} required simulation conditions.  Reason: \VerificationReason.
+The executed binary SHA-256 is \ReadableHash{\ExecutedBinarySHA}.  For each completed simulation, the selected fields retain their actual output
+times and matching model, input, and simulation-record identities. All results
+must belong to those completed simulations.
+\ifnum\CompletedVariantCount>0
+\IfFileExists{../figures/convergence.pdf}{\begin{figure}[p]\centering\includegraphics[width=\textwidth]{convergence.pdf}\caption{Exact common-time response of heat, sampled FBFM91 energy, ROS, and TOA from completed, input-matched simulations; convergence limits are 5\%.}\end{figure}}{}
+\IfFileExists{../figures/domain_result.pdf}{\begin{figure}[p]\centering\includegraphics[width=\textwidth]{domain_result.pdf}\caption{High-HRR exact-$t=300$ s TOA for $\Delta t=0.5$ s; the exact source raster is recorded in calculated verification and validation metrics.}\end{figure}}{}
+\fi
+
+\section{Calculated metrics and verification decision}
+\input{readable_results.tex}
+
+The overall scientific decision is \textbf{\VerificationStatus}.  Missing or stale products are NOT EVALUABLE; NOT RUN is retained only as a analysis procedure state and cannot pass.  An incomplete propagation profile or a logged departure from the configured step produces NOT EVALUABLE rather than an invented convergence rate.
+
+\section{Technical interpretation}
+
+The complete step logs establish that the configured temporal sequence was
+executed. The finest high-HRR pair satisfies the relative-change limits, but
+the three-finest-level differences do not contract at the required rate.
+Practical closeness of the finest pair and a positive observed convergence
+order are different requirements; passing the first does not override failure
+of the second.
+
+The source's step-energy switch and time-step-dependent replacement of FTP can
+change the modeled response as the step is refined. They are credible causes
+of poor convergence, but the finite sequence does not isolate a unique cause.
+The low-HRR heat changes are particularly small: its order is sensitive to
+float32 accumulation and to the evaluator's very tight flat-sequence test.
+That row should not independently be interpreted as a physical-model failure.
+The high-HRR order checks remain separate, decisive acceptance components.
+
+\section{Scope and limitations}
+This case verifies numerical behavior of the current executable against the
+intended fixed-FTP law, not empirical material calibration. The sampled
+cell-step energy is a source-deviation diagnostic only and does not determine
+acceptance. The case does not test explicit street gaps, heterogeneous
+structures, wildland transition rules, firebrands, or uncertainty in
+design-fire inputs.
+
+\begin{thebibliography}{9}
+\bibitem{PurnomoIJWF2024} D. M. J. Purnomo et al., ``Integrating an urban fire model into an operational wildland fire model to simulate one dimensional wildland--urban interface fires: a parametric study,'' \emph{International Journal of Wildland Fire}, 33 (2024), WF24102. \href{https://doi.org/10.1071/WF24102}{doi:10.1071/WF24102}.
+\end{thebibliography}

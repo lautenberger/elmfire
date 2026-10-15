@@ -867,8 +867,11 @@ IF (PHIP(IX,IY) .GT. 0) RETURN
 TOA = TIME_OF_ARRIVAL(IX,IY)
 BURNING_TIME = T - TOA
 
-! Pre-burned cells (initial ignition zone) : no HRR transient
-IF (TOA .LE. SIMULATION_TSTART) THEN
+! Initial wildland ignition zones represent already-burning fire and therefore
+! do not replay a transient residence-time pulse.  An initially ignited WUI
+! structure, however, is a physical source whose design-fire curve must begin
+! at the simulation start; otherwise it can never emit firebrands.
+IF (TOA .LE. SIMULATION_TSTART .AND. BURNING_NODES%IFBFM .NE. 91) THEN
    BURNING_NODES%HRR_TRANSIENT = 0.
    HRR_TRANSIENT_MAP(IX,IY)    = 0.
    RETURN

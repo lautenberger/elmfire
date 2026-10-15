@@ -1,0 +1,34 @@
+case_id: "CASE05_TDW"
+case_title: "Firebrand Transport in Time-Dependent Wind"
+category: "Verification/coupling_tests"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/domain_result.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        INPUTS.DT_METEOROLOGY: 1.0
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        TIME_CONTROL.SIMULATION_TSTOP: 120.0
+        TIME_CONTROL.DT_INTERPOLATE_WIND: 0.1
+        MONTE_CARLO.NUM_ENSEMBLE_MEMBERS: 1
+        MONTE_CARLO.NUM_METEOROLOGY_TIMES: 121
+        MONTE_CARLO.METEOROLOGY_BAND_START: 1
+        MONTE_CARLO.METEOROLOGY_BAND_STOP: 121
+        SPOTTING.ENABLE_SPOTTING: true
+        SPOTTING.GENERATION_MODEL: "PER-AREA"
+        SPOTTING.ACCUMULATION_MODEL: "EULERIAN"
+        SPOTTING.IGNITION_MODEL: "DIRECT"
+        SPOTTING.NO_SURFACE_FIRE: true
+        SPOTTING.EMBER_GR: 1.0

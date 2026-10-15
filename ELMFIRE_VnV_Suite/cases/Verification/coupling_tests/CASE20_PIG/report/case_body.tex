@@ -1,0 +1,108 @@
+\section{Verification purpose}
+
+This case verifies the coupled surface-fire and level-set rate response to a central point ignition in uniform fuel with zero wind and zero slope. Rotational symmetry supplies a diagnostic for directional bias or raster-orientation errors, while the formal decision tests the coupling between fire behavior and level-set normal velocity. The verification question is whether the required maximum spread rate is within 10 percent of \(1.51~\mathrm{m\,min^{-1}}\); isotropic arrival geometry is reported as supporting evidence but is not yet a separate acceptance component.
+
+The scientific setup and historical expected response are reconstructed from Section~3.2 of the supplied \emph{ELMFIRE Guide}. The Guide is used as reference provenance, not as an instruction or a substitute for evidence. Configuration statements below are checked against the generated GeoTIFFs and namelist; current results and decisions come only from case-specific outputs and generated metrics. Where the generated experiment differs from the historical example, the report states that difference explicitly.
+
+\section{Mathematical formulation and numerical implementation}
+
+ELMFIRE advances the level-set field using \(\partial\phi/\partial t+V_n|\nabla\phi|=0\).  With spatially uniform fuel, moisture, wind, and slope, \(V_n=R_0\) is independent of azimuth.  The zero contour must therefore evolve from the ignition neighborhood toward a circle.  The final spread rate raster records the local normal spread rate in metres per minute because metric spread-rate output is enabled.
+
+The surface-fire scalar supplied to the level set is the Rothermel no-wind/no-slope rate
+\begin{equation}
+R_0=\frac{I_R\,\xi}{\rho_b\,\epsilon\,Q_{ig}}, \qquad Q_{ig}=250+1116M_f,
+\end{equation}
+where reaction intensity \(I_R\), propagating-flux ratio \(\xi\), bulk density \(\rho_b\), effective heating number \(\epsilon\), and fuel moisture \(M_f\) are evaluated from the generated Fuel Model~3 and moisture inputs. This equation chain follows Andrews (2018), \emph{The Rothermel Surface Fire Spread Model and Associated Developments}; the Guide supplies the configured known-response value.
+
+\section{Derivation of expected behavior}
+
+For constant \(R_0\), the front radius is \(r(t)=r(0)+R_0t\).  The independently tabulated Fuel Model 3 response for the configured moisture and no-wind/no-slope condition is \(R_0=1.51~\mathrm{m\,min^{-1}}\).  Rotational symmetry is an invariant; the quantitative decision uses the rate because it directly tests the fire-behavior value passed to propagation.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The independent no-wind/no-slope reference is calculated from
+\[
+ R_0=\frac{I_R\xi}{\rho_b\epsilon Q_{ig}},\qquad
+ Q_{ig}=250+1116M_f,
+\]
+using generated Fuel Model~3 and
+\((M_{1h},M_{10h},M_{100h},M_{lh},M_{lw})
+=(0.06,0.07,0.08,0.60,0.90)\).  The independent calculation gives
+\(I_R=549.174~\mathrm{kW\,m^{-2}}\) and
+\(R_0=1.51183~\mathrm{m\,min^{-1}}\), reported to the Guide precision as
+\(R_{\mathrm{ref}}=1.51~\mathrm{m\,min^{-1}}\)
+(\(1.51183/0.3048=4.960~\mathrm{ft\,min^{-1}}\)).
+The decision metric is therefore
+\[
+ e_R=\frac{|R_{\max}-1.51|}{1.51},
+\]
+where \(R_{\max}\) is the maximum finite final spread rate value, and the
+substituted acceptance test is \(e_R\leq0.10\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+The head rate of spread (ROS) metric is the maximum finite value in the required final spread rate raster.  It is selected because uniform forcing makes every mature front direction equivalent and the maximum avoids dilution by unburned nodata cells.  A 10 percent relative tolerance follows the GUIDE comparison and allows raster and front-discretization effects while remaining sensitive to unit or coupling errors.  The case passes only when the output exists and \(|R_{\rm sim}-1.51|/1.51\le0.10\).
+
+\section{Simulation configuration and predicted outcome}
+
+The case uses a \(126\times126\), 30 m grid in EPSG:32635, uniform Fuel Model 3, 6 percent one-hour moisture, flat terrain, zero wind, and a central ignition.  The predicted output is an approximately circular arrival-time field with a uniform mature spread rate near \(1.51~\mathrm{m\,min^{-1}}\).
+
+\begin{center}
+\begin{tabular}{@{}p{0.20\textwidth}p{0.20\textwidth}p{0.12\textwidth}p{0.38\textwidth}@{}}
+\toprule
+Parameter & Configured value & Units & Role in the experiment \\
+\midrule
+Grid & \(126\times126\) at 30 & m per cell & Resolves the whole spatial response on the generated north-up raster \\
+Projection & EPSG:32635 & --- & Fixes the map-coordinate and row-orientation convention \\
+Time control & \(\Delta t=1\), \(t_{stop}=259200\) & s & Whole-second step; stop time is an exact timestep multiple \\
+Meteorology interval & 3600 & s & Defines weather-band timing and stalled-final compatibility \\
+Live moisture & herb 60; woody 90 & percent & Holds live-fuel damping fixed while the named mechanism is isolated \\
+Evidence & prepared inputs; final case outputs & --- & Separates configuration provenance from acceptance evidence \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+The required evidence is generated only from case-specific ELMFIRE outputs. The current postprocessing status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} required metric rows pass across \VariantCount{} simulation condition(s). A missing output is reported as NOT RUN or NOT EVALUABLE and is not interpreted as verification evidence.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/whole_domain_result.pdf}{%
+    \includegraphics[width=0.82\textwidth,height=0.58\textheight,keepaspectratio]{whole_domain_result.pdf}%
+  }{\fbox{\parbox{0.85\textwidth}{No case-specific whole-domain ELMFIRE raster is available.}}}
+  \caption{Final whole-domain ELMFIRE time of arrival for the displayed simulation condition, in seconds. The coordinate reference system is stated in the figure. The calculated metrics, not visual appearance, determine acceptance.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Simulation condition / metric & Expected & Calculated & Status \\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{center}
+
+The displayed overall decision is \textbf{\VerificationStatus}. When calculated verification and validation metrics exists, result analysis procedure generates every table value and status; when it is absent, the report states NOT EVALUABLE with no invented rows.
+
+\section{Technical interpretation}
+
+A rate failure indicates a fire-behavior, units, or output-selection problem. Strong directional distortion with an acceptable maximum is a diagnostic warning and must not be claimed as verified until a shape metric and tolerance are added. No scientific conclusion should be drawn when the status is NOT RUN or NOT EVALUABLE.
+
+\section{Scope and limitations}
+
+This is deterministic numerical verification for one fuel and moisture state. It does not validate Fuel Model 3 against experimental fires or quantify symmetry with a dedicated shape metric. This case provides implementation verification evidence only.

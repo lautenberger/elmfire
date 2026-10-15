@@ -1,0 +1,22 @@
+case_id: "{{CASE_ID}}"
+case_title: "Short, descriptive title of the verification case"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  figures:
+    - "ROS_profile.png"
+    - "HRRPUA_time_series.png"
+
+# Keep only machine-checkable values that are essential to this test. Explain
+# their scientific purpose and all metric/tolerance reasoning in the report.
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        TIME_CONTROL.SIMULATION_TSTOP: 5000.0
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true

@@ -1,0 +1,52 @@
+{
+  "case_id": "CASE48_WGC",
+  "title": "WU-E Uniform-Community Spatial Convergence",
+  "purpose": "Measure grid sensitivity of WU-E urban propagation while holding the physical domain, source strip, design fire, wind, and building descriptors fixed.",
+  "source_code_path_used": "/Users/yiren/Desktop/MyResearch/ELMFIRE/ELMFIRE_Git/elmfire-nick/build/source",
+  "source_revision": "a2dfbcdf72209733c000e5d3431e44723e15efea",
+  "mapped_source_sha256": {
+    "elmfire_namelists.f90": "2fcd9e57a2bec5df964d96ccef0f658b703e0406abb19c13cb8080af066c78b4",
+    "elmfire_spread_rate.f90": "eed515c2f44b5582c01b1573e41a7e24bf76f0a445870f27ba7d32d281e656a4",
+    "elmfire_level_set.f90": "18c446fce24ac5fac8dd174e38e273bfdddecfa81c9371550b247055b6d833b3"
+  },
+  "source_checkout_note": "The mapped files were byte-identical to the named revision. The inspected checkout also contained pre-existing changes in other files and is not represented as globally clean.",
+  "source_files": [
+    "elmfire_spread_rate.f90: UMD_UCB_BLDG_SPREAD, CALC_WUI_HEATFLUX, ELLIPSE_UCB, HRR_TRANSIENT",
+    "elmfire_level_set.f90: WU-E heat update and RK2 level-set integration"
+  ],
+  "technical_references": [
+    "Thesis(PubLetterIncluded)_YirenQin_20250623.pdf",
+    "WF24102.pdf",
+    "1-s2.0-S1540748924005637-main.pdf"
+  ],
+  "physical_domain_length_m": 160.0,
+  "physical_domain_width_m": 40.0,
+  "initial_source_width_m": 20.0,
+  "building_plan_dimension_m": 20.0,
+  "building_dimension_semantics": "linear characteristic building dimension in metres",
+  "intended_grid_corrections": {
+    "beta_ssd": "min(1, (separation + characteristic_dimension) / cell_size)",
+    "fine_grid_source_factor": "min((cell_size / characteristic_dimension)^2, 1)",
+    "heat_affecting_zone_m": 100.0
+  },
+  "building_separation_m": 10.0,
+  "wind_speed_mph": 15.0,
+  "wind_from_degrees": 270.0,
+  "simulation_tstop_s": 300.0,
+  "dump_interval_s": 30.0,
+  "fixed_timestep_s": 0.25,
+  "hrrpua_peak_kw_m2": 800.0,
+  "hrr_growth_end_s": 30.0,
+  "hrr_steady_end_s": 270.0,
+  "hrr_decay_end_s": 300.0,
+  "landmark_x_m": [40.0, 80.0, 120.0],
+  "grid_spacings_m": [20.0, 10.0, 5.0, 2.5],
+  "metrics": {
+    "finest_pair_landmark_toa_relative_l2_max": 0.05,
+    "finest_pair_ros_relative_change_max": 0.05,
+    "finest_pair_total_heat_relative_change_max": 0.10,
+    "minimum_observed_order": 0.5,
+    "minimum_toa_fit_r2": 0.95,
+    "maximum_logged_step_deviation_s": 0.051
+  }
+}

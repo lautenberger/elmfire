@@ -1,0 +1,32 @@
+{
+  "case_id": "CASE32_RCV",
+  "overall_status": "PASS",
+  "verification_passed": true,
+  "required_outputs_complete": true,
+  "variants": [
+    "original",
+    "rotated_ccw"
+  ],
+  "metrics": [
+    {
+      "name": "rotated finite-mask agreement",
+      "expected": ">= 0.99",
+      "calculated": 1.0,
+      "units": "fraction",
+      "tolerance": "1% disagreement",
+      "status": "PASS"
+    },
+    {
+      "name": "rotated arrival-time error",
+      "expected": "<= 0.02",
+      "calculated": 0.00021408121011441122,
+      "units": "normalized L1",
+      "tolerance": "2%",
+      "status": "PASS"
+    }
+  ],
+  "source_files": [
+    "variants/original/outputs/time_of_arrival_0000001_0007200.tif",
+    "variants/rotated_ccw/outputs/time_of_arrival_0000001_0007200.tif"
+  ]
+}

@@ -1,0 +1,419 @@
+\section{Verification purpose}
+
+This case is a negative verification test for mesh dependence in the current
+multiple-discrete-cell treatment of structures. A physical
+\SI{10}{m}-by-\SI{10}{m} house may occupy one raster cell, several independent
+cells, one oversized cell, or disappear under categorical resampling as the
+mesh changes. Because those cells are not assembled into one conserved
+structure object, changing resolution alters represented heat release,
+firebrand generation, deposition, and structure-to-structure ignition.
+
+The test asks whether all 15 input-matched simulations produce an
+evaluable community rate of spread (ROS), and whether the fitted values remain
+within the predeclared mesh-independence limits relative to the run-derived
+10-m anchor. Detecting the known resolution sensitivity is useful diagnostic
+evidence, but it is a \emph{verification failure}, not a pass.
+
+\section{Mathematical formulation and numerical implementation}
+
+\subsection{Mode-resampled square array}
+
+The physical layout is a periodic array of square structures of side
+\(a=\SI{10}{m}\), separated in both coordinates by
+\(d=\SI{10}{m}\). Define the one-dimensional structural indicator
+\[
+ I(s)=\begin{cases}1,&s\bmod(a+d)<a,\\0,&\text{otherwise.}\end{cases}
+\]
+For grid interval \(C_i=[i\Delta,(i+1)\Delta]\), preprocessing calculates
+\[
+ f_i=\frac{1}{\Delta}\int_{C_i}I(s)\,ds,
+ \qquad b_i=\mathbf{1}(f_i\ge 1/2),
+ \qquad B_{ij}=b_i b_j .
+\]
+This coordinate-wise categorical-mode construction reproduces the reported
+geometries. At \(\Delta=\SI{7}{m}\), effective side lengths are 7 or
+\SI{14}{m} and footprints range from 49 to \(\SI{196}{m^2}\). At
+\(\Delta=\SI{10}{m}\), footprint and gap are exact. At
+\(\Delta=\SI{30}{m}\), one represented structure cell has area
+\SI{900}{m^2} and represented structures are separated by \SI{30}{m}.
+The 20- and 40-m maps eliminate represented firebreaks; this is an intended
+resampling diagnostic, not a preprocessing failure.
+
+\subsection{Cell-local firebrand treatment}
+
+A represented structural cell uses a design-fire curve \(q^{\prime\prime}(t)\). The curve has a 300-s linear growth phase, a one-hour plateau at \SI{400}{kW.m^{-2}}, and a 300-s decay. Under the current
+multiple-discrete-cell treatment,
+\[
+ \mathrm{HRR}_{ij}(t)=q^{\prime\prime}(t)\Delta^2,
+ \qquad \dot N_{ij}(t)=GR\,\frac{\mathrm{HRR}_{ij}(t)}{1000},
+ \qquad GR=\SI{10}{pcs.MW^{-1}.s^{-1}}.
+\]
+Changing \(\Delta\) therefore changes both represented geometry and the heat-release rate (HRR)
+of each independent emitter. Firebrands use the structural empirical
+flight-distance distribution, Eulerian accumulation, and physical ignition.
+Non-structure cells use nonburnable fuel model 93, so vegetative surface
+spread is absent and every downwind ignition must be caused by deposited
+firebrands.  The global vegetative surface-spread setting switch remains true to suppress vegetative surface-fire propagation.  The current source independently refreshes initialized model-14 building transient HRR under this setting. The configured time-step scaling is
+documented by Qin et al.~\cite{QinEtAl2026}:
+\[
+ \Delta t=\mathrm{CFL}\frac{\Delta}{U_{\rm wind}},
+ \qquad \mathrm{CFL}=1,
+ \qquad U_{\rm wind}=\SI{17.9}{m.s^{-1}}\;(\SI{40}{mph}).
+\]
+The fractional step is required to hold this spatial sweep at fixed wind Courant--Friedrichs--Lewy (CFL).
+Preprocessing sets each generated stop to
+\(\lceil150000/\Delta t\rceil\Delta t\), then records the requested stop,
+aligned stop, and integer step count in the simulation specification.
+
+For each represented downwind structure column \(s\), postprocessing takes the
+median positive finite arrival time \(t_s\). At least three ignited columns are
+required. Mean community ROS is the least-squares slope
+\[
+ ROS_\Delta =
+ \frac{\sum_s(t_s-\bar t)(x_s-\bar x)}
+      {\sum_s(t_s-\bar t)^2}.
+\]
+Because the 10-m grid exactly resolves both physical length scales, its fitted
+ELMFIRE result is the comparison anchor,
+\[
+ ROS_{10}=ROS_{\Delta=\SI{10}{m}}.
+\]
+The dashed reference line and the 10-m ELMFIRE point therefore use the same
+calculated value; no rounded external estimate is substituted.
+
+\section{Derivation of expected behavior}
+A resolution-independent structure treatment would conserve each house's
+physical footprint, integrated heat release, firebrand source, accumulated
+load, and ignition state. Subject to numerical error, it would give
+\(ROS_\Delta\approx ROS_{10}\) for every resolution and enough downstream
+ignitions to fit all 15 ROS values.
+
+The current cell-local representation does not conserve those quantities. Fine
+meshes fragment houses into multiple emitters, intermediate meshes alter
+footprints and gaps, and some coarse meshes merge structures or remove
+firebreaks. The expected diagnostic result is therefore a nonuniform ROS curve,
+including possible failure to propagate at some resolutions. That observation
+exposes the defect; against the mesh-independence requirement, its correct
+overall status is FAIL.
+
+% BEGIN EXPLICIT EXPECTED-RESULT DERIVATION
+The period of the one-dimensional physical indicator is
+\(a+d=10+10=20~\mathrm{m}\).  The key raster substitutions are therefore:
+\[
+\begin{array}{c|c|c}
+\Delta~(\mathrm{m})&\text{mode-resampled consequence}&
+\text{component-area reference}\\\hline
+7&\text{one or two selected cells per coordinate}&
+7^2=49\ \text{to}\ (2\cdot7)^2=196~\mathrm{m^2}\\
+10&\text{one structure cell followed by one gap cell}&
+10^2=100~\mathrm{m^2}\\
+30&\text{one selected cell per represented structure}&
+30^2=900~\mathrm{m^2}
+\end{array}
+\]
+At \(\Delta=20\) m, each cell contains 10 m of structure and 10 m of gap, so
+\(f_i=0.5\) and the \(f_i\geq0.5\) rule selects every cell; the represented
+firebreak vanishes.  The same 50-percent selection occurs for the 40-m map.
+These are reproducible consequences of the generated mode rule, not inferred
+from the output fire spread.
+
+With \(U=40(0.44704)=17.8816~\mathrm{m\,s^{-1}}\), each generated step is
+\[
+ \Delta t=\Delta/U;
+ \quad \Delta t_7=0.391463,\quad
+ \Delta t_{10}=0.559234,\quad
+ \Delta t_{30}=1.677702~\mathrm{s}.
+\]
+A truly resolution-independent treatment would give all 15 finite fits,
+\(f_{\mathrm{fit}}=15/15=1\),
+\(ROS_\Delta=ROS_{10}\), \(CV_R=0\), and \(D_{\max}=0\).
+The current native cell treatment is expected instead to produce missing or
+nonuniform fits because source HRR scales as \(\Delta^2\) and the represented
+geometry changes.  The predeclared mesh-independence requirements permit
+\(CV_R\leq0.25\) and \(D_{\max}\leq0.50\); exceeding either limit or failing
+any of the 15 fits yields the expected diagnostic FAIL.
+
+The primary publication provides the independent propagation reference calculation used only
+for strict stalled-final compatibility: Figure~9 reports zero ROS at 1, 3, 7,
+13, 17, 23, 25, and 27~m, and finite propagation at 5, 10, 15, 20, 30, 40,
+and 50~m~\cite{QinEtAl2026}.  An early stalled-final dump may therefore use
+the no-propagation exception only for the first set, and only after the
+meteorology-interval reconstruction and timestep-grid checks also pass.  This
+reference calculation does not replace the current-run metrics or authorize accepting an
+arbitrary overrun timestamp.
+% END EXPLICIT EXPECTED-RESULT DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+Preprocessing passes only when all 15 resolutions are generated, the exact
+10-m map has no footprint or gap error, the 7-m footprint range is
+49--\SI{196}{m^2}, and the median 30-m footprint is \SI{900}{m^2}.
+These checks establish that execution comparison uses the intended
+resolution-dependent rasterizations.
+
+A complete execution decision additionally requires every input-matched
+simulation condition and a finite 10-m ROS anchor. Let \(N_{\rm fit}\) be the number of
+resolutions with at least three ignited downwind structure columns. ROS
+extraction completeness is
+\[
+ f_{\rm fit}=\frac{N_{\rm fit}}{15},
+\]
+and must equal one. For the finite fitted values, mesh dependence is measured
+by the coefficient of variation
+\[
+ CV_R=\frac{\operatorname{std}_{\Delta}(ROS_\Delta)}
+            {\operatorname{mean}_{\Delta}(ROS_\Delta)}
+\]
+and by the largest deviation from the exact-geometry anchor,
+\[
+ D_{\max}=\max_\Delta\frac{|ROS_\Delta-ROS_{10}|}{ROS_{10}}.
+\]
+The permissive engineering limits are \(CV_R\le0.25\) and
+\(D_{\max}\le0.50\). Missing fits are handled by \(f_{\rm fit}\); they are not
+silently discarded and counted as convergence. The overall decision is the
+conjunction of every geometry, execution, anchor, fit-completeness, and
+mesh-independence check.
+
+\subsection{Justification of metric quantification}
+
+The geometry limits are exact consequences of rasterization.  At
+\(\Delta=\SI{10}{m}\), the structure side and gap are both exactly one cell,
+so the 1\% footprint and separation allowances cover only file precision and
+connected-component bookkeeping.  At \SI{7}{m}, a represented component can
+contain one to four cells, giving areas from \(7^2=49\) to
+\(4\times7^2=196\ \mathrm{m^2}\).  At \SI{30}{m}, a one-cell represented
+structure has area \(30^2=900\ \mathrm{m^2}\).  These checks establish that
+the intended mesh-dependent maps were generated; they are not claims of
+geometric accuracy.
+
+For the behavioral requirement, \(f_{\rm fit}=1\) is non-negotiable because
+mesh independence cannot be inferred after silently discarding resolutions
+that fail to propagate.  The \(CV_R\le0.25\) and \(D_{\max}\le0.50\)
+limits are intentionally permissive engineering bounds, substantially larger
+than ordinary front-fit quantization.  Even with those allowances, a method
+with factor-of-two variation or missing fits fails, which is the defect this
+case is designed to expose~\cite{QinEtAl2026}.  The 10-m reference is the
+actual \(ROS_{10}\) extracted by the same postprocessor, so its plotted
+reference and ELMFIRE point must coincide by construction; it is not an
+independent nominal value.  Current input identity records and all 15 runs are required
+to prevent stale or selectively complete outputs from weakening the expected
+FAIL diagnosis.
+
+\subsection{Predeclared acceptance criteria}
+
+Table~\ref{tab:acceptance-contract} summarizes the metrics fixed before
+inspection of the calculated results. Numerical values and component statuses
+are reported separately in Section~7.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Predeclared verification metrics and acceptance criteria.}
+\label{tab:acceptance-contract}
+\begin{tabular}{@{}p{0.23\linewidth}p{0.47\linewidth}p{0.21\linewidth}@{}}
+\toprule
+Metric & Output, region, and aggregation & Acceptance criterion\\
+\midrule
+Prepared simulation conditions & Generated simulation specification count divided by the 15 requested grid spacings. & 100\% \\
+10-m footprint error & Maximum relative error of represented component areas from \SI{100}{m^2}. & \(\le0.01\) \\
+10-m separation error & Maximum relative gap-width error from \SI{10}{m}. & \(\le0.01\) \\
+7-m component areas & Minimum and maximum represented connected-component areas. & 49--\SI{196}{m^2} \\
+30-m footprint error & Relative error of median represented footprint from \SI{900}{m^2}. & \(\le0.01\) \\
+Execution completeness & Current-input identity record final time of arrival (TOA) output and successful termination. & 15 of 15 simulation conditions \\
+10-m ROS anchor & Structure-column fit from the current 10-m TOA raster. & Finite \(ROS_{10}\) \\
+ROS extraction completeness & Resolutions with at least three ignited downwind columns. & \(f_{\rm fit}=1\) \\
+ROS mesh-dependence CV & Coefficient of variation over finite fitted ROS values. & \(CV_R\le0.25\) \\
+Maximum anchor deviation & Maximum finite-grid relative deviation from \(ROS_{10}\). & \(D_{\max}\le0.50\) \\
+Overall decision & Every geometry, completeness, and ROS component is conjunctive. & PASS only if all pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation configuration and predicted outcome}
+
+Figure~\ref{fig:input-configuration} records the prepared spatial inputs for a 10 m grid.
+These panels show the prepared spatial fields, remove the
+two-cell numerical buffer, and retain map coordinates in metres.  The left panel shows
+the most informative fuel or structure layout available for the case; the right panel
+shows the cells selected by the non-positive initial level-set field, making a localized
+ignition or firebrand-emission source explicit.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.42\textheight,keepaspectratio]{../figures/input_configuration.pdf}
+\caption{Whole-domain prepared input configuration for the representative simulation condition.  The
+physical domain is shown without the numerical halo; coordinates, configured wind values,
+fuel or structure layout, and initial ignition/source geometry are identified in the panels.}
+\label{fig:input-configuration}
+\end{figure}
+
+\begin{table}[H]
+\centering\footnotesize
+\caption{Configuration of the two-dimensional resolution sweep.}
+\begin{tabular}{@{}p{0.22\linewidth}p{0.27\linewidth}p{0.13\linewidth}p{0.29\linewidth}@{}}
+\toprule
+Parameter & Configured value & Units & Role\\
+\midrule
+Physical domain & \(1200\times400\), flat & m & permits many downwind ignitions\\
+Structure side / gap & 10 / 10 & m & exact physical scales at the 10-m grid\\
+Initial ignition & complete first structure column & -- & uniform upwind source across all structure rows\\
+Grid spacings & 1, 3, 5, 7, 10, 13, 15, 17, 20, 23, 25, 27, 30, 40, 50 & m & exposes raster and cell-local dependence\\
+Numerical halo & 2 on every side & cells & excluded from physical geometry\\
+Wind & 40 from 270 degrees & mph & constant west-to-east transport\\
+Time step & \(\Delta/U_{\rm wind}\) & s & holds wind CFL at one\\
+Design-fire peak & 400 & \si{kW.m^{-2}} & structural heat-release rate per unit area (HRRPUA) input\\
+Generation rate & 10 & \si{pcs.MW^{-1}.s^{-1}} & cell-local building source\\
+Transport / accumulation & empirical / Eulerian & -- & current structural spotting path\\
+Ignition delays & 42 plus 300 & s & small-flame and development stages\\
+Vegetative surface spread & excluded by fuel 93 & -- & isolates firebrand-driven propagation\\
+Stop time & at least 150000 & s & rounded up to an exact timestep multiple\\
+Final output & one TOA per simulation condition & -- & source for structure-column ROS fits\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The dashed reference line is predicted to intersect the 10-m ELMFIRE point
+exactly because both are \(ROS_{10}\). A mesh-independent implementation would
+cluster all other finite ROS points around this line and provide a fit at every
+resolution. The current independent-cell treatment is instead expected to
+produce missing fits and large variations, causing the behavioral verification
+to fail.
+
+\subsection{Preprocessing, execution, and postprocessing}
+
+input preparation procedure places customizable constants at its beginning,
+constructs the periodic map analytically, assigns persistent structure IDs,
+writes co-registered GeoTIFF inputs and case-specific fuel tables, and records a
+SHA-256 input identity record for every simulation condition. It also writes
+structure geometry measurements, making the map checks independently
+auditable.
+
+All 15 prescribed conditions are simulated independently and sequentially.
+Each result must match the corresponding input configuration before the
+resolution comparison is evaluated.
+
+result analysis procedure rejects stale or incomplete outputs, reads the
+final time-of-arrival raster, groups cells by structure, fits ROS, calculates
+all metrics above, and produces the report figure.
+
+\section{Actual simulation results}
+
+Figure~\ref{fig:domain-result} shows the representative time-of-arrival field from a 10 m grid.
+The displayed field is taken from the simulated results, masks missing values, and excludes
+the two-cell numerical buffer.  The 10-m field is the reference-scale spatial result used to interpret mesh-dependent structure spread across the resolution sweep.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.50\textheight,keepaspectratio]{../figures/domain_result.pdf}
+\caption{Whole-domain time-of-arrival field from the representative completed ELMFIRE run.  This
+domain-scale result supplements, rather than replaces, the higher-level verification
+profiles, convergence plots, ensemble statistics, and calculated acceptance metrics below.}
+\label{fig:domain-result}
+\end{figure}
+
+All 15 input-matched ELMFIRE processes reached the source success
+message.  The strict terminal-evidence selector accepts
+\CompletedVariantCount{} of \RequestedVariantCount{} outputs; process exit alone is
+not used as evidence.  Regular terminal dumps are accepted for 1, 3, 5, 7, 10,
+20, 30, and 40~m, and the publication-derived independent prediction of no propagation permits the
+timestep-aligned stalled-final path for 13, 17, and 25~m.  The selected files,
+configured controls, final times, reconstructed pre-jump times, grid residuals,
+and rejection reasons are recorded per simulation condition in
+calculated verification and validation metrics. The overall decision calculated by postprocessing is
+\textbf{\OverallStatus}.
+
+The upper row of Figure~\ref{fig:spatial-resolution} shows the actual
+preprocessed geometries. Its lower panel contains fitted ELMFIRE ROS values.
+Red crosses at zero identify completed simulations with fewer than three
+ignited downwind columns, for which ROS is deliberately not fitted. The dashed
+line is \(ROS_{10}=\DxTenReferenceROS~\si{m.s^{-1}}\), exactly equal to the
+10-m ELMFIRE point.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=\linewidth]{spatial_resolution_sweep.pdf}
+\caption{Two-dimensional spatial-resolution diagnostic. Top: mode-resampled
+WUI geometry at 7, 10, and \SI{30}{m}. Bottom: mean community ROS from current
+ELMFIRE TOA outputs; red crosses identify resolutions without enough downwind
+ignitions for a fit, and the dashed line is the run-derived 10-m anchor. The
+geometry selection follows the documented comparison
+configuration~\cite{QinEtAl2026}.}
+\label{fig:spatial-resolution}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{table}[H]
+\centering\small
+\caption{Calculated verification metrics and component decisions.}
+\begin{tabular}{@{}p{0.37\linewidth}p{0.18\linewidth}p{0.17\linewidth}p{0.14\linewidth}@{}}
+\toprule
+Metric & Acceptance limit & Calculated & Status\\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+The postprocessor reports \textbf{\OverallStatus}. Geometry preparation passes,
+and all 15 processes executed, but strict terminal evidence is complete for only
+\CompletedVariantCount{} of \RequestedVariantCount{} simulation conditions.  The 10-m
+anchor, ROS-evaluable fraction, coefficient of variation, and maximum anchor
+deviation therefore remain \texttt{N/A}; calculating them from a selected subset
+would silently change the predeclared verification population.
+
+\section{Technical interpretation}
+The accepted subset contains finite fitted values of approximately
+\SI{0.00512}{m.s^{-1}} (3~m), \SI{0.00700}{m.s^{-1}} (5~m),
+\SI{0.00770}{m.s^{-1}} (7~m), \SI{0.01123}{m.s^{-1}} (10~m),
+\SI{0.02617}{m.s^{-1}} (20~m), \SI{0.01612}{m.s^{-1}} (30~m), and
+\SI{0.04036}{m.s^{-1}} (40~m).  These values visibly demonstrate mesh
+sensitivity, but they are diagnostic observations rather than a complete
+acceptance calculation.
+
+Four successful processes do not provide admissible terminal evidence.  For
+15~m, the recorded final time is 152833.592~s and subtracting the configured
+3600-s meteorology interval gives 149233.592~s; the timestep-grid residual is
+0.302~s.  For 23 and 27~m the corresponding reconstructed times are
+146507.060 and 148242.909~s, with grid residuals 0.636 and 0.705~s.  Those
+residuals exceed the 0.150-s single-precision-scale tolerance.  The 50-m
+reconstruction is grid-aligned (0.023-s residual), but occurs at 148236.198~s,
+more than one 2.796-s timestep before the configured stop.  The primary
+publication reports propagation at 15 and 50~m, so neither early stall may be
+reclassified as independently expected no propagation.  Conversely, the
+publication reports no propagation at 23 and 27~m, but that reference calculation does not
+waive the timestep-grid requirement.
+
+The current source also produces finite spread at 3 and 7~m while the published
+Figure~9 places those resolutions at zero, and it stalls at 15 and 50~m where
+that figure shows finite spread.  The resulting \textbf{NOT EVALUABLE} status
+is therefore an implementation/reference and terminal-time discrepancy, not a
+missing execution and not a reason to weaken the evidence selector.  The runs
+used executable SHA-256
+\texttt{c225b2e0\allowbreak 0349aa98\allowbreak 128285b3\allowbreak d3ff9b20\allowbreak 31d0e209\allowbreak 44cd9f1c\allowbreak 5ee96595\allowbreak d199a920}
+built from source commit
+\texttt{a2dfbcdf\allowbreak 72209733\allowbreak c000e5d3\allowbreak 431e4472\allowbreak 3e15efea}; the source worktree already
+contained unrelated local modifications, so the commit and executable digest
+are both reported for reproducibility.
+
+\section{Scope and limitations}
+This case verifies numerical mesh dependence for one idealized periodic WUI
+array, one wind, and one structural design fire. It does not validate the
+physical accuracy of any individual ROS value. The 10-m result is an internal
+run-derived anchor, not experimental validation data. A future
+resolution-independent structure implementation should be tested with the same
+geometry and acceptance criteria; it should provide all 15 ROS fits and reduce
+both variation metrics below their limits.
+
+\begin{thebibliography}{9}
+\bibitem{Qin2025}
+Y. Qin, \emph{A Physics-Based Eulerian Framework for Modeling Firebrand
+Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire
+Simulations}, Ph.D. dissertation, University of Maryland, College Park, 2025.
+
+\bibitem{QinEtAl2026}
+Y. Qin et al., ``Simulations of firebrand-driven fire spread in
+landscape-scale Wildland--Urban-Interface and urban conflagration models,''
+\emph{Fire Safety Journal}, vol.~162, 104686, 2026,
+doi:10.1016/j.firesaf.2026.104686.
+\end{thebibliography}

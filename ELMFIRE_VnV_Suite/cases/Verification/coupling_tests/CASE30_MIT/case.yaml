@@ -1,0 +1,30 @@
+case_id: "CASE30_MIT"
+case_title: "Case 30: Multiple-ignition topology"
+category: "Verification/coupling_tests"
+source_provenance: "Adam Laird level-set component tests"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+variants:
+  - id: "dual_nowind"
+  - id: "dual_wind"
+  - id: "staggered_merge"
+  - id: "near_boundary"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/verification_summary.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        TIME_CONTROL.SIMULATION_TSTOP: 14400.0
+        SIMULATOR.NUM_IGNITIONS: 2

@@ -1,0 +1,104 @@
+{
+  "case_id": "CASE43_WER",
+  "source_commit": "a2dfbcdf72209733c000e5d3431e44723e15efea",
+  "overall_status": "NOT EVALUABLE",
+  "workflow_status": "INCOMPLETE",
+  "verification_passed": false,
+  "required_outputs_complete": false,
+  "required_variant_count": 23,
+  "completed_variant_count": 0,
+  "executed_binary_sha256": null,
+  "run_attempt": "outputs/run_attempt.json",
+  "missing_evidence": {
+    "branch_below_10": "dump times must be exactly 60 and 120 s",
+    "branch_at_10": "dump times must be exactly 60 and 120 s",
+    "branch_above_10": "dump times must be exactly 60 and 120 s",
+    "branch_below_17p3": "dump times must be exactly 60 and 120 s",
+    "branch_at_17p3": "dump times must be exactly 60 and 120 s",
+    "branch_above_17p3": "dump times must be exactly 60 and 120 s",
+    "area_05": "dump times must be exactly 60 and 120 s",
+    "area_10": "dump times must be exactly 60 and 120 s",
+    "area_20": "dump times must be exactly 60 and 120 s",
+    "area_40": "dump times must be exactly 60 and 120 s",
+    "distance_00": "dump times must be exactly 60 and 120 s",
+    "distance_10": "dump times must be exactly 60 and 120 s",
+    "distance_25": "dump times must be exactly 60 and 120 s",
+    "distance_50": "dump times must be exactly 60 and 120 s",
+    "distance_75": "dump times must be exactly 60 and 120 s",
+    "rotation_wd000": "dump times must be exactly 60 and 120 s",
+    "rotation_wd090": "dump times must be exactly 60 and 120 s",
+    "rotation_wd180": "dump times must be exactly 60 and 120 s",
+    "rotation_wd270": "dump times must be exactly 60 and 120 s",
+    "equiv_constant": "dump times must be exactly 60 and 120 s",
+    "equiv_raster": "dump times must be exactly 60 and 120 s",
+    "fuel_urban": "dump times must be exactly 60 and 120 s",
+    "fuel_forest": "dump times must be exactly 60 and 120 s"
+  },
+  "metrics": [
+    {
+      "name": "maximum HRRPUA normalized L1 error",
+      "expected": "<= 0.005",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum DFC full-map normalized L1 error",
+      "expected": "<= 0.005",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum radiation full-map normalized L1 error",
+      "expected": "<= 0.005",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "D greater than 50 m clamp pair error",
+      "expected": "<= 1e-05",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "constant/raster parameter equivalence error",
+      "expected": "<= 1e-05",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum 90-degree covariance error",
+      "expected": "<= 0.005",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "vegetation-source fuel-factor heat error",
+      "expected": "<= 0.005",
+      "calculated": null,
+      "units": "fraction",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum arrival-mask mismatch count",
+      "expected": "0",
+      "calculated": null,
+      "units": "cells",
+      "status": "NOT EVALUABLE"
+    },
+    {
+      "name": "maximum unexpected HRR source count",
+      "expected": "0",
+      "calculated": null,
+      "units": "cells",
+      "status": "NOT EVALUABLE"
+    }
+  ],
+  "variant_results": [],
+  "reason": "ELMFIRE execution was attempted, but no variant has complete current evidence."
+}

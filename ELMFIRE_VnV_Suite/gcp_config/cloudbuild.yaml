@@ -1,0 +1,109 @@
+# cloudbuild.yaml
+substitutions:
+  _REGION: us-central1
+  _REPO: elmfire-vnv-suite                # Artifact Registry repository name (already created)
+  _IMAGE: elmfire-vnv                     # Image name
+  _JOB_NAME: elmfire-vnv                  # Cloud Job name
+  _RESULTS_BUCKET: gs://elmfire_vnv_reports
+  _JOB_SA: 535731099861-compute@developer.gserviceaccount.com
+  _TASK_COUNT: "2"                        # number of parallel tasks
+  _PARALLELISM: "2"                       # <= _TASK_COUNT is typical
+
+logsBucket: gs://elmfire_vnv_reports
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+timeout: '3600s'
+
+steps:
+# 1) Quick tests – wire up your actual test runner here
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-lc', 'echo "[INFO] TODO: run pytest -q / unit tests here" && exit 0']
+
+# 2) Build & push (amd64)
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - -lc
+    - |
+      set -euo pipefail
+      docker buildx inspect default >/dev/null 2>&1 || docker buildx create --name default --use
+      docker buildx build \
+        --platform linux/amd64 \
+        -t ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:${COMMIT_SHA} \
+        -t ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:latest \
+        --push .
+
+# ============== Set-ups for cloud batch job executions =================
+# 2) Render Batch job JSON
+- name: "gcr.io/cloud-builders/gcloud"
+  entrypoint: "bash"
+  args:
+    - -lc
+    - |
+      set -euo pipefail
+      sed \
+        -e "s|__REGION__|${_REGION}|g" \
+        -e "s|__PROJECT_ID__|${PROJECT_ID}|g" \
+        -e "s|__REPO__|${_REPO}|g" \
+        -e "s|__IMAGE__|${_IMAGE}|g" \
+        -e "s|__COMMIT_SHA__|${COMMIT_SHA}|g" \
+        -e "s|__COMMIT_SHORT__|$(git rev-parse --short HEAD)|g" \
+        -e "s|__JOB_NAME__|${_JOB_NAME}|g" \
+        -e "s|__RESULTS_BUCKET__|${_RESULTS_BUCKET}|g" \
+        -e "s|__JOB_SA__|${_JOB_SA}|g" \
+        -e "s|__TASK_COUNT__|\"${_TASK_COUNT}\"|g" \
+        -e "s|__PARALLELISM__|\"${_PARALLELISM}\"|g" \
+        infra/batch_job.json > /workspace/batch_resolved.json
+      head -n 60 /workspace/batch_resolved.json
+
+# 3) Submit to Google Batch (async)
+- name: "gcr.io/cloud-builders/gcloud"
+  entrypoint: "bash"
+  args:
+    - -lc
+    - |
+      set -euo pipefail
+      gcloud batch jobs submit "elmfire-vnv-$(git rev-parse --short HEAD)" \
+        --location="us-central1" \
+        --config="/workspace/batch_resolved.json"
+      echo "[INFO] Submitted Batch job: elmfire-vnv-$(git rev-parse --short HEAD)"
+      echo "Logs: https://console.cloud.google.com/batch/jobs/details/${_REGION}/elmfire-vnv-$(git rev-parse --short HEAD)?project=${PROJECT_ID}"
+
+# ============== Set-ups for cloud run job executions =================
+# 3) Render job.yaml -> /workspace/job_resolved.yaml
+# - name: 'gcr.io/cloud-builders/gcloud'
+#   entrypoint: 'bash'
+#   args:
+#     - -lc
+#     - |
+#       set -euo pipefail
+#       sed \
+#         -e "s|__REGION__|${_REGION}|g" \
+#         -e "s|__PROJECT_ID__|${PROJECT_ID}|g" \
+#         -e "s|__REPO__|${_REPO}|g" \
+#         -e "s|__IMAGE__|${_IMAGE}|g" \
+#         -e "s|__COMMIT_SHA__|${COMMIT_SHA}|g" \
+#         -e "s|__JOB_NAME__|${_JOB_NAME}|g" \
+#         -e "s|__RESULTS_BUCKET__|${_RESULTS_BUCKET}|g" \
+#         -e "s|__JOB_SA__|${_JOB_SA}|g" \
+#         -e "s|__TASK_COUNT__|\"${_TASK_COUNT}\"|g" \
+#         -e "s|__PARALLELISM__|\"${_PARALLELISM}\"|g" \
+#         infra/job.yaml > /workspace/job_resolved.yaml
+#       echo "[INFO] job_resolved.yaml rendered."
+
+# # 4) Deploy/replace the Cloud Run Job
+# - name: 'gcr.io/cloud-builders/gcloud'
+#   args:
+#     - run
+#     - jobs
+#     - replace
+#     - /workspace/job_resolved.yaml
+#     - --region=${_REGION}
+
+# # 5) Execute the Job and WAIT for completion
+# - name: 'gcr.io/cloud-builders/gcloud'
+#   args: [ 'run','jobs','execute','${_JOB_NAME}','--region=${_REGION}' ]
+
+

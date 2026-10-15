@@ -1,0 +1,23 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=0.85in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,float,graphicx}
+\usepackage[detect-all]{siunitx}
+\usepackage{xcolor,hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\graphicspath{{../figures/}}
+\input{case_metadata.tex}
+\input{case_macros.tex}
+\input{technical_macros.tex}
+\IfFileExists{metrics_macros.tex}{\input{metrics_macros.tex}}{%
+  \newcommand{\VerificationStatus}{NOT EVALUABLE}
+  \newcommand{\VariantCount}{0}
+  \newcommand{\MetricCount}{0}
+  \newcommand{\PassingMetricCount}{0}}
+\providecommand{\MetricRows}{No generated metric rows & -- & -- & NOT EVALUABLE \\}
+\title{Case \CaseNumber: \CaseTitle}
+\input{report_style.tex}
+\begin{document}
+\maketitle
+\input{case_body.tex}
+\end{document}
+

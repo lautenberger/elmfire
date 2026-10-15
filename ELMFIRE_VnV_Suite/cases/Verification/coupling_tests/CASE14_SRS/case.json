@@ -1,0 +1,71 @@
+{
+  "case_number": "14",
+  "purpose_abbreviation": "SRS",
+  "id": "CASE14_SRS",
+  "chapter": "6",
+  "title": "Two-Dimensional Spatial-Resolution Sensitivity",
+  "summary": "Reproduces the published ELMFIRE multiple-discrete-cell resolution sweep for a square array of 10 m structures separated by 10 m firebreaks.",
+  "doi": "10.1016/j.firesaf.2026.104686",
+  "domain_length_m": 1200.0,
+  "domain_width_m": 400.0,
+  "structure_size_m": 10.0,
+  "structure_separation_m": 10.0,
+  "wind_speed_mph": 40.0,
+  "hrrpua_peak_kw_m2": 400.0,
+  "hrr_growth_end_s": 300.0,
+  "hrr_steady_end_s": 3900.0,
+  "hrr_decay_end_s": 4200.0,
+  "ember_generation_building_pcs_mw_s": 10.0,
+  "small_ignition_delay_s": 42.0,
+  "development_delay_s": 300.0,
+  "simulation_tstop_s": 150000.0,
+  "cfl": 1.0,
+  "dx_values_m": [
+    1.0,
+    3.0,
+    5.0,
+    7.0,
+    10.0,
+    13.0,
+    15.0,
+    17.0,
+    20.0,
+    23.0,
+    25.0,
+    27.0,
+    30.0,
+    40.0,
+    50.0
+  ],
+  "representative_geometry_dx_m": [
+    7.0,
+    10.0,
+    30.0
+  ],
+  "reference_no_propagation_dx_m": [
+    1.0,
+    3.0,
+    7.0,
+    13.0,
+    17.0,
+    23.0,
+    25.0,
+    27.0
+  ],
+  "metrics": {
+    "prepared_variant_fraction_min": 1.0,
+    "dx10_footprint_relative_error_max": 0.01,
+    "dx10_gap_relative_error_max": 0.01,
+    "dx7_component_area_min_m2": 49.0,
+    "dx7_component_area_max_m2": 196.0,
+    "dx30_component_area_reference_m2": 900.0,
+    "dx30_component_area_relative_error_max": 0.01,
+    "ros_evaluable_fraction_min": 1.0,
+    "ros_mesh_independence_cv_max": 0.25,
+    "ros_relative_deviation_from_dx10_max": 0.5
+  },
+  "source_references": [
+    "Chapter 6, Sections 6.2 and 6.3",
+    "Qin et al., Fire Safety Journal 162 (2026) 104686, Sections 3.4 and 4, Figures 7-9"
+  ]
+}

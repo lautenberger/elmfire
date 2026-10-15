@@ -1,0 +1,35 @@
+case_id: "CASE06_F2D"
+case_title: "Two-Dimensional Firebrand-Driven Spread"
+category: "Verification/coupling_tests"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/domain_result.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        INPUTS.DT_METEOROLOGY: 1.0
+        OUTPUTS.DUMP_PHI: true
+        OUTPUTS.DUMP_EMBER_IGNITION: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        TIME_CONTROL.SIMULATION_TSTOP: 120.0
+        MONTE_CARLO.NUM_ENSEMBLE_MEMBERS: 1
+        MONTE_CARLO.NUM_METEOROLOGY_TIMES: 121
+        SPOTTING.ENABLE_SPOTTING: true
+        SPOTTING.GENERATION_MODEL: "PER-AREA"
+        SPOTTING.ACCUMULATION_MODEL: "EULERIAN"
+        SPOTTING.IGNITION_MODEL: "DIRECT"
+        SPOTTING.USE_PHYSICAL_SPOTTING_DURATION: true
+        SPOTTING.NO_SURFACE_FIRE: false
+        SPOTTING.USE_CROSSWIND_DISTRIBUTION: true
+        SPOTTING.LOCAL_IGNITION_TIME: 14.0845

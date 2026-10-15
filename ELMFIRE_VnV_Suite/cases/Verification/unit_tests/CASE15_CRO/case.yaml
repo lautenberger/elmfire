@@ -1,0 +1,26 @@
+case_id: "CASE15_CRO"
+case_title: "Case 15: Constant rate of spread"
+category: "Verification/unit_tests"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "data/inputs/elmfire.data"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/whole_domain_result.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        OUTPUTS.DUMP_SPREAD_RATE: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        TIME_CONTROL.SIMULATION_TSTOP: 360.0
+        TIME_CONTROL.SIMULATION_DT: 1.0
+        TIME_CONTROL.SIMULATION_DTMAX: 1.0
+        SIMULATOR.NUM_IGNITIONS: 0

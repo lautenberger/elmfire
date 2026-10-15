@@ -1,0 +1,91 @@
+\section{Verification purpose}
+
+This isolated-process case verifies the zero-normal-velocity limit of the ELMFIRE level-set pathway. A zero spread-rate adjustment factor raster suppresses the base spread rate while wind, slope, spotting, crown fire, and suppression are disabled. The case exercises input multiplication, propagation, and level-set field/spread rate output and can expose ignored adjustment rasters, nonzero numerical forcing, or unintended growth. It is implementation verification, not physical validation. The question is whether the final rate remains below \(\RateZeroTolerance\) and the ignited footprint remains confined to the initialization band.
+
+\section{Mathematical formulation and numerical implementation}
+
+The propagation equation is \(\partial_t\phi+V_n|\nabla\phi|=0\). The case sets the multiplicative adjustment to zero, so \(V_n=0\) and therefore \(\partial_t\phi=0\). ELMFIRE still initializes a grid-resolved ignition neighborhood, so exact zero burned area is not expected; the invariant is no subsequent outward propagation.
+
+\section{Derivation of expected behavior}
+
+Integrating \(\partial_t\phi=0\) gives \(\phi(\mathbf{x},t)=\phi(\mathbf{x},0)\). Thus the output rate is zero and any negative-\(\phi\) area must be limited to the rasterized initialization band. A 2.5-cell equivalent-radius allowance bounds that band without treating subcell front placement as spread.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The generated pre-ignition \(\phi\) raster contains no negative cells and
+the adjustment raster is identically zero.  Thus
+\[
+ V_n=R_0(ADJ)=R_0(0)=0,\qquad
+ \phi(\mathbf{x},10~\mathrm{s})=\phi(\mathbf{x},0),
+ \qquad R_{\mathrm{ref}}=0~\mathrm{m\,min^{-1}}.
+\]
+The rate metric is therefore the absolute quantity
+\(e_R=\max_i|R_i|\), with the substituted test
+\(e_R\leq10^{-6}~\mathrm{m\,min^{-1}}\); a relative error is undefined
+for the zero reference.  ELMFIRE may rasterize its point ignition into a
+small initialization footprint, so the spatial metric is
+\[
+ r_A=\sqrt{\frac{N_b(1~\mathrm{m})^2}{\pi}},
+\]
+where \(N_b\) counts final cells with \(\phi<0\).  Its no-propagation
+reference is zero and the explicit grid allowance is
+\(r_A\leq2.5(1~\mathrm{m})=2.5~\mathrm{m}\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+The maximum absolute finite final spread rate value tests the zero-velocity invariant directly and must not exceed \(10^{-6}~\mathrm{m\,min^{-1}}\). The equivalent burned radius \(r_A=\sqrt{N_b\Delta x^2/\pi}\) must be no more than \(2.5\Delta x\); this whole-domain area measure detects growth in any direction and is more robust than one transect. Nodata is excluded, and the last matching final level-set field and spread rate rasters are required. Both conditions must pass; missing output is NOT EVALUABLE.
+
+\section{Simulation configuration and predicted outcome}
+
+The generated EPSG:32610 domain is 200 m square on a 200-by-200 grid. Fuel, moisture, and terrain are uniform; wind and slope are zero; a zero spread-rate adjustment factor; the ignition is centered; and duration is 10 s. The predicted spread rate field is zero and the final ignition footprint does not expand beyond its grid initialization band.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.22\textwidth}p{0.12\textwidth}p{0.34\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 200 by 200 cells; 1 & m/cell & Resolves the stationary ignition \\
+Initial front & centered rasterized band & --- & Nonzero initialized footprint \\
+Adjustment & ADJ=0 & --- & Forces zero normal speed \\
+Time control & step 1; stop 10 & s & Tests the zero-speed invariant \\
+Disabled forcing & wind, slope, crown, spotting, suppression & --- & Excludes alternate growth pathways \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+Only case-specific ELMFIRE rasters are read. Current status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} components pass.
+\begin{figure}[H]\centering
+\IfFileExists{../figures/whole_domain_result.pdf}{\includegraphics[width=0.72\textwidth]{whole_domain_result.pdf}}{\fbox{No case-specific whole-domain result is available.}}
+\caption{Final whole-domain signed level-set field for the completed zero-spread simulation condition at the final output time. Values are dimensionless; the generated table supplies the rate and confinement limits.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Metric & Expected value or limit & Calculated value & Status \\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{center}
+The authoritative overall decision is \textbf{\VerificationStatus}. The generated table is sourced directly from the case-specific calculated metrics and is not recomputed in this report.
+
+\section{Technical interpretation}
+
+A nonzero rate primarily indicates that the zero adjustment was ignored or transformed incorrectly. A confined rate with excessive burned area indicates initialization or level-set evolution behavior. Unavailable output cannot establish the invariant.
+
+\section{Scope and limitations}
+
+This case verifies a deterministic limiting state and raster adjustment coupling. It does not establish accuracy for positive rates, physical extinction, or any coupled fire process.
+

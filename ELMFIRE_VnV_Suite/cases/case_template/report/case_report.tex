@@ -1,0 +1,20 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=0.85in]{geometry}
+% --- Packages every case needs ---
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{subfiles}
+
+% --- Any helper macros you like ---
+\newcommand{\atanII}[2]{\operatorname{atan2}\!\left(#1,#2\right)} % safer atan2
+
+\input{case_macros.tex}
+\title{\CaseTitle}
+\input{report_style.tex}
+\begin{document}
+\maketitle
+\subfile{case_body.tex}
+\end{document}

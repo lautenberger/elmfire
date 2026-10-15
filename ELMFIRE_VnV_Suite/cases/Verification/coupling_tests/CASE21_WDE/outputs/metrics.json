@@ -1,0 +1,35 @@
+{
+  "case_id": "CASE21_WDE",
+  "case_title": "Case 21: Wind-driven elliptical spread",
+  "overall_status": "PASS",
+  "workflow_status": "COMPLETE",
+  "metric_count": 2,
+  "passing_metric_count": 2,
+  "variants": [
+    {
+      "label": "main",
+      "guide_case": "Windy",
+      "configuration": "elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "head ROS",
+          "target": 3.635,
+          "measured": 3.6443769931793213,
+          "percent_error": 0.2579640489496975,
+          "units": "m/min",
+          "status": "PASS"
+        },
+        {
+          "name": "L/W ratio",
+          "target": 1.24,
+          "measured": 1.2485918200051653,
+          "percent_error": 0.6928887100939791,
+          "units": "-",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "source": "ELMFIRE Guide verification section"
+}

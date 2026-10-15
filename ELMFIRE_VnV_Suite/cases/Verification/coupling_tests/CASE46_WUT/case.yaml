@@ -1,0 +1,105 @@
+case_id: "CASE46_WUT"
+case_title: "Case 46: Wildland-to-urban WU-E transition and isolated receivers"
+category: "Verification/coupling_tests"
+parameter_interpretation:
+  BLDG_AREA: "linear characteristic building dimension in metres"
+source_provenance:
+  repository: "elmfire-nick"
+  commit: "a2dfbcdf72209733c000e5d3431e44723e15efea"
+  checkout_state_at_design_review: "dirty outside the reviewed WU-E files"
+  reviewed_files_match_commit: true
+  reviewed_file_sha256:
+    build/source/elmfire_vars.f90: "5ad4a4fdd7e3faf98d839fb75af5b3c1178cadd335142ab960adec2462c7896c"
+    build/source/elmfire_init.f90: "06d2be089db961d1af387f4d1cfb60a6ab28f2daa50d7e4ada8bfda58cd87c0d"
+    build/source/elmfire_namelists.f90: "2fcd9e57a2bec5df964d96ccef0f658b703e0406abb19c13cb8080af066c78b4"
+    build/source/elmfire_spread_rate.f90: "eed515c2f44b5582c01b1573e41a7e24bf76f0a445870f27ba7d32d281e656a4"
+    build/source/elmfire_level_set.f90: "18c446fce24ac5fac8dd174e38e273bfdddecfa81c9371550b247055b6d833b3"
+  additional_pinned_blob_review:
+    build/source/elmfire_io.f90:
+      sha256: "33831af878791501cf8ad32ba28d5128bb4463f7a8fdef51ab20b907a5620732"
+      checkout_match_claimed: false
+      rationale: "Dump naming and ledger semantics were reviewed from the git-show blob at the pinned commit; the working checkout copy was modified outside the cited paths."
+  known_modified_paths_outside_reviewed_files:
+    - "build/source/elmfire.f90"
+    - "build/source/elmfire_io.f90"
+    - "build/source/elmfire_subs.f90"
+  untracked_entries_present_at_design_review: true
+  untracked_paths_at_design_review:
+    - ".vscode/"
+    - "ELMFIRE_VnV_Suite/"
+    - "Thomas_VAL/"
+    - "VERIFICATION_TROUBLESHOOT_DWI/"
+    - "notebooks/"
+    - "thomas_fire/"
+    - "verification/spotting-suite-legacy/"
+    - "verification/spotting-suite/"
+  reviewed_paths:
+    - "build/source/elmfire_vars.f90:11-15"
+    - "build/source/elmfire_vars.f90:112"
+    - "build/source/elmfire_init.f90:1252-1416"
+    - "build/source/elmfire_spread_rate.f90:13-141"
+    - "build/source/elmfire_spread_rate.f90:600-726"
+    - "build/source/elmfire_level_set.f90:2399-2540"
+    - "build/source/elmfire_level_set.f90:2549-2595"
+    - "build/source/elmfire_namelists.f90:676-710"
+    - "build/source/elmfire_io.f90:2451-2508"
+    - "build/source/elmfire_io.f90:2620-2628"
+    - "build/source/elmfire_io.f90:2693-2703"
+    - "build/source/elmfire_io.f90:2761-2764"
+
+technical_reference_provenance:
+  documents:
+    - path: "Thesis(PubLetterIncluded)_YirenQin_20250623.pdf"
+      sha256: "09ba61fb6b5f038b4d9613332f7a9b0b99626fc8afb0526eec44d43cb8a9aefa"
+      pdf_pages: [53, 64]
+      printed_pages: [31, 42]
+      equations: ["(2.42)-(2.43)", "(2.81)-(2.83)"]
+      use: "Fireline-intensity/residence-time scaling and vegetation heat-release context; not the selector or strict-threshold oracle."
+  oracle_boundary: "The intended W-to-U oracle is accumulated DFC+radiation heat divided by fixed FTP_CRIT. The strict FLIN shortcut is an optional source extension and cannot replace that primary oracle."
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  preflight: "outputs/source_selector_preflight.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/transition_observations.pdf"
+
+variants:
+  required_count: 7
+  source_fireline_intensity_kw_m: [0.0, 999.0, 1000.0, 1001.0]
+  receiver_topology: [contiguous_interface, isolated_pixel]
+  source_receiver_distance_cells: [1.0, 2.0]
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      template: true
+      invariants:
+        INPUTS.SURFACE_SPREAD_MODEL: "ROTHERMEL"
+        INPUTS.DEAD_MC_IN_PERCENT: false
+        INPUTS.LIVE_MC_IN_PERCENT: false
+        INPUTS.LH_MOISTURE_CONTENT: 0.60
+        INPUTS.LW_MOISTURE_CONTENT: 0.90
+        OUTPUTS.DUMP_FLIN: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        OUTPUTS.DUMP_PHI: true
+        OUTPUTS.DUMP_EVERY_STEP: true
+        TIME_CONTROL.SIMULATION_DT: 1.0
+        TIME_CONTROL.SIMULATION_DTMAX: 1.0
+        TIME_CONTROL.SIMULATION_TSTOP: 60.0
+        SIMULATOR.FEEDBACK_LEVEL: 1
+        SIMULATOR.NUM_IGNITIONS: 1
+        SIMULATOR.X_IGN(1): 0.0
+        SIMULATOR.Y_IGN(1): 0.0
+        SIMULATOR.T_IGN(1): 61.0
+        SPOTTING.ENABLE_SPOTTING: false
+        WUI.USE_BLDG_SPREAD_MODEL: true
+        WUI.BLDG_SPREAD_MODEL_TYPE: 2
+        WUI.INTERFACE_MODEL_TYPE: 2
+        WUI.CRITICL_HF_WUI: 0.0
