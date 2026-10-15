@@ -1544,10 +1544,9 @@ DO WHILE (T .le. totalDuration)
                ELSE
                   SUPP(IT_EA)%SDIBAR = 0
                ENDIF
-               ! IF ( ABS(SUPP(IT_EA)%DADT) .LT. 1E-6 ) THEN
-               !    SUPP(IT_EA)%DC_PER_DAY = 0.
-               ! ELSE
-               IF (USE_SDI_LOG_FUNCTION) THEN
+               IF ( ABS(SUPP(IT_EA)%DADT) .LT. 1E-6 ) THEN
+                  SUPP(IT_EA)%DC_PER_DAY = 0.
+               ELSE IF (USE_SDI_LOG_FUNCTION) THEN
                   SUPP(IT_EA)%DC_PER_DAY = 0.01 * DIURNAL_ADJUSTMENT_FACTOR * MAX_CONTAINMENT_PER_DAY * (1. - LOG10(SUPP(IT_EA)%DADT) / LOG10(AREA_NO_CONTAINMENT_CHANGE) )
                ELSE
                   SUPP(IT_EA)%DC_PER_DAY = 0.01 * DIURNAL_ADJUSTMENT_FACTOR * MAX_CONTAINMENT_PER_DAY * (1. - SUPP(IT_EA)%DADT        / AREA_NO_CONTAINMENT_CHANGE       )
