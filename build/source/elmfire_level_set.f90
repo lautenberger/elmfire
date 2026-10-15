@@ -128,7 +128,7 @@ DO WHILE (T .le. totalDuration)
    !    WRITE(LOG_MSG,'(A,I0,A,F12.1)') '[',ICASE,'] IN LEVEL SET LOOP, T IS ',T
    !    WRITE(*,'(A)') TRIM(LOG_MSG)
    ! endif
-   DAY_OF_SIM = ceiling(((12 + mod(HOUR_OF_YEAR, 24) + IWX_BAND + floor(T/3600) - 1)/24.0))
+   DAY_OF_SIM = ceiling(((12 + mod(HOUR_OF_YEAR, 24) + IWX_BAND + floor((T- (IWX_BAND - 1) * DT_METEOROLOGY)/3600) - 1)/24.0))
    IF (T > BAND_H * DT_METEOROLOGY .and. WS%NBANDS .gt. 1) THEN ! LOAD NEXT WEATHER SLICE (unless weather is constant)
       if (FEEDBACK_LEVEL .ge. 3) then
          WRITE(LOG_MSG,'(A,I0,A,I0,A,I0,A)') '[',ICASE,'] UPDATING WEATHER SLICE FROM [',BAND_L,', ',BAND_H,']'
@@ -416,6 +416,15 @@ DO WHILE (T .le. totalDuration)
       LIST_WUI_BURNING            = NEW_DLL(); LIST_WUI_BURNING%NUM_NODES=0
       LIST_EMBER_DEPOSITED        = NEW_DLL(); LIST_EMBER_DEPOSITED%NUM_NODES=0 ! linked list for ember deposited cells
       NUM_EVERTAGGED              = 0
+
+      ! Reset for each iteration (caused a bug when running with MPI)
+      IF (ALLOCATED(EMBER_TOA)) EMBER_TOA(:,:) = -1.
+      IF (LIST_EMBER_TRACKER%NUM_NODES .GT. 0) CALL TIDY(LIST_EMBER_TRACKER)
+      LIST_EMBER_TRACKER          = NEW_DLL(); LIST_EMBER_TRACKER%NUM_NODES=0
+      IF (ENABLE_SPOTTING) THEN
+         IF (DUMP_EMBER_FLUX_TRANSIENT) EMBER_FLUX_TRANSIENT%R4(:,:,1) = 0.
+         IF (DUMP_EMBER_FLUX .OR. (.NOT. USE_SUPERSEDED_SPOTTING .AND. trim(IGNITION_MODEL) .NE. 'DIRECT')) EMBER_FLUX%R4(:,:,1) = 0.
+      ENDIF
 
       IA_HAS_OCCURRED             = .FALSE.
       ALREADY_IGNITED(:)          = .FALSE.
@@ -816,7 +825,7 @@ DO WHILE (T .le. totalDuration)
                PHIP    (IX_IGN,IY_IGN) = -1.0
                CYCLE
             endif
-            IF (T .GE. T_IGN(I)) THEN
+            IF (T .GE. T_IGN(I) + (IWX_BAND - 1) * DT_METEOROLOGY) THEN
                ALREADY_IGNITED(I) = .TRUE.
                IX_IGN = ICOL_FROM_X(X_IGN(I),ANALYSIS_XLLCORNER,ANALYSIS_CELLSIZE)
                IY_IGN = IROW_FROM_Y(Y_IGN(I),ANALYSIS_YLLCORNER,ANALYSIS_CELLSIZE)
@@ -1373,7 +1382,7 @@ DO WHILE (T .le. totalDuration)
       CALL ACCUMULATE_CPU_USAGE(47, IT1, IT2)
 
    ! Initial attack model:
-      IF (ENABLE_INITIAL_ATTACK .AND. T .GE. INITIAL_ATTACK_TIME .AND. (.NOT. IA_HAS_OCCURRED) ) THEN
+      IF (ENABLE_INITIAL_ATTACK .AND. T - (IWX_BAND - 1) * DT_METEOROLOGY .GE. INITIAL_ATTACK_TIME .AND. (.NOT. IA_HAS_OCCURRED) ) THEN
          IA_HAS_OCCURRED = .TRUE.
          HECTARES = 0.
          FLIN_MAX = 0.
@@ -1400,7 +1409,8 @@ DO WHILE (T .le. totalDuration)
             rank_finished = 1
             DT = DT_METEOROLOGY
             STATS_FINAL_CONTAINMENT_FRAC(ICASE) = 1.0
-            STATS_SIMULATION_TSTOP_HOURS(ICASE) = INITIAL_ATTACK_TIME / 3600.0
+            SIMULATION_TSTOP_HOURS = (T - (IWX_BAND - 1) * DT_METEOROLOGY) / 3600.
+            STATS_SIMULATION_TSTOP_HOURS(ICASE) = SIMULATION_TSTOP_HOURS
          ENDIF
       ENDIF
       
@@ -1467,7 +1477,7 @@ DO WHILE (T .le. totalDuration)
             IF (T .GT. TSTOP .AND. STATS_SIMULATION_TSTOP_HOURS(ICASE) .GT. 0) THEN
                WRITE(LUBAT+IRANK_WORLD, 777) ICASE, TIME_AT_BURNED_ACRES(I), STATS_SIMULATION_TSTOP_HOURS(ICASE), RUNTIME
             ELSE
-               WRITE(LUBAT+IRANK_WORLD, 777) ICASE, TIME_AT_BURNED_ACRES(I), T/3600.0, RUNTIME
+               WRITE(LUBAT+IRANK_WORLD, 777) ICASE, TIME_AT_BURNED_ACRES(I), (T - (IWX_BAND - 1) * DT_METEOROLOGY)/3600.0, RUNTIME
             ENDIF
          ENDDO
       ENDIF
@@ -1516,7 +1526,7 @@ DO WHILE (T .le. totalDuration)
                IF (SUPP(IT_EA)%TARGET_CONTAINMENT .GT. 1. ) SUPP(IT_EA)%TARGET_CONTAINMENT = 1.
                IF (SUPP(IT_EA)%TARGET_CONTAINMENT .LT. 0. ) SUPP(IT_EA)%TARGET_CONTAINMENT = 0.
 
-               print *, T, ACRES, SUPP(IT_EA)%TARGET_CONTAINMENT, SUPP(IT_EA)%DC_PER_DAY, SUPP(IT_EA)%DADT
+               !print *, T, ACRES, SUPP(IT_EA)%TARGET_CONTAINMENT, SUPP(IT_EA)%DC_PER_DAY, SUPP(IT_EA)%DADT
                
                CALL CENTROID(IT_EA)
                CALL CONTAINMENT(IT_EA,T)
@@ -1743,8 +1753,10 @@ DO WHILE (T .le. totalDuration)
          DT = DT_METEOROLOGY
       ENDIF
 
-      ! check if propagation has stalled for an early exit
-      if ( ALL(ALREADY_IGNITED(1:MIN(NUM_IGNITIONS,100))) .AND. &
+      ! check if propagation has stalled for an early exit (only after one weather interval of
+      ! simulated time, since early small-DT steps change PHI by less than the threshold)
+      if ( T - (SIMULATION_TSTART + (IWX_BAND - 1) * DT_METEOROLOGY) .GT. DT_METEOROLOGY .AND. &
+           ALL(ALREADY_IGNITED(1:MIN(NUM_IGNITIONS,100))) .AND. &
            ( (.NOT. ENABLE_SPOTTING) .OR. USE_SUPERSEDED_SPOTTING .OR. &
              (TRIM(ACCUMULATION_MODEL) .EQ. 'EULERIAN'   .AND. LIST_EMBER_TRACKER%NUM_NODES .LT. 1) .OR. &
              (TRIM(ACCUMULATION_MODEL) .EQ. 'LAGRANGIAN' .AND. NUM_TRACKED_EMBERS .LT. 1) ) ) then
@@ -1794,6 +1806,12 @@ DO WHILE (T .le. totalDuration)
    ! endif
 
    T = T + DT
+
+   ! Rank-0 progress line, overwritten in place each timestep (NPROC=1 has its own status line above)
+   IF (NPROC .GT. 1 .AND. IRANK_WORLD .EQ. 0) THEN
+      WRITE(*,'(A,A,I0,A,F12.1,A,F12.1)', advance='no') char(13), '[',ICASE,'] Rank 0 T: ', T, ' of ', REAL(totalDuration)
+      call flush(6)
+   ENDIF
 
    IF ((T .ge. TSTOP) .and. START_CALCS) THEN ! END SIM
       if (FEEDBACK_LEVEL .ge. 3) then
@@ -2906,6 +2924,8 @@ DO
          IF (DUMP_EMBER_IGNITION) EMBER_IGNITION_MAP%I2(IX,IY,1) = 1
          CALL DELETE_NODE(LIST_EMBER_DEPOSITED, C) ! Remove ignited cells
       ENDIF
+   ELSE
+      CALL DELETE_NODE(LIST_EMBER_DEPOSITED, C) ! Cell already burning/burned: stop tracking its firebrands
    ENDIF
    C => NEXT_C
 ENDDO
@@ -3003,6 +3023,8 @@ IF (TRIM(IGNITION_MODEL) .NE. 'DIRECT') THEN
             IF (DUMP_EMBER_IGNITION) EMBER_IGNITION_MAP%I2(IX,IY,1) = 1
             CALL DELETE_NODE(LIST_EMBER_DEPOSITED, C) ! Remove ignited cells
          ENDIF
+      ELSE
+         CALL DELETE_NODE(LIST_EMBER_DEPOSITED, C) ! Cell already burning/burned: stop tracking its firebrands
       ENDIF
       C => NEXT_C
    ENDDO
