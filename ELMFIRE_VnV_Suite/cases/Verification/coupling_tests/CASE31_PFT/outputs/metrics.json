@@ -1,0 +1,62 @@
+{
+  "case_id": "CASE31_PFT",
+  "overall_status": "PASS",
+  "verification_passed": true,
+  "required_outputs_complete": true,
+  "variants": [
+    "diagonal",
+    "fuel_jump",
+    "fuel_jump_wind",
+    "continuous_break",
+    "gapped_break"
+  ],
+  "metrics": [
+    {
+      "name": "diagonal-front cross-front variation",
+      "expected": "<= 0.03",
+      "calculated": 8.351657393096175e-05,
+      "units": "",
+      "tolerance": "3% coefficient of variation",
+      "status": "PASS"
+    },
+    {
+      "name": "fuel-jump front planarity",
+      "expected": "<= 0.03",
+      "calculated": 7.718431688701635e-05,
+      "units": "",
+      "tolerance": "3% coefficient of variation",
+      "status": "PASS"
+    },
+    {
+      "name": "fuel-transition arrival-time increment",
+      "expected": "> 0",
+      "calculated": 9920.0,
+      "units": "s",
+      "tolerance": "positive downstream travel time",
+      "status": "PASS"
+    },
+    {
+      "name": "eastward-wind arrival-time ratio",
+      "expected": "<= 0.95",
+      "calculated": 0.7560279187817259,
+      "units": "",
+      "tolerance": "at least 5% earlier than no-wind",
+      "status": "PASS"
+    },
+    {
+      "name": "gapped-break downstream burned-fraction gain",
+      "expected": ">= 0.10",
+      "calculated": 0.6571428571428571,
+      "units": "",
+      "tolerance": "10 percentage points",
+      "status": "PASS"
+    }
+  ],
+  "source_files": [
+    "variants/diagonal/outputs/time_of_arrival_0000001_0043200.tif",
+    "variants/fuel_jump/outputs/time_of_arrival_0000001_0043200.tif",
+    "variants/fuel_jump_wind/outputs/time_of_arrival_0000001_0043200.tif",
+    "variants/continuous_break/outputs/time_of_arrival_0000001_0043200.tif",
+    "variants/gapped_break/outputs/time_of_arrival_0000001_0043200.tif"
+  ]
+}

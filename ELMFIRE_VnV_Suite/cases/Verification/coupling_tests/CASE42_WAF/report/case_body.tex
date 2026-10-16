@@ -1,0 +1,84 @@
+\section{Verification purpose}
+
+This case verifies the upstream coupling from 20-ft wind, canopy cover, canopy height, and fuel-bed depth through ELMFIRE's wind-adjustment factor (WAF) into Rothermel rate of spread (ROS).  It distinguishes an input-height conversion error from a defect in the Rothermel wind factor.  It can expose percent/fraction canopy errors, height-times-ten errors, sheltered/unsheltered branch errors, or missing WAF application.  The question is whether all canopy simulation conditions reproduce the independently predicted final ROS within \RosTolerance{} while reaction intensity remains within \IrTolerance{}.
+
+\section{Mathematical formulation and numerical implementation}
+ELMFIRE calculates $U_{mf}=WAF\,U_{20}$.  Without canopy it uses a logarithmic fuel-bed-height expression.  With canopy it evaluates a sheltered factor from canopy cover and height, limits it by the unsheltered factor, and blends the two when $0.3333CC<0.05$.  The resulting midflame speed enters $\phi_w=C U_{mf}^{B}(\beta/\beta_{op})^{-E}$.  The case reference calculation restates these equations directly and does not read ELMFIRE output to estimate WAF.
+
+\section{Derivation of expected behavior}
+For fixed \WindTwenty{} and fuel model 2, reaction intensity is invariant because canopy affects wind adjustment but not the configured surface fuel or moisture.  ROS differences are completely predicted by the independently calculated WAF and Rothermel wind factor.  The zero-canopy simulation condition selects the unsheltered formula; canopy combinations exercise transition and sheltered branches.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The unsheltered adjustment for fuel-bed depth \(d\) (ft) is
+\[
+ WAF_u=\frac{1.36}{\ln[(20+0.36d)/(0.13d)]}
+       \left[\ln(1.36/0.13)-1\right].
+\]
+For canopy cover \(C\), height \(H\) (ft), and \(s=0.3333C\), the
+sheltered value is
+\[
+ WAF_s=\frac{1}{\ln[(20+0.36H)/(0.13H)]}
+       \frac{0.555}{\sqrt{sH}}.
+\]
+The generated blend uses \(WAF=\min(WAF_s,WAF_u)\) when \(s\geq0.05\);
+otherwise \(f_u=1-20s\) and
+\(WAF=f_uWAF_u+(1-f_u)\min(WAF_s,WAF_u)\).
+For the zero-canopy Fuel Model~2 control, \(WAF_u=0.362674\), so the
+\(10~\mathrm{mph}\) 20-ft wind gives \(U_{mf}=3.626740~\mathrm{mph}\),
+\(\phi_w=8.146356\), and
+\(R=0.8237955(1+8.146356)=7.534727~\mathrm{m\,min^{-1}}\).
+For \(C=0.10\), \(H=15/0.3048=49.2126~\mathrm{ft}\),
+\(s=0.03333\), \(WAF_s=0.244254\), and \(f_u=0.3334\); hence
+\(WAF=0.3334(0.362674)+0.6666(0.244254)=0.283735\),
+\(U_{mf}=2.837354~\mathrm{mph}\), \(\phi_w=5.197957\), and
+\(R=0.8237955(1+5.197957)=5.105849~\mathrm{m\,min^{-1}}\).
+All simulation conditions retain \(I_R=675.184~\mathrm{kW\,m^{-2}}\).
+Simulation condition relative errors use
+\(|q_{\max}-q_{\mathrm{ref}}|/\max(|q_{\mathrm{ref}}|,10^{-8})\).
+From \(t=a+bx\), \(R_{\mathrm{TOA}}=60/b\) and
+\(R^2=1-SSE/SST\).  The aggregate substitutions are
+\(\max e_R\leq0.03\), \(\max e_I\leq0.01\),
+\(\max e_{\mathrm{TOA}}\leq0.06\), and \(\min R^2\geq0.995\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+Maximum direct-ROS relative error is 0.03, reaction-intensity error is 0.01, and time of arrival (TOA)-derived ROS error is 0.06; TOA regression requires $R^2\ge0.995$.  Constant reaction intensity is retained as a control that detects unintended crown or canopy-fuel coupling.  All ten simulation conditions are required and missing fields give NOT EVALUABLE.
+
+\section{Simulation configuration and predicted outcome}
+
+The finite-strip PHI raster is a signed-distance field clipped to ELMFIRE's supported $[-1,1]$ interval, preserving both an ignited interior and a resolved front gradient. For every simulation condition, the prescribed and maximum timesteps use a conservative whole-second value no greater than the 5 s nominal step or the configured 0.2 Courant--Friedrichs--Lewy (CFL) limit. The stop time is rounded upward to an exact integer multiple of that step. This avoids both discrete-front resonance and a shortened final step that can trigger ELMFIRE's stalled-front timestamp defect. A zero-ROS simulation condition retains a 5 s step and is evaluated from direct fields without requiring TOA propagation. The evaluator requires uniquely named rasters tied to one final dump record and accepts a stalled-final record only when subtracting the configured meteorology interval reconstructs the requested stop time within one configured timestep. A TOA-required simulation condition must reach the prescribed stop time in its generated namelist; a direct-only simulation condition may terminate early because lack of propagation is part of the state being tested.
+Canopy cover is 0, 10, 30, or 60\%; canopy heights are 5, 15, and \SI{30}{m} where applicable.  The raster stores cover in percent and height times ten, matching explicit namelist flags.  Fuel model 2, dead moisture 5/7/9\%, live moisture 90\%, and zero slope are fixed.  A finite west-to-east ignition strip has a planar east face in the interior analysis corridor and ends inside the lateral boundaries.  Crown fire is disabled even though canopy inputs are present.  ROS should vary only through WAF while $I_R$ remains fixed.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.24\textwidth}p{0.12\textwidth}p{0.32\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 1400 m square; 10 & m/cell & Planar interior propagation \\
+Fuel / 20-ft wind & FM2 / \WindTwenty & code / mph & Fixed surface forcing \\
+Canopy cover & 0, 10, 30, 60 & percent & WAF branch and blend sweep \\
+Canopy height & 0, 5, 15, 30 & m & Sheltered-profile sweep \\
+Timing & generated whole-second step and exact-multiple stop & s & Terminal-evidence compatibility \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+The available results cover \CompletedVariantCount{} of \RequiredVariantCount{} simulation conditions and reports \textbf{\VerificationStatus}.
+\IfFileExists{../figures/sweep_response.pdf}{\begin{figure}[H]\centering\includegraphics[width=0.95\textwidth]{sweep_response.pdf}\caption{Expected and simulated canopy/WAF response at fixed 20-ft wind.}\end{figure}}{}
+
+\section{Calculated metrics and verification decision}
+\begin{center}\begin{tabular}{@{}llll@{}}\toprule Metric & Limit & Calculated & Status\\\midrule\MetricRows\bottomrule\end{tabular}\end{center}
+The authoritative decision is \textbf{\VerificationStatus}.
+
+\section{Technical interpretation}
+A uniform wind-scale error suggests incorrect 20-ft units.  Errors confined to canopy simulation conditions implicate sheltered WAF or canopy scaling.  Varying reaction intensity indicates an unintended canopy or crown-fire pathway.  Correct direct ROS but biased TOA implicates level-set propagation.
+
+\section{Scope and limitations}
+This is an implementation-specific coupling test, not a validation of canopy wind profiles.  It uses one fuel, one 20-ft wind, uniform canopy fields, and the current ELMFIRE WAF algorithm.  A deliberate algorithm change requires reference calculation and report review.

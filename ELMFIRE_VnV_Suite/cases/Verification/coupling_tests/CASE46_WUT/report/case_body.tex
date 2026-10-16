@@ -1,0 +1,241 @@
+\section{Verification purpose}
+
+This case verifies the discrete
+wildland-to-urban (WTU) transition of Wildland--Urban ELMFIRE (WU--E) at a contiguous interface and at
+an isolated urban receiver. Its primary reference calculation compares accumulated heat with the material
+fire-thermal property (FTP), requiring a finite exposure time before ignition. The seven-run matrix also characterizes the optional
+fireline-intensity shortcut and is intended to expose reversed fuel
+eligibility, excessive reach, topology dependence, a missing heat path, or an
+incorrect arrival timestamp. The scientific verdict is separate from analysis procedure state:
+before execution the former is NOT EVALUABLE and the latter is NOT RUN.
+
+The ELMFIRE formulation under examination corresponds to \SourceCommit.
+Five reviewed WU--E components matched that revision exactly. Output timing
+was reviewed separately from the output procedure at the stated revision,
+with its SHA-256 identity retained in the case specification. A separately
+modified copy of that procedure was not asserted to match the revision.
+These design-review statements do not by themselves establish the identity
+of a later simulation.
+
+The optional shortcut is NOT EVALUABLE in the compatibility review. The
+configuration selects interface model 2, but the active transition condition
+tests whether a separate integer control equals 2. No deterministic assignment
+of that control was found. The real-valued critical heat-flux threshold is a
+different quantity and cannot establish the integer control's value. The
+primary heat/FTP decision does not depend on this selection. The optional
+shortcut comparisons become PASS or FAIL only after a review matched to the
+model revision establishes an enabled selection condition and documents where
+the required integer value 2 is assigned deterministically.
+
+\ReportOverview
+
+\section{Mathematical formulation and numerical implementation}
+
+The intended WTU path deposits direct flame contact (DFC) and radiation from a burning wildland cell
+onto an urban receiver, accumulates
+\[
+ Q_j(t+\Delta t)=Q_j(t)+[q''_{DFC,j}(t)+q''_{rad,j}(t)]\Delta t,
+\]
+and ignites after the fixed material threshold $F_{TP,crit}$ is met. Thus a
+sufficiently heated target must have a finite delay
+$\tau_{WTU}=t_{ign,target}-t_{ign,source}>0$. The same heat/FTP law then
+produces urban rate of spread (ROS); no 30,000-kJ branch is part of this reference calculation.
+
+As an optional extension, for source \((i_s,j_s)\) and target \((i_t,j_t)\),
+the reviewed fireline-intensity transition condition is
+\[
+ r=\sqrt{(i_t-i_s)^2+(j_t-j_s)^2},\qquad
+ \mathcal I=(f_s\ne91)\land(f_t=91)\land(r\le1)
+             \land(\FLIN_s>1000).
+\]
+The comparison is strict.  A true branch sets the target's WTU flag and skips
+the ordinary DFC and radiation calculation for that target.  In both Runge--Kutta
+stages, the level-set update forces its
+\(\phi=-1\).  The newly burned-cell loop then records
+\(\mathrm{TOA}=T\).  Initialization assigns every input \(\phi\le0\) source
+cell time of arrival (TOA) zero.
+
+The fire behavior fuel model (FBFM) 01 source has five-percent dead one-hour moisture, zero wind, and zero
+slope.  The input-design calculation uses
+\[
+ t_r=384/\sigma,\qquad \FLIN=t_r I_R R(0.3048),
+\]
+then searches adjacent IEEE-754 binary32 adjustment values so the reviewed
+default-single-precision arithmetic operation order brackets 999, 1000, and 1001
+\si{\kilo\watt\per\metre}.  This is only an input reference calculation; acceptance uses the
+ELMFIRE fireline intensity raster.
+
+The peer-reviewed WU--E publications describe interface heat transfer and
+heat/FTP spread \cite{PurnomoPCI2024,PurnomoIJWF2024}. The supplied thesis supports
+this scaling on PDF page 53 (printed page 31), equations (2.42)--(2.43), and
+gives vegetation heat-release context on PDF page 64 (printed page 42),
+equations (2.81)--(2.83). The intended equations are documented directly here.
+Neither published source supplies the special 1000 \si{\kilo\watt\per\metre} branch,
+selector linkage, forced \(\phi\), or dump-name reference calculation; those come exclusively
+from the pinned source.
+
+\section{Derivation of expected behavior}
+
+For the primary reference calculation, positive DFC-plus-radiation must be observed at the
+sufficient-heat adjacent and isolated receivers and ignition must occur after
+a positive exposure delay. The initial-wildland-source heat-release rate (HRR) suppression is diagnostic, but later
+propagation within the vegetative patch may create new heat-emitting sources.
+The complete receiver history, not the initial-source state alone, determines
+this observation.
+
+For the optional shortcut, the contiguous simulation conditions request source FLIN of 999, 1000, and 1001
+\si{\kilo\watt\per\metre} at an immediately adjacent FBFM91 band.  Only 1001
+may transition.  Isolated targets test 999 and 1001 at one-cell distance and
+1001 at two-cell distance; only the one-cell 1001 target may transition.  A
+zero-adjustment target is the spontaneous-ignition control.  Thus the exact
+boolean reference calculation is
+\[
+ (0,0,1)_{\rm contiguous},\qquad(0,1,0)_{\rm isolated},\qquad0_{\rm zero}.
+\]
+
+Both eligible transitions occur during the first update at \(T=0\): the heat
+loop sets the WTU flag, both RK stages force the target negative, and the
+newly-burned loop assigns TOA to the current solver time.  Since initial source
+TOA is also zero, the exact expectation is
+\[
+ t_u=0\ \mathrm{s},\qquad t_s=0\ \mathrm{s},\qquad
+ \tau_{WTU}=t_u-t_s=0\ \mathrm{s}.
+\]
+Every ineligible target must retain terminal \(\phi>0\) and nodata TOA.  The
+evaluator requires \(\phi\le0\) and finite TOA to agree; either observable alone
+cannot create an ignition result.
+
+\section{Verification metrics and acceptance criteria}
+
+All seven simulation conditions require confirmed successful completion with
+matching identities for the exact simulation settings, independently calculated
+expected responses, complete set of prescribed conditions, and review of
+supported model selections. The ELMFIRE program, simulation record, and all
+results must also match the recorded identities. All seven conditions must use
+the same identified model program. Stale or altered evidence is rejected.
+
+The dump ledger is exact, not merely terminal: 61 rows have indices 1 through
+61, times 0 through 60 s, and only row 61 is final.  This follows the pinned
+loop, which dumps at current \(T=0,\ldots,59\) before incrementing time and then
+makes a final dump after reaching 60 s. Final fireline-intensity and arrival-time
+fields are identified by the rounded output time, 60 s. The level-set sequence
+is indexed by output number, so its terminal field is output 61, not output 60.
+All 61 level-set fields are required. The terminal three rasters must be one-band, aligned
+25-by-25 EPSG:32610 grids with the exact missing-value definition and finite non-nodata
+values. The simulation record must not report a propagation stall.
+
+\begin{center}
+
+\begin{longtable}{@{}P{0.25\textwidth}P{0.35\textwidth}P{0.30\textwidth}@{}}\toprule
+Metric & Observable & Acceptance rule\\\midrule
+Evidence completeness & confirmed model and input identities, 61 output times, and terminal fields & all exact for 7/7 simulation conditions\\
+Source realization & source-mask FLIN and TOA & max FLIN error \(\le0.5\) \si{\kilo\watt\per\metre}; every source TOA zero\\
+State consistency & designated-target terminal PHI and TOA & \(\phi\le0\) iff TOA finite\\
+Intended WTU heat & target DFC+radiation histories & positive for sufficient-heat receivers\\
+Intended ignition delay & target TOA minus source TOA & finite and greater than zero\\
+Contiguous shortcut matrix & below/equal/above target state & false, false, true when selector is valid\\
+Isolated matrix & one-cell insufficient/sufficient and two-cell sufficient & false, true, false\\
+First update & eligible target TOA and target--source delay & both exactly zero within \(10^{-8}\) s\\
+Zero control & zero-adjustment target PHI and TOA & \(\phi>0\), TOA nodata\\
+\bottomrule\end{longtable}
+\end{center}
+
+The two intended heat/FTP metrics are verdict-bearing whenever complete run
+evidence exists. Shortcut-attribution metrics remain NOT EVALUABLE unless the
+selector preflight passes; they do not control the primary case decision.
+
+\section{Simulation configuration and predicted outcome}
+
+\begin{center}
+
+\begin{longtable}{@{}P{0.27\textwidth}P{0.31\textwidth}P{0.30\textwidth}@{}}\toprule
+Parameter & Value & Rationale\\\midrule
+Grid & \(25\times25\), 10 m, EPSG:32610 & at least 10 cells per dimension; edge-buffered targets\\
+Fuel topology & FBFM01 source, FBFM91 targets, FBFM93 background & explicit vegetative/urban eligibility and isolation\\
+Source requests & 0, 999, 1000, 1001 \si{\kilo\watt\per\metre} & zero control and strict threshold bracket\\
+Receiver distance & 1 or 2 cells & equality boundary and reach control\\
+Time & start 0, fixed step/max 1, stop 60 s & exact first-update and terminal ledger reference calculation\\
+Output & every-step PHI; final FLIN and TOA & direct state, intensity, and time observables\\
+Dormant ignition & one point at 61 s & keeps the prior-ignition state false through the run, preventing the vacuous zero-ignition stall test without changing 0--60 s physics\\
+Other mechanisms & spotting, crown, randomness off & removes alternate ignition mechanisms\\
+\bottomrule\end{longtable}
+\end{center}
+
+Figure~\ref{fig:wut-input} is generated directly from current inputs and is not
+a simulation result.
+\begin{figure}[p]
+\centering
+\IfFileExists{../figures/input_configuration.pdf}{\includegraphics[width=\textwidth]{input_configuration.pdf}}{\fbox{MISSING prepared-input figure}}
+\caption{Prepared contiguous and isolated fuel topologies and binary32 source-FLIN design. Green is FBFM01, red is FBFM91, gray is FBFM93, and the black contour marks the seven-cell initial source.}
+\label{fig:wut-input}
+\end{figure}
+
+\section{Actual simulation results}
+
+Analysis procedure status is \textbf{\WorkflowStatus}; \CompletedVariants{} of
+\RequiredVariants{} simulation conditions have complete current evidence.  Selector status
+is \textbf{\SelectorStatus}.  The generated reason is:
+\begin{quote}\VerificationReason\end{quote}
+The executed version is \texttt{\ExecutableVersion}. The model-program and
+reference-calculation identities are retained with the calculated metrics.
+
+The primary comparison uses independently calculated expected responses,
+input-matched simulation results, and the review of supported model settings.
+Each simulation must have evidence of successful completion. The terminal
+fireline-intensity and arrival-time fields correspond to 60 s, while the
+terminal level-set field is the 61st output. Their identities and output times
+are retained with the calculated metrics so the selection remains traceable.
+
+\IfFileExists{../figures/transition_observations.pdf}{%
+\begin{figure}[p]\centering
+\includegraphics[width=\textwidth]{transition_observations.pdf}
+\caption{Current black-box source FLIN, terminal target PHI, and target TOA.  C denotes contiguous targets and I isolated targets. Missing TOA means no arrival. Only shortcut attribution depends on the selector preflight; the primary checks remain evaluable.}
+\end{figure}}{\begin{center}\fbox{No current result figure: complete receipts are absent.}\end{center}}
+
+\section{Calculated metrics and verification decision}
+
+\input{readable_results.tex}
+
+The authoritative scientific status is \textbf{\VerificationStatus}.  A
+prepared but unexecuted case is NOT EVALUABLE / NOT RUN.  Complete evidence
+under the selector defect can still evaluate the primary heat/FTP capability;
+only shortcut-specific rows remain NOT EVALUABLE.
+
+\section{Technical interpretation}
+
+The current complete run fails the source-intensity setup check. The input
+reference calculation specifies head-fire FLIN, whereas the terminal raster exports
+surface-plus-canopy intensity from the initially burned-node list. That
+export is not the same observation as the head-fire intensity assigned to the
+WUI source list. A reliable threshold comparison requires a source diagnostic
+that exposes the intensity actually consumed by the transition branch.
+
+The receiver heat and positive-delay checks can still pass. Although the
+initial wildland cells have suppressed transient HRR, the surrounding patch
+can spread and create later heat-emitting cells. Positive receiver heat does
+not therefore contradict initial-source suppression. Nor does a positive
+arrival delay alone establish the complete intended accumulated-heat/FTP law.
+
+The optional shortcut has a separate selector defect: the exposed namelist
+value does not assign the integer tested by the branch. Its attribution rows
+remain NOT EVALUABLE. The primary heat, delay, state, source-setup, and control
+rows retain their own decisions; they are not all demoted because the optional
+selector is unavailable.
+
+\section{Scope and limitations}
+
+This case covers one wildland fuel/moisture state, one cell size, a 60-s window,
+contiguous and isolated targets, the strict intensity bracket, distance
+boundary, state/timing update, and zero control.  It does not validate the
+physical choice of 1000 \si{\kilo\watt\per\metre}, urban-to-wildland spread,
+community propagation or convergence. A common model-program identity
+establishes consistency across accepted outputs but does not establish that
+the program was compiled from \SourceCommit; that source revision identifies
+the reviewed formulation. A model correction requires a newly reviewed,
+content-bound PASS preflight before this unchanged strict matrix can yield a
+shortcut-specific PASS or FAIL.
+
+\begin{thebibliography}{9}
+\bibitem{PurnomoPCI2024} D. M. J. Purnomo et al., ``Reconstructing modes of destruction in wildland--urban interface fires using a semi-physical level-set model,'' \emph{Proceedings of the Combustion Institute}, 40 (2024), 105755. \href{https://doi.org/10.1016/j.proci.2024.105755}{doi:10.1016/j.proci.2024.105755}.
+\bibitem{PurnomoIJWF2024} D. M. J. Purnomo et al., ``Integrating an urban fire model into an operational wildland fire model to simulate one dimensional wildland--urban interface fires: a parametric study,'' \emph{International Journal of Wildland Fire}, 33 (2024), WF24102. \href{https://doi.org/10.1071/WF24102}{doi:10.1071/WF24102}.
+\end{thebibliography}

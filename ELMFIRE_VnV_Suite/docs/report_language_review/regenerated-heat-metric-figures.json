@@ -1,0 +1,14 @@
+[
+  {
+    "case": "CASE45_HRS",
+    "figure": "cases/Verification/coupling_tests/CASE45_HRS/figures/response_summary.pdf",
+    "plotted_data_and_limits_identical": true,
+    "metrics_semantically_identical": true
+  },
+  {
+    "case": "CASE45_HRS",
+    "figure": "cases/Verification/coupling_tests/CASE45_HRS/figures/heat_stimulus.pdf",
+    "plotted_data_and_limits_identical": true,
+    "metrics_semantically_identical": true
+  }
+]

@@ -1,0 +1,41 @@
+{
+  "case_number": "09",
+  "purpose_abbreviation": "MMD",
+  "id": "CASE09_MMD",
+  "chapter": "5",
+  "title": "Mixed-Mode Ignition-Delay Effects",
+  "summary": "Paired surface-dominated variant/mixed-mode variant comparison of surface-dominated and mixed-mode wildland fire spread.",
+  "dx_m": 10.0,
+  "physical_length_m": 300.0,
+  "physical_width_m": 100.0,
+  "buffer_cells": 2,
+  "wind_speed_mps": 6.71,
+  "wind_speed_mph": 15.0,
+  "surface_ros_reference_mps": 0.577,
+  "maximum_spotting_distance_m": 150.0,
+  "mu_downwind": 2.18,
+  "sigma_downwind": 1.23,
+  "variants": [
+    {
+      "name": "surface_dominated",
+      "variant_label": "surface-dominated variant",
+      "ignition_model": "PHYSICAL",
+      "local_ignition_time_s": 42.0,
+      "cell_ignition_delay_s": 300.0,
+      "tstop_s": 450.0,
+      "expected_regime": "surface-dominated"
+    },
+    {
+      "name": "mixed_mode",
+      "variant_label": "mixed-mode variant",
+      "ignition_model": "SIMPLE",
+      "local_ignition_time_s": 0.0,
+      "cell_ignition_delay_s": 150.0,
+      "tstop_s": 300.0,
+      "expected_regime": "mixed surface and firebrand spread"
+    }
+  ],
+  "source_references": [
+    "Sections 5.4.3 and 5.4.4 (Tests 5-3 and 5-4)"
+  ]
+}

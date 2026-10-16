@@ -1,0 +1,36 @@
+case_id: "CASE19_WTH"
+case_title: "Case 19: Transient WUI heat flux"
+category: "Verification/coupling_tests"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/whole_domain_result.pdf"
+    - "figures/verification_summary.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        TIME_CONTROL.SIMULATION_TSTOP: 5000.0
+        TIME_CONTROL.SIMULATION_DT: 1.0
+        TIME_CONTROL.SIMULATION_DTMAX: 10.0
+        TIME_CONTROL.TARGET_CFL: 0.45
+        INPUTS.ADJ_FILENAME: "isolated_adj"
+        SIMULATOR.NUM_IGNITIONS: 1
+        SIMULATOR.X_IGN(1): 210.0
+        SIMULATOR.Y_IGN(1): 190.0
+        SIMULATOR.T_IGN(1): 5001.0
+        WUI.HRR_ELLIPSE_ADJ: 0.5
+        WUI.BLDG_SPREAD_MODEL_TYPE: 2
+        WUI.USE_BLDG_SPREAD_MODEL: true
+        WUI.USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS: true
+        OUTPUTS.DUMP_HRR_TRANSIENT: true
+        OUTPUTS.DUMP_TRANSIENT_DFC: true
+        OUTPUTS.DUMP_TRANSIENT_RAD: true

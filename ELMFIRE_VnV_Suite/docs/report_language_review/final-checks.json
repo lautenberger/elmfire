@@ -1,0 +1,80 @@
+{
+  "scientific_file_count": 764,
+  "changed_scientific_files": [],
+  "case_count": 52,
+  "statuses_unchanged": true,
+  "status_counts": {
+    "PASS": 30,
+    "FAIL": 12,
+    "NOT EVALUABLE": 7,
+    "CHARACTERIZED": 3
+  },
+  "ELMFIRE_executed": false,
+  "python_sources_parsed_without_bytecode": 197,
+  "shell_syntax_exit_code": 0,
+  "case_local_language_helpers_identical": true,
+  "math_expression_differences": [
+    {
+      "case": "CASE28_OVA",
+      "removed": [
+        "$\\le$",
+        "$\\ge$"
+      ],
+      "added": []
+    },
+    {
+      "case": "CASE30_MIT",
+      "removed": [
+        "\\(\\phi\\leq0\\)"
+      ],
+      "added": []
+    },
+    {
+      "case": "CASE31_PFT",
+      "removed": [
+        "\\(\\phi\\leq0\\)"
+      ],
+      "added": []
+    },
+    {
+      "case": "CASE32_RCV",
+      "removed": [
+        "\\(\\phi\\leq0\\)"
+      ],
+      "added": []
+    },
+    {
+      "case": "CASE33_SDO",
+      "removed": [
+        "\\(\\phi\\leq0\\)"
+      ],
+      "added": []
+    },
+    {
+      "case": "CASE41_CFP",
+      "removed": [
+        "\\[\n\\begin{array}{c|rr}\n\\text{variant}&R_{\\mathrm{ref}}~(\\mathrm{m\\,min^{-1}})\n&I_{R,\\mathrm{ref}}~(\\mathrm{kW\\,m^{-2}})\\\\\\hline\n\\text{baseline}&0.411242&1045.499\\\\\nw_{1h}=0.05&0.253350&688.121\\\\\nw_{1h}=0.15&0.551674&1379.611\\\\\nSAV=1000&0.241692&960.426\\\\\nSAV=3000&0.662626&1074.561\\\\\nd=0.5&0.225975&910.468\\\\\nd=2.0&0.694647&991.942\\\\\nM_x=15\\%&0.371790&945.198\\\\\nM_x=35\\%&0.438500&1114.797\\\\\nh=6000&0.308432&784.125\\\\\nh=10000&0.514053&1306.874\n\\end{array}\n\\]"
+      ],
+      "added": [
+        "\\[\n\\begin{array}{c|rr}\n\\text{Condition}&R_{\\mathrm{ref}}~(\\mathrm{m\\,min^{-1}})\n&I_{R,\\mathrm{ref}}~(\\mathrm{kW\\,m^{-2}})\\\\\\hline\n\\text{baseline}&0.411242&1045.499\\\\\nw_{1h}=0.05&0.253350&688.121\\\\\nw_{1h}=0.15&0.551674&1379.611\\\\\nSAV=1000&0.241692&960.426\\\\\nSAV=3000&0.662626&1074.561\\\\\nd=0.5&0.225975&910.468\\\\\nd=2.0&0.694647&991.942\\\\\nM_x=15\\%&0.371790&945.198\\\\\nM_x=35\\%&0.438500&1114.797\\\\\nh=6000&0.308432&784.125\\\\\nh=10000&0.514053&1306.874\n\\end{array}\n\\]"
+      ]
+    }
+  ],
+  "bibliography_block_differences": [],
+  "report_tests_exit_code": 0,
+  "report_and_portability_tests_exit_code": 1,
+  "pdf_count": 244,
+  "pdf_text_extraction_failures": [],
+  "pdf_contextual_review_candidates": 518,
+  "saved_figure_pdfs_with_text_candidates": 79,
+  "latex_layout_or_reference_warning_lines": [],
+  "aggregate_warning_lines": [],
+  "git_diff_check_exit_code": 0,
+  "visual_review_scope": "All 339 standalone pages rendered and reviewed in contact sheets; selected pages checked at larger size. Opening guide pages reviewed separately. Not a full-size inspection of every figure or OCR audit.",
+  "known_limitations": [
+    "Saved scientific figures with old labels remain where regeneration was not established as safe.",
+    "Thomas Fire wind-direction statistics do not match the available inputs; its input figures were not regenerated.",
+    "One pre-existing CASE42 portability test expects a constant absent from unchanged source.",
+    "No ELMFIRE run, no complete postprocessing run, and no missing-figure fallback branch execution."
+  ]
+}

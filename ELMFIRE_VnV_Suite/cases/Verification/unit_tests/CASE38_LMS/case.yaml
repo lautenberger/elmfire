@@ -1,0 +1,35 @@
+case_id: "CASE38_LMS"
+case_title: "Case 38: Static live-fuel moisture sweep"
+category: "Verification/unit_tests"
+source_provenance: "Andrews (2018), RMRS-GTR-371; ELMFIRE Rothermel implementation"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/sweep_response.pdf"
+
+variants:
+  fuel_models: [142, 146, 148]
+  live_moisture_percent: [30, 50, 70, 90, 120, 150, 180, 200]
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        INPUTS.SURFACE_SPREAD_MODEL: "ROTHERMEL"
+        INPUTS.LIVE_MC_IN_PERCENT: true
+        INPUTS.USE_CONSTANT_LH: true
+        INPUTS.USE_CONSTANT_LW: true
+        OUTPUTS.DUMP_SPREAD_RATE: true
+        OUTPUTS.DUMP_REACTION_INTENSITY: true
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        SIMULATOR.NUM_IGNITIONS: 0
+        SIMULATOR.CROWN_FIRE_MODEL: 0
+        SPOTTING.ENABLE_SPOTTING: false
+        WUI.USE_BLDG_SPREAD_MODEL: false

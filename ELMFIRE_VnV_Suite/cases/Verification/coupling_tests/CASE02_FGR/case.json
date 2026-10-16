@@ -1,0 +1,19 @@
+{
+  "case_number": "02",
+  "purpose_abbreviation": "FGR",
+  "id": "CASE02_FGR",
+  "chapter": "3",
+  "title": "Finite-Duration Firebrand Generation",
+  "dx_m": 10.0,
+  "physical_length_m": 500.0,
+  "physical_width_m": 60.0,
+  "buffer_cells": 2,
+  "timesteps_s": [
+    0.13,
+    12.7
+  ],
+  "generation_rate_pcs_s": 10.0,
+  "residence_time_s": 10.0,
+  "expected_total_firebrands": 100.0,
+  "summary": "Verify overlap-limited generation for timesteps shorter and longer than the source residence time."
+}

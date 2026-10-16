@@ -1,0 +1,36 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=0.85in]{geometry}
+\usepackage{amsmath,amssymb,array,booktabs,float,graphicx,longtable}
+\usepackage[detect-all]{siunitx}
+\usepackage{xcolor,hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\graphicspath{{../figures/}}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\input{case_metadata.tex}
+\input{case_macros.tex}
+\input{technical_macros.tex}
+\IfFileExists{metrics_macros.tex}{\input{metrics_macros.tex}}{%
+  \newcommand{\VerificationStatus}{MISSING}%
+  \newcommand{\WorkflowStatus}{MISSING}%
+  \newcommand{\StatusReason}{MISSING}%
+  \newcommand{\ExecutedBinarySHA}{MISSING}%
+  \newcommand{\RequiredVariants}{0}%
+  \newcommand{\CompletedVariants}{0}%
+  \newcommand{\MetricRows}{MISSING metrics macros & -- & -- & MISSING \\}}
+\title{Case \CaseNumber: \CaseTitle}
+
+% Readable body, tables, captions, and page breaks at the final print size.
+\usepackage{array,longtable,caption,seqsplit,needspace}
+\usepackage[section]{placeins}
+\captionsetup{font=normalsize,labelfont=bf,justification=raggedright,singlelinecheck=false}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\emergencystretch}{3em}
+\newcommand{\ReadableHash}[1]{\begingroup\ttfamily\expandafter\seqsplit\expandafter{#1}\endgroup}
+\input{readability_macros.tex}
+
+\input{report_style.tex}
+\begin{document}
+\maketitle
+\input{case_body.tex}
+\end{document}

@@ -1,0 +1,1036 @@
+{
+  "format_version": 1,
+  "groups": {
+    "CALIBRATION": {
+      "source_line": 871,
+      "variables": {
+        "ADJUSTMENT_FACTORS_BY_PYROME": {
+          "default": ".FALSE."
+        },
+        "ADJUSTMENT_FACTORS_FILENAME": {
+          "default": "''"
+        },
+        "CALIBRATION_CONSTANTS_BY_PYROME": {
+          "default": ".FALSE."
+        },
+        "CALIBRATION_CONSTANTS_FILENAME": {
+          "default": "''"
+        },
+        "DURATION_MAX_DAYS": {
+          "default": "28"
+        },
+        "DURATION_PDF_BY_PYROME": {
+          "default": ".FALSE."
+        },
+        "DURATION_PDF_FILENAME": {
+          "default": "''"
+        }
+      }
+    },
+    "INPUTS": {
+      "source_line": 139,
+      "variables": {
+        "ADJ_FILENAME": {
+          "default": "' '"
+        },
+        "ASP_FILENAME": {
+          "default": "' '"
+        },
+        "BARRIER_FILENAME": {
+          "default": "' '"
+        },
+        "BLDG_AREA_FILENAME": {
+          "default": "' '"
+        },
+        "BLDG_FOOTPRINT_FRAC_FILENAME": {
+          "default": "' '"
+        },
+        "BLDG_FUEL_MODEL_FILENAME": {
+          "default": "' '"
+        },
+        "BLDG_NONBURNABLE_FRAC_FILENAME": {
+          "default": "' '"
+        },
+        "BLDG_SEPARATION_DIST_FILENAME": {
+          "default": "' '"
+        },
+        "CBD_FILENAME": {
+          "default": "' '"
+        },
+        "CBD_TIMES_100": {
+          "default": ".TRUE."
+        },
+        "CBH_FILENAME": {
+          "default": "' '"
+        },
+        "CBH_TIMES_10": {
+          "default": ".TRUE."
+        },
+        "CC_FILENAME": {
+          "default": "' '"
+        },
+        "CC_IN_PERCENT": {
+          "default": ".TRUE."
+        },
+        "CH_FILENAME": {
+          "default": "' '"
+        },
+        "CH_TIMES_10": {
+          "default": ".TRUE."
+        },
+        "DAILY_WEATHER_FILENAME": {
+          "default": "' '"
+        },
+        "DEAD_MC_IN_PERCENT": {
+          "default": ".TRUE."
+        },
+        "DEM_FILENAME": {
+          "default": "' '"
+        },
+        "DT_METEOROLOGY": {
+          "default": "-9999.9"
+        },
+        "ERC_FILENAME": {
+          "default": "' '"
+        },
+        "FBFM_FILENAME": {
+          "default": "' '"
+        },
+        "FMC_FILENAME": {
+          "default": "' '"
+        },
+        "FOLIAR_MOISTURE_CONTENT": {
+          "default": "90.0"
+        },
+        "FUELS_AND_TOPOGRAPHY_DIRECTORY": {
+          "default": "' '"
+        },
+        "GRID_DECLINATION": {
+          "default": "0.0"
+        },
+        "IGNITIONS_CSV_FILENAME": {
+          "default": "' '"
+        },
+        "IGNITION_MASK_FILENAME": {
+          "default": "' '"
+        },
+        "LANDSCAPE_FILENAME": {
+          "default": "' '"
+        },
+        "LAND_VALUE_FILENAME": {
+          "default": "' '"
+        },
+        "LH_MOISTURE_CONTENT": {
+          "default": "60.0"
+        },
+        "LIVE_MC_IN_PERCENT": {
+          "default": ".TRUE."
+        },
+        "LW_MOISTURE_CONTENT": {
+          "default": "60.0"
+        },
+        "M100_FILENAME": {
+          "default": "' '"
+        },
+        "M10_FILENAME": {
+          "default": "' '"
+        },
+        "M1_FILENAME": {
+          "default": "' '"
+        },
+        "MLH_FILENAME": {
+          "default": "' '"
+        },
+        "MLW_FILENAME": {
+          "default": "' '"
+        },
+        "ONLY_READ_NEEDED_WX_BANDS": {
+          "default": ".FALSE."
+        },
+        "PHI_FILENAME": {
+          "default": "' '"
+        },
+        "POPULATION_DENSITY_FILENAME": {
+          "default": "' '"
+        },
+        "PYROMES_FILENAME": {
+          "default": "' '"
+        },
+        "REAL_ESTATE_VALUE_FILENAME": {
+          "default": "' '"
+        },
+        "ROTATE_ASP": {
+          "default": ".FALSE."
+        },
+        "ROTATE_WD": {
+          "default": ".FALSE."
+        },
+        "SDI_FILENAME": {
+          "default": "' '"
+        },
+        "SLP_FILENAME": {
+          "default": "' '"
+        },
+        "START_DC": {
+          "default": "400.0"
+        },
+        "START_DMC": {
+          "default": "80.0"
+        },
+        "SURFACE_SPREAD_MODEL": {
+          "default": "\"ROTHERMEL\""
+        },
+        "TIMED_LOCATIONS_CSV": {
+          "default": "'null'"
+        },
+        "USE_BARRIERS": {
+          "default": ".FALSE."
+        },
+        "USE_BSQ_XML_HEADER": {
+          "default": ".TRUE."
+        },
+        "USE_CONSTANT_FMC": {
+          "default": ".TRUE."
+        },
+        "USE_CONSTANT_LH": {
+          "default": ".TRUE."
+        },
+        "USE_CONSTANT_LW": {
+          "default": ".TRUE."
+        },
+        "USE_EXISTING_BSQS": {
+          "default": ".FALSE."
+        },
+        "USE_LAND_VALUE": {
+          "default": ".FALSE."
+        },
+        "USE_POPULATION_DENSITY": {
+          "default": ".FALSE."
+        },
+        "USE_REAL_ESTATE_VALUE": {
+          "default": ".FALSE."
+        },
+        "USE_TILED_IO": {
+          "default": ".FALSE."
+        },
+        "VRT_INSTEAD_OF_TIF": {
+          "default": ".FALSE."
+        },
+        "WD_FILENAME": {
+          "default": "' '"
+        },
+        "WEATHER_DIRECTORY": {
+          "default": "' '"
+        },
+        "WS_AT_10M": {
+          "default": ".FALSE."
+        },
+        "WS_FILENAME": {
+          "default": "' '"
+        },
+        "WS_IN_KPH": {
+          "default": ".FALSE."
+        }
+      }
+    },
+    "MISCELLANEOUS": {
+      "source_line": 21,
+      "variables": {
+        "BUILDING_FUEL_MODEL_FILE": {
+          "default": "'building_fuel_models.csv'"
+        },
+        "FUEL_MODEL_FILE": {
+          "default": "'null'"
+        },
+        "MISCELLANEOUS_INPUTS_DIRECTORY": {
+          "default": "'null'"
+        },
+        "PATH_TO_GDAL": {
+          "default": "'auto'"
+        },
+        "SCRATCH": {
+          "default": "'null'"
+        }
+      }
+    },
+    "MONTE_CARLO": {
+      "source_line": 460,
+      "variables": {
+        "ADD_TO_IGNITION_MASK": {
+          "default": "-9E9"
+        },
+        "ALLOW_MULTIPLE_IGNITIONS_AT_A_PIXEL": {
+          "default": ".FALSE."
+        },
+        "CSV_FIXED_IGNITION_LOCATIONS": {
+          "default": ".FALSE."
+        },
+        "EDGEBUFFER": {
+          "default": "3000."
+        },
+        "ERC_IS_PLIGNRATE": {
+          "default": ".FALSE."
+        },
+        "IGNITION_MASK_SCALE_FACTOR": {
+          "default": "1.0"
+        },
+        "METEOROLOGY_BAND_SKIP_INTERVAL": {
+          "default": "-1"
+        },
+        "METEOROLOGY_BAND_START": {
+          "default": "-1"
+        },
+        "METEOROLOGY_BAND_STOP": {
+          "default": "-1"
+        },
+        "NUM_ENSEMBLE_MEMBERS": {
+          "default": "1"
+        },
+        "NUM_METEOROLOGY_TIMES": {
+          "default": "-1"
+        },
+        "NUM_RASTERS_TO_PERTURB": {
+          "default": "0"
+        },
+        "PDF_LOWER_LIMIT": {
+          "default": "0."
+        },
+        "PDF_MEAN": {
+          "default": "0."
+        },
+        "PDF_SIGMA": {
+          "default": "0."
+        },
+        "PDF_TYPE": {
+          "default": "'null'"
+        },
+        "PDF_UPPER_LIMIT": {
+          "default": "0."
+        },
+        "PERCENT_OF_PIXELS_TO_IGNITE": {
+          "default": "5.0"
+        },
+        "POINT_WIND_TO_CENTER": {
+          "default": ".FALSE."
+        },
+        "RANDOM_IGNITIONS": {
+          "default": ".FALSE."
+        },
+        "RANDOM_IGNITIONS_TYPE": {
+          "default": "1"
+        },
+        "RASTER_TO_PERTURB": {
+          "default": "'null'"
+        },
+        "SEED": {
+          "default": "2024"
+        },
+        "SPATIAL_PERTURBATION": {
+          "default": "'null'"
+        },
+        "TEMPORAL_PERTURBATION": {
+          "default": "'null'"
+        },
+        "USE_ERC": {
+          "default": ".FALSE."
+        },
+        "USE_IGNITION_MASK": {
+          "default": ".FALSE."
+        },
+        "WIND_DIRECTION_FLUCTUATION_INTENSITY_MAX": {
+          "default": "-1.0"
+        },
+        "WIND_DIRECTION_FLUCTUATION_INTENSITY_MIN": {
+          "default": "-1.0"
+        },
+        "WIND_SPEED_FLUCTUATION_INTENSITY_MAX": {
+          "default": "-1.0"
+        },
+        "WIND_SPEED_FLUCTUATION_INTENSITY_MIN": {
+          "default": "-1.0"
+        }
+      }
+    },
+    "OUTPUTS": {
+      "source_line": 292,
+      "variables": {
+        "ACCUMULATE_EMBER_FLUX": {
+          "default": ".FALSE."
+        },
+        "BINARY_OUTPUTS_DUMP_FRACTION": {
+          "default": "1E0"
+        },
+        "CALCULATE_FLAME_LENGTH_STATS": {
+          "default": ".FALSE."
+        },
+        "CALCULATE_TIMES_BURNED": {
+          "default": ".FALSE."
+        },
+        "CONVERT_TO_GEOTIFF": {
+          "default": ".TRUE."
+        },
+        "DTDUMP": {
+          "default": "3600.0"
+        },
+        "DUMP_AFFECTED_LAND_VALUE": {
+          "default": ".FALSE."
+        },
+        "DUMP_AFFECTED_POPULATION": {
+          "default": ".FALSE."
+        },
+        "DUMP_AFFECTED_REAL_ESTATE_VALUE": {
+          "default": ".FALSE."
+        },
+        "DUMP_BINARY_OUTPUTS": {
+          "default": ".FALSE."
+        },
+        "DUMP_CFFDRS_DEBUG": {
+          "default": ".FALSE."
+        },
+        "DUMP_CRITICAL_FLIN": {
+          "default": ".FALSE."
+        },
+        "DUMP_CROWN_FIRE": {
+          "default": ".FALSE."
+        },
+        "DUMP_CROWN_FIRE_AREA": {
+          "default": ".FALSE."
+        },
+        "DUMP_EMBER_FLUX": {
+          "default": ".FALSE."
+        },
+        "DUMP_EMBER_FLUX_TRANSIENT": {
+          "default": ".FALSE."
+        },
+        "DUMP_EMBER_IGNITION": {
+          "default": ".FALSE."
+        },
+        "DUMP_EMITIMES": {
+          "default": ".FALSE."
+        },
+        "DUMP_EVERY_STEP": {
+          "default": ".FALSE."
+        },
+        "DUMP_FIRE_SIZE_STATS": {
+          "default": ".TRUE."
+        },
+        "DUMP_FIRE_VOLUME": {
+          "default": ".FALSE."
+        },
+        "DUMP_FLAME_LENGTH": {
+          "default": ".FALSE."
+        },
+        "DUMP_FLIN": {
+          "default": ".FALSE."
+        },
+        "DUMP_FUEL_CONSUMPTION": {
+          "default": ".FALSE."
+        },
+        "DUMP_HOURLY_RASTERS": {
+          "default": ".FALSE."
+        },
+        "DUMP_HPUA": {
+          "default": ".FALSE."
+        },
+        "DUMP_HRR_TRANSIENT": {
+          "default": ".FALSE."
+        },
+        "DUMP_PHI": {
+          "default": ".FALSE."
+        },
+        "DUMP_REACTION_INTENSITY": {
+          "default": ".FALSE."
+        },
+        "DUMP_SPOTTING_OUTPUTS": {
+          "default": ".FALSE."
+        },
+        "DUMP_SPREAD_DIRECTION": {
+          "default": ".FALSE."
+        },
+        "DUMP_SPREAD_RATE": {
+          "default": ".FALSE."
+        },
+        "DUMP_SURFACE_FIRE": {
+          "default": ".FALSE."
+        },
+        "DUMP_SURFACE_FIRE_AREA": {
+          "default": ".FALSE."
+        },
+        "DUMP_TAGGED": {
+          "default": ".FALSE."
+        },
+        "DUMP_TIME_OF_ARRIVAL": {
+          "default": ".FALSE."
+        },
+        "DUMP_TIMINGS": {
+          "default": ".FALSE."
+        },
+        "DUMP_TOTAL_DFC_RECEIVED": {
+          "default": ".FALSE."
+        },
+        "DUMP_TOTAL_RAD_RECEIVED": {
+          "default": ".FALSE."
+        },
+        "DUMP_TRANSIENT_ACREAGE": {
+          "default": ".FALSE."
+        },
+        "DUMP_TRANSIENT_DFC": {
+          "default": ".FALSE."
+        },
+        "DUMP_TRANSIENT_RAD": {
+          "default": ".FALSE."
+        },
+        "DUMP_VELOCITY": {
+          "default": ".FALSE."
+        },
+        "DUMP_WD20": {
+          "default": ".FALSE."
+        },
+        "DUMP_WS20": {
+          "default": ".FALSE."
+        },
+        "EMBER_COUNT_BIN_HI": {
+          "default": "0"
+        },
+        "EMBER_COUNT_BIN_LO": {
+          "default": "0"
+        },
+        "FLAME_LENGTH_BIN_HI": {
+          "default": "0."
+        },
+        "FLAME_LENGTH_BIN_LO": {
+          "default": "0."
+        },
+        "FULL_BINARY_OUTPUTS": {
+          "default": ".TRUE."
+        },
+        "MINIMUM_AREA_FOR_BINARY_OUTPUTS": {
+          "default": "0."
+        },
+        "NUM_EMBER_COUNT_BINS": {
+          "default": "0"
+        },
+        "NUM_FLAME_LENGTH_BINS": {
+          "default": "0"
+        },
+        "NUM_VIRTUAL_STATIONS": {
+          "default": "0"
+        },
+        "OUTPUTS_DIRECTORY": {
+          "default": "' '"
+        },
+        "RUN_ID": {
+          "default": "''"
+        },
+        "SPREAD_RATE_IN_M": {
+          "default": ".FALSE."
+        },
+        "TIME_AT_BURNED_ACRES": {
+          "default": "-9E9"
+        },
+        "USE_EMBER_COUNT_BINS": {
+          "default": ".FALSE."
+        },
+        "USE_FLAME_LENGTH_BINS": {
+          "default": ".FALSE."
+        },
+        "USE_FOUR_DIGITS_IN_IWX_BAND": {
+          "default": ".FALSE."
+        },
+        "VIRTUAL_STATION_X": {
+          "default": "0.0"
+        },
+        "VIRTUAL_STATION_Y": {
+          "default": "0.0"
+        }
+      }
+    },
+    "SIMULATOR": {
+      "source_line": 616,
+      "variables": {
+        "ALLOW_NONBURNABLE_PIXEL_IGNITION": {
+          "default": ".TRUE."
+        },
+        "BANDTHICKNESS": {
+          "default": "2"
+        },
+        "CLEAN_SCRATCH": {
+          "default": ".FALSE."
+        },
+        "CRITICAL_CANOPY_COVER": {
+          "default": "0.39"
+        },
+        "CROWN_FIRE_ADJ": {
+          "default": "1.0"
+        },
+        "CROWN_FIRE_MODEL": {
+          "default": "1"
+        },
+        "CROWN_FIRE_SPREAD_RATE_LIMIT": {
+          "default": "250.0"
+        },
+        "CROWN_RATIO": {
+          "default": "1.0"
+        },
+        "DT_WIND_FLUCTUATIONS": {
+          "default": "15.0"
+        },
+        "ESTIMATE_URBAN_LOSSES": {
+          "default": ".FALSE."
+        },
+        "FEEDBACK_LEVEL": {
+          "default": "0"
+        },
+        "MAX_LOW": {
+          "default": "8.0"
+        },
+        "MAX_RUNTIME": {
+          "default": "999999."
+        },
+        "MODE": {
+          "default": "1"
+        },
+        "MULTIPLE_HOSTS": {
+          "default": ".FALSE."
+        },
+        "NUM_IGNITIONS": {
+          "default": "0"
+        },
+        "PHIS_ADJ": {
+          "default": "1E0"
+        },
+        "PHIW_ADJ": {
+          "default": "1E0"
+        },
+        "PLIGNRATE_MIN": {
+          "default": "0E0"
+        },
+        "RANDOMIZE_RANDOM_SEED": {
+          "default": ".FALSE."
+        },
+        "SURFACE_ACCELERATION_TIME_CONSTANT": {
+          "default": "1.0"
+        },
+        "T_IGN": {
+          "default": "-1.0"
+        },
+        "T_LINE_IGN": {
+          "default": "-1"
+        },
+        "UNTAG_CELLS_TIMESTEP_INTERVAL": {
+          "default": "10"
+        },
+        "UNTAG_TYPE_2": {
+          "default": ".FALSE."
+        },
+        "UNTAG_TYPE_3": {
+          "default": ".FALSE."
+        },
+        "USE_PYROMES": {
+          "default": ".FALSE."
+        },
+        "WIND_DIRECTION_FLUCTUATION_INTENSITY": {
+          "default": "0.0"
+        },
+        "WIND_FLUCTUATIONS": {
+          "default": ".FALSE."
+        },
+        "WIND_SPEED_FLUCTUATION_INTENSITY": {
+          "default": "0.0"
+        },
+        "WSMFEFF_LOW_MULT": {
+          "default": "60.0/5280.0"
+        },
+        "WX_BANDS_KEPT_IN_MEM": {
+          "default": "30"
+        },
+        "WX_BILINEAR_INTERPOLATION": {
+          "default": ".FALSE."
+        },
+        "X_IGN": {
+          "default": "0.0"
+        },
+        "X_LINE_IGN_END": {
+          "default": "-1"
+        },
+        "X_LINE_IGN_START": {
+          "default": "-1"
+        },
+        "Y_IGN": {
+          "default": "0.0"
+        },
+        "Y_LINE_IGN_END": {
+          "default": "-1"
+        },
+        "Y_LINE_IGN_START": {
+          "default": "-1"
+        }
+      }
+    },
+    "SMOKE": {
+      "source_line": 91,
+      "variables": {
+        "DRY_WOOD_CALORIFIC_VALUE": {
+          "default": "19"
+        },
+        "DT_SMOKE_OUTPUTS": {
+          "default": "3600.0"
+        },
+        "ENABLE_SMOKE_OUTPUTS": {
+          "default": ".FALSE."
+        },
+        "FLAMING_TIME": {
+          "default": "180"
+        },
+        "PM_EMISSION_FACTOR_FLAMING": {
+          "default": "17.4"
+        },
+        "PM_EMISSION_FACTOR_SMOLDERING": {
+          "default": "49.8"
+        },
+        "SMOLDERING_TIME": {
+          "default": "3600"
+        }
+      }
+    },
+    "SPOTTING": {
+      "source_line": 736,
+      "variables": {
+        "ACCUMULATION_MODEL": {
+          "default": "'LAGRANGIAN'"
+        },
+        "CELL_IGNITION_DELAY": {
+          "default": "100.0"
+        },
+        "CRITICAL_SPOTTING_FIRELINE_INTENSITY": {
+          "default": "0."
+        },
+        "CROWN_FIRE_SPOTTING_PERCENT": {
+          "default": "100."
+        },
+        "CROWN_FIRE_SPOTTING_PERCENT_MAX": {
+          "default": "100."
+        },
+        "CROWN_FIRE_SPOTTING_PERCENT_MIN": {
+          "default": "100."
+        },
+        "DIFF_WILDLAND_IGNITION": {
+          "default": ".FALSE."
+        },
+        "EMBER_GR": {
+          "default": "1E-3"
+        },
+        "EMBER_GR_PER_MW_BLDG": {
+          "default": "10.0"
+        },
+        "EMBER_GR_PER_MW_VEGE": {
+          "default": "33.3"
+        },
+        "EMBER_SAMPLING_FACTOR": {
+          "default": "1.0"
+        },
+        "ENABLE_SPOTTING": {
+          "default": ".FALSE."
+        },
+        "ENABLE_SURFACE_FIRE_SPOTTING": {
+          "default": ".FALSE."
+        },
+        "GENERATION_MODEL": {
+          "default": "'RANDOM'"
+        },
+        "GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT": {
+          "default": "0.0"
+        },
+        "GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MAX": {
+          "default": "0.0"
+        },
+        "GLOBAL_SURFACE_FIRE_SPOTTING_PERCENT_MIN": {
+          "default": "0.0"
+        },
+        "IGNITION_MODEL": {
+          "default": "'DIRECT'"
+        },
+        "LOCAL_IGNITION_TIME": {
+          "default": "30.0"
+        },
+        "MAX_SPOTTING_DISTANCE": {
+          "default": "0."
+        },
+        "MEAN_SPOTTING_DIST": {
+          "default": "0."
+        },
+        "MEAN_SPOTTING_DIST_MAX": {
+          "default": "0."
+        },
+        "MEAN_SPOTTING_DIST_MIN": {
+          "default": "0."
+        },
+        "MIN_SPOTTING_DISTANCE": {
+          "default": "0."
+        },
+        "MU_CROSSWIND": {
+          "default": "0.0"
+        },
+        "MU_DOWNWIND": {
+          "default": "0.0"
+        },
+        "NEMBERS_MAX": {
+          "default": "1"
+        },
+        "NEMBERS_MAX_HI": {
+          "default": "1"
+        },
+        "NEMBERS_MAX_LO": {
+          "default": "1"
+        },
+        "NEMBERS_MIN": {
+          "default": "30"
+        },
+        "NEMBERS_MIN_HI": {
+          "default": "0"
+        },
+        "NEMBERS_MIN_LO": {
+          "default": "0"
+        },
+        "NORMALIZED_SPOTTING_DIST_VARIANCE": {
+          "default": "0."
+        },
+        "NORMALIZED_SPOTTING_DIST_VARIANCE_MAX": {
+          "default": "0."
+        },
+        "NORMALIZED_SPOTTING_DIST_VARIANCE_MIN": {
+          "default": "0."
+        },
+        "NO_SURFACE_FIRE": {
+          "default": ".FALSE."
+        },
+        "PIGN": {
+          "default": "1.0"
+        },
+        "PIGN_MAX": {
+          "default": "1.0"
+        },
+        "PIGN_MIN": {
+          "default": "1.0"
+        },
+        "P_EPS": {
+          "default": "0.01"
+        },
+        "SIGMA_CROSSWIND": {
+          "default": "0.0"
+        },
+        "SIGMA_DOWNWIND": {
+          "default": "0.0"
+        },
+        "SOURCE_FUEL_IGN_MULT": {
+          "default": "1.0"
+        },
+        "SPOTTING_DISTANCE_MODEL": {
+          "default": "'UNIFORM'"
+        },
+        "SPOTTING_DISTRIBUTION_TYPE": {
+          "default": "'LOGNORMAL'"
+        },
+        "SPOT_FLIN_EXP": {
+          "default": "0.5"
+        },
+        "SPOT_FLIN_EXP_HI": {
+          "default": "0.5"
+        },
+        "SPOT_FLIN_EXP_LO": {
+          "default": "0.5"
+        },
+        "SPOT_WS_EXP": {
+          "default": "0.9"
+        },
+        "SPOT_WS_EXP_HI": {
+          "default": "0.9"
+        },
+        "SPOT_WS_EXP_LO": {
+          "default": "0.9"
+        },
+        "STOCHASTIC_SPOTTING": {
+          "default": ".FALSE."
+        },
+        "SURFACE_FIRE_SPOTTING_PERCENT": {
+          "default": "100."
+        },
+        "SURFACE_FIRE_SPOTTING_PERCENT_MULT": {
+          "default": "1.0"
+        },
+        "TAU_EMBERGEN": {
+          "default": "6.0"
+        },
+        "USE_CROSSWIND_DISTRIBUTION": {
+          "default": ".FALSE."
+        },
+        "USE_CUSTOMIZED_PDF": {
+          "default": ".FALSE."
+        },
+        "USE_EMBER_CONSUMPTION": {
+          "default": ".FALSE."
+        },
+        "USE_PHYSICAL_SPOTTING_DURATION": {
+          "default": ".FALSE."
+        },
+        "USE_SUPERSEDED_SPOTTING": {
+          "default": ".TRUE."
+        }
+      }
+    },
+    "SUPPRESSION": {
+      "source_line": 833,
+      "variables": {
+        "AREA_NO_CONTAINMENT_CHANGE": {
+          "default": "10000.0"
+        },
+        "B_SDI": {
+          "default": "1.0"
+        },
+        "DT_EXTENDED_ATTACK": {
+          "default": "3600."
+        },
+        "ENABLE_EXTENDED_ATTACK": {
+          "default": ".FALSE."
+        },
+        "ENABLE_INITIAL_ATTACK": {
+          "default": ".FALSE."
+        },
+        "INITIAL_ATTACK_TIME": {
+          "default": "1800.0"
+        },
+        "MAX_CONTAINMENT_PER_DAY": {
+          "default": "100.0"
+        },
+        "SDI_FACTOR": {
+          "default": "1.0"
+        },
+        "USE_SDI": {
+          "default": ".FALSE."
+        },
+        "USE_SDI_LOG_FUNCTION": {
+          "default": ".FALSE."
+        }
+      }
+    },
+    "TIME_CONTROL": {
+      "source_line": 404,
+      "variables": {
+        "BAND_ONE_HOUR_OF_YEAR": {
+          "default": "0"
+        },
+        "BURN_PERIOD_CENTER_FRAC": {
+          "default": "0.667"
+        },
+        "BURN_PERIOD_LENGTH": {
+          "default": "10.0"
+        },
+        "CURRENT_YEAR": {
+          "default": "-1"
+        },
+        "DT_INTERPOLATE_FMC": {
+          "default": "9E8"
+        },
+        "DT_INTERPOLATE_M1": {
+          "default": "300.0"
+        },
+        "DT_INTERPOLATE_M10": {
+          "default": "3000.0"
+        },
+        "DT_INTERPOLATE_M100": {
+          "default": "30000.0"
+        },
+        "DT_INTERPOLATE_MLH": {
+          "default": "9E8"
+        },
+        "DT_INTERPOLATE_MLW": {
+          "default": "9E8"
+        },
+        "DT_INTERPOLATE_WIND": {
+          "default": "300.0"
+        },
+        "FORECAST_START_HOUR": {
+          "default": "20.0"
+        },
+        "HOUR_OF_YEAR": {
+          "default": "-1"
+        },
+        "OVERNIGHT_ADJUSTMENT_FACTOR": {
+          "default": "0.1"
+        },
+        "RANDOMIZE_SIMULATION_TSTOP": {
+          "default": ".FALSE."
+        },
+        "SIMULATION_DT": {
+          "default": "5.0"
+        },
+        "SIMULATION_DTMAX": {
+          "default": "600.0"
+        },
+        "SIMULATION_TSTART": {
+          "default": "0.0"
+        },
+        "SIMULATION_TSTOP": {
+          "default": "3600.0"
+        },
+        "TARGET_CFL": {
+          "default": "0.4"
+        },
+        "USE_DIURNAL_ADJUSTMENT_FACTOR": {
+          "default": ".FALSE."
+        }
+      }
+    },
+    "WUI": {
+      "source_line": 684,
+      "variables": {
+        "BANDTHICKNESS_WUI": {
+          "default": "5"
+        },
+        "BLDG_AREA_CONSTANT": {
+          "default": "20.0"
+        },
+        "BLDG_FOOTPRINT_FRAC_CONSTANT": {
+          "default": "1.0"
+        },
+        "BLDG_FUEL_MODEL_CONSTANT": {
+          "default": "1"
+        },
+        "BLDG_NONBURNABLE_FRAC_CONSTANT": {
+          "default": "0.0"
+        },
+        "BLDG_SEPARATION_DIST_CONSTANT": {
+          "default": "10.0"
+        },
+        "BLDG_SPREAD_MODEL_TYPE": {
+          "default": "1"
+        },
+        "CRITICL_HF_WUI": {
+          "default": "0.0"
+        },
+        "GLOBAL_HARDENING_FACTOR": {
+          "default": "1.0"
+        },
+        "HRR_ELLIPSE_ADJ": {
+          "default": "0.5"
+        },
+        "INTERFACE_MODEL_TYPE": {
+          "default": "1"
+        },
+        "USE_BLDG_SPREAD_MODEL": {
+          "default": ".FALSE."
+        },
+        "USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS": {
+          "default": ".TRUE."
+        }
+      }
+    }
+  },
+  "source": {
+    "file": "build/source/elmfire_namelists.f90",
+    "git_commit": "efa0b8fa3935ea4cd30a2bd054c7e9b83db81163",
+    "git_dirty": true,
+    "root_label": "elmfire-nick",
+    "sha256": "e7c938446365955519fabc5484fabe83f436161871249f723d3732fa5adac63c"
+  }
+}

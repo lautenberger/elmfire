@@ -1,0 +1,12 @@
+[
+  {
+    "case": "CASE43_WER",
+    "figure": "cases/Verification/coupling_tests/CASE43_WER/figures/expected_response.pdf",
+    "data_and_axis_limits_identical": true
+  },
+  {
+    "case": "CASE44_WHP",
+    "figure": "cases/Verification/coupling_tests/CASE44_WHP/figures/expected_response.pdf",
+    "data_and_axis_limits_identical": true
+  }
+]

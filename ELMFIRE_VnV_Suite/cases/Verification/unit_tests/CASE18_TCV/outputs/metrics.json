@@ -1,0 +1,55 @@
+{
+  "case_id": "CASE18_TCV",
+  "overall_status": "FAIL",
+  "verification_passed": false,
+  "required_outputs_complete": true,
+  "expected_radius_m": 24.187952,
+  "variants": [
+    {
+      "time_grid": 45,
+      "dt_s": 8.0,
+      "radius_m": 24.152524674437313,
+      "absolute_error_m": 0.03542732556268646,
+      "source": "data/outputs/45/phi_0000001_d0000006.tif"
+    },
+    {
+      "time_grid": 90,
+      "dt_s": 4.0,
+      "radius_m": 24.232543033390616,
+      "absolute_error_m": 0.044591033390616985,
+      "source": "data/outputs/90/phi_0000001_d0000006.tif"
+    },
+    {
+      "time_grid": 180,
+      "dt_s": 2.0,
+      "radius_m": 24.30140847292613,
+      "absolute_error_m": 0.11345647292613137,
+      "source": "data/outputs/180/phi_0000001_d0000006.tif"
+    },
+    {
+      "time_grid": 360,
+      "dt_s": 1.0,
+      "radius_m": 24.367048478067908,
+      "absolute_error_m": 0.1790964780679083,
+      "source": "data/outputs/360/phi_0000001_d0000006.tif"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "observed temporal order",
+      "expected": 0.8,
+      "calculated": -0.8360720888301958,
+      "units": "-",
+      "tolerance": ">= threshold",
+      "status": "FAIL"
+    },
+    {
+      "name": "finest-time-grid radius error",
+      "expected": 0.0,
+      "calculated": 0.1790964780679083,
+      "units": "m",
+      "tolerance": "<= 0.5",
+      "status": "PASS"
+    }
+  ]
+}

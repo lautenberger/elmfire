@@ -1,0 +1,40 @@
+{
+  "format_version": 1,
+  "policy": "Only source-reviewed, semantics-preserving transformations belong here. Unknown or many-to-one changes must block automatic migration.",
+  "rules": [
+    {
+      "from": "SIMULATOR.HRR_ELLIPSE_ADJ",
+      "action": "move",
+      "to": "WUI.HRR_ELLIPSE_ADJ",
+      "reason": "The setting moved to the WUI namelist group without a value transformation. Confirmed against the current ELMFIRE reader."
+    },
+    {
+      "from": "SIMULATOR.DEBUG_LEVEL",
+      "action": "drop",
+      "reason": "The current reader has no DEBUG_LEVEL entry. Dropping it is permitted only for diagnostics-only use; a case that relies on debug behavior requires manual review."
+    }
+  ],
+  "manual_review_patterns": [
+    {
+      "legacy": ["COMPUTATIONAL_DOMAIN.*"],
+      "current": ["input-raster geotransform and projection"],
+      "reason": "The legacy namelist group no longer exists. Domain geometry is now supplied by raster metadata, so no scalar key migration can prove equivalence."
+    },
+    {
+      "legacy": [
+        "USE_PHYSICAL_EMBER_NUMBER",
+        "USE_UMD_SPOTTING_MODEL",
+        "USE_EULERIAN_SPOTTING",
+        "USE_EMBER_IGNITION_MODEL",
+        "USE_SIMPLE_IGNITION_MODEL"
+      ],
+      "current": [
+        "GENERATION_MODEL",
+        "SPOTTING_DISTANCE_MODEL",
+        "ACCUMULATION_MODEL",
+        "IGNITION_MODEL"
+      ],
+      "reason": "Several legacy booleans jointly select four current models. This is not a safe one-key transformation; inspect source logic and the case report."
+    }
+  ]
+}

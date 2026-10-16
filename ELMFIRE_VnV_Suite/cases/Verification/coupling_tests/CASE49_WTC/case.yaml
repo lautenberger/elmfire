@@ -1,0 +1,44 @@
+case_id: "CASE49_WTC"
+case_title: "Case 49: WU-E uniform-community temporal convergence"
+category: "Verification/coupling_tests"
+source_provenance: "Supplied WU-E references and ELMFIRE source revision a2dfbcdf72209733c000e5d3431e44723e15efea"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/convergence.pdf"
+    - "figures/domain_result.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      template: true
+      invariants:
+        INPUTS.FBFM_FILENAME: "fbfm"
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        OUTPUTS.DUMP_TOTAL_DFC_RECEIVED: true
+        OUTPUTS.DUMP_TOTAL_RAD_RECEIVED: true
+        OUTPUTS.DUMP_TRANSIENT_DFC: true
+        OUTPUTS.DUMP_TRANSIENT_RAD: true
+        OUTPUTS.DUMP_HRR_TRANSIENT: true
+        OUTPUTS.DUMP_EVERY_STEP: false
+        OUTPUTS.DTDUMP: 20.0
+        TIME_CONTROL.SIMULATION_TSTOP: 300.0
+        TIME_CONTROL.TARGET_CFL: 0.45
+        SIMULATOR.NUM_IGNITIONS: 1
+        SIMULATOR.FEEDBACK_LEVEL: 1
+        SIMULATOR.UNTAG_TYPE_2: false
+        SPOTTING.ENABLE_SPOTTING: false
+        WUI.BLDG_AREA_CONSTANT: 20.0
+        WUI.BLDG_SEPARATION_DIST_CONSTANT: 10.0
+        WUI.BLDG_SPREAD_MODEL_TYPE: 2
+        WUI.USE_BLDG_SPREAD_MODEL: true
+        WUI.USE_CONSTANT_BLDG_SPREAD_MODEL_PARAMS: true
+        WUI.HRR_ELLIPSE_ADJ: 0.5

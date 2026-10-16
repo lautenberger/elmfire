@@ -1,0 +1,46 @@
+{
+  "case_id": "CASE06_F2D",
+  "dx_m": 10.0,
+  "nx": 84,
+  "ny": 34,
+  "physical_nx": 80,
+  "physical_ny": 30,
+  "buffer_cells": 2,
+  "physical_extent_m": [
+    0.0,
+    800.0,
+    -100.0,
+    200.0
+  ],
+  "simulation_tstop_s": 120.0,
+  "requested_output_times_s": [
+    30.0,
+    60.0,
+    90.0,
+    120.0
+  ],
+  "meteorology_dt_s": 1.0,
+  "meteorology_bands": 121,
+  "u_range_mps": [
+    3.355,
+    10.065
+  ],
+  "v_range_mps": [
+    0.5,
+    1.5
+  ],
+  "wind_cfl": 0.5,
+  "simulation_dt_s": 0.4913444931425056,
+  "surface_headfire_ros_mps": 0.71,
+  "emission_duration_s": 14.084507042253522,
+  "generation_model": "PER-AREA",
+  "ember_gr_pcs_m2_s": 10.0,
+  "ignition_cell": [
+    2,
+    21
+  ],
+  "ignition_coordinate_m": [
+    5.0,
+    5.0
+  ]
+}

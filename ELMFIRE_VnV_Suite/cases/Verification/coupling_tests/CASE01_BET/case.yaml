@@ -1,0 +1,31 @@
+case_id: "CASE01_BET"
+case_title: "Biomass Emission-Time Resolution Independence"
+category: "Verification/coupling_tests"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/domain_result.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        OUTPUTS.DUMP_EMBER_FLUX: true
+        OUTPUTS.DUMP_SPREAD_RATE: true
+        TIME_CONTROL.SIMULATION_TSTOP: 500.0
+        SIMULATOR.NUM_IGNITIONS: 0
+        SPOTTING.ENABLE_SPOTTING: true
+        SPOTTING.GENERATION_MODEL: "PER-MW"
+        SPOTTING.ACCUMULATION_MODEL: "EULERIAN"
+        SPOTTING.IGNITION_MODEL: "SIMPLE"
+        SPOTTING.USE_PHYSICAL_SPOTTING_DURATION: true
+        SPOTTING.NO_SURFACE_FIRE: false
+        SPOTTING.PIGN: 0.0

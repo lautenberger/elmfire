@@ -1,0 +1,253 @@
+\section{Verification purpose}
+
+This case verifies finite-duration firebrand generation when the source lifetime is not commensurate with the solver timestep. It compares timesteps shorter and longer than the residence time while holding the source, grid, wind, and transport distribution fixed.
+
+The test exposes whole-step over-generation, truncation of the last active interval, and timestep-dependent deposition. Success requires both simulation conditions to recover the same integrated source count and downwind profile within tolerance.
+
+\section{Mathematical formulation and numerical implementation}
+Let a burning computational cell generate firebrands at the constant rate
+$\mathrm{GR}$ from ignition time $t_{\mathrm{ign}}$ until
+$t_{\mathrm{ign}}+t_{\mathrm{res}}$. The number generated during an ELMFIRE
+step $[t,t+\Delta t]$ must use the overlap between that step and the active
+source interval:
+\[
+  \Delta t_{\mathrm{active}}
+  =\max\!\left(0,
+    \min(t+\Delta t,t_{\mathrm{ign}}+t_{\mathrm{res}})
+    -\max(t,t_{\mathrm{ign}})\right),
+\]
+\[
+  \Delta N=\mathrm{GR}\,\Delta t_{\mathrm{active}}.
+\]
+This formulation handles the first and final partial steps and also handles a
+single timestep that spans the entire residence time. Summing over all steps
+must give
+\[
+  N_{\mathrm{total}}=\mathrm{GR}\,t_{\mathrm{res}}.
+\]
+The case sets $\mathrm{GR}=\Metric{generationratepcspers}$~pcs/s and
+$t_{\mathrm{res}}=\Metric{residencetimes}$~s, so the expected total is
+$\Metric{expectedtotal}$ firebrands.
+
+\subsection{Physical and numerical processes and verification rationale}
+
+The documented finite-duration source formulation identifies a timestep-integration
+error when the solver step is comparable to or longer than the fireline residence
+time~\cite{Qin2025}.
+ELMFIRE uses an area-proportional source and computes emission from each
+active cell only during its prescribed emission interval. The Eulerian
+transport calculation moves the emitted firebrands downwind. Comparing a
+fine timestep with a timestep exceeding the source duration tests partial-step
+source integration as well as deposition.
+The emitted amount must follow the overlap with the active source interval,
+not the nominal solver step. The total-count metric detects temporal over- or
+under-integration, while the spatial profile detects correct totals deposited
+in incorrect cells. Surface spread, ignition, consumption, and crosswind
+dispersion are disabled so they cannot compensate for source-timing errors.
+The case verifies numerical accounting and the prescribed transport
+distribution, not the physical realism of the lognormal distribution.
+
+\section{Derivation of expected behavior}
+Generated firebrands are distributed with a lognormal distance model using
+$\mu=2.18$ and $\sigma=1.23$. The distribution is truncated at its 99th
+percentile. ELMFIRE rounds that distance to an integer number $K$ of cells and
+normalizes the retained probability:
+\[
+  P_i=\frac{F(i\Delta x)-F((i-1)\Delta x)}
+             {F(K\Delta x)-F(10^{-6})},\qquad i=1,\ldots,K,
+\]
+where $F$ is the lognormal cumulative distribution. The analytical count in
+cell $i$ is $N_i=100P_i$. The postprocessor reproduces this cell-integrated
+reference and compares it directly with the final accumulated firebrand deposition raster.
+
+% BEGIN EXPLICIT EXPECTED-RESULT DERIVATION
+The two time integrations can be reproduced explicitly.  For
+\(\Delta t=0.13~\mathrm{s}\), 76 complete steps cover
+\(76(0.13)=9.88~\mathrm{s}\) and the final overlap is
+\(10-9.88=0.12~\mathrm{s}\), so
+\[
+ N_{\mathrm{fine}}=10[76(0.13)+0.12]=100.
+\]
+For the \(\Delta t=12.7~\mathrm{s}\) member, the first step spans the complete
+source interval and
+\[
+ \Delta t_{\mathrm{active}}=\min(12.7,10)-\max(0,0)=10~\mathrm{s},
+ \qquad N_{\mathrm{coarse}}=10(10)=100.
+\]
+For the spatial reference, \(z_{0.99}=2.3263479\) gives
+\[
+ x_{0.99}=\exp[2.18+1.23(2.3263479)]=154.6876~\mathrm{m},
+ \qquad K=\operatorname{NINT}(154.6876/10)=15.
+\]
+The retained cumulative distribution function (CDF) mass is
+\(F(150)-F(10^{-6})=0.9893135\).  Substitution in the cell formula gives
+\(N_1=54.5524\), \(N_2=20.8937\), \(N_3=9.4216\) particles, with all 15
+bins summing to 100 after normalization.  Hence the exact metric references
+are \(E_N=0\) and \(E_{L_1}=0\); the numerical tests substitute
+\(E_N\leq0.005\) and \(E_{L_1}\leq0.01\) for both timesteps.
+% END EXPLICIT EXPECTED-RESULT DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+The integrated reference count is
+\(N_{\mathrm{ref}}=G_Rt_{\mathrm{res}}=10\times10=100\) particles. The analytical
+spatial reference integrates the configured lognormal landing distribution over
+each downwind cell, truncates it at the 99th percentile, and renormalizes the
+cell probabilities to \(N_{\mathrm{ref}}\). The ignition row and physical columns
+are read from each simulation specification; all halo cells and nodata values are excluded.
+
+\subsection{Justification of metric quantification}
+
+Both limits have a direct particle-count interpretation.  Since
+\(N_{\mathrm{ref}}=100\), the integrated-error bound \(E_N\le0.005\) permits an
+absolute imbalance of only 0.5 particle.  This is large enough for raster
+roundoff and percentile-edge binning, but too small to hide a one-particle
+source-duration error.  The normalized \(L_1\) bound of 0.01 permits at most
+one particle's worth of total spatial redistribution after the analytical
+lognormal probabilities have been integrated over the same cells.  Unlike a
+signed error, this norm cannot conceal compensating upstream and downstream
+errors.  Applying both conditions to the short- and long-timestep simulation conditions
+separates conservation of the total from correct overlap-limited placement.
+The exact simulation condition count is required because the intended assertion concerns
+both sides of the residence-time boundary.
+
+\subsection{Predeclared acceptance criteria}
+
+Table~\ref{tab:acceptance-contract} summarizes the metrics fixed before
+inspection of the calculated results. Numerical values and component statuses
+are reported separately in Section~7.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Predeclared verification metrics and acceptance criteria.}
+\label{tab:acceptance-contract}
+\begin{tabular}{@{}p{0.23\linewidth}p{0.47\linewidth}p{0.21\linewidth}@{}}
+\toprule
+Metric & Output, region, and aggregation & Acceptance criterion\\
+\midrule
+Output completeness & One final accumulated firebrand deposition raster with current simulation specification geometry for each timestep. & 2 of 2 simulation conditions usable \\
+Integrated-count error & \(E_N=|\sum_{ij}N_{ij}-N_{\mathrm{ref}}|/N_{\mathrm{ref}}\), using the full valid output raster. & \(E_N\le0.005\) for each timestep \\
+Profile normalized \(L_1\) error & \(E_{L_1}=\sum_k|N_k-N_{k,\mathrm{ref}}|/N_{\mathrm{ref}}\) on matched physical downwind cells. & \(E_{L_1}\le0.01\) for each timestep \\
+Overall decision & Conjunction of output completeness and both errors for both timestep simulation conditions. & PASS only if every component passes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation configuration and predicted outcome}
+
+Figure~\ref{fig:input-configuration} records the prepared spatial inputs for a timestep of 0.13 s.
+These panels show the prepared spatial fields, remove the
+two-cell numerical buffer, and retain map coordinates in metres.  The left panel shows
+the most informative fuel or structure layout available for the case; the right panel
+shows the cells selected by the non-positive initial level-set field, making a localized
+ignition or firebrand-emission source explicit.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.98\textwidth,height=0.42\textheight,keepaspectratio]{../figures/input_configuration.pdf}
+\caption{Whole-domain prepared input configuration for the representative simulation condition.  The
+physical domain is shown without the numerical halo; coordinates, configured wind values,
+fuel or structure layout, and initial ignition/source geometry are identified in the panels.}
+\label{fig:input-configuration}
+\end{figure}
+
+The preprocessor creates two simulation conditions with $\Delta t=0.13$~s and
+$\Delta t=12.7$~s. Because timestep variation is the quantity under test, both fractional values are retained. The requested 120-s stop is rounded upward to an exact multiple: 924 steps give 120.12~s for the 0.13-s member, and 10 steps give 127.0~s for the 12.7-s member. The dump interval is set to the same aligned stop, while the verified 10-s source duration is unchanged. Both use a 10~m grid and the same 500~m by 60~m physical
+domain. This gives 50 by 6 usable cells and a 54 by 10 raster after two numerical buffer cells are added outside all four sides. A single
+ignition is placed in the first usable column and the middle usable row.
+
+The source is isolated with disabled vegetative surface spread, so it does not
+create additional burning cells. The current area-proportional generation
+model calculates
+\[
+  \mathrm{GR}_{\mathrm{pixel}}
+  =\mathrm{EMBER\_GR}\,\Delta x\Delta y.
+\]
+Using an areal production rate of 0.1~pcs/s/m$^2$ and a 100~m$^2$ cell gives the
+required 10~pcs/s source. A fixed emission duration of 10~s is prescribed rather
+than calculated from flame residence. Firebrand ignition, consumption, and crosswind
+dispersion are disabled so that they cannot change the accumulated count.
+
+Each simulation condition must satisfy both conditions:
+\begin{itemize}
+  \item total-count relative error no greater than 0.5\%;
+  \item profile $L_1$ relative error no greater than 1\%.
+\end{itemize}
+The overall case passes only if outputs exist and both timestep simulation conditions pass.
+The two-cell buffers are excluded from profile extraction, while the total
+count is checked over the complete raster to detect misplaced firebrands.
+
+\section{Actual simulation results}
+
+Figure~\ref{fig:domain-result} shows the representative accumulated firebrand density from a timestep of 0.13 s.
+The displayed field is taken from the simulated results, masks missing values, and excludes
+the two-cell numerical buffer.  Firebrand counts are normalized by the cell length and the represented 1-m cross-stream strip, giving units of pcs m$^{-2}$.
+
+\begin{figure}[H]
+\centering
+\EvidenceFigure[width=0.96\textwidth,height=0.50\textheight,keepaspectratio]{../figures/domain_result.pdf}
+\caption{Whole-domain accumulated firebrand density from the representative completed ELMFIRE run.  This
+domain-scale result supplements, rather than replaces, the higher-level verification
+profiles, convergence plots, ensemble statistics, and calculated acceptance metrics below.}
+\label{fig:domain-result}
+\end{figure}
+
+Overall status: \textbf{\Metric{status}}. Figure~\ref{fig:generation-duration}
+first compares each actual ELMFIRE profile with the cell-integrated analytical
+distribution. Agreement for the 12.7~s simulation condition is the critical result because
+that timestep exceeds the complete 10~s source duration.
+
+\begin{figure}[H]
+  \centering
+  \EvidenceFigure[width=\textwidth,height=0.62\textheight,keepaspectratio]{../figures/generation_residence_time.pdf}
+  \caption{Accumulated firebrands per downwind cell for the 0.13 and 12.7~s
+  timestep simulation conditions. Blue bars are ELMFIRE output and the red curve is the
+  cell-integrated, truncated-lognormal reference for 100 generated firebrands.}
+  \label{fig:generation-duration}
+\end{figure}
+
+% Figure~\ref{fig:generation-duration-errors} then isolates the two acceptance
+% observables, making it clear whether any agreement in the spatial plot conceals
+% a conservation error.
+
+% \begin{figure}[H]
+%   \centering
+%   \EvidenceFigure[width=0.78\textwidth,height=0.42\textheight,keepaspectratio]{../figures/generation_residence_time_errors.pdf}
+%   \caption{Integrated-count and normalized profile errors for both timesteps,
+%   with their separately predeclared acceptance limits.}
+%   \label{fig:generation-duration-errors}
+% \end{figure}
+
+\section{Calculated metrics and verification decision}
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Timestep & Observed total & Total relative error & Profile $L_1$ error \\
+\midrule
+0.13 s & \Metric{fineobservedtotal} & \Metric{finetotalrelativeerror} & \Metric{fineprofileloneerror} \\
+12.7 s & \Metric{coarseobservedtotal} & \Metric{coarsetotalrelativeerror} & \Metric{coarseprofileloneerror} \\
+\bottomrule
+\end{tabular}
+\caption{Firebrand-count and spatial-distribution errors for the two timestep simulation conditions.}
+\end{table}
+
+The overall decision is \textbf{\Metric{status}} and is taken directly from postprocessing.
+
+\section{Technical interpretation}
+Agreement of both totals and profiles across a timestep longer than the complete source duration demonstrates correct partial-step accounting; a discrepancy isolates temporal source integration or deposition indexing.
+
+\section{Scope and limitations}
+This case isolates emission from one prescribed source over a finite duration.
+The spatial dimensions, numerical buffer, source location, production rate,
+and duration stated above define the reproducible experiment. Agreement is
+assessed from both the emitted total and the spatial deposition distribution;
+it does not validate the source parameters against physical measurements.
+
+\begin{thebibliography}{9}
+\bibitem{Qin2025}
+Y. Qin, \emph{A Physics-Based Eulerian Framework for Modeling Firebrand
+Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire
+Simulations}, Ph.D. dissertation, University of Maryland, College Park, 2025.
+\end{thebibliography}

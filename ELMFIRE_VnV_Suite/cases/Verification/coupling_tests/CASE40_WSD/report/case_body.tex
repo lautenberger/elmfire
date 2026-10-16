@@ -1,0 +1,88 @@
+\section{Verification purpose}
+
+This coupling case verifies how ELMFIRE combines Rothermel wind and slope factors into a direction of maximum spread (DMS), head speed, and fire ellipse.  Wind direction rotates through \AngleSet{} relative to upslope while magnitudes remain fixed.  It can expose degree/radian errors, wind-from/wind-to reversal, aspect reversal, swapped raster axes, scalar addition in place of vector addition, or incorrect ellipse construction.  The question is whether all simulation conditions meet the DMS, head rate of spread (ROS), length/width, and intensity limits.
+
+\section{Mathematical formulation and numerical implementation}
+Let upslope azimuth be zero and wind-to azimuth be $\alpha$.  The dimensionless forcing vector is
+\begin{equation}\boldsymbol\phi=\phi_s(0,1)+\phi_w(\sin\alpha,\cos\alpha),\end{equation}
+so $\theta_{DMS}=\operatorname{atan2}(\phi_x,\phi_y)$ and $R_H=R_0(1+|\boldsymbol\phi|)$.  ELMFIRE derives an effective wind from $|\boldsymbol\phi|$ and uses its Rothermel length-to-width relation, capped at eight.  Because these quantities are defined on the sloping surface, the preprocessor makes the initial circle and the postprocessor measures distances in slope-surface coordinates rather than mixing them with map-plane northing.  The scalar factors follow Andrews (2018), RMRS-GTR-371; vectoring and ellipse propagation exercise ELMFIRE's level-set implementation.
+
+\section{Derivation of expected behavior}
+Aligned wind and slope add; opposed forcing subtracts in vector space and the stronger component sets direction.  At intermediate angles, the expected DMS lies between the two forcing directions, not generally at the arithmetic mean of angles.  The case-specific reference calculation independently evaluates $\phi_s$, $\phi_w$, their vector magnitude and azimuth, head ROS, effective wind, and length/width.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+Let upslope define zero azimuth and let \(\alpha\) be the generated
+wind-to-upslope angle.  With \(\phi_s=6.436561\),
+\(\phi_w=9.746235\), and \(R_0=0.9178563~\mathrm{m\,min^{-1}}\),
+the vector reference is
+\[
+ \phi_x=\phi_s+\phi_w\cos\alpha,\quad
+ \phi_y=\phi_w\sin\alpha,\quad
+ \phi=\sqrt{\phi_x^2+\phi_y^2},\quad
+ \theta=\operatorname{atan2}(\phi_y,\phi_x),\quad
+ R_h=R_0(1+\phi).
+\]
+For example, at \(\alpha=90\) degrees,
+\[\phi=\sqrt{6.436561^2+9.746235^2}=11.679829,\]
+\[\theta=\tan^{-1}(9.746235/6.436561)=56.5586\text{ degrees},\]and
+\[R_h=0.9178563(1+11.679829)=11.638261~\mathrm{m\,min^{-1}}.\]
+The effective vector wind is \(4.41571~\mathrm{mph}=1.97394~\mathrm{m\,s^{-1}}\);
+substitution in
+\(L/W=0.936e^{0.2566U}+0.461e^{-0.1548U}-0.397\)
+gives \(L/W=1.495859\).  Across
+\(\alpha=\{0,45,90,135,180\}\) degrees, the reference
+\((\theta,R_h,L/W)\) rows are
+\[
+\begin{gathered}
+ (0,15.7713,1.63745),\quad (27.3422,14.6898,1.60074),\\
+ (56.5586,11.6383,1.49586),\quad (93.7779,7.25716,1.33838),\\
+ (180,3.95566,1.20547).
+\end{gathered}
+\]
+Direction error is circular,
+\(e_\theta=\min(|\theta_m-\theta_r|,360-|\theta_m-\theta_r|)\).
+The other metrics are relative errors in \(R_h\), \(L/W\), and
+\(I_R=686.5297~\mathrm{kW\,m^{-2}}\); their maximum substitutions are
+\(e_\theta\leq5\) degrees, \(e_R\leq0.05\),
+\(e_{LW}\leq0.10\), and \(e_I\leq0.01\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+Maximum circular DMS error is \DirectionTolerance{}, maximum head-ROS relative error is 0.05, maximum length/width relative error is 0.10, and maximum intensity relative error is 0.01.  DMS is inferred from the farthest one percent of the burned footprint, subject to at least 100 burned cells and at least five farthest-front samples. Head ROS is a time of arrival (TOA) regression in a narrow predicted-axis corridor with at least ten samples. Length/width uses full-footprint slope-surface extents projected along and across the DMS. Reaction intensity is the median over valid burned cells and requires at least 90 percent coverage of that footprint. These complementary metrics distinguish direction, speed, shape, and output completeness.  Every simulation condition is required.
+
+\section{Simulation configuration and predicted outcome}
+Fuel model 2 is used on a \SI{1400}{m} square, \SI{10}{m} grid with a \SI{30}{m}-radius signed-distance ignition clipped to $[-1,1]$.  Slope is requested as 50\% and generated as the integer 27-degree value used by ELMFIRE (50.95\% effective rise/run), with upslope north; target midflame wind is \SI{4}{mph}.  Dead moistures are 5/7/9\%, live-herb moisture is 60\%, and live-woody moisture is 90\% in both every generated namelist and the independent reference calculation. Wind-from azimuth is generated so the wind-to vector has the required relative angle. Each simulation condition uses the largest conservative whole-second timestep no greater than the 5\%-of-cell target that divides the fixed 1800 s duration exactly. This retains Courant--Friedrichs--Lewy (CFL) margin and prevents a shortened final step from triggering ELMFIRE's stalled-front timestamp defect. Crown fire, spotting, WUI, stochastic wind, and acceleration are disabled.  The footprint should rotate smoothly and change head extension as the vectors move from aligned to opposed. The evaluator accepts only unique TOA and reaction-intensity rasters identified by a final dump record. A stalled-final record is accepted only when subtracting the configured meteorology interval reconstructs the 1800 s stop time within one configured timestep.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.24\textwidth}p{0.12\textwidth}p{0.32\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 1400 m square; 10 & m/cell & Whole-footprint direction and shape \\
+Fuel/slope & FM2; 50 & code / percent & Fixed slope forcing \\
+Midflame wind & 4 & mph & Fixed wind-factor magnitude \\
+Relative angles & \AngleSet & degrees & Vector-coupling sweep \\
+Time control & generated whole-second divisor; stop 1800 & s & Exact timestep multiple \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+The available results cover \CompletedVariantCount{} of \RequiredVariantCount{} simulation conditions and reports \textbf{\VerificationStatus}. The generated diagnostic is: \textit{\VerificationReason}.
+\IfFileExists{../figures/vector_response.pdf}{\begin{figure}[H]\centering\includegraphics[width=0.95\textwidth]{vector_response.pdf}\caption{Expected and measured DMS azimuth and head ROS.}\end{figure}}{}
+
+\section{Calculated metrics and verification decision}
+\begin{center}\begin{tabular}{@{}llll@{}}\toprule Metric & Limit & Calculated & Status\\\midrule\MetricRows\bottomrule\end{tabular}\end{center}
+The authoritative decision is \textbf{\VerificationStatus}.
+
+\section{Technical interpretation}
+A 180-degree error indicates a wind-from or aspect reversal.  A 90-degree error suggests swapped axes or azimuth convention.  Correct direction but excessive head speed suggests scalar addition.  Correct DMS and head speed with wrong length/width isolates effective-wind or ellipse construction.
+
+\section{Scope and limitations}
+This test uses one fuel, one slope magnitude, one wind magnitude, uniform terrain, and a single grid.  It verifies deterministic code behavior rather than observed fire shape.  Complex terrain and resolution convergence remain separate concerns.

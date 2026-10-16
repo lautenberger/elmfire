@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "case_id": "tubbs_fire",
+  "event_start_utc": "2017-10-09T04:45:00Z",
+  "comparison_time_s": 43200,
+  "comparison_time_utc": "2017-10-09T16:45:00Z",
+  "model_inputs": {
+    "source": "Tubbs_VAL.rar, received in the 3_FIRES collection identified only as 'From Dwi'",
+    "archive_namelist_sha256": "423a4077ded14508aedbb53ea7441ad9919925e2a18ab9fcf66fda0596591500",
+    "upstream_products": "unknown",
+    "provider": "unknown",
+    "acquisition_dates": "unknown",
+    "license": "unknown"
+  },
+  "analysis": {
+    "weather_bands_used": 25,
+    "weather_interval_s": 1800,
+    "wind_speed_units": "mph at 20 ft (inferred from current ELMFIRE source and archived flags)",
+    "wind_direction_units": "degrees",
+    "dead_fuel_moisture_units": "percent",
+    "topography_units": {"dem": "m (archive convention; upstream metadata absent)", "slp": "degrees", "asp": "degrees"}
+  },
+  "observation": {
+    "description": "VIIRS 375 m active-fire point detections with NASA FIRMS-compatible fields",
+    "source_attribution": "NASA FIRMS / VIIRS active-fire product inferred from field schema; exact collection, granules, download URL, acquisition date, and chain of custody are not recorded locally",
+    "source_url": "https://firms.modaps.eosdis.nasa.gov/active_fire/",
+    "product_reference_url": "https://www.earthdata.nasa.gov/data/catalog/lancemodis-vnp14img-nrt-2",
+    "crs": "EPSG:4326",
+    "geometry": "Point",
+    "comparison_cutoff_utc": "2017-10-09T16:45:00Z",
+    "files": [
+      {"relative_path": "data/viirs_observation/viirs_tubbs.cpg", "size": 5, "sha256": "3ad3031f5503a4404af825262ee8232cc04d4ea6683d42c5dd0a2f2a27ac9824"},
+      {"relative_path": "data/viirs_observation/viirs_tubbs.dbf", "size": 300690, "sha256": "7ae966daebdfc5605c11033be70b229c9d3aa10c1bec358ea45b1483de3eafe7"},
+      {"relative_path": "data/viirs_observation/viirs_tubbs.prj", "size": 145, "sha256": "a02a27b1d1982c8516d83398e85a3c8b1aef1713c13ef4d84d7bde17430c07c4"},
+      {"relative_path": "data/viirs_observation/viirs_tubbs.qix", "size": 85912, "sha256": "47c7c7343bdfd94fa90528ca7d3bd6721a6a75954fb246db2e37ff445670ec59"},
+      {"relative_path": "data/viirs_observation/viirs_tubbs.qmd", "size": 1528, "sha256": "ab6402ac07e9cdd755f95144613d5d853371c3f93b946b1f7a4c7299434409c2"},
+      {"relative_path": "data/viirs_observation/viirs_tubbs.shp", "size": 32804, "sha256": "40ce3c64ad01f7f0b2f46d3edd18ca9d4df1496abe31d95e321deae64c6570f2"},
+      {"relative_path": "data/viirs_observation/viirs_tubbs.shx", "size": 9444, "sha256": "55656c51d48ef38cf8187cca07b510d29d3ed0f64050bbf8d20798c0f94622fc"}
+    ]
+  },
+  "known_provenance_gaps": [
+    "Upstream fuel, terrain, weather, moisture, WUI, and ignition products are not identified in the received archive.",
+    "The local VIIRS files do not record the exact FIRMS collection/granules, download URL, acquisition date, filtering history, or license.",
+    "The archive contains 16 alternate modified-building rasters that are not selected by the active namelist; they remain preserved in the original RAR.",
+    "The archive does not state whether model parameters were calibrated against this event."
+  ]
+}

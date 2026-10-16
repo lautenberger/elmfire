@@ -1,0 +1,34 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=0.85in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{siunitx}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{../figures/}}
+\input{case_metadata.tex}
+\input{case_macros.tex}
+\input{technical_macros.tex}
+\input{metrics_macros.tex}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% Readable body, tables, captions, and page breaks at the final print size.
+\usepackage{array,longtable,caption,seqsplit,needspace}
+\usepackage[section]{placeins}
+\captionsetup{font=normalsize,labelfont=bf,justification=raggedright,singlelinecheck=false}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\emergencystretch}{3em}
+\newcommand{\ReadableHash}[1]{\begingroup\ttfamily\expandafter\seqsplit\expandafter{#1}\endgroup}
+\input{readability_macros.tex}
+
+\title{Case \CaseNumber: \CaseTitle}
+\input{report_style.tex}
+\begin{document}
+\maketitle
+\input{case_body.tex}
+\end{document}
+

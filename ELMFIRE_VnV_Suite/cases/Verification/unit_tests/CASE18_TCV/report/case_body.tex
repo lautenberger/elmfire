@@ -1,0 +1,94 @@
+\section{Verification purpose}
+
+This isolated-process case verifies temporal convergence of ELMFIRE's level-set propagation for a manufactured circular front. Four time grids vary the whole-second step while mesh and physical fields remain fixed. The case can expose timestep scaling errors, inconsistent final-time handling, or a nonconvergent temporal update. The question is whether all four simulation conditions complete, the fitted radius-error order is at least \(\MinimumTemporalOrder\), and the finest-step radius error is at most 0.5 m.
+
+\section{Mathematical formulation and numerical implementation}
+
+The governing equation is \(\partial_t\phi+R_0|\nabla\phi|=0\), with constant \(R_0=0.0116332~\mathrm{m\,s^{-1}}\). All simulation conditions share the same 1024-by-1024, 256 m raster grid. For a 360 s simulation, the configured time-grid counts 45, 90, 180, and 360 correspond to whole-second \(\Delta t=\{8,4,2,1\}\) s.
+
+\section{Derivation of expected behavior}
+
+The exact final radius is \(r_\star=20+(0.0116332)(360)=24.187952\) m. Define \(E_{\Delta t}=|r_A-r_\star|\). A consistent time integration has \(E_{\Delta t}\approx C(\Delta t)^p\); a least-squares slope of \(\log E_{\Delta t}\) versus \(\log\Delta t\) estimates the observed temporal order \(p\).
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The time-step simulation conditions share the manufactured reference
+\[
+ r_{\mathrm{ref}}=r_0+R_sT
+ =20+(0.0116332)(360)=24.187952~\mathrm{m}.
+\]
+For \(\Delta t_i\in\{8,4,2,1\}~\mathrm{s}\), the corresponding exact step
+counts are \(360/\Delta t_i=\{45,90,180,360\}\).  From each final raster,
+\[
+ r_i=\sqrt{\frac{N_{b,i}(0.5~\mathrm{m})^2}{\pi}},\qquad
+ E_i=|r_i-24.187952|.
+\]
+The reported temporal order is the least-squares log--log slope
+\[
+ p_t=\frac{\sum_i(\ln\Delta t_i-\overline{\ln\Delta t})
+                    (\ln E_i-\overline{\ln E})}
+              {\sum_i(\ln\Delta t_i-\overline{\ln\Delta t})^2}.
+\]
+The substituted decision tests are \(p_t\geq0.8\) and
+\(E_{\Delta t=1}=|r_1-24.187952|\leq0.5~\mathrm{m}\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+Observed \(p\) uses all four simulation conditions and is required to be at least 0.8, allowing front-raster measurement effects while demanding near-first-order convergence. Finest-step error must be no more than 0.5 m, preventing a formally favorable but inaccurate sequence. Equivalent radius is obtained from the largest closed, linearly interpolated \(\phi=0\) contour, avoiding binary cell-count bias. The last matching level-set field raster for every time grid is required. All simulation conditions and both metrics must pass; missing data is NOT EVALUABLE.
+
+\section{Simulation configuration and predicted outcome}
+
+All EPSG:32610 simulation conditions use a 256 m square domain, 0.25 m cells, uniform inputs, flat terrain, zero wind, centered 20 m signed-distance ignition, and duration 360 s. Only the time-grid control varies. The predicted circular-front radius approaches 24.187952 m as \(\Delta t\) decreases.
+
+\begin{center}\begin{tabular}{p{0.22\textwidth}p{0.22\textwidth}p{0.12\textwidth}p{0.34\textwidth}}\toprule
+Parameter & Configured value & Units & Role \\
+\midrule Domain/grid & 256 m square; 0.25 & m/cell & Fixed spatial discretization \\
+Time steps & 8, 4, 2, 1 & s & Temporal refinement sequence \\
+Stop time & 360 & s & Common exact comparison time \\
+Initial front & centered signed-distance radius 20 & m & Common exact geometry \\
+Rate & 0.0116332 & m/s & Manufactured normal speed \\
+\bottomrule\end{tabular}\end{center}
+
+Figure~\ref{fig:input-configuration} shows the prescribed spatial condition used in this experiment. The displayed field represents the initial level-set geometry or a controlling fuel, terrain, moisture, wind, or canopy quantity, as identified by the figure labels. The plotted values come from the prepared simulation inputs, not from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+Only case-specific output rasters are read. Current status is \textbf{\VerificationStatus}; \VariantCount{} simulation conditions and \MetricCount{} decision metrics are recorded.
+\begin{figure}[H]\centering
+\IfFileExists{../figures/whole_domain_result.pdf}{\includegraphics[width=0.62\textwidth]{whole_domain_result.pdf}}{\fbox{No finest-step whole-domain result is available.}}
+\quad
+\IfFileExists{../figures/convergence.pdf}{\includegraphics[width=0.62\textwidth]{convergence.pdf}}{}
+\caption{Finest-step whole-domain signed level-set result and radius-error convergence across all four completed time grids. The spatial field is dimensionless; radius errors are in metres, and the generated table supplies both acceptance limits.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Metric & Expected value or limit & Calculated value & Status \\
+\midrule
+\MetricRows
+\bottomrule
+\end{tabular}
+\end{center}
+The authoritative overall decision is \textbf{\VerificationStatus}. The generated table is sourced directly from the case-specific calculated metrics and is not recomputed in this report.
+
+\section{Technical interpretation}
+
+Low order can indicate timestep application, output-time selection, or pre-asymptotic spatial error; a small finest error alone does not establish convergence. Missing simulation conditions invalidate the fitted order and are treated as insufficient evidence.
+
+\section{Scope and limitations}
+
+This case verifies temporal behavior for one smooth deterministic front at a fixed fine mesh. It does not separate all spatial error, test adaptive timestep logic under complex forcing, or provide physical validation.
+

@@ -6,6 +6,14 @@ We want to expand the list of errors that can be caught early in the simulation.
 
 Please create issues with your errors, requests or observations so they can be worked on for the next release.
 
+## ELMFIRE 1.2
+
+### Added
+- **`DUMP_MIDFLAME_WINDSPEED` (`&OUTPUTS`)**: Added an option to output the midflame windspeed at each cell (in ft/min, without any limits applied).
+
+### Fixed
+- Fixed an omission with the input geotiff file parsing. If `USE_BSQ_XML_HEADER` was set to `FALSE`, ELMFIRE would never actually convert the .tif files to .bsq (plus sidecars). The conversion is now added. 
+
 ## ELMFIRE 1.1
 
 > Starting with this release, ELMFIRE uses semantic version numbers. Earlier builds were identified only by their compile date, which made it hard to reference or reproduce a specific version. This changelog covers all changes between ELMFIRE 1.1 and the original code this repository was forked from.

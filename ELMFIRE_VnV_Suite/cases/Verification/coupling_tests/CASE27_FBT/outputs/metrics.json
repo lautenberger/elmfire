@@ -1,0 +1,43 @@
+{
+  "case_id": "CASE27_FBT",
+  "case_title": "Case 27: Lagrangian firebrand generation and transport",
+  "overall_status": "FAIL",
+  "workflow_status": "COMPLETE",
+  "metric_count": 3,
+  "passing_metric_count": 2,
+  "variants": [
+    {
+      "label": "main",
+      "guide_case": "Firebrands",
+      "configuration": "elmfire.data.in",
+      "status": "FAIL",
+      "metrics": [
+        {
+          "name": "firebrands (cell)",
+          "target": 8450,
+          "measured": 12198.0,
+          "percent_error": 44.35502958579882,
+          "units": "-",
+          "status": "FAIL"
+        },
+        {
+          "name": "ln-distance mu",
+          "target": 2.42,
+          "measured": 2.411192950945141,
+          "percent_error": -0.36392764689499385,
+          "units": "-",
+          "status": "PASS"
+        },
+        {
+          "name": "ln-distance sigma",
+          "target": 1.31,
+          "measured": 1.3002463134482802,
+          "percent_error": -0.7445562253221236,
+          "units": "-",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "source": "ELMFIRE Guide verification section"
+}

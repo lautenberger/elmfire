@@ -1,0 +1,28 @@
+% Suite report typography. Keep a local copy for standalone portability.
+% Build with LuaLaTeX and an installed, genuine Times New Roman font family.
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage{ragged2e,titlesec,caption,etoolbox}
+\titleformat{\section}{\normalfont\bfseries\fontsize{15}{17}\selectfont\raggedright}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\fontsize{15}{17}\selectfont\raggedright}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalfont\bfseries\fontsize{15}{17}\selectfont\raggedright}{\thesubsubsection}{0.6em}{}
+\titleformat{\paragraph}[runin]{\normalfont\bfseries\fontsize{15}{17}\selectfont}{\theparagraph}{0.6em}{}
+\DeclareCaptionFont{reporttext}{\normalfont\rmfamily\fontsize{12}{14}\selectfont}
+\captionsetup{font=reporttext,labelfont=normalfont,textfont=normalfont,justification=justified,singlelinecheck=false}
+\makeatletter
+\renewcommand{\normalsize}{\@setfontsize\normalsize{12}{14}\abovedisplayskip=8pt plus 2pt minus 4pt\belowdisplayskip=8pt plus 2pt minus 4pt\abovedisplayshortskip=0pt plus 2pt\belowdisplayshortskip=5pt plus 2pt minus 2pt}
+% Tables may be compact, but never below 10 pt or scaled down as graphics.
+\renewcommand{\small}{\@setfontsize\small{10}{12}}
+\renewcommand{\footnotesize}{\@setfontsize\footnotesize{10}{12}}
+\renewcommand{\scriptsize}{\@setfontsize\scriptsize{10}{12}}
+\renewcommand{\tiny}{\@setfontsize\tiny{10}{12}}
+\renewcommand{\maketitle}{\par\begingroup\raggedright\normalfont\bfseries\fontsize{15}{17}\selectfont\@title\par\endgroup\vspace{12pt}}
+\makeatother
+\setlength{\emergencystretch}{3em}
+% Consistent article paragraphs in every standalone case and guide narrative.
+\setlength{\parindent}{15pt}
+\setlength{\parskip}{0pt plus 1pt}
+\linespread{1}
+% Body prose in individual reports and aggregate summaries is always 12 pt.
+\newcommand{\ReportBodyText}{\normalfont\normalsize\justifying}
+\AtBeginDocument{\ReportBodyText}

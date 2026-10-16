@@ -1,0 +1,35 @@
+case_id: "CASE31_PFT"
+case_title: "Case 31: Planar-front transport"
+category: "Verification/coupling_tests"
+source_provenance: "Adam Laird planar-front and fuel-break component tests"
+
+elmfire:
+  bin: "${ELMFIRE_BIN:-elmfire}"
+  config: "elmfire.data.in"
+
+variants:
+  - id: "diagonal"
+  - id: "fuel_jump"
+  - id: "fuel_jump_wind"
+  - id: "continuous_break"
+  - id: "gapped_break"
+
+postprocess:
+  metrics: "outputs/metrics.json"
+  figures:
+    - "figures/input_configuration.pdf"
+    - "figures/verification_summary.pdf"
+
+namelist_contract:
+  schema_version: 1
+  report: "report/case_body.tex"
+  files:
+    - path: "elmfire.data.in"
+      invariants:
+        OUTPUTS.DUMP_TIME_OF_ARRIVAL: true
+        SIMULATOR.NUM_IGNITIONS: 0
+        SIMULATOR.BANDTHICKNESS: 1
+        TIME_CONTROL.SIMULATION_DT: 5.0
+        TIME_CONTROL.SIMULATION_DTMAX: 5.0
+        TIME_CONTROL.SIMULATION_TSTOP: 43200.0
+        TIME_CONTROL.TARGET_CFL: 0.2

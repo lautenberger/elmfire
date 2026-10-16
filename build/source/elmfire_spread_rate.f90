@@ -84,6 +84,9 @@ DO I = 1, NUM_NODES
    RHOBEPSQIG_LIVE = FMT%RHOB * SUM(FEPSQIG(5:6))
    RHOBEPSQIG = FMT%F_DEAD * RHOBEPSQIG_DEAD + FMT%F_LIVE * RHOBEPSQIG_LIVE
 
+
+   IF (FMT%MEX_DEAD .LE. 0.) PRINT *, 'IFBFM=', C%IFBFM, ''
+
    M_DEAD    = SUM(FMC(1:4))
    MOMEX     = M_DEAD / FMT%MEX_DEAD
    MOMEX2    = MOMEX * MOMEX
@@ -105,6 +108,7 @@ DO I = 1, NUM_NODES
 !   WS_LIMIT = 96.8*C%IR**0.3333333 !Andrews, Cruz, and Rothermel (2013) limit
    WS_LIMIT = 0.9*C%IR !Original limit
    WSMF_LIMITED = MIN(C%WSMF, WS_LIMIT)
+
    C%PHIW_SURFACE = FMT%PHIWTERM * WSMF_LIMITED**FMT%B_COEFF
 
 ! Max slope factor is equal to max wind factor:
@@ -866,8 +870,11 @@ IF (PHIP(IX,IY) .GT. 0) RETURN
 TOA = TIME_OF_ARRIVAL(IX,IY)
 BURNING_TIME = T - TOA
 
-! Pre-burned cells (initial ignition zone) : no HRR transient
-IF (TOA .LE. SIMULATION_TSTART) THEN
+! Initial wildland ignition zones represent already-burning fire and therefore
+! do not replay a transient residence-time pulse.  An initially ignited WUI
+! structure, however, is a physical source whose design-fire curve must begin
+! at the simulation start; otherwise it can never emit firebrands.
+IF (TOA .LE. SIMULATION_TSTART .AND. BURNING_NODES%IFBFM .NE. 91) THEN
    BURNING_NODES%HRR_TRANSIENT = 0.
    HRR_TRANSIENT_MAP(IX,IY)    = 0.
    RETURN

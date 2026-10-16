@@ -32,15 +32,21 @@ tutorials, the input reference, and verification/validation results.
 **Start there** — it is the authoritative source for day-to-day use.
 
 * Project site and guide: [elmfire.io](https://elmfire.io/)
-* In-repo docs: [`docs/`](docs/) (getting started, tutorials, technical
-  and user reference)
+* The complete guide as a single PDF:
+  [ELMFIRE_Guide.pdf](https://elmfire.io/ELMFIRE_Guide.pdf)
 * What's new in each release: [`CHANGELOG.md`](CHANGELOG.md)
+
+Both are generated from the same LaTeX sources
+([ELMFIRE-Guide](https://github.com/nick-cloudfire/ELMFIRE-Guide)) and are
+rebuilt automatically, so the site and the PDF always match. The previous
+version of the docs is kept at [`docs/archive/`](docs/archive/).
 
 ## Quick start (Linux)
 
 Tested on a clean Ubuntu Server 24.04 install. See the
-[getting started guide](docs/getting_started.rst) for the full procedure,
-including the CloudFire data microservices used for real fuel and weather.
+[installation guide](https://elmfire.io/user_guide.html#installation) for the
+full procedure, including the CloudFire data microservices used for real fuel
+and weather.
 
 ```bash
 # 1. Install build prerequisites

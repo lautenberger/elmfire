@@ -1,0 +1,88 @@
+{
+  "case_number": "12",
+  "purpose_abbreviation": "TRS",
+  "id": "CASE12_TRS",
+  "title": "WUI Temporal-Resolution Sensitivity",
+  "summary": "Quantifies timestep sensitivity while holding the spatial grid, physical inputs, and wind-limited firebrand trajectory substep fixed.",
+  "wind_speed_mph": 40.0,
+  "physical_width_m": 100.0,
+  "structure_width_m": 10.0,
+  "firebreak_width_m": 10.0,
+  "cross_grid_width_m": 10.0,
+  "hrrpua_peak_kw_m2": 400.0,
+  "hrr_growth_end_s": 300.0,
+  "hrr_steady_end_s": 3900.0,
+  "hrr_decay_end_s": 4200.0,
+  "ember_generation_building_pcs_mw_s": 10.0,
+  "ember_generation_vegetation_pcs_mw_s": 33.3,
+  "critical_load_pcs_m2": 2928.9,
+  "small_ignition_delay_s": 42.1,
+  "development_delay_s": 300.0,
+  "history_structure_left_m": 140.0,
+  "history_structure_right_m": 150.0,
+  "dump_interval_s": 500.0,
+  "feature_keyword": "USE_RESOLUTION_INDEPENDENT_STRUCTURES",
+  "metrics": {
+    "baseline_load_mean_relative_error_max": 0.01,
+    "cfl_1_load_max_relative_error_max": 0.001,
+    "cfl_10_load_max_relative_error_max": 0.001,
+    "cfl_200_load_max_relative_error_max": 0.1,
+    "cfl_1_ignition_mean_relative_error_max": 0.001,
+    "cfl_10_ignition_mean_relative_error_max": 0.001,
+    "cfl_1_history_nrmse_max": 0.05,
+    "cfl_10_history_nrmse_max": 0.05
+  },
+  "variants": [
+    {
+      "name": "cfl0p5_dt0p28",
+      "role": "baseline",
+      "cfl_wind": 0.5,
+      "dx_m": 10.0,
+      "physical_length_m": 220.0,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 22000.0,
+      "cfl": 0.5,
+      "structure_treatment": "native_cell",
+      "requires_feature": false
+    },
+    {
+      "name": "cfl1_dt0p56",
+      "role": "cfl_1",
+      "cfl_wind": 1.0,
+      "dx_m": 10.0,
+      "physical_length_m": 220.0,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 22000.0,
+      "cfl": 1.0,
+      "structure_treatment": "native_cell",
+      "requires_feature": false
+    },
+    {
+      "name": "cfl10_dt5p59",
+      "role": "cfl_10",
+      "cfl_wind": 10.0,
+      "dx_m": 10.0,
+      "physical_length_m": 220.0,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 22000.0,
+      "cfl": 10.0,
+      "structure_treatment": "native_cell",
+      "requires_feature": false
+    },
+    {
+      "name": "cfl200_dt111p86",
+      "role": "cfl_200",
+      "cfl_wind": 200.0,
+      "dx_m": 10.0,
+      "physical_length_m": 220.0,
+      "cross_grid_width_m": 10.0,
+      "tstop_s": 22000.0,
+      "cfl": 200.0,
+      "structure_treatment": "native_cell",
+      "requires_feature": false
+    }
+  ],
+  "source_references": [
+    "Y. Qin, A Physics-Based Eulerian Framework for Modeling Firebrand Showering in Regional-Scale Wildland and Wildland--Urban Interface Fire Simulations, 2025"
+  ]
+}

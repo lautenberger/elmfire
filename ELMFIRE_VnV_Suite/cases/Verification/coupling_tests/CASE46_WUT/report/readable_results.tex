@@ -1,0 +1,40 @@
+\begin{longtable}{@{}P{0.19\textwidth}P{0.76\textwidth}@{}}
+\toprule
+\multicolumn{2}{@{}P{0.97\textwidth}@{}}{\textbf{Evidence and exact dump ledger} --- \textbf{PASS}}\\*
+Criterion & 61 rows: indices 1..61, times 0..60 s, only row 61 final \\*
+Observed & 7/7 exact; FLIN/TOA time stamp 0000060; PHI dump index d0000061 \\[0.6em]
+\midrule
+\multicolumn{2}{@{}P{0.97\textwidth}@{}}{\textbf{Source fireline-intensity setup} --- \textbf{FAIL}}\\*
+Criterion & maximum absolute error \ensuremath{\leq}0.5 kW/m and source TOA=0 s \\*
+Observed & \textit{Units: kW/m.}\newline max abs error kw m: 1001\newline all source toa zero: Yes \\[0.6em]
+\midrule
+\multicolumn{2}{@{}P{0.97\textwidth}@{}}{\textbf{Terminal PHI/TOA state consistency} --- \textbf{PASS}}\\*
+Criterion & PHI\ensuremath{\leq}0 iff TOA is finite at each designated target \\*
+Observed & contiguous below: Yes\newline contiguous equal: Yes\newline contiguous above: Yes\newline isolated d1 insufficient: Yes\newline isolated d1 sufficient: Yes\newline isolated d2 sufficient: Yes\newline zero control: Yes \\[0.6em]
+\midrule
+\multicolumn{2}{@{}P{0.97\textwidth}@{}}{\textbf{Intended W-to-U receiver heat exposure} --- \textbf{PASS}}\\*
+Criterion & positive DFC+radiation at sufficient-heat receivers \\*
+Observed & \textit{Units: kW/m2.}\newline contiguous above: 84.5208\newline isolated d1 sufficient: 61.9232 \\[0.6em]
+\midrule
+\multicolumn{2}{@{}P{0.97\textwidth}@{}}{\textbf{Intended W-to-U finite ignition delay} --- \textbf{PASS}}\\*
+Criterion & finite target TOA with delay \ensuremath{>} 0 s \\*
+Observed & \textit{Units: s.}\newline contiguous above: 49\newline isolated d1 sufficient: 51 \\[0.6em]
+\midrule
+\multicolumn{2}{@{}P{0.97\textwidth}@{}}{\textbf{Contiguous strict-threshold matrix} --- \textbf{NOT EVALUABLE}}\\*
+Criterion & below=false, equal=false, above=true \\*
+Observed & contiguous below: Yes\newline contiguous equal: Yes\newline contiguous above: Yes \\[0.6em]
+\midrule
+\multicolumn{2}{@{}P{0.97\textwidth}@{}}{\textbf{Isolated distance/threshold matrix} --- \textbf{NOT EVALUABLE}}\\*
+Criterion & d1-insufficient=false, d1-sufficient=true, d2-sufficient=false \\*
+Observed & isolated d1 insufficient: Yes\newline isolated d1 sufficient: Yes\newline isolated d2 sufficient: No \\[0.6em]
+\midrule
+\multicolumn{2}{@{}P{0.97\textwidth}@{}}{\textbf{First-update transition timing} --- \textbf{NOT EVALUABLE}}\\*
+Criterion & eligible target TOA=0 s and target-source delay=0 s \\*
+Observed & \textit{Units: s.}\newline contiguous above: target toa s: 49\newline target source delay s: 49\newline isolated d1 sufficient: target toa s: 51\newline target source delay s: 51 \\[0.6em]
+\midrule
+\multicolumn{2}{@{}P{0.97\textwidth}@{}}{\textbf{Zero-source control} --- \textbf{PASS}}\\*
+Criterion & target remains PHI\ensuremath{>}0 with nodata TOA \\*
+Observed & target phi: 0.550248\newline target toa s: Not available \\[0.6em]
+\midrule
+\bottomrule
+\end{longtable}

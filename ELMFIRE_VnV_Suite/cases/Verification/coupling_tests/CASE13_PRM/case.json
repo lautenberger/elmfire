@@ -1,0 +1,88 @@
+{
+  "case_number": "13",
+  "purpose_abbreviation": "PRM",
+  "id": "CASE13_PRM",
+  "chapter": "6",
+  "title": "WUI Parametric Response Maps",
+  "summary": "Specifies the complete 270-point design for the Chapter 6 generation-separation and generation-wind studies and evaluates ignition boundaries and ROS trends when exact single-structure outputs are available.",
+  "required_feature_keyword": "USE_RESOLUTION_INDEPENDENT_STRUCTURES",
+  "required_feature_available": false,
+  "source_adapter_implemented": false,
+  "grid_spacing_m": 2.5,
+  "domain_length_m": 220.0,
+  "domain_width_m": 100.0,
+  "structure_size_m": 10.0,
+  "baseline_separation_m": 10.0,
+  "baseline_wind_mph": 40.0,
+  "cfl": 0.5,
+  "surface_ros_m_s": 0.0,
+  "generation_rates_pcs_mw_s": [
+    5.0,
+    10.0,
+    15.0,
+    20.0,
+    25.0,
+    30.0,
+    35.0,
+    40.0,
+    45.0,
+    50.0
+  ],
+  "separation_distances_m": [
+    2.5,
+    5.0,
+    7.5,
+    10.0,
+    12.5,
+    15.0,
+    17.5,
+    20.0,
+    22.5,
+    25.0,
+    27.5,
+    30.0
+  ],
+  "wind_speeds_mph": [
+    10.0,
+    20.0,
+    30.0,
+    40.0,
+    50.0,
+    60.0,
+    70.0,
+    80.0,
+    90.0,
+    100.0,
+    110.0,
+    120.0,
+    130.0,
+    140.0,
+    150.0
+  ],
+  "results_schema": [
+    "family",
+    "generation_rate_pcs_mw_s",
+    "separation_m",
+    "wind_mph",
+    "spread_success",
+    "mean_ros_m_s"
+  ],
+  "metrics": {
+    "design_point_count": 270,
+    "result_completeness_min": 1.0,
+    "separation_threshold_spearman_min": 0.85,
+    "separation_ros_spearman_max": -0.5,
+    "generation_ros_spearman_min": 0.7,
+    "moderate_wind_range_mph": [
+      30.0,
+      120.0
+    ],
+    "wind_edge_threshold_excess_min_pcs_mw_s": 5.0,
+    "moderate_to_edge_ros_ratio_min": 1.1,
+    "ros_upper_bound_m_s": 0.08
+  },
+  "source_references": [
+    "Section 6.5, Figures 6.17 and 6.18",
+    "Qin et al., Fire Safety Journal 162 (2026) 104686, Section 3.3 and Figures 6-7"
+  ]
+}

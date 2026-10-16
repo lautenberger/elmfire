@@ -1,0 +1,13 @@
+{
+  "case_id": "CASE47_UWT",
+  "source_commit": "a2dfbcdf72209733c000e5d3431e44723e15efea",
+  "reviewed_capability": "urban-source WU-E heat causing ignition of an FBFM != 91 wildland target",
+  "supported": false,
+  "evidence": [
+    "build/source/elmfire_spread_rate.f90:600-726 accumulates heat at targets",
+    "build/source/elmfire_level_set.f90:2422-2425 selects heat-derived WU-E velocity only for IFBFM == 91",
+    "build/source/elmfire_spread_rate.f90:665-678 contains only a vegetative-source to FBFM91-target special case"
+  ],
+  "decision": "NOT EVALUABLE",
+  "note": "Embedded review evidence only; no runtime source checkout is read by this case."
+}

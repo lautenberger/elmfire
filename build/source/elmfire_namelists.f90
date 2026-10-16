@@ -4,7 +4,117 @@ USE ELMFIRE_VARS
 
 IMPLICIT NONE
 
+ABSTRACT INTERFACE
+   SUBROUTINE NML_READER(STR, IOS, MSG)
+      CHARACTER(*), INTENT(IN) :: STR
+      INTEGER, INTENT(OUT) :: IOS
+      CHARACTER(*), INTENT(INOUT) :: MSG
+   END SUBROUTINE NML_READER
+END INTERFACE
+
 CONTAINS
+
+! *****************************************************************************
+SUBROUTINE LOCATE_NAMELIST_ERROR(GROUP, ORIGMSG, TRY_READ)
+! *****************************************************************************
+! Called after a namelist read fails. The compiler's IOMSG can name the wrong
+! variable (e.g. gfortran reports "Bad data for namelist object t_ign" when an
+! unrecognized name follows an array element like T_IGN(1)), so re-read the
+! group from the input file one line at a time via TRY_READ (an internal read
+! of the same namelist group) and report the first line that makes it fail.
+
+CHARACTER(*), INTENT(IN) :: GROUP, ORIGMSG
+PROCEDURE(NML_READER) :: TRY_READ
+CHARACTER(1024) :: LINE
+CHARACTER(:), ALLOCATABLE :: BUF, CODE
+CHARACTER(256) :: MSG
+CHARACTER(16) :: LINESTR
+INTEGER :: IOS, ILINE
+LOGICAL :: FOUND, TERMINATED
+
+REWIND(LUINPUT)
+ILINE = 0
+FOUND = .FALSE.
+DO
+   READ(LUINPUT,'(A)',IOSTAT=IOS) LINE
+   IF (IOS .NE. 0) RETURN
+   ILINE = ILINE + 1
+   CALL STRIP_NML_COMMENT(LINE, CODE, TERMINATED)
+   IF (.NOT. FOUND) THEN
+      IF (INDEX(UPPER(ADJUSTL(CODE)), '&' // GROUP) .NE. 1) CYCLE
+      FOUND = .TRUE.
+      BUF = CODE
+   ELSE
+      BUF = BUF // ' ' // CODE
+   ENDIF
+
+   MSG = ''
+   CALL TRY_READ(BUF // ' /', IOS, MSG)
+   IF (IOS .GT. 0) THEN
+      WRITE(LINESTR,'(I0)') ILINE
+      WRITE(*,*) '  Problem is on line ', TRIM(LINESTR), ' of ', TRIM(NAMELIST_FN), ': ', TRIM(ADJUSTL(LINE))
+      ! Re-read the offending line on its own for a message that names the right variable
+      MSG = ''
+      CALL TRY_READ('&' // GROUP // ' ' // CODE // ' /', IOS, MSG)
+      IF (IOS .GT. 0 .AND. TRIM(MSG) .NE. TRIM(ORIGMSG)) WRITE(*,*) '  ', TRIM(MSG)
+      RETURN
+   ENDIF
+   IF (TERMINATED) RETURN
+ENDDO
+
+! *****************************************************************************
+END SUBROUTINE LOCATE_NAMELIST_ERROR
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE STRIP_NML_COMMENT(LINE, CODE, TERMINATED)
+! *****************************************************************************
+! Returns LINE with any trailing ! comment removed (quote-aware), and whether
+! the line contains the unquoted / that terminates a namelist group.
+
+CHARACTER(*), INTENT(IN) :: LINE
+CHARACTER(:), ALLOCATABLE, INTENT(OUT) :: CODE
+LOGICAL, INTENT(OUT) :: TERMINATED
+CHARACTER(1) :: QUOTE
+INTEGER :: I, N
+
+N = LEN_TRIM(LINE)
+QUOTE = ' '
+TERMINATED = .FALSE.
+DO I = 1, N
+   IF (QUOTE .NE. ' ') THEN
+      IF (LINE(I:I) .EQ. QUOTE) QUOTE = ' '
+   ELSEIF (LINE(I:I) .EQ. '''' .OR. LINE(I:I) .EQ. '"') THEN
+      QUOTE = LINE(I:I)
+   ELSEIF (LINE(I:I) .EQ. '!') THEN
+      N = I - 1
+      EXIT
+   ELSEIF (LINE(I:I) .EQ. '/') THEN
+      TERMINATED = .TRUE.
+   ENDIF
+ENDDO
+CODE = LINE(1:N)
+
+! *****************************************************************************
+END SUBROUTINE STRIP_NML_COMMENT
+! *****************************************************************************
+
+! *****************************************************************************
+FUNCTION UPPER(STR)
+! *****************************************************************************
+
+CHARACTER(*), INTENT(IN) :: STR
+CHARACTER(LEN(STR)) :: UPPER
+INTEGER :: I
+
+UPPER = STR
+DO I = 1, LEN(STR)
+   IF (STR(I:I) .GE. 'a' .AND. STR(I:I) .LE. 'z') UPPER(I:I) = ACHAR(IACHAR(STR(I:I)) - 32)
+ENDDO
+
+! *****************************************************************************
+END FUNCTION UPPER
+! *****************************************************************************
 
 ! *****************************************************************************
 SUBROUTINE READ_MISC
@@ -32,6 +142,7 @@ SCRATCH                        = 'null'
 READ(LUINPUT,NML=MISCELLANEOUS,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &MISCELLANEOUS namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('MISCELLANEOUS', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
 
@@ -72,6 +183,15 @@ IF (SCRATCH .NE. 'null') THEN
    SCRATCH = TRIM(SCRATCH) // PATH_SEPARATOR
 ENDIF
 
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=MISCELLANEOUS,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
+
 ! *****************************************************************************
 END SUBROUTINE READ_MISC
 ! *****************************************************************************
@@ -104,8 +224,18 @@ SMOLDERING_TIME                = 3600
 READ(LUINPUT,NML=SMOKE,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &SMOKE namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('SMOKE', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
+
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=SMOKE,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
 
 ! *****************************************************************************
 END SUBROUTINE READ_SMOKE
@@ -216,6 +346,7 @@ DAILY_WEATHER_FILENAME         = ' '
 READ(LUINPUT,NML=INPUTS,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &INPUTS namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('INPUTS', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
 
@@ -265,6 +396,15 @@ ENDDO
 
 CLOSE(LUAUXINPUT)
 
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=INPUTS,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
+
 ! *****************************************************************************
 END SUBROUTINE READ_INPUTS
 ! *****************************************************************************
@@ -286,7 +426,7 @@ CONVERT_TO_GEOTIFF, DTDUMP, DUMP_AFFECTED_LAND_VALUE, DUMP_AFFECTED_POPULATION, 
 DUMP_BINARY_OUTPUTS, DUMP_CROWN_FIRE, DUMP_CRITICAL_FLIN, DUMP_EMBER_FLUX, DUMP_CROWN_FIRE_AREA, DUMP_EMITIMES, &
 DUMP_FIRE_SIZE_STATS, DUMP_FIRE_VOLUME, DUMP_FLAME_LENGTH, DUMP_FLIN, DUMP_HOURLY_RASTERS, &
 DUMP_HPUA, DUMP_PHI, &
-DUMP_REACTION_INTENSITY, &
+DUMP_REACTION_INTENSITY, DUMP_MIDFLAME_WINDSPEED, &
 DUMP_SPREAD_RATE, SPREAD_RATE_IN_M, DUMP_SPREAD_DIRECTION, DUMP_SURFACE_FIRE, DUMP_SURFACE_FIRE_AREA, DUMP_TAGGED, DUMP_TIME_OF_ARRIVAL, DUMP_TIMINGS, &
 DUMP_TRANSIENT_ACREAGE, DUMP_VELOCITY, DUMP_WD20, DUMP_CFFDRS_DEBUG, DUMP_WS20, EMBER_COUNT_BIN_LO, EMBER_COUNT_BIN_HI, &
 FULL_BINARY_OUTPUTS, NUM_EMBER_COUNT_BINS, NUM_VIRTUAL_STATIONS, &
@@ -323,7 +463,8 @@ DUMP_FLIN                         = .FALSE.
 DUMP_HOURLY_RASTERS               = .FALSE.
 DUMP_HPUA                         = .FALSE.
 DUMP_PHI                          = .FALSE. 
-DUMP_REACTION_INTENSITY           = .FALSE. 
+DUMP_REACTION_INTENSITY           = .FALSE.
+DUMP_MIDFLAME_WINDSPEED           = .FALSE. 
 DUMP_SPREAD_RATE                  = .FALSE. 
 DUMP_SPREAD_DIRECTION             = .FALSE.
 DUMP_SURFACE_FIRE                 = .FALSE. 
@@ -368,6 +509,7 @@ DUMP_EMBER_IGNITION               = .FALSE.
 READ(LUINPUT,NML=OUTPUTS,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &OUTPUTS namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('OUTPUTS', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
 
@@ -384,6 +526,15 @@ DEALLOCATE (TIME_AT_BURNED_ACRES)
 ALLOCATE(TIME_AT_BURNED_ACRES(1:NUM_TIME_AT_BURNED_ACRES))
 TIME_AT_BURNED_ACRES=TABA(1:NUM_TIME_AT_BURNED_ACRES)
 DEALLOCATE(TABA)
+
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=OUTPUTS,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
 
 ! *****************************************************************************
 END SUBROUTINE READ_OUTPUTS
@@ -436,8 +587,18 @@ USE_DIURNAL_ADJUSTMENT_FACTOR = .FALSE.
 READ(LUINPUT,NML=TIME_CONTROL,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &TIME_CONTROL namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('TIME_CONTROL', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
+
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=TIME_CONTROL,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
 
 ! *****************************************************************************
 END SUBROUTINE READ_TIME_CONTROL
@@ -505,6 +666,7 @@ PERTURB_WIND_SPEED_FLUCTUATION_INTENSITY     = .FALSE.
 READ(LUINPUT,NML=MONTE_CARLO,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &MONTE_CARLO namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('MONTE_CARLO', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
 
@@ -596,6 +758,15 @@ ENDIF
 
 200 FORMAT(A, I9)
 
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=MONTE_CARLO,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
+
 ! *****************************************************************************
 END SUBROUTINE READ_MONTE_CARLO
 ! *****************************************************************************
@@ -665,8 +836,18 @@ Y_LINE_IGN_END(:) = -1
 READ(LUINPUT,NML=SIMULATOR,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &SIMULATOR namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('SIMULATOR', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
+
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=SIMULATOR,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
 
 ! *****************************************************************************
 END SUBROUTINE READ_SIMULATOR
@@ -706,8 +887,18 @@ HRR_ELLIPSE_ADJ                       = 0.5
 READ(LUINPUT,NML=WUI,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &WUI namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('WUI', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
+
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=WUI,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
 
 ! *****************************************************************************
 END SUBROUTINE READ_WUI
@@ -807,6 +998,7 @@ USE_CROSSWIND_DISTRIBUTION                = .FALSE.
 READ(LUINPUT,NML=SPOTTING,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &SPOTTING namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('SPOTTING', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
 
@@ -817,6 +1009,15 @@ ELSE
 ENDIF
 
 ALLOCATE (SPOTTING_STATS(1:EMBER_TRACKER_SIZE))
+
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=SPOTTING,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
 
 ! *****************************************************************************
 END SUBROUTINE READ_SPOTTING
@@ -885,8 +1086,18 @@ ENDIF
 
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &SUPPRESSION namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('SUPPRESSION', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
+
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=SUPPRESSION,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
 
 ! *****************************************************************************
 END SUBROUTINE READ_SUPPRESSION
@@ -926,8 +1137,18 @@ ENDIF
 READ(LUINPUT,NML=CALIBRATION,IOSTAT=IOS,IOMSG=IOSMSG)
 IF (IOS > 0) THEN
    WRITE(*,*) 'Error reading &CALIBRATION namelist group: ', TRIM(IOSMSG)
+   CALL LOCATE_NAMELIST_ERROR('CALIBRATION', IOSMSG, TRY_READ_NML)
    STOP
 ENDIF
+
+CONTAINS
+
+SUBROUTINE TRY_READ_NML(STR, IERR, EMSG)
+CHARACTER(*), INTENT(IN) :: STR
+INTEGER, INTENT(OUT) :: IERR
+CHARACTER(*), INTENT(INOUT) :: EMSG
+READ(STR,NML=CALIBRATION,IOSTAT=IERR,IOMSG=EMSG)
+END SUBROUTINE TRY_READ_NML
 
 ! *****************************************************************************
 END SUBROUTINE READ_CALIBRATION

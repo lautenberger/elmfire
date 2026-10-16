@@ -1,0 +1,150 @@
+\section{Verification purpose}
+
+This coupled-process case verifies the transient wildland--urban interface (WUI) heat-flux pathway that combines the building-spread ellipse, a piecewise design-fire heat-release curve, direct-flame-contact (DFC) transfer, radiative transfer, and transient raster output. It exercises the \texttt{WUI} namelist, WUI state updates in ELMFIRE level-set formulation, and transient output branches in ELMFIRE output procedure. It can expose wind-angle, ellipse-geometry, time-curve, cell-normalization, heat-partition, or output-indexing errors. Wildland fuel, crown fire, spotting, and suppression are not decision observables. This is algorithm verification against a separately evaluated documented formulation, not physical validation. The question is whether the prepared case retains exactly one active WUI source, all required transient heat-release rate (HRR) per unit area (HRRPUA), DFC, and radiation stacks exist, and each energy-normalized error is no greater than 0.005.
+
+\section{Mathematical formulation and numerical implementation}
+
+Wind speed is converted from mph to SI as \(V=0.447V_{\rm mph}\). For configured building area \(A\), separation \(D\), and wind proportionality \(W_p\), the selected Hamada-style regression produces downwind, upwind, and sidewind distances \(D_d,D_u,D_s\). Coefficients differ for \(V<10\), \(10\le V\le17.3\), and \(V>17.3~\mathrm{m\,s^{-1}}\); this case uses \(15~\mathrm{mph}=6.705~\mathrm{m\,s^{-1}}\), so it exercises the low-wind linear branch. The translated ellipse has
+\[
+ a=(D_d+D_u)/2,\qquad e=\min(a/2,a-D_u),\qquad
+ b=D_s/\sqrt{1-(e/a)^2}.
+\]
+For target direction \(\theta_f\), its boundary distance is
+\[
+ R_e(\theta_f)=
+ \frac{0.3D_d(a-e)}{b^2}\frac{b^2}{a-e\cos\theta_f},
+ \quad
+ \theta_f=\operatorname{atan2}(y,x)-\pi(270-WD)/180,
+\]
+which preserves the meteorological wind-from convention.
+
+For burning time \(\tau\), the design fire rises linearly to \(H_p\) at \(t_e\), remains at \(H_p\) through \(t_d\), decays linearly to zero at \(t_c\), and is zero thereafter:
+\[
+H(\tau)=
+\begin{cases}
+H_p\tau/t_e,&0\le\tau\le t_e,\\
+H_p,&t_e<\tau\le t_d,\\
+H_p(\tau-t_c)/(t_d-t_c),&t_d<\tau\le t_c,\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+Cell coverage is \(C_D=\operatorname{clip}[(R_e+\Delta/2-R)/\Delta,0,1]\).
+With configured ellipse scale \(\eta=0.5\), \(C_H=\Delta^2/[\pi(\eta a)(\eta b)]\), burnable fraction \(C_b\), absorptivity \(\alpha\), radiation-annulus fraction \(F_r\), and effective separation \(R_{\rm eff}\),
+\[
+ q''_{\DFC}=C_bC_DHC_H,\qquad
+ q''_{\rm rad}=\frac{0.3C_b\alpha F_r C_HH\Delta^2}{4\pi R_{\rm eff}^2}.
+\]
+The case-specific reference functions evaluate these equations independently at the timestamps emitted by ELMFIRE.
+
+\section{Derivation of expected behavior}
+
+The configured constants are \(A=D=10\) m, \(W_p=1\), \(\eta=0.5\), \(\Delta=20\) m, \(WD=0^\circ\), \(H_p=400~\mathrm{kW\,m^{-2}}\), \(t_e=300\) s, \(t_d=3900\) s, and \(t_c=4200\) s. The generated adjustment field is uniformly zero, so the center WUI structure cannot ignite a secondary level-set source. Because the current executable generic stalled-front shortcut does not account for an active WUI design-fire curve, one point ignition is configured at the center for \(t=5001\) s, strictly after the \(5000\) s stop. It is never applied; its only role is to keep that shortcut inactive while the prescribed curve is sampled. Substitution into the low-wind regression fixes one time-independent ellipse. At each timestamp, the piecewise equation fixes HRRPUA; the ellipse and coverage equations then fix each cell in the 11-by-11 audit window. DFC is confined to covered cells and scales with \(H\); radiation occupies the outer annulus and decays with \(R_{\rm eff}^{-2}\). This reference depends on configured constants and timestamps, not on simulated heat-flux values.
+
+% BEGIN EXPLICIT METRIC DERIVATION
+The analytical history is evaluated with the generated constants
+\(A=D=10~\mathrm{m}\), \(W_p=1\), \(\eta=0.5\),
+\(H_p=400~\mathrm{kW\,m^{-1}}\), and
+\((t_e,t_d,t_c)=(300,3900,4200)~\mathrm{s}\).  Thus the prescribed
+triangular heat-release history is
+\[
+ H(t)=\begin{cases}
+ 400t/300,&0\leq t<300,\\
+ 400,&300\leq t<3900,\\
+ 400(4200-t)/300,&3900\leq t\leq4200,\\
+ 0,&t>4200,
+ \end{cases}
+\]
+so, for example, \(H(150)=200\), \(H(300)=H(3900)=400\),
+\(H(4050)=200\), and \(H(4200)=0~\mathrm{kW\,m^{-1}}\).
+For the generated \(15~\mathrm{mph}\) wind,
+\(U=15(0.44704)=6.7056~\mathrm{m\,s^{-1}}\).  Substitution in the
+case's UCB ellipse equations gives
+\(a=76.2593~\mathrm{m}\), \(b=24.8916~\mathrm{m}\),
+\(e=35.6487~\mathrm{m}\), downwind reach
+\(D_d=a+e=111.9080~\mathrm{m}\), upwind reach
+\(D_u=a-e=40.6106~\mathrm{m}\), and lateral reach
+\(D_s=22.0044~\mathrm{m}\).  Each reported history error uses
+\[
+ E_1(q)=\frac{\sum_k|q_{\mathrm{sim},k}-q_{\mathrm{ref},k}|}
+              {\sum_k|q_{\mathrm{ref},k}|},
+\]
+with \(q\) equal to heat release rate, dry-fuel consumption, or radiation.
+The exact-reference substitution is \(E_1(q)=0\), and each component is
+accepted when \(E_1(q)\leq0.005\).
+% END EXPLICIT METRIC DERIVATION
+
+\section{Verification metrics and acceptance criteria}
+
+For each observable \(X\),
+\[
+ E_1(X)=\frac{\sum_{t,i,j}|X_{\rm ELMFIRE}-X_{\rm ref}|}
+                   {\sum_{t,i,j}|X_{\rm ref}|}.
+\]
+HRRPUA uses the center cell; DFC and radiation use the documented 11-by-11 window, restored to mathematical \(+y\) orientation. Mutually masked, nodata, and nonfinite samples are excluded. Energy-normalized \(L_1\) error is selected instead of pointwise relative error because the reference is exactly zero over much of space--time; division by those zeros amplifies irrelevant roundoff. It detects both amplitude and footprint errors. Required outputs are the time-resolved heat-release rate, convective heat flux, and radiative heat flux. Their sequential output indices are mapped to physical seconds using the unique record of output times. A 0.5 percent limit allows single-precision raster serialization and cell-selection roundoff while remaining much smaller than a one-cell or coefficient error. All stacks and metrics are required, including one terminal record at 5000 s and dumps spanning growth, plateau, decay, and post-decay. Before evaluation, every nonzero HRR raster must contain exactly the center cell; a second active source makes the single-source experiment NOT EVALUABLE. PASS requires that isolation invariant and all \(E_1\le\WUIErrorTolerance\). Missing or incompatible outputs are NOT EVALUABLE.
+
+\section{Simulation configuration and predicted outcome}
+
+The Courant--Friedrichs--Lewy (CFL) number measures the distance
+advected during one timestep relative to the grid spacing and
+constrains the time discretization.
+
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}\toprule
+Parameter & Value & Units & Isolation role\\\midrule
+Domain raster & \(20\times20\) cells & -- & centered WUI source and audit window\\
+Analysis cell & 20 & m & matches reference discretization\\
+Wind & 15 at \(0^\circ\) from & mph, degree & low-wind ellipse branch\\
+Building area / separation & 10 / 10 & m & fixes regression geometry\\
+Nonburnable fraction & 0 & -- & removes availability scaling ambiguity\\
+Ellipse HRR scale \(\eta\) & 0.5 & -- & fixes current normalization\\
+Spread adjustment & 0 & -- & prevents all secondary propagation\\
+Ignition & center PHI cell only & -- & the sole physical source\\
+Terminal guard & center at 5001 & s & after stop; never ignites\\
+Design-fire times & 300 / 3900 / 4200 & s & rise, plateau, decay\\
+Peak HRRPUA & 400 & \(\mathrm{kW\,m^{-2}}\) & reference amplitude\\
+Initial/maximum timestep & 1 / 10 & s & whole-second, CFL-limited stepping\\
+Output interval / stop & 100 / 5000 & s & exact stop-time alignment and all phases\\
+\bottomrule\end{tabular}
+\end{center}
+The predicted HRRPUA rises, plateaus, decays, and becomes zero. Pre-run isolation requires exactly one active HRR cell at every nonzero dump; DFC and radiation therefore come only from the center structure. DFC follows the fixed wind-aligned footprint; radiation surrounds it and both fields scale with HRRPUA.
+
+Figure~\ref{fig:input-configuration} is generated mechanically from the prescribed input fields. It identifies the prescribed physical input field and representative simulation condition; the left panel shows the generated zero spread-adjustment field that enforces source isolation, and the right panel shows the cells selected by the non-positive initial level-set field. No values in this figure are redrawn or inferred from the expected response.
+
+\begin{figure}[H]
+  \centering
+  \IfFileExists{../figures/input_configuration.pdf}{%
+    \includegraphics[width=0.98\textwidth,height=0.46\textheight,keepaspectratio]{input_configuration.pdf}%
+  }{\fbox{\parbox{0.88\textwidth}{Prepared-input evidence is unavailable. The prescribed configuration is described in the text; this absence does not establish that it was simulated.}}}
+  \caption{Prepared input conditions from the prescribed spatial fields. Coordinates are in metres; the colorbar identifies the displayed field and its physical units or category. The ignition panel is derived directly from \(\phi\leq0\).}
+  \label{fig:input-configuration}
+\end{figure}
+
+\section{Actual simulation results}
+
+Only case-specific ELMFIRE GeoTIFFs are used. Current status is \textbf{\VerificationStatus}; \PassingMetricCount{} of \MetricCount{} comparison components pass.
+\begin{figure}[H]\centering
+\IfFileExists{../figures/whole_domain_result.pdf}{\includegraphics[width=0.46\textwidth]{whole_domain_result.pdf}}{\fbox{No case-specific WUI field is available.}}
+\IfFileExists{../figures/verification_summary.pdf}{\includegraphics[width=0.98\textwidth]{verification_summary.pdf}}{}
+\caption{Peak whole-domain DFC heat flux in kW m$^{-2}$ and transient reference-versus-ELMFIRE histories for HRRPUA, DFC, and radiation. All panels are generated from the required case-specific transient GeoTIFF stacks; the histories show every selected output time and the spatial panel shows the maximum-domain-sum DFC output.}
+\end{figure}
+
+\section{Calculated metrics and verification decision}
+
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}\toprule
+Metric & Expected value or limit & Calculated value & Status\\\midrule
+\MetricRows
+\bottomrule\end{tabular}
+\end{center}
+The authoritative decision is \textbf{\VerificationStatus}. The generated table is sourced directly from the case-specific calculated metrics.
+
+\section{Technical interpretation}
+
+The \VerificationStatus{} decision follows the three generated error components after enforcing the single-source invariant. An HRRPUA-only failure implicates burning-time or transient-curve evaluation. A DFC failure with correct HRRPUA implicates ellipse coverage, configured \(\eta\) normalization, orientation, or raster slicing. A radiation-only failure narrows the issue to annulus partitioning, effective distance, or absorptivity. Similar DFC and radiation errors with correct shapes suggest common normalization. A second HRR source is a case-configuration failure and is NOT EVALUABLE; incomplete phase coverage, a nonterminal 5000 s record, or missing output is likewise insufficient evidence, never a pass. The post-stop ignition is a documented workaround for the executable stalled-front shortcut and is outside the verified physical interval.
+
+\section{Scope and limitations}
+
+This case verifies one deterministic WUI parameter set, one wind-regression branch, one raster resolution, and three transient outputs. It does not verify moderate/high-wind branches, parameter rasters, heterogeneous layouts, structure-to-structure ignition, or empirical validity of the correlations. It supplies implementation-verification evidence only.
+

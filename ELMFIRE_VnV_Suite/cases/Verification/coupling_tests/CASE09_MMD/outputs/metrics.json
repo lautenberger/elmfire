@@ -1,0 +1,72 @@
+{
+  "case_id": "CASE09_MMD",
+  "status": "pass",
+  "verification_passed": "PASS",
+  "required_variants": 2,
+  "completed_variants": 2,
+  "surface_ros_reference_mps": "0.577",
+  "surface_dominated_toa_mean_relative_error": "0.043",
+  "surface_dominated_toa_status": "PASS",
+  "surface_dominated_mean_ros_mps": "0.578",
+  "surface_dominated_ros_relative_error": "0.001",
+  "surface_dominated_ros_status": "PASS",
+  "surface_dominated_ember_ignition_cells": 0,
+  "surface_dominated_ignition_status": "PASS",
+  "mixed_mode_mean_ros_mps": "1.006",
+  "mixed_mode_ros_ratio_to_surface": "1.743",
+  "mixed_mode_ros_status": "PASS",
+  "mixed_mode_ember_ignition_cells": 64,
+  "mixed_mode_ignition_status": "PASS",
+  "mixed_mode_leading_edge_gain_m": "55.746",
+  "mixed_mode_edge_gain_status": "PASS",
+  "mixed_mode_acceleration_onset_s": "170.0",
+  "mixed_mode_onset_status": "PASS",
+  "paired_median_toa_lead_s": "63.861",
+  "paired_toa_status": "PASS",
+  "notes": "All metrics were calculated from the two actual ELMFIRE variant outputs; the surface reference is the Rothermel ROS read from the surface-dominated variant VS raster.",
+  "limits": {
+    "surface_dominated_toa_mean_relative_error_max": 0.1,
+    "surface_dominated_ros_relative_error_max": 0.1,
+    "surface_dominated_ember_ignition_cells_max": 0,
+    "mixed_mode_ember_ignition_cells_min": 1,
+    "mixed_mode_ros_ratio_to_surface_min": 1.1,
+    "mixed_mode_leading_edge_gain_m_min": 20.0,
+    "mixed_mode_acceleration_onset_s_range": [
+      120.0,
+      220.0
+    ],
+    "paired_median_toa_lead_s_min": 20.0
+  },
+  "variant_outputs": {
+    "surface_dominated": {
+      "name": "surface_dominated",
+      "variant_label": "surface-dominated variant",
+      "complete": true,
+      "selected_files": {
+        "toa": "time_of_arrival_0000001_0000450.tif",
+        "vs": "vs_0000001_0000450.tif",
+        "embers": "ember_flux_0000001_0000450.tif",
+        "ember_ignition": "ember_ignition_0000001_0000450.tif"
+      },
+      "ember_ignition_cells": 0,
+      "mean_ros_mps": 0.5777207011717328,
+      "rothermel_ros_mps": 0.5770151672363282,
+      "fit_cells": 22
+    },
+    "mixed_mode": {
+      "name": "mixed_mode",
+      "variant_label": "mixed-mode variant",
+      "complete": true,
+      "selected_files": {
+        "toa": "time_of_arrival_0000001_0000300.tif",
+        "vs": "vs_0000001_0000300.tif",
+        "embers": "ember_flux_0000001_0000300.tif",
+        "ember_ignition": "ember_ignition_0000001_0000300.tif"
+      },
+      "ember_ignition_cells": 64,
+      "mean_ros_mps": 1.0058969920563006,
+      "rothermel_ros_mps": 0.5770151672363282,
+      "fit_cells": 19
+    }
+  }
+}

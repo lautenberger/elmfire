@@ -1,0 +1,35 @@
+{
+  "case_id": "CASE22_VSL",
+  "case_title": "Case 22: Spread across opposing valley slopes",
+  "overall_status": "PASS",
+  "workflow_status": "COMPLETE",
+  "metric_count": 2,
+  "passing_metric_count": 2,
+  "variants": [
+    {
+      "label": "main",
+      "guide_case": "Valley",
+      "configuration": "elmfire.data.in",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "head ROS (5 deg, east)",
+          "target": 1.92,
+          "measured": 1.9235409498214722,
+          "percent_error": 0.1844244698683458,
+          "units": "m/min",
+          "status": "PASS"
+        },
+        {
+          "name": "head ROS (15 deg, west)",
+          "target": 5.37,
+          "measured": 5.373664379119873,
+          "percent_error": 0.06823797243711248,
+          "units": "m/min",
+          "status": "PASS"
+        }
+      ]
+    }
+  ],
+  "source": "ELMFIRE Guide verification section"
+}

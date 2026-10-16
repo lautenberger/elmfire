@@ -1,0 +1,49 @@
+{
+  "case_number": "04",
+  "purpose_abbreviation": "STI",
+  "id": "CASE04_STI",
+  "chapter": "4 and 5",
+  "title": "Steady Transport and Immediate Ignition",
+  "summary": "Combines the steady transport-discretization and no-ignition-delay tests in two controlled variants.",
+  "accumulation_aggregation": "plot centre-row pixel counts normalized by dx times the represented 1 m strip width; retain the all-row domain sum as a conservation diagnostic",
+  "physical_length_m": 500.0,
+  "physical_width_m": 100.0,
+  "cell_size_m": 10.0,
+  "buffer_cells": 2,
+  "wind_speed_mps": 6.71,
+  "wind_speed_mph": 15.0,
+  "wind_direction_deg": 270.0,
+  "transport_cfl": 0.5,
+  "variants": [
+    {
+      "name": "transport_impulse",
+      "variant_label": "transport-impulse variant",
+      "tstop_s": 100.0,
+      "generation_model": "PER-AREA",
+      "no_surface_fire": true,
+      "physical_spotting_duration": false,
+      "ember_gr": 10.0
+    },
+    {
+      "name": "wildland_no_delay",
+      "variant_label": "immediate-ignition variant",
+      "tstop_s": 100.0,
+      "generation_model": "PER-MW",
+      "no_surface_fire": false,
+      "physical_spotting_duration": true,
+      "ember_gr_per_mw_1m": 33.3
+    }
+  ],
+  "acceptance": {
+    "toa_mean_relative_error_max": 0.1,
+    "toa_max_relative_error_max": 0.25,
+    "leading_edge_normalized_rmse_max": 0.1,
+    "mean_ros_relative_error_max": 0.1,
+    "accumulation_relative_error_max": 0.1,
+    "minimum_accumulation_reference_cells": 2,
+    "minimum_toa_cells": 2
+  },
+  "source_references": [
+    "Tests 4-1 and 5-1"
+  ]
+}

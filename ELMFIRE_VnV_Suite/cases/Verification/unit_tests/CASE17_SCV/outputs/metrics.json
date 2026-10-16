@@ -1,0 +1,55 @@
+{
+  "case_id": "CASE17_SCV",
+  "overall_status": "FAIL",
+  "verification_passed": false,
+  "required_outputs_complete": true,
+  "expected_radius_m": 24.187952,
+  "variants": [
+    {
+      "resolution": 128,
+      "dx_m": 2.0,
+      "radius_m": 24.46267794816202,
+      "absolute_error_m": 0.2747259481620219,
+      "source": "data/128/outputs/phi_0000001_d0000006.tif"
+    },
+    {
+      "resolution": 256,
+      "dx_m": 1.0,
+      "radius_m": 24.447865975397573,
+      "absolute_error_m": 0.25991397539757344,
+      "source": "data/256/outputs/phi_0000001_d0000006.tif"
+    },
+    {
+      "resolution": 512,
+      "dx_m": 0.5,
+      "radius_m": 24.41664767060875,
+      "absolute_error_m": 0.22869567060875085,
+      "source": "data/512/outputs/phi_0000001_d0000006.tif"
+    },
+    {
+      "resolution": 1024,
+      "dx_m": 0.25,
+      "radius_m": 24.367048478067908,
+      "absolute_error_m": 0.1790964780679083,
+      "source": "data/1024/outputs/phi_0000001_d0000006.tif"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "observed spatial order",
+      "expected": 0.8,
+      "calculated": 0.20363737958209976,
+      "units": "-",
+      "tolerance": ">= threshold",
+      "status": "FAIL"
+    },
+    {
+      "name": "finest-grid radius error",
+      "expected": 0.0,
+      "calculated": 0.1790964780679083,
+      "units": "m",
+      "tolerance": "<= 1",
+      "status": "PASS"
+    }
+  ]
+}
