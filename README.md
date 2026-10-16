@@ -99,19 +99,7 @@ The mathematical formulation of ELMFIRE is described in its
 
 ## License
 
-ELMFIRE is released by CloudFire, Inc. under the
-[GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.html)
-with the [Commons Clause](https://commonsclause.com/), which withholds the
-right to sell the software.
-
-Academic research, personal projects, government agencies fulfilling public
-mandates, and nonprofit organizations acting for their stated nonprofit
-purposes may use ELMFIRE under those terms. Commercial use requires a separate
-commercial license.
-
-See [`LICENSE.md`](LICENSE.md) and
-[`COMMERCIAL_LICENSE.md`](COMMERCIAL_LICENSE.md) for the governing terms; the
-summary above is not a substitute for them.
+ELMFIRE is licensed subject to the "Commons Clause" License Condition v1.0. See [`LICENSE.md`](LICENSE.md) for the applicable terms.
 
 ## Support
 
