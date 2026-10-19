@@ -315,7 +315,7 @@ DO IEMBER = 1, NUM_EMBERS
       LOW  = LOGNORM_CDF(0.0, MU_DIST, SIGMA_DIST)
       HIGH = LOGNORM_CDF(X_MAX+CELLSIZE_ELM*0.5, MU_DIST, SIGMA_DIST)
       R0   = R0 * (HIGH - LOW) + LOW
-      R0 = max(0.0001, min(R0, 1)) ! protects against R0=0 errors that break the next line
+      R0 = max(0.0001, min(R0, 1.0)) ! protects against R0=0 errors that break the next line
       SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV_LOCAL(2.*R0-1.) + MU_DIST)
       SPOTTING_DISTANCE_FULL = SPOTTING_DISTANCE  ! rigorous distance, before cell quantization
       SPOTTING_DISTANCE = NINT(SPOTTING_DISTANCE/CELLSIZE_ELM)*CELLSIZE_ELM
@@ -324,7 +324,7 @@ DO IEMBER = 1, NUM_EMBERS
       ! range (rather than the truncated-polynomial ERFINV on the upper tail, which loses
       ! accuracy as its argument approaches 1) keeps the sampled lognormal symmetric and
       ! accurate at the long-distance edge.
-      R0 = max(0.0001, min(R0, 1)) ! protects against R0=0 errors that break the next line
+      R0 = max(0.0001, min(R0, 1.0)) ! protects against R0=0 errors that break the next line
       SPOTTING_DISTANCE = EXP(SQRT(2.) * SIGMA_DIST * ERFINV_LOCAL(2.*R0-1.) + MU_DIST)
       SPOTTING_DISTANCE_FULL = SPOTTING_DISTANCE
    ENDIF
@@ -452,7 +452,7 @@ DO IEMBER = 1, NUM_EMBERS
       ! Add crosswind direction distribution
       IF (USE_CROSSWIND_DISTRIBUTION) THEN
          CALL RANDOM_NUMBER(R0)
-         R0 = max(0.0001, min(R0, 1)) ! protects against R0=0 errors that break the next line
+         R0 = max(0.0001, min(R0, 1.0)) ! protects against R0=0 errors that break the next line
          CROSSWIND_DEVIATION = SQRT_2 * ERFINV_LOCAL(2.0*R0-1.0) * SIGMA_CROSSWIND_LOCAL + MU_CROSSWIND_LOCAL
          UWIND_ABS = NORM2(UWIND(1:2))
          INV_UWIND_TIMES_CROSSWIND_DEVIATION = CROSSWIND_DEVIATION/MAX(1E-6,UWIND_ABS)
