@@ -13,6 +13,11 @@ Please create issues with your errors, requests or observations so they can be w
 
 ### Fixed
 - Fixed an omission with the input geotiff file parsing. If `USE_BSQ_XML_HEADER` was set to `FALSE`, ELMFIRE would never actually convert the .tif files to .bsq (plus sidecars). The conversion is now added. 
+- Fixed a bug with using barriers with multiple cores (thanks tsaltiel).
+- Fixed a bug with extended attack when the wildfire spread rate was too slow (thanks tsaltiel).
+- Fixed a bug with the suppression model where old parts of the code were ported over without pointer conversion (thanks tsaltiel).
+- Added a print statement to catch when fuel exists in the landscape that is not present in the fuel model csv file. We should add a more robust check earlier in the code in the future.
+- Fixed a bug in the firebrand submodule where sometimes an out-of-bounds value was parsed in an inverse error function causing an error. The value is now hard-bounded (thanks jasonmamy)
 
 ## ELMFIRE 1.1
 
