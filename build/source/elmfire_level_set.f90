@@ -48,11 +48,13 @@ REAL :: SURFACE_ACCELERATION_FACTOR, F_METEOROLOGY, R0, TAU, ACRES, ACRES_SDI, E
 REAL(8) :: TOTALENERGY, T, T_LAST_EXTENDED_ATTACK, T_LAST_INTERPOLATE_M1, T_LAST_INTERPOLATE_M10, T_LAST_INTERPOLATE_M100, &
         T_LAST_INTERPOLATE_MLH, T_LAST_INTERPOLATE_MLW, T_LAST_INTERPOLATE_FMC, T_LAST_INTERPOLATE_WIND, &
         T_LAST_WIND_FLUCTUATIONS
+INTEGER :: LAST_BUI_BAND, CURRENT_BUI_BAND, LAST_GCF_BAND, CURRENT_GCF_BAND
 
 REAL, SAVE :: ACRES_PER_PIXEL, RCELLSIZE, HALFRCELLSIZE, TSTOP
 REAL, ALLOCATABLE, SAVE, DIMENSION(:) :: X,Y
 REAL, POINTER, DIMENSION(:,:), SAVE :: M1_LO, M1_HI, M10_LO, M10_HI, M100_LO, M100_HI, WS20_LO, WS20_HI, &
                                        WD20_LO, WD20_HI, MLH_LO, MLH_HI, MLW_LO, MLW_HI, FMC_LO, FMC_HI
+REAL, POINTER, DIMENSION(:,:), SAVE :: BUI_LO, GCF_LO
 REAL, POINTER, SAVE, DIMENSION(:,:,:) :: A_TIMES_BURNED
 
 LOGICAL :: IA_HAS_OCCURRED, LOPEN, GO, CALL_SPOTTING, JUST_INTERPOLATED, DUMP_SMOKE_OUTPUTS, RUN, &
@@ -417,6 +419,8 @@ DO
       T_LAST_INTERPOLATE_FMC      = -9E9
       T_LAST_INTERPOLATE_WIND     = -9E9
       T_LAST_WIND_FLUCTUATIONS    = -9E9
+      LAST_BUI_BAND               = -9999
+      LAST_GCF_BAND               = -9999
 
       T_LAST_SMOKE_OUTPUT         = 0 !-9E9 breaks first check (T-T_LAST_SMOKE_OUTPUT)
 
@@ -549,6 +553,13 @@ DO
          FMC_LO  => MFOL%R4 (:,:,ITLO_METEOROLOGY)
          FMC_HI  => MFOL%R4 (:,:,ITHI_METEOROLOGY)
 
+         IF (USE_BUI_RASTER) THEN
+            BUI_LO => BUI%R4(:,:,ITLO_METEOROLOGY)
+         ENDIF
+         IF (USE_GCF_RASTER) THEN
+            GCF_LO => GCF%R4(:,:,ITLO_METEOROLOGY)
+         ENDIF
+
          ICOUNT=0
          DO IY = 1, NY
          DO IX = 1, NX
@@ -568,6 +579,12 @@ DO
                   CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR (LIST_BURNED%TAIL, MLW_LO (:,:), MLW_HI (:,:), F_METEOROLOGY, 5)
                   CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR (LIST_BURNED%TAIL, FMC_LO (:,:), FMC_HI (:,:), F_METEOROLOGY, 6)
                   CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR (LIST_BURNED%TAIL, WS20_LO(:,:), WS20_HI(:,:), F_METEOROLOGY, 7)
+                  IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER) THEN
+                     CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR (LIST_BURNED%TAIL, BUI_LO(:,:), BUI_LO(:,:), 0.0, 8)
+                  ENDIF
+                  IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER) THEN
+                     CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR (LIST_BURNED%TAIL, GCF_LO(:,:),GCF_LO(:,:), 0.0, 9)
+                  ENDIF
                ELSE
                   CALL INTERP_RASTER_LINKEDLIST_SINGLE (LIST_BURNED%TAIL, M1_LO  (:,:), M1_HI  (:,:), F_METEOROLOGY, 1)
                   CALL INTERP_RASTER_LINKEDLIST_SINGLE (LIST_BURNED%TAIL, M10_LO (:,:), M10_HI (:,:), F_METEOROLOGY, 2)
@@ -576,6 +593,12 @@ DO
                   CALL INTERP_RASTER_LINKEDLIST_SINGLE (LIST_BURNED%TAIL, MLW_LO (:,:), MLW_HI (:,:), F_METEOROLOGY, 5)
                   CALL INTERP_RASTER_LINKEDLIST_SINGLE (LIST_BURNED%TAIL, FMC_LO (:,:), FMC_HI (:,:), F_METEOROLOGY, 6)
                   CALL INTERP_RASTER_LINKEDLIST_SINGLE (LIST_BURNED%TAIL, WS20_LO(:,:), WS20_HI(:,:), F_METEOROLOGY, 7)
+                  IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER) THEN
+                     CALL INTERP_RASTER_LINKEDLIST_SINGLE (LIST_BURNED%TAIL, BUI_LO(:,:), BUI_LO(:,:), 0.0, 8)
+                  ENDIF
+                  IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER) THEN
+                     CALL INTERP_RASTER_LINKEDLIST_SINGLE (LIST_BURNED%TAIL, GCF_LO(:,:), GCF_LO(:,:), 0.0, 9)
+                  ENDIF
                ENDIF
                
                CALL UPDATE_WD_RASTER_SINGLE(LIST_BURNED%TAIL, WD20_LO(:,:), WD20_HI(:,:), F_METEOROLOGY)
@@ -619,13 +642,17 @@ DO
          ENDDO
 
          ! Call relevant functions, assign values to FLIN_SURFACE and FLIN_CANOPY
-         continue
+         CONTINUE
          IF (ASSOCIATED(C)) DEALLOCATE(C)
-            continue
-         if (SURFACE_MODEL_ROTHERMEL) then
+            CONTINUE
+         IF (SURFACE_MODEL_ROTHERMEL) THEN
             CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_BURNED, C)
-         else if (SURFACE_MODEL_CFFDRS) then
-            CALL CFFDRS_SPREAD_RATE(LIST_BURNED, C, daily_bui(DAY_OF_SIM))
+         ELSE IF (SURFACE_MODEL_CFFDRS) THEN
+            IF (USE_BUI_RASTER) THEN
+               CALL CFFDRS_SPREAD_RATE(LIST_BURNED, C)
+            ELSE
+               CALL CFFDRS_SPREAD_RATE(LIST_BURNED, C, daily_bui(DAY_OF_SIM))
+            ENDIF
          ENDIF
 
          DO ISTEP=1,2
@@ -636,7 +663,7 @@ DO
             CALL UX_AND_UY_ELLIPTICAL(LIST_BURNED, 1.0, ISTEP, DT)
             
             !Apply canopy fire and other parts that depend on directional ROS (instead of max head ros)
-            call UPDATE_LOCAL_SPREAD_PROPERTIES(LIST_BURNED, C)
+            CALL UPDATE_LOCAL_SPREAD_PROPERTIES(LIST_BURNED, C)
          ENDDO
          
          C => LIST_BURNED%HEAD
@@ -656,6 +683,12 @@ DO
                CALL INTERP_RASTER_LINKEDLIST_BILINEAR (LIST_WUI_BURNING, MLW_LO (:,:), MLW_HI (:,:), F_METEOROLOGY, 5)
                CALL INTERP_RASTER_LINKEDLIST_BILINEAR (LIST_WUI_BURNING, FMC_LO (:,:), FMC_HI (:,:), F_METEOROLOGY, 6)
                CALL INTERP_RASTER_LINKEDLIST_BILINEAR (LIST_WUI_BURNING, WS20_LO(:,:), WS20_HI(:,:), F_METEOROLOGY, 7)
+               IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER) THEN
+                  CALL INTERP_RASTER_LINKEDLIST_BILINEAR (LIST_WUI_BURNING, BUI_LO(:,:), BUI_LO(:,:), 0.0, 8)
+               ENDIF
+               IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER) THEN
+                  CALL INTERP_RASTER_LINKEDLIST_BILINEAR (LIST_WUI_BURNING, GCF_LO(:,:), GCF_LO(:,:), 0.0, 9)
+               ENDIF
             ELSE
                CALL INTERP_RASTER_LINKEDLIST (LIST_WUI_BURNING, M1_LO  (:,:), M1_HI  (:,:), F_METEOROLOGY, 1)
                CALL INTERP_RASTER_LINKEDLIST (LIST_WUI_BURNING, M10_LO (:,:), M10_HI (:,:), F_METEOROLOGY, 2)
@@ -664,6 +697,12 @@ DO
                CALL INTERP_RASTER_LINKEDLIST (LIST_WUI_BURNING, MLW_LO (:,:), MLW_HI (:,:), F_METEOROLOGY, 5)
                CALL INTERP_RASTER_LINKEDLIST (LIST_WUI_BURNING, FMC_LO (:,:), FMC_HI (:,:), F_METEOROLOGY, 6)
                CALL INTERP_RASTER_LINKEDLIST (LIST_WUI_BURNING, WS20_LO(:,:), WS20_HI(:,:), F_METEOROLOGY, 7)
+               IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER) THEN
+                  CALL INTERP_RASTER_LINKEDLIST (LIST_WUI_BURNING, BUI_LO(:,:), BUI_LO(:,:), 0.0, 8)
+               ENDIF
+               IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER) THEN
+                  CALL INTERP_RASTER_LINKEDLIST (LIST_WUI_BURNING, GCF_LO(:,:), GCF_LO(:,:), 0.0, 9)
+               ENDIF
             ENDIF
             
             CALL UPDATE_WD_RASTER(LIST_WUI_BURNING, WD20_LO(:,:), WD20_HI(:,:), F_METEOROLOGY)
@@ -685,7 +724,11 @@ DO
                   IF (SURFACE_MODEL_ROTHERMEL) THEN
                      CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P)
                   ELSE IF (SURFACE_MODEL_CFFDRS) THEN
-                     CALL CFFDRS_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P, daily_bui(DAY_OF_SIM))
+                     IF (USE_BUI_RASTER) THEN
+                        CALL CFFDRS_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P)
+                     ELSE
+                        CALL CFFDRS_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P, daily_bui(DAY_OF_SIM))
+                     ENDIF
                   ENDIF
 
                   ! Approximate vegetative WU-E source intensity using head-fire FLIN.
@@ -879,6 +922,12 @@ DO
          MLW_HI  => MLW%R4  (:,:,ITHI_METEOROLOGY)
          FMC_LO  => MFOL%R4 (:,:,ITLO_METEOROLOGY)
          FMC_HI  => MFOL%R4 (:,:,ITHI_METEOROLOGY)
+         IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER) THEN
+            BUI_LO => BUI%R4(:,:,ITLO_METEOROLOGY)
+         ENDIF
+         IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER) THEN
+            GCF_LO => GCF%R4(:,:,ITLO_METEOROLOGY)
+         ENDIF
       ENDIF
 
       IF (NUM_VIRTUAL_STATIONS .GT. 0) THEN
@@ -912,6 +961,47 @@ DO
 
    ! Interpolate / map transient weather rasters
       JUST_INTERPOLATED = .FALSE.
+
+      ! ---------------------------------------------------------------
+      ! Update spatially varying CFFDRS BUI when the meteorology band
+      ! changes. BUI is held constant in time between upstream CFFDRS
+      ! updates; therefore do not interpolate between BUI bands.
+      ! ---------------------------------------------------------------
+      CURRENT_BUI_BAND = ITLO_METEOROLOGY + BAND_L - 1
+      IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER .AND. CURRENT_BUI_BAND .NE. LAST_BUI_BAND) THEN
+         JUST_INTERPOLATED = .TRUE.
+         IF (WX_BILINEAR_INTERPOLATION) THEN
+            CALL INTERP_RASTER_LINKEDLIST_BILINEAR(LIST_TAGGED,BUI_LO(:,:),BUI_LO(:,:),0.0,8)
+            IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2) THEN
+               CALL INTERP_RASTER_LINKEDLIST_BILINEAR(LIST_WUI_BURNING,BUI_LO(:,:),BUI_LO(:,:),0.0,8)
+            ENDIF
+         ELSE
+            CALL INTERP_RASTER_LINKEDLIST(LIST_TAGGED,BUI_LO(:,:),BUI_LO(:,:),0.0,8)
+            IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2) THEN
+               CALL INTERP_RASTER_LINKEDLIST(LIST_WUI_BURNING,BUI_LO(:,:),BUI_LO(:,:),0.0,8)
+            ENDIF
+         ENDIF
+         LAST_BUI_BAND = CURRENT_BUI_BAND
+      ENDIF
+
+      ! Explicit degree of grass curing is a piecewise-constant FBP state, analogous to BUI. 
+      ! Do not interpolate percent curing in time.
+      CURRENT_GCF_BAND = ITLO_METEOROLOGY + BAND_L - 1
+      IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER .AND. CURRENT_GCF_BAND .NE. LAST_GCF_BAND) THEN
+         JUST_INTERPOLATED = .TRUE.
+         IF (WX_BILINEAR_INTERPOLATION) THEN
+            CALL INTERP_RASTER_LINKEDLIST_BILINEAR(LIST_TAGGED,GCF_LO(:,:),GCF_LO(:,:),0.0,9)
+            IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2) THEN
+               CALL INTERP_RASTER_LINKEDLIST_BILINEAR(LIST_WUI_BURNING,GCF_LO(:,:),GCF_LO(:,:),0.0,9)
+            ENDIF
+         ELSE
+            CALL INTERP_RASTER_LINKEDLIST(LIST_TAGGED,GCF_LO(:,:),GCF_LO(:,:),0.0,9)
+            IF (USE_BLDG_SPREAD_MODEL .AND. BLDG_SPREAD_MODEL_TYPE .EQ. 2) THEN
+               CALL INTERP_RASTER_LINKEDLIST(LIST_WUI_BURNING,GCF_LO(:,:),GCF_LO(:,:),0.0,9)
+            ENDIF
+         ENDIF
+         LAST_GCF_BAND = CURRENT_GCF_BAND
+      ENDIF
       
       IF (T - T_LAST_INTERPOLATE_M1 .GE. DT_INTERPOLATE_M1) THEN
          T_LAST_INTERPOLATE_M1 = T
@@ -1039,10 +1129,14 @@ DO
 
       ! Main call to get spread rate:
       IF (JUST_INTERPOLATED) THEN
-         if (SURFACE_MODEL_ROTHERMEL) then
+         IF (SURFACE_MODEL_ROTHERMEL) THEN
             CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_TAGGED, DUMMY_NODE)
-         else if (SURFACE_MODEL_CFFDRS) then
-            CALL CFFDRS_SPREAD_RATE(LIST_TAGGED, DUMMY_NODE, daily_bui(DAY_OF_SIM))
+         ELSE IF (SURFACE_MODEL_CFFDRS) THEN
+            IF (USE_BUI_RASTER) THEN
+               CALL CFFDRS_SPREAD_RATE(LIST_TAGGED, DUMMY_NODE)
+            ELSE
+               CALL CFFDRS_SPREAD_RATE(LIST_TAGGED, DUMMY_NODE, daily_bui(DAY_OF_SIM))
+            ENDIF
          ENDIF
       ENDIF
       IF (DUMP_TIMINGS) CALL ACCUMULATE_CPU_USAGE(39, IT1, IT2)
@@ -1073,9 +1167,12 @@ DO
                IF (SURFACE_MODEL_ROTHERMEL) THEN
                   CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P)
                ELSE IF (SURFACE_MODEL_CFFDRS) THEN
-                  CALL CFFDRS_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P, daily_bui(DAY_OF_SIM))
+                  IF (USE_BUI_RASTER) THEN
+                     CALL CFFDRS_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P)
+                  ELSE
+                     CALL CFFDRS_SPREAD_RATE(LIST_WUI_BURNING, L_WUI_P, daily_bui(DAY_OF_SIM))
+                  ENDIF
                ENDIF
-
                ! Approximate vegetative WU-E source intensity using head-fire FLIN.
                L_WUI_P%FLIN_SURFACE = L_WUI_P%FLIN_DMS_SURFACE
                L_WUI_P%HRRPUA = L_WUI_P%FLIN_SURFACE / ANALYSIS_CELLSIZE
@@ -1354,6 +1451,12 @@ DO
                CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR (C, MLW_LO (:,:), MLW_HI (:,:), F_METEOROLOGY, 5)
                CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR (C, FMC_LO (:,:), FMC_HI (:,:), F_METEOROLOGY, 6)
                CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR (C, WS20_LO(:,:), WS20_HI(:,:), F_METEOROLOGY, 7)
+               IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER) THEN
+                  CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR(C,BUI_LO(:,:),BUI_LO(:,:),0.0,8)
+               ENDIF
+               IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER) THEN
+                  CALL INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR(C,GCF_LO(:,:),GCF_LO(:,:),0.0,9)
+               ENDIF
             ELSE
                CALL INTERP_RASTER_LINKEDLIST_SINGLE (C, M1_LO  (:,:), M1_HI  (:,:), F_METEOROLOGY, 1)
                CALL INTERP_RASTER_LINKEDLIST_SINGLE (C, M10_LO (:,:), M10_HI (:,:), F_METEOROLOGY, 2)
@@ -1362,13 +1465,23 @@ DO
                CALL INTERP_RASTER_LINKEDLIST_SINGLE (C, MLW_LO (:,:), MLW_HI (:,:), F_METEOROLOGY, 5)
                CALL INTERP_RASTER_LINKEDLIST_SINGLE (C, FMC_LO (:,:), FMC_HI (:,:), F_METEOROLOGY, 6)
                CALL INTERP_RASTER_LINKEDLIST_SINGLE (C, WS20_LO(:,:), WS20_HI(:,:), F_METEOROLOGY, 7)
+               IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER) THEN
+                  CALL INTERP_RASTER_LINKEDLIST_SINGLE(C,BUI_LO(:,:),BUI_LO(:,:),0.0,8)
+               ENDIF
+               IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER) THEN
+                  CALL INTERP_RASTER_LINKEDLIST_SINGLE(C,GCF_LO(:,:),GCF_LO(:,:),0.0,9)
+               ENDIF
             ENDIF
             
             CALL UPDATE_WD_RASTER_SINGLE(C, WD20_LO(:,:), WD20_HI(:,:), F_METEOROLOGY)
-            if (SURFACE_MODEL_ROTHERMEL) then
+            IF (SURFACE_MODEL_ROTHERMEL) THEN
                CALL ROTHERMEL_SURFACE_SPREAD_RATE(LIST_TAGGED, C)
-            else if (SURFACE_MODEL_CFFDRS) then
-               CALL CFFDRS_SPREAD_RATE(LIST_TAGGED, C, daily_bui(DAY_OF_SIM))
+            ELSE IF (SURFACE_MODEL_CFFDRS) THEN
+               IF (USE_BUI_RASTER) THEN
+                  CALL CFFDRS_SPREAD_RATE(LIST_TAGGED, C)
+               ELSE
+                  CALL CFFDRS_SPREAD_RATE(LIST_TAGGED, C, daily_bui(DAY_OF_SIM))
+               ENDIF
             ENDIF
 #ifdef _SUPPRESSION
             ! new suppression model :: modified below
@@ -2307,7 +2420,13 @@ SUBROUTINE UX_AND_UY_ELLIPTICAL(L, ACCELERATION_FACTOR, ISTEP, DT_ELMFIRE)
 ! direction, and fireline intensity for each node in L from the elliptical
 ! spread template: combines slope/wind phi factors, length-to-width ratio,
 ! head/back speeds, crown-fire and WUI (Hamada/UCB) submodels.
-! Parameter T_ELMFIRE added to update fireline intensity of structures over time
+! Rothermel:
+!   Direction of maximum spread is derived from PHIS/PHIW.
+! CFFDRS:
+!   Direction of maximum spread is taken directly from C%RAZ, calculated by
+!   CFFDRS_SPREAD_RATE from the resultant actual + slope-equivalent wind.
+! Parameter DT_ELMFIRE is used to update transient building fire behavior.
+
 REAL, INTENT(IN) :: ACCELERATION_FACTOR, DT_ELMFIRE
 TYPE(DLL), INTENT(INOUT) :: L
 INTEGER, INTENT(IN) :: ISTEP
@@ -2327,60 +2446,90 @@ IF (ISTEP .EQ. 1) THEN
       IF (.NOT. C%BURNED) THEN
 
          IF (C%NEED_SLOPE_CALC) THEN
-! Determine individual slope and wind components and velocity in direction of maximum spread (DMS):
-            IASP=MIN(MAX(NINT(ASP%R4(C%IX,C%IY,1)),0),360)
-            SINASPMPI=SINASPM180(IASP)
-            COSASPMPI=COSASPM180(IASP) 
-            APHIS = ACCELERATION_FACTOR * PHIS_ADJ * C%PHIS_SURFACE
-            C%PHISX = APHIS * SINASPMPI
-            C%PHISY = APHIS * COSASPMPI
-            C%UXOUSX = 1. - ABSSINASP(IASP) * OMCOSSLPRAD%R4(C%IX,C%IY,1)
-            C%UYOUSY = 1. - ABSCOSASP(IASP) * OMCOSSLPRAD%R4(C%IX,C%IY,1)
+            IF (SURFACE_MODEL_CFFDRS) THEN
+               ! CFFDRS already incorporates slope through the equivalent-wind
+               ! calculation used to obtain WSV and RAZ. RAZ is treated as the
+               ! map-plane direction of maximum spread, so do not construct a
+               ! second DMS direction from PHIS/PHIW or apply component-wise
+               ! terrain projection factors to the CFFDRS propagation vector.
+               C%PHISX = 0.0
+               C%PHISY = 0.0
+               C%UXOUSX = 1.0
+               C%UYOUSY = 1.0
+            ELSE
+               ! Rothermel: determine individual slope components and projection
+               ! factors used to construct the direction of maximum spread.
+               IASP=MIN(MAX(NINT(ASP%R4(C%IX,C%IY,1)),0),360)
+               SINASPMPI=SINASPM180(IASP)
+               COSASPMPI=COSASPM180(IASP) 
+               APHIS = ACCELERATION_FACTOR * PHIS_ADJ * C%PHIS_SURFACE
+               C%PHISX = APHIS * SINASPMPI
+               C%PHISY = APHIS * COSASPMPI
+               C%UXOUSX = 1. - ABSSINASP(IASP) * OMCOSSLPRAD%R4(C%IX,C%IY,1)
+               C%UYOUSY = 1. - ABSCOSASP(IASP) * OMCOSSLPRAD%R4(C%IX,C%IY,1)
+            ENDIF
+
             C%NEED_SLOPE_CALC = .FALSE.
          ENDIF
+
          DONE = .FALSE.
          NITER = 0
+
          DO WHILE (.NOT. DONE)
             CROWN_FIRE_AT_START = .FALSE.
             IF (CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) THEN
                APHIW = PHIW_ADJ * MAX(C%PHIW_SURFACE, C%PHIW_CROWN)
                CROWN_FIRE_AT_START = .TRUE.
+            ENDIF
+
+            IF (SURFACE_MODEL_CFFDRS) THEN
+               ! RAZ is degrees clockwise from north in the direction of maximum
+               ! spread. In ELMFIRE map coordinates, +X is east and +Y is north.
+               C%NORMVECTORX_DMS = SIN(C%RAZ * PIO180)
+               C%NORMVECTORY_DMS = COS(C%RAZ * PIO180)
+               ! CFFDRS_SPREAD_RATE already set VELOCITY_DMS to the final FBP head ROS,
             ELSE
-               APHIW = PHIW_ADJ * ACCELERATION_FACTOR * C%PHIW_SURFACE
+               ! Rothermel direction-of-maximum-spread calculation.
+               IF (CROWN_FIRE_AT_START) THEN
+                  APHIW = PHIW_ADJ * MAX(C%PHIW_SURFACE, C%PHIW_CROWN)
+               ELSE
+                  APHIW = PHIW_ADJ * ACCELERATION_FACTOR * C%PHIW_SURFACE
+               ENDIF
+
+               IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 91) THEN
+                  APHIW   = 1.0
+                  C%PHISX = 0.0
+                  C%PHISY = 0.0
+               ENDIF
+
+               PHIWX = APHIW * SIN( (C%WD20_NOW - 180.) * PIO180)
+               PHIX  = C%PHISX + PHIWX
+
+               PHIWY = APHIW * COS( (C%WD20_NOW - 180.) * PIO180)
+               PHIY  = C%PHISY + PHIWY
+
+               PHIMAG = MAX(SQRT(PHIX*PHIX+PHIY*PHIY),1E-10)
+               IF (PHIMAG .LT. 1.1E-10) THEN
+                  C%NORMVECTORX_DMS  = 1.0
+                  C%NORMVECTORY_DMS  = 0.0
+               ELSE
+                  RPHIMAG = 1. / PHIMAG
+                  C%NORMVECTORX_DMS = RPHIMAG * PHIX
+                  C%NORMVECTORY_DMS = RPHIMAG * PHIY
+               ENDIF
+   
+               C%VELOCITY_DMS = C%VS0 * (ACCELERATION_FACTOR + PHIMAG)
             ENDIF
 
-            IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 91) THEN
-               APHIW   = 1.0
-               C%PHISX = 0.0
-               C%PHISY = 0.0
-            ENDIF
-
-            PHIWX = APHIW * SIN( (C%WD20_NOW - 180.) * PIO180)
-            PHIX  = C%PHISX + PHIWX
-
-            PHIWY = APHIW * COS( (C%WD20_NOW - 180.) * PIO180)
-            PHIY  = C%PHISY + PHIWY
-
-            PHIMAG = MAX(SQRT(PHIX*PHIX+PHIY*PHIY),1E-10)
-            IF (PHIMAG .LT. 1.1E-10) THEN
-               C%NORMVECTORX_DMS  = 1.0
-               C%NORMVECTORY_DMS  = 0.0
-            ELSE
-               RPHIMAG = 1. / PHIMAG
-               C%NORMVECTORX_DMS = RPHIMAG * PHIX
-               C%NORMVECTORY_DMS = RPHIMAG * PHIY
-            ENDIF
-            C%VELOCITY_DMS = C%VS0 * (ACCELERATION_FACTOR + PHIMAG)
-            if (SURFACE_MODEL_CFFDRS) C%VELOCITY_DMS = C%VELOCITY_DMS_SURFACE
 
 ! Calculate length over width:
-            if (SURFACE_MODEL_CFFDRS) then
-               if (C%IFBFM .ge. 31 .and. C%IFBFM .le. 33) then !grass
-                  C%LOW = max(1.0,1.1+C%WSV**0.464)
-               else
-                  C%LOW = 1+8.729*(1-exp(-0.03*C%WSV))**2.155
-               endif
-            else if (SURFACE_MODEL_ROTHERMEL) then
+            IF (SURFACE_MODEL_CFFDRS) THEN
+               IF (C%IFBFM .GE. 31 .AND. C%IFBFM .LE. 33) THEN
+                  C%LOW = MAX(1.0,1.1 + C%WSV**0.464)
+               ELSE
+                  C%LOW = 1.0 + 8.729*(1.0 - EXP(-0.03*C%WSV))**2.155
+               ENDIF
+            ELSE IF (SURFACE_MODEL_ROTHERMEL) THEN
                ! Cache only this expression, using exact values rather than fuel IDs
                ! or weather generations. Recheck inside each crown-feedback iteration.
                IF (C%ELLIPSE_LOW_VALID .AND. C%ELLIPSE_PHIMAG .EQ. PHIMAG .AND. &
@@ -2406,7 +2555,7 @@ IF (ISTEP .EQ. 1) THEN
                   C%ELLIPSE_LOW = C%LOW
                   C%ELLIPSE_LOW_VALID = .TRUE.
                ENDIF
-            endif
+            ENDIF
             
             IF (C%LOW .GT. 0.999 .AND. C%LOW .LT. 1.001) THEN
                BOH = 1.0
@@ -2434,17 +2583,21 @@ IF (ISTEP .EQ. 1) THEN
 
             CALL COMPUTE_SPREAD_VELOCITIES(C, ILH)
 
-            CROWN_FIRE_AT_END = .FALSE.
-            IF (CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) then
-               CROWN_FIRE_AT_END = .TRUE.
-            else
-               C%CROWN_FIRE = 0
-            endif
+            IF (SURFACE_MODEL_ROTHERMEL) THEN
+               CROWN_FIRE_AT_END = .FALSE.
+               IF (CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) THEN
+                  CROWN_FIRE_AT_END = .TRUE.
+               ELSE
+                  C%CROWN_FIRE = 0
+               ENDIF
 
-            DONE = .TRUE.
-            IF (CROWN_FIRE_AT_END .AND. (.NOT. CROWN_FIRE_AT_START)) DONE = .FALSE.
-            NITER = NITER + 1
-            IF (NITER .EQ. 2) DONE = .TRUE. !Prevent infinite loop if something goes awry
+               DONE = .TRUE.
+               IF (CROWN_FIRE_AT_END .AND. (.NOT. CROWN_FIRE_AT_START)) DONE = .FALSE.
+               NITER = NITER + 1
+               IF (NITER .EQ. 2) DONE = .TRUE.
+            ELSE
+               DONE = .TRUE.
+            ENDIF
          ENDDO
 
       ENDIF
@@ -2461,11 +2614,13 @@ ELSE !ISTEP .EQ. 2
 
          CALL COMPUTE_SPREAD_VELOCITIES(C, ILH)
 
-         IF (SURFACE_MODEL_ROTHERMEL .and. CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) then
-            C%FLIN_CANOPY = C%HPUA_CANOPY * C%VELOCITY * 5.08E-3
-         else
-            C%CROWN_FIRE = 0
-         endif
+         IF (SURFACE_MODEL_ROTHERMEL) THEN
+            IF (CROWN_FIRE_MODEL .GT. 0 .AND. C%FLIN_SURFACE .GE. C%CRITICAL_FLIN) THEN
+               C%FLIN_CANOPY = C%HPUA_CANOPY * C%VELOCITY * 5.08E-3
+            ELSE
+               C%CROWN_FIRE = 0
+            ENDIF
+         ENDIF
 
 #ifdef _UMDSPOTTING
          IF ((.NOT. USE_SUPERSEDED_SPOTTING) .AND. USE_PHYSICAL_SPOTTING_DURATION .and. ENABLE_SPOTTING) THEN
@@ -2519,10 +2674,17 @@ DXDT     = RDENOM * BBSINANG
 
 ! Rotate based on direction of maximum spread:
 DXDT_ROTATED    = DYDT*C%NORMVECTORX_DMS + DXDT*C%NORMVECTORY_DMS ! ft/min, parallel to slope
-C%UX       = DXDT_ROTATED * C%UXOUSX * FTPMIN_TO_MPS               ! m/s, projected
-
 DYDT_ROTATED    = DYDT*C%NORMVECTORY_DMS - DXDT*C%NORMVECTORX_DMS ! ft/min, parallel to slope
-C%UY       = DYDT_ROTATED * C%UYOUSY * FTPMIN_TO_MPS               ! m/s, projected
+
+IF (SURFACE_MODEL_CFFDRS) THEN
+   ! CFFDRS RAZ is already the map-plane DMS azimuth.
+   C%UX       = DXDT_ROTATED * FTPMIN_TO_MPS
+   C%UY       = DYDT_ROTATED * FTPMIN_TO_MPS
+ELSE
+   C%UX       = DXDT_ROTATED * C%UXOUSX * FTPMIN_TO_MPS               ! m/s, projected
+   C%UY       = DYDT_ROTATED * C%UYOUSY * FTPMIN_TO_MPS               ! m/s, projected
+ENDIF
+
 C%VELOCITY = SQRT(DXDT_ROTATED*DXDT_ROTATED + DYDT_ROTATED*DYDT_ROTATED) ! ft/min, parallel to slope
 
 ! Only the final direction raster consumes this field, via LIST_BURNED.

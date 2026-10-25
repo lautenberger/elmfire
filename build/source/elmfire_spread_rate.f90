@@ -142,21 +142,22 @@ END SUBROUTINE ROTHERMEL_SURFACE_SPREAD_RATE
 ! *****************************************************************************
 
 ! *****************************************************************************
-SUBROUTINE CFFDRS_SPREAD_RATE(L,DUMMY_NODE, BUI_c)
+SUBROUTINE CFFDRS_SPREAD_RATE(L,DUMMY_NODE,BUI_FALLBACK)
 ! *****************************************************************************
 ! Applies the Canadian Forest Fire Behavior Prediction (CFFDRS/FBP) model to
 ! compute surface rate of spread, fireline intensity, ISI, surface fuel
 ! consumption, and length-to-width for each node in L (or a single DUMMY_NODE).
-! BUI_c is the daily Buildup Index used in the buildup-effect term.
+! BUI is the daily Buildup Index used in the buildup-effect term.
 
 TYPE (DLL), INTENT(INOUT) :: L
 TYPE (NODE), POINTER, INTENT(INOUT) :: DUMMY_NODE
-REAL, intent(in) :: BUI_c
+REAL, OPTIONAL, INTENT(IN) :: BUI_FALLBACK
+REAL :: BUI_LOCAL
 
-INTEGER :: NUM_NODES, aspect, I, IX, IY
+INTEGER :: NUM_NODES, I, IX, IY
 TYPE(NODE), POINTER :: C
 REAL :: M, FF, SF, RSF, ISF_c, WSE, WSE1, WSE2, WSX, WSY, &
-         FW, RSI_c, BE, ROS, FFMC, CF, slope, RSF_1, RSF_2, ISI_s
+         FW, RSI_c, BE, ROS, FFMC, CF, slope, aspect, RSF_1, RSF_2, ISI_s
 
 IF (ASSOCIATED (DUMMY_NODE) ) THEN
    NUM_NODES = 1
@@ -169,170 +170,362 @@ ENDIF
 DO I = 1, NUM_NODES
    IX = C%IX
    IY = C%IY
+
+! Reset crown-fire quantities so the current evaluation cannot inherit
+! crown state from a previous weather/time-step evaluation.
+   C%CROWN_FIRE = 0
+   C%CFB = 0.0
+   C%CFC = 0.0
+   C%TFC = 0.0
+   C%RSI_FBP = 0.0
+   C%BE_FBP = 0.0
+   C%RSO_FBP = 0.0
+   C%FLIN_CANOPY = 0.0
+   C%PHIW_CROWN = 0.0
+   C%VELOCITY_DMS = 0.0
+
+   ! Building fuel is handled by the building-spread model.
    IF (USE_BLDG_SPREAD_MODEL .AND. C%IFBFM .EQ. 101) THEN
       C => C%NEXT
       CYCLE
    ENDIF
 
-   IF ( C%IFBFM .le. 106 .and. C%IFBFM .ge. 100 ) THEN
-      C%IR = 0.
-      C%PHIW_SURFACE = 0.
-      C%PHIS_SURFACE = 0.
-      C%VS0 = 0.
-      C%VELOCITY_DMS_SURFACE = 0.
-      C%IR = 0.
-      C%HPUA_SURFACE = 0.
-      C%FLIN_DMS_SURFACE = 0.
+   ! CFFDRS nonburnable fuel models.
+   IF (C%IFBFM .GE. 100 .AND. C%IFBFM .LE. 106) THEN
+      C%IR = 0.0
+      C%PHIW_SURFACE = 0.0
+      C%PHIS_SURFACE = 0.0
+      C%VS0 = 0.0
+      C%VELOCITY_DMS_SURFACE = 0.0
+      C%HPUA_SURFACE = 0.0
+      C%FLIN_DMS_SURFACE = 0.0
       C => C%NEXT
       CYCLE
    ENDIF
-   
-   C%C = 100*min(1.0,max(0.0,1.33-1.11*MLH%R4(C%IX,C%IY,1)))
-   C%PC = mod(C%IFBFM,100) / 100.0
-   C%PDF = C%PC
-   M  = C%M1*100
-   slope = tan(SLP%R4(C%IX,C%IY,1)*PIO180) * 100.0 !percent
-   aspect = mod(ASP%R4(C%IX,C%IY,1),360.0)
 
-   ! ---------------- INITIAL SPREAD INDEX ----------------
-
-   FF = 91.9*exp(-0.1386*M)*(1+(M**5.31)/(4.93*10**7))
-   if (slope .le. 63) then 
-      SF = exp(3.533*((slope/100.0)**1.2))
+   ! Select spatial BUI raster or legacy scalar daily BUI.
+   IF (USE_BUI_RASTER) THEN
+      BUI_LOCAL = MAX(C%BUI,0.0)
    ELSE
-      SF=10
+      IF (.NOT. PRESENT(BUI_FALLBACK)) THEN
+         WRITE(*,*) "CFFDRS error: no BUI input available"
+         STOP
+      ENDIF
+      BUI_LOCAL = MAX(BUI_FALLBACK,0.0)
    ENDIF
-   
-   IF (c%IFBFM .ge. 31 .and. c%IFBFM .le. 33) then ! O1a, O1b
-      if (C%C .lt. 58.8) then
-         CF = 0.005*(exp(0.061*C%C)-1)
-      else
-         CF = 0.176 + 0.02*(C%C-58.8) 
+   C%BUI = BUI_LOCAL
+
+   ! Degree of grass curing, percent.  Prefer the explicit CWFIS/FBP GCF raster;
+   ! retain the former MLH-derived relationship only as a compatibility fallback for older inputs.
+   IF (USE_GCF_RASTER) THEN
+      C%C = MAX(0.0,MIN(100.0,C%GCF))
+   ELSE
+      C%C = 100.0 * MIN(1.0,MAX(0.0,1.33 - 1.11*C%MLH))
+   ENDIF
+   ! Keep the diagnostic node field equal to the curing percent actually used.
+   C%GCF = C%C
+
+   ! Mixedwood fractions encoded in the ELMFIRE FBP fuel-model number.
+   C%PC = MOD(C%IFBFM,100) / 100.0
+   C%PDF = C%PC
+
+   ! Fine-fuel moisture content expected by the FBP equations, percent.
+   M = C%M1 * 100.0
+
+   ! Terrain.
+   slope = TAN(SLP%R4(IX,IY,1) * PIO180) * 100.0
+   aspect = MODULO(ASP%R4(IX,IY,1),360.0)
+
+   ! --------------------------------------------------------------------------
+   ! INITIAL SPREAD INDEX
+   ! --------------------------------------------------------------------------
+
+   FF = 91.9 * EXP(-0.1386*M) * (1.0 + (M**5.31)/(4.93E7))
+
+   ! IF (slope .LE. 63.0) THEN
+   IF (slope .LT. 70.0) THEN
+      SF = EXP(3.533 * (slope/100.0)**1.2)
+   ELSE
+      SF = 10.0
+   ENDIF
+
+   ! Grass curing factor.
+   IF (C%IFBFM .GE. 31 .AND. C%IFBFM .LE. 33) THEN
+      IF (C%C .LT. 58.8) THEN
+         CF = 0.005 * (EXP(0.061*C%C) - 1.0)
+      ELSE
+         CF = 0.176 + 0.02 * (C%C - 58.8)
       ENDIF
    ELSE
-      CF=1
+      CF = 1.0
    ENDIF
 
-   RSF = RSI(C%IFBFM, 0.208*FF, CF) * SF
-   
-   IF (C%IFBFM .eq. 40 .or. C%IFBFM .eq. 60 .or. (C%IFBFM .ge. 400 .and. C%IFBFM .le. 699)) then ! M1, M2
-      RSF_1 = RSI(2_2, 0.208*FF, CF) * SF
-      RSF_2 = RSI(11_2, 0.208*FF, CF) * SF
-      ISF_c = C%PC * ISF(2_2,RSF_1, CF) + (1-C%PC)*ISF(11_2, RSF_2, CF)
-   ELSE IF (C%IFBFM .eq. 70 .or. C%IFBFM .eq. 90 .or. (C%IFBFM .ge. 700 .and. C%IFBFM .le. 799) .or. (C%IFBFM .ge. 900 .and. C%IFBFM .le. 999)) THEN ! M3
-      RSF_1 = RSI(795_2, 0.208*FF, CF) * SF
-      RSF_2 = RSI(11_2, 0.208*FF, CF) * SF
-      ISF_c = C%PDF*ISF(795_2, RSF_1, CF) + (1-C%PDF)*ISF(11_2, RSF_2, CF)
-   ELSE IF (c%IFBFM .eq. 80 .or. (C%IFBFM .ge. 800 .and. C%IFBFM .le. 899)) THEN ! M4
-      RSF_1 = RSI(895_2, 0.208*FF, CF) * SF
-      RSF_2 = RSI(11_2, 0.208*FF, CF) * SF
-      ISF_c = C%PDF*ISF(895_2, RSF_1, CF) + (1-C%PDF)*ISF(11_2, RSF_2, CF)
+   ! Slope-only spread rate used to obtain equivalent slope ISI/wind.
+   RSF = RSI(C%IFBFM,0.208*FF,CF) * SF
+
+   IF (C%IFBFM .EQ. 40 .OR. C%IFBFM .EQ. 50 .OR. C%IFBFM .EQ. 60 .OR. &
+      (C%IFBFM .GE. 400 .AND. C%IFBFM .LE. 699)) THEN
+      ! M-1 / M-2
+      RSF_1 = RSI(2_2,0.208*FF,CF) * SF
+      RSF_2 = RSI(11_2,0.208*FF,CF) * SF
+      ISF_c = C%PC*ISF(2_2,RSF_1,CF) + &
+              (1.0-C%PC)*ISF(11_2,RSF_2,CF)
+
+   ELSE IF (C%IFBFM .EQ. 70 .OR. C%IFBFM .EQ. 90 .OR. &
+            (C%IFBFM .GE. 700 .AND. C%IFBFM .LE. 799) .OR. &
+            (C%IFBFM .GE. 900 .AND. C%IFBFM .LE. 999)) THEN
+      ! M-3
+      RSF_1 = RSI(795_2,0.208*FF,CF) * SF
+      RSF_2 = RSI(11_2,0.208*FF,CF) * SF
+      ISF_c = C%PDF*ISF(795_2,RSF_1,CF) + &
+              (1.0-C%PDF)*ISF(11_2,RSF_2,CF)
+
+   ELSE IF (C%IFBFM .EQ. 80 .OR. &
+            (C%IFBFM .GE. 800 .AND. C%IFBFM .LE. 899)) THEN
+      ! M-4
+      RSF_1 = RSI(895_2,0.208*FF,CF) * SF
+      RSF_2 = RSI(11_2,0.208*FF,CF) * SF
+      ISF_c = C%PDF*ISF(895_2,RSF_1,CF) + &
+              (1.0-C%PDF)*ISF(11_2,RSF_2,CF)
+
    ELSE
-      ISF_c = ISF(C%IFBFM, RSF, CF)
+      ISF_c = ISF(C%IFBFM,RSF,CF)
    ENDIF
-   
-   WSE1 = log(ISF_c/(0.208*FF))/0.05039
-   if (ISF_c .lt. 0.999*2.496*FF) THEN
-      WSE2 = 28-log(1-ISF_c/(2.496*FF))/0.0818
+
+   ! Equivalent slope wind speed.
+   WSE1 = LOG(ISF_c/(0.208*FF)) / 0.05039
+
+   IF (ISF_c .LT. 0.999*2.496*FF) THEN
+      WSE2 = 28.0 - LOG(1.0 - ISF_c/(2.496*FF)) / 0.0818
    ELSE
-      WSE2 = 112.45 
-   endif
-   if (WSE1 .le. 40) then
-      WSE=WSE1
-   else
-      WSE = WSE2 
-   endif
-   WSX = C%WS20_NOW*1.61*1.15*sin(C%WD20_NOW * PIO180+ PI) + WSE*sin(aspect * PIO180 + PI)
-   WSY = C%WS20_NOW*1.61*1.15*cos(C%WD20_NOW * PIO180+ PI) + WSE*cos(aspect * PIO180 + PI)
-   !WSY = WSY * (-1.0) !So it is positive upwards.
-   !WSX = WSX * (-1.0) !So it is positive rightwards. 
-   C%WSV = sqrt(WSX**2+WSY**2)
-   C%RAZ = acos(WSY/C%WSV)/PIO180
-   if (WSX .lt. 0) C%RAZ = 360 - C%RAZ
+      WSE2 = 112.45
+   ENDIF
+
+   IF (WSE1 .LE. 40.0) THEN
+      WSE = WSE1
+   ELSE
+      WSE = WSE2
+   ENDIF
+
+   ! Combine actual 10-m wind with equivalent slope wind.
+   WSX = C%WS20_NOW * MPH_20FT_TO_KMPH_10M * &
+         SIN(C%WD20_NOW*PIO180 + PI) + WSE*SIN(aspect*PIO180 + PI)
+
+   WSY = C%WS20_NOW * MPH_20FT_TO_KMPH_10M * &
+         COS(C%WD20_NOW*PIO180 + PI) + WSE*COS(aspect*PIO180 + PI)
+
+   C%WSV = SQRT(WSX*WSX + WSY*WSY)
+
+   ! RAZ is the resultant direction of maximum spread, degrees clockwise
+   ! from north in the TO direction.
+   IF (C%WSV .LE. 1.0E-6) THEN
+      C%RAZ = 0.0
+   ELSE
+      C%RAZ = MODULO(ATAN2(WSX,WSY)/PIO180 + 360.0,360.0)
+   ENDIF
 
    FW = CFFDRS_FW(C%WSV)
-
    C%ISI = 0.208 * FF * FW
-   ! ----------------- RATE OF SPREAD -------------------
-   RSI_c = RSI(C%IFBFM, C%ISI, CF)
 
-   BE = exp(50*log(FUEL_MODEL_TABLE_FBP(C%IFBFM)%q)*(1/BUI_c - 1/FUEL_MODEL_TABLE_FBP(C%IFBFM)%BUI0))
-   BE = min(BE, FUEL_MODEL_TABLE_FBP(C%IFBFM)%BE_max)
-   ! print *, C%IFBFM, FUEL_MODEL_TABLE_FBP(C%IFBFM)%BE_max, BUI_c, FUEL_MODEL_TABLE_FBP(C%IFBFM)%BUI0, FUEL_MODEL_TABLE_FBP(C%IFBFM)%q
-   ROS = RSI_c * BE ! m/min
-   C%VELOCITY_DMS_SURFACE = ROS * 3.28 * (C%ADJ + PERTURB_ADJ) * DIURNAL_ADJUSTMENT_FACTOR !ft/min
+   ! --------------------------------------------------------------------------
+   ! RATE OF SPREAD
+   ! --------------------------------------------------------------------------
+
+   RSI_c = RSI(C%IFBFM,C%ISI,CF)
+   C%RSI_FBP = RSI_c
+
+   ! Buildup effect.
+   IF (BUI_LOCAL .LE. 0.0) THEN
+      BE = 0.0
+   ELSE IF (FUEL_MODEL_TABLE_FBP(C%IFBFM)%BUI0 .LE. 0.0) THEN
+      BE = 1.0
+   ELSE
+      BE = EXP(50.0 * LOG(FUEL_MODEL_TABLE_FBP(C%IFBFM)%q) * &
+           (1.0/BUI_LOCAL - 1.0/FUEL_MODEL_TABLE_FBP(C%IFBFM)%BUI0))
+      BE = MAX(0.0,MIN(BE,FUEL_MODEL_TABLE_FBP(C%IFBFM)%BE_max))
+   ENDIF
+   C%BE_FBP = BE
+
+   ! Surface head ROS, m/min before ELMFIRE operational adjustment factors.
+   ROS = RSI_c * BE
+
+   ! Store adjusted surface head ROS internally in ft/min.
+   C%VELOCITY_DMS_SURFACE = ROS * 3.28 * &
+                            (C%ADJ + PERTURB_ADJ) * &
+                            DIURNAL_ADJUSTMENT_FACTOR
+
 #ifdef _SUPPRESSION
-   ! new suppression model :: modified below
    IF (ENABLE_EXTENDED_ATTACK) THEN
-      IF (EXTENDED_ATTACK_MODEL .EQ. 0) THEN
-         C%VELOCITY_DMS_SURFACE = C%VELOCITY_DMS_SURFACE * C%SUPPRESSION_ADJUSTMENT_FACTOR
-      ELSE IF (EXTENDED_ATTACK_MODEL .EQ. 1) THEN
-         C%VELOCITY_DMS_SURFACE = C%VELOCITY_DMS_SURFACE * C%SUPPRESSION_ADJUSTMENT_FACTOR
+      IF (EXTENDED_ATTACK_MODEL .EQ. 0 .OR. EXTENDED_ATTACK_MODEL .EQ. 1) THEN
+         C%VELOCITY_DMS_SURFACE = C%VELOCITY_DMS_SURFACE * &
+                                  C%SUPPRESSION_ADJUSTMENT_FACTOR
       ELSE
          WRITE(*,*) 'Error: "EXTENDED_ATTACK_MODEL" should be 0 or 1 in namelist!'
          STOP
       ENDIF
    ENDIF
-   ! new suppression model
 #endif
-   
-   FFMC = (14867.2 - 59.5*M)/(147.2+M)
-   C%SFC = SFC(C%IFBFM, FFMC, BUI_c)
-   C%FLIN_DMS_SURFACE = 300 * ROS * C%SFC! kW/m
-   C%VS0 = RSI(C%IFBFM, 0.208*FF, CF) * BE ! RSZ m/min, no wind, no slope
-   C%IR = 0! kW/m2, CANADIAN FBP HAS NO PROVISION FOR RESIDENCE TIME OR HEAT PER UNIT AREA.
 
-   ! ----------------- SLOPE AND WIND MAGNITUDES  -------------------
-   ! recalculate slope only ROS, in direction of max spread
-   ! (the earlier windy/ISI_s recompute was dead - overwritten before use)
+   ! Surface fuel consumption.
+   FFMC = (14867.2 - 59.5*M) / (147.2 + M)
+   C%SFC = SFC(C%IFBFM,FFMC,BUI_LOCAL)
+
+   ! No-wind/no-slope surface ROS, m/min.
+   C%VS0 = RSI(C%IFBFM,0.208*FF,CF) * BE
+
+   ! --------------------------------------------------------------------------
+   ! SLOPE/WIND MAGNITUDES
+   !
+   ! These are retained for diagnostics/legacy state. CFFDRS propagation
+   ! direction itself is now taken directly from RAZ.
+   ! --------------------------------------------------------------------------
 
    FW = CFFDRS_FW(WSE)
    ISI_s = 0.208 * FF * FW
-   RSF = RSI(C%IFBFM, ISI_s, CF)*BE
-   
-   ! print *, RSF, ROS, C%WSV, WSE, C%WS20_NOW*1.61*1.15
-   C%PHIS_SURFACE = SF/BE - 1
-   C%PHIW_SURFACE = ROS/C%VS0 - 1 - C%PHIS_SURFACE
+   RSF = RSI(C%IFBFM,ISI_s,CF) * BE
 
-   C%VS0 = C%VS0 * 3.28 ! ft/min
-   C%HPUA_SURFACE = 0. ! kJ/m2, CANADIAN FBP HAS NO PROVISION FOR RESIDENCE TIME OR HEAT PER UNIT AREA.
-   
-   ! print *, "ISI:", C%ISI, "SFC:", C%SFC, "RSS:", ROS
+   IF (C%VS0 .LE. 0.0) THEN
+      C%PHIS_SURFACE = 0.0
+      C%PHIW_SURFACE = 0.0
+   ELSE
+      C%PHIS_SURFACE = MAX(RSF/C%VS0 - 1.0,0.0)
+      C%PHIW_SURFACE = MAX(ROS/C%VS0 - 1.0 - C%PHIS_SURFACE,0.0)
+   ENDIF
 
-   C%FLIN_CANOPY = 0 ! CFFDRS does not really differentiate between surface and canopy FLIN, and requires final ROS for the calculation anyway.
-   C%PHIW_CROWN = 0 ! not included in cffdrs calculations
+   ! Convert no-wind/no-slope ROS to ELMFIRE internal ft/min.
+   C%VS0 = C%VS0 * 3.28
+
+   ! FBP does not use the Rothermel residence-time / HPUA formulation.
+   C%IR = 0.0
+   C%HPUA_SURFACE = 0.0
+
+   ! Compute current CFB/CFC/fire type and final C-6 head ROS deterministically.
+   ! This sets C%VELOCITY_DMS to the final FBP head ROS and updates
+   ! C%FLIN_DMS_SURFACE using current crown state.
+   CALL CFFDRS_HEAD_CROWN_BEHAVIOR(C)
 
    C => C%NEXT
-
 ENDDO
 
 ! ***************************************************************************** 
-end subroutine CFFDRS_SPREAD_RATE
+END SUBROUTINE CFFDRS_SPREAD_RATE
 ! *****************************************************************************
 
 ! *****************************************************************************
-subroutine UPDATE_LOCAL_SPREAD_PROPERTIES(L,DUMMY_NODE,DEFER_DERIVED)
+SUBROUTINE CFFDRS_HEAD_CROWN_BEHAVIOR(C)
 ! *****************************************************************************
-! Finalizes crown-fire state and intensity for each node in L (or DUMMY_NODE)
-! using the already-computed surface velocity: computes crown fraction burned,
-! crown fuel consumption, total surface+canopy fireline intensity, flame
-! length, and HRRPUA. Handles both CFFDRS and Rothermel surface models.
-! Only the tagged RK stages may defer unused flame length/HRRPUA until burn
-! discovery. Other callers (initial burned cells, mode 2, dummy nodes) retain
-! the full update by default.
-TYPE (DLL), INTENT(INOUT) :: L
-TYPE (NODE), POINTER, INTENT(INOUT) :: DUMMY_NODE
+! Computes deterministic CFFDRS/FBP head-fire crown behavior from the current
+! surface-fire state. No crown quantities from a previous evaluation are used.
+!
+! VELOCITY_DMS_SURFACE remains the surface head ROS.
+! VELOCITY_DMS becomes the final FBP head ROS, including C-6 crown adjustment.
+! FLIN_DMS_SURFACE stores total CFFDRS head-fire intensity (surface + crown).
+
+TYPE(NODE), POINTER, INTENT(INOUT) :: C
+REAL :: RSS, RSO, RSC, FME, ROS_FINAL
+
+! Reset all CFFDRS crown state before evaluating the current conditions.
+C%CROWN_FIRE = 0
+C%CFB = 0.0
+C%CFC = 0.0
+C%TFC = C%SFC
+C%RSO_FBP = 0.0
+C%FLIN_CANOPY = 0.0
+C%PHIW_CROWN = 0.0
+
+! Surface head ROS currently being propagated, m/min.
+RSS = MAX(C%VELOCITY_DMS_SURFACE / 3.28, 0.0)
+ROS_FINAL = RSS
+C%VELOCITY_DMS = C%VELOCITY_DMS_SURFACE
+
+! Recalculate the crown-initiation threshold from the current FMC rather than
+! retaining a value calculated during an earlier weather evaluation.
+C%CRITICAL_FLIN = 9E9
+CALL CROWN_CRITICAL_FLIN(C)
+
+! Surface-only head-fire intensity before crown involvement.
+C%FLIN_DMS_SURFACE = 300.0 * C%SFC * RSS
+
+! RSO is an FBP diagnostic/output, not merely a crown-fire gate.  Calculate it
+! whenever SFC is positive, even when the current head fire does not initiate crowning.
+IF (C%SFC .GT. 1.0E-6) THEN
+   RSO = C%CRITICAL_FLIN / (300.0*C%SFC)
+   C%RSO_FBP = RSO
+ELSE
+   RSO = 0.0
+   C%RSO_FBP = 0.0
+ENDIF
+
+IF (CROWN_FIRE_MODEL .LE. 0) RETURN
+IF (C%SFC .LE. 1.0E-6) RETURN
+IF (FUEL_MODEL_TABLE_FBP(C%IFBFM)%CFL .LE. 0.0) RETURN
+IF (CBH%R4(C%IX,C%IY,1) .LE. 0.0) RETURN
+IF (RSS .LE. RSO) RETURN
+
+C%CFB = MIN(1.0,MAX(0.0,1.0-EXP(-0.23*(RSS-RSO))))
+
+IF (C%CFB .LE. 0.1) THEN
+   C%CROWN_FIRE = 0
+ELSE IF (C%CFB .LT. 0.9) THEN
+   C%CROWN_FIRE = 1
+ELSE
+   C%CROWN_FIRE = 2
+ENDIF
+
+IF (C%IFBFM .EQ. 40 .OR. C%IFBFM .EQ. 50 .OR. C%IFBFM .EQ. 60 .OR. &
+    (C%IFBFM .GE. 400 .AND. C%IFBFM .LE. 699)) THEN
+   C%CFC = FUEL_MODEL_TABLE_FBP(C%IFBFM)%CFL*C%CFB*C%PC
+ELSE IF (C%IFBFM .EQ. 70 .OR. C%IFBFM .EQ. 80 .OR. C%IFBFM .EQ. 90 .OR. &
+         (C%IFBFM .GE. 700 .AND. C%IFBFM .LE. 999)) THEN
+   C%CFC = FUEL_MODEL_TABLE_FBP(C%IFBFM)%CFL*C%CFB*C%PDF
+ELSE
+   C%CFC = FUEL_MODEL_TABLE_FBP(C%IFBFM)%CFL*C%CFB
+ENDIF
+C%TFC = C%SFC + C%CFC
+
+IF (C%IFBFM .EQ. 6) THEN
+   IF (C%CFC .LE. 0.0) THEN
+      RSC = 0.0
+   ELSE
+      FME = 1000.0*((1.5-0.00275*C%FMC)**4.0)/(460.0+25.9*C%FMC)
+      RSC = 60.0*(1.0-EXP(-0.0497*C%ISI))*FME/0.778237
+   ENDIF
+   ROS_FINAL = RSS + C%CFB*(RSC-RSS)
+ENDIF
+
+C%VELOCITY_DMS = ROS_FINAL * 3.28
+C%FLIN_DMS_SURFACE = 300.0 * (C%SFC + C%CFC) * ROS_FINAL
+
+! *****************************************************************************
+END SUBROUTINE CFFDRS_HEAD_CROWN_BEHAVIOR
+! *****************************************************************************
+
+! *****************************************************************************
+SUBROUTINE UPDATE_LOCAL_SPREAD_PROPERTIES(L,DUMMY_NODE,DEFER_DERIVED)
+! *****************************************************************************
+! Finalizes local fireline intensity and derived output quantities.
+!
+! CFFDRS crown state (CFB, CFC, CROWN_FIRE and C-6 final head ROS) is computed
+! deterministically in CFFDRS_HEAD_CROWN_BEHAVIOR before ellipse propagation.
+! This routine therefore does not derive CFFDRS crown behavior from stale or
+! local post-ellipse state.
+!
+! Rothermel crown-fire behavior remains separate and unchanged.
+
+TYPE(DLL), INTENT(INOUT) :: L
+TYPE(NODE), POINTER, INTENT(INOUT) :: DUMMY_NODE
 LOGICAL, OPTIONAL, INTENT(IN) :: DEFER_DERIVED
 
 TYPE(NODE), POINTER :: C
-INTEGER :: I, NUM_NODES, IX, IY, RSO
-REAL :: FME, RSC, CROS, CBD_EFF, WS10KMPH, CROSA, R0, CAC
+INTEGER :: I, NUM_NODES, IX, IY
+REAL :: CROS, CBD_EFF, WS10KMPH, CROSA, R0, CAC
 LOGICAL :: UPDATE_DERIVED
 
 UPDATE_DERIVED = .TRUE.
 IF (PRESENT(DEFER_DERIVED)) UPDATE_DERIVED = .NOT. DEFER_DERIVED
+
 ! Conservatively preserve stage values for physics consumers. Evaluate per
-! call, not once per run: feature state can change (notably smoke).
+! call, not once per run: feature state can change.
 UPDATE_DERIVED = UPDATE_DERIVED .OR. ASSOCIATED(DUMMY_NODE) .OR. USE_BARRIERS
 #ifdef _WUI
 UPDATE_DERIVED = UPDATE_DERIVED .OR. USE_BLDG_SPREAD_MODEL
@@ -344,7 +537,7 @@ UPDATE_DERIVED = UPDATE_DERIVED .OR. ENABLE_EXTENDED_ATTACK
 UPDATE_DERIVED = UPDATE_DERIVED .OR. ENABLE_SMOKE_OUTPUTS
 #endif
 
-IF (ASSOCIATED (DUMMY_NODE) ) THEN
+IF (ASSOCIATED(DUMMY_NODE)) THEN
    NUM_NODES = 1
    C => DUMMY_NODE
 ELSE
@@ -356,76 +549,63 @@ DO I = 1, NUM_NODES
    IX = C%IX
    IY = C%IY
 
-   if (C%IFBFM .eq. 6 .and. C%CROWN_FIRE .gt. 0) then ! C-6 special condition 
-      FME = 1000*((1.5-0.00275*C%FMC)**4.0)/(460+(25.9*C%FMC))
-      RSC = 60*(1-exp(-0.0497*C%ISI))*FME/0.778
-      C%VELOCITY = C%VELOCITY + C%CFB*(RSC - C%VELOCITY/3.28) * 3.28 !ft/min
-   endif
+   IF (SURFACE_MODEL_CFFDRS) THEN
+      ! CFFDRS stores total surface+crown intensity in FLIN_SURFACE. Crown
+      ! consumption was already calculated from the current head-fire state.
+      C%FLIN_CANOPY = 0.0
+      C%FLIN_SURFACE = 300.0 * (C%SFC + C%CFC) * MAX(C%VELOCITY/3.28,0.0)
 
-   if (SURFACE_MODEL_CFFDRS) C%FLIN_SURFACE = 300 * (C%SFC + C%CFC) * C%VELOCITY / 3.28
+   ELSE IF (SURFACE_MODEL_ROTHERMEL) THEN
+      CALL CROWN_CRITICAL_FLIN(C)
 
-   CALL CROWN_CRITICAL_FLIN(C)
-
-   if (C%FLIN_SURFACE .lt. C%CRITICAL_FLIN .or. CROWN_FIRE_MODEL .le. 0) then 
-      C%CROWN_FIRE = 0
-      C%FLIN_CANOPY = 0
-   else IF (C%VS0 .GT. 0. .AND. CBD%R4(IX,IY,1) .GT. 1E-3 .AND. CC%R4(IX,IY,1) .GT. 1E-3) THEN   
-      if (SURFACE_MODEL_CFFDRS) then
-         RSO = C%CRITICAL_FLIN /(300*C%SFC)
-         C%CFB = MAX(0.0,1-exp(-0.23*(C%VELOCITY/3.28-RSO)))
-         
-         if (C%CFB .lt. 0.1) C%CROWN_FIRE = 0
-         if (C%CFB .lt. 0.9 .and. C%CFB .gt. 0.1) C%CROWN_FIRE = 1
-         if (C%CFB .gt. 0.9) C%CROWN_FIRE = 2
-
-         C%CFC=0
-         IF ((C%IFBFM .ge. 40 .and. C%IFBFM .le. 60) .or. (C%IFBFM .ge. 400 .and. C%IFBFM .le. 699)) then ! M1, M2
-            C%CFC = FUEL_MODEL_TABLE_FBP(C%IFBFM)%CFL*C%CFB * C%PC
-         ELSE IF (C%IFBFM .eq. 70 .or. C%IFBFM .eq. 90 .or. C%IFBFM .ge. 700) THEN ! M3, M4
-            C%CFC = FUEL_MODEL_TABLE_FBP(C%IFBFM)%CFL*C%CFB * C%PDF
-         ELSE
-            C%CFC = FUEL_MODEL_TABLE_FBP(C%IFBFM)%CFL*C%CFB
-         ENDIF
-
-      else if (SURFACE_MODEL_ROTHERMEL) then
+      IF (C%FLIN_SURFACE .LT. C%CRITICAL_FLIN .OR. CROWN_FIRE_MODEL .LE. 0) THEN
+         C%CROWN_FIRE = 0
+         C%FLIN_CANOPY = 0.0
+      ELSE IF (C%VS0 .GT. 0.0 .AND. CBD%R4(IX,IY,1) .GT. 1E-3 .AND. &
+               CC%R4(IX,IY,1) .GT. 1E-3) THEN
          C%FLIN_CANOPY = C%HPUA_CANOPY * C%VELOCITY * 5.08E-3
-         CROS = 0.
-         CBD_EFF  = MAX(CBD%R4(IX,IY,1) + PERTURB_CBD, 0.01)
+         CROS = 0.0
+         CBD_EFF = MAX(CBD%R4(IX,IY,1) + PERTURB_CBD,0.01)
          WS10KMPH = C%WS20_NOW * MPH_20FT_TO_KMPH_10M
-         CROSA    = CROWN_FIRE_ADJ * 11.02 * WS10KMPH**0.9 * CBD_EFF**0.19 * EXP(-0.17*100.0*C%M1) / 0.3048 ! ft / min
-         CROSA    = MIN(CROSA,CROWN_FIRE_SPREAD_RATE_LIMIT) ! ft/min
-         R0       = (3.0 / CBD_EFF) / 0.3048 !ft/min
-         CAC      = CROSA / R0
-         IF (CAC .GT. 1) THEN !Active crown fire
-            IF (CC%R4(IX,IY,1) .GE. CRITICAL_CANOPY_COVER) THEN 
+         CROSA = CROWN_FIRE_ADJ * 11.02 * WS10KMPH**0.9 * CBD_EFF**0.19 * &
+                 EXP(-0.17*100.0*C%M1) / 0.3048
+         CROSA = MIN(CROSA,CROWN_FIRE_SPREAD_RATE_LIMIT)
+         R0 = (3.0/CBD_EFF) / 0.3048
+         CAC = CROSA/R0
+
+         IF (CAC .GT. 1.0) THEN
+            IF (CC%R4(IX,IY,1) .GE. CRITICAL_CANOPY_COVER) THEN
                C%CROWN_FIRE = 2
                CROS = CROSA
-               C%PHIW_CROWN = MIN(MAX(CROS / MAX(C%VS0, 0.001) - 1.0, 0.0), 200.0)
+               C%PHIW_CROWN = MIN(MAX(CROS/MAX(C%VS0,0.001) - 1.0,0.0),200.0)
             ELSE
                C%CROWN_FIRE = 1
             ENDIF
-         ELSE ! Passive crown fire
+         ELSE
             C%CROWN_FIRE = 1
             IF (CC%R4(IX,IY,1) .GE. CRITICAL_CANOPY_COVER) THEN
                CROS = CROSA * EXP(-CAC)
-               C%PHIW_CROWN = MIN(MAX(CROS / MAX(C%VS0,0.001) - 1.0, 0.0), 200.0)
+               C%PHIW_CROWN = MIN(MAX(CROS/MAX(C%VS0,0.001) - 1.0,0.0),200.0)
             ENDIF
          ENDIF
-      endif
-   endif
+      ENDIF
+   ENDIF
 
    IF (UPDATE_DERIVED) THEN
-      C%FLAME_LENGTH = (0.0775 / 0.3048) * (C%FLIN_SURFACE + C%FLIN_CANOPY) ** 0.46
+      C%FLAME_LENGTH = (0.0775/0.3048) * (C%FLIN_SURFACE + C%FLIN_CANOPY)**0.46
       C%HRRPUA = (C%FLIN_SURFACE + C%FLIN_CANOPY) / ASP%CELLSIZE
    ENDIF
 
    C => C%NEXT
-enddo
+ENDDO
+
 ! *****************************************************************************
-end subroutine UPDATE_LOCAL_SPREAD_PROPERTIES
+END SUBROUTINE UPDATE_LOCAL_SPREAD_PROPERTIES
 ! *****************************************************************************
 
-subroutine CROWN_CRITICAL_FLIN(C)
+! *****************************************************************************
+SUBROUTINE CROWN_CRITICAL_FLIN(C)
+! *****************************************************************************
 ! Computes (once, then caches) the critical surface fireline intensity required
 ! for crown-fire initiation at node C, along with canopy heat-per-unit-area,
 ! from canopy bulk density, canopy/base heights, and foliar moisture content.
@@ -438,17 +618,37 @@ IX = C%IX
 IY = C%IY
 
 IF (C%CRITICAL_FLIN .GT. 1E9) THEN
-   C%HPUA_CANOPY = CBD%R4(IX,IY,1) * MAX(CH%R4(IX,IY,1) - CBH%R4(IX,IY,1),0.) * 12000. !kJ/m2
-   IF (CBH%R4(IX,IY,1) .GE. 0.) THEN
-      FMCTERM = 460. + 26. * C%FMC
-      CBH_EFF = MAX(CBH%R4(IX,IY,1) + PERTURB_CBH, 0.1)
-      C%CRITICAL_FLIN = (0.01 * CBH_EFF * FMCTERM) ** 1.5
+   IF (SURFACE_MODEL_CFFDRS) THEN
+      ! FBP crown initiation uses CBH and FMC only.  Do not touch CBD here:
+      ! CFFDRS does not require a canopy-bulk-density raster.  Fuels with zero
+      ! CFL are non-crowning in the FBP reference and therefore have CSFI=0.
+      C%HPUA_CANOPY = 0.0
+      IF (FUEL_MODEL_TABLE_FBP(C%IFBFM)%CFL .LE. 0.0) THEN
+         C%CRITICAL_FLIN = 0.0
+      ELSE IF (CBH%R4(IX,IY,1) .GE. 0.0) THEN
+         FMCTERM = 460.0 + 25.9*C%FMC
+         CBH_EFF = MAX(CBH%R4(IX,IY,1) + PERTURB_CBH, 0.0)
+         C%CRITICAL_FLIN = (0.01 * CBH_EFF * FMCTERM) ** 1.5
+      ELSE
+         C%CRITICAL_FLIN = 9E9
+      ENDIF
    ELSE
-      C%CRITICAL_FLIN = 9E9
+      ! Preserve the existing Rothermel crown-fire formulation.
+      C%HPUA_CANOPY = CBD%R4(IX,IY,1) * &
+                      MAX(CH%R4(IX,IY,1) - CBH%R4(IX,IY,1),0.) * 12000. !kJ/m2
+      IF (CBH%R4(IX,IY,1) .GE. 0.0) THEN
+         FMCTERM = 460.0 + 26.0*C%FMC
+         CBH_EFF = MAX(CBH%R4(IX,IY,1) + PERTURB_CBH, 0.1)
+         C%CRITICAL_FLIN = (0.01 * CBH_EFF * FMCTERM) ** 1.5
+      ELSE
+         C%CRITICAL_FLIN = 9E9
+      ENDIF
    ENDIF
 ENDIF
 
-end subroutine CROWN_CRITICAL_FLIN
+! *****************************************************************************
+END SUBROUTINE CROWN_CRITICAL_FLIN
+! *****************************************************************************
 
 #ifdef _WUI
 ! *****************************************************************************

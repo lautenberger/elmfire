@@ -115,12 +115,21 @@ CALL MPI_BCAST(MLH%R4 , WEATHER_COUNT, MPI_REAL, 0, MPI_COMM_HOST_IRANK0, IERR)
 CALL MPI_BCAST(MLW%R4 , WEATHER_COUNT, MPI_REAL, 0, MPI_COMM_HOST_IRANK0, IERR)
 CALL MPI_BCAST(MFOL%R4, WEATHER_COUNT, MPI_REAL, 0, MPI_COMM_HOST_IRANK0, IERR)
 
+IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER) THEN
+   CALL MPI_BCAST(BUI%R4, WEATHER_COUNT, MPI_REAL, 0, MPI_COMM_HOST_IRANK0, IERR)
+ENDIF
+IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER) THEN
+   CALL MPI_BCAST(GCF%R4, WEATHER_COUNT, MPI_REAL, 0, MPI_COMM_HOST_IRANK0, IERR)
+ENDIF
+
 IF (USE_ERC) THEN
    CALL MPI_BCAST(ERC%R4, WEATHER_COUNT, MPI_REAL, 0, MPI_COMM_HOST_IRANK0, IERR)
    CALL MPI_BCAST(IGNFAC%R4, WEATHER_COUNT, MPI_REAL, 0, MPI_COMM_HOST_IRANK0, IERR)
 ENDIF
 
+! *****************************************************************************
 END SUBROUTINE BCAST_WEATHER
+! *****************************************************************************
 
 ! *****************************************************************************
 SUBROUTINE BCAST_FUEL_TOPOGRAPHY
@@ -633,6 +642,22 @@ SELECT CASE (IQUANTITY)
          C => C%NEXT
       ENDDO
 
+   CASE (8)
+      DO I = 1, L%NUM_NODES
+         ICOL = WX_ICOL_FROM_ANALYSIS_IX(C%IX)
+         IROW = WX_IROW_FROM_ANALYSIS_IY(C%IY)
+         C%BUI = MAX(LO(ICOL,IROW), 0.0)
+         C => C%NEXT
+      ENDDO
+
+   CASE (9)
+      DO I = 1, L%NUM_NODES
+         ICOL = WX_ICOL_FROM_ANALYSIS_IX(C%IX)
+         IROW = WX_IROW_FROM_ANALYSIS_IY(C%IY)
+         C%GCF = MAX(0.0,MIN(100.0,LO(ICOL,IROW)))
+         C => C%NEXT
+      ENDDO
+
 END SELECT
 
 ! *****************************************************************************
@@ -689,7 +714,11 @@ DO I = 1, L%NUM_NODES
          C%WS20_INTERP = MAX(PNOW + PERTURB_WS, 0.0)
          C%WS20_NOW = C%WS20_INTERP
          C%WSMF = C%WS20_NOW * MAX((WAF%R4(C%IX,C%IY,1) + PERTURB_WAF),0.) * CONVERSION_FACTOR
-      END SELECT
+      CASE (8)
+         C%BUI = MAX(PNOW, 0.0)
+      CASE (9)
+         C%GCF = MAX(0.0,MIN(100.0,PNOW))
+   END SELECT
    
    C => C%NEXT
 
@@ -816,7 +845,7 @@ SUBROUTINE INTERP_WIND_SINGLE_BILINEAR(NODEIN,WSLO,WSHI,WDLO,WDHI,F)
 ! temporally interpolates the wind field at NODEIN via U/V components and sets
 ! its WS20_NOW, WD20_NOW, and midflame wind WSMF (with PERTURB_WS/WD/WAF).
 
-TYPE(NODE), POINTER, INTENT(OUT) :: NODEIN
+TYPE(NODE), POINTER, INTENT(INOUT) :: NODEIN
 REAL, DIMENSION(:,:), INTENT(IN) :: WSLO,WSHI,WDLO,WDHI
 REAL, INTENT(IN) :: F
 TYPE(NODE), POINTER :: C
@@ -1070,7 +1099,7 @@ SUBROUTINE INTERP_RASTER_LINKEDLIST_SINGLE(NODEIN,LO,HI,F,IQUANTITY)
 ! interpolates the weather quantity selected by IQUANTITY between LO and HI
 ! (fraction F) at NODEIN and applies the matching PERTURB_* offset/floor.
 
-TYPE (NODE), POINTER, INTENT(OUT) :: NODEIN
+TYPE (NODE), POINTER, INTENT(INOUT) :: NODEIN
 REAL, DIMENSION(:,:), INTENT(IN) :: LO,HI
 INTEGER, INTENT(IN) :: IQUANTITY
 REAL, INTENT(IN) :: F
@@ -1113,6 +1142,10 @@ SELECT CASE (IQUANTITY)
       C%WS20_INTERP = MAX(C%WS20_INTERP + PERTURB_WS, 0.0)
       C%WS20_NOW = C%WS20_INTERP
       C%WSMF = C%WS20_NOW * MAX((WAF%R4(C%IX,C%IY,1) + PERTURB_WAF),0.) * CONVERSION_FACTOR
+   CASE (8)
+      C%BUI = MAX(LO(ICOL,IROW),0.0)
+   CASE (9)
+      C%GCF = MAX(0.0,MIN(100.0,LO(ICOL,IROW)))
 
 END SELECT
 
@@ -1127,7 +1160,7 @@ SUBROUTINE INTERP_RASTER_LINKEDLIST_SINGLE_BILINEAR(NODEIN,LO,HI,F,IQUANTITY)
 ! and temporally interpolates the weather quantity selected by IQUANTITY between
 ! LO and HI (fraction F) at NODEIN, applying the matching PERTURB_* offset.
 
-TYPE (NODE), POINTER, INTENT(OUT) :: NODEIN
+TYPE (NODE), POINTER, INTENT(INOUT) :: NODEIN
 REAL, DIMENSION(:,:), INTENT(IN) :: LO,HI
 INTEGER, INTENT(IN) :: IQUANTITY
 REAL, INTENT(IN) :: F
@@ -1168,6 +1201,10 @@ SELECT CASE (IQUANTITY)
       C%WS20_INTERP = MAX(PNOW + PERTURB_WS, 0.0)
       C%WS20_NOW = C%WS20_INTERP
       C%WSMF = C%WS20_NOW * MAX((WAF%R4(C%IX,C%IY,1) + PERTURB_WAF),0.) * CONVERSION_FACTOR
+   CASE (8)
+      C%BUI = MAX(PNOW, 0.0)
+   CASE (9)
+      C%GCF = MAX(0.0,MIN(100.0,PNOW))
 END SELECT
 
 ! *****************************************************************************
@@ -1559,6 +1596,12 @@ IF (NPROC .GT. 1) THEN
    CALL MPI_WIN_FREE(WIN_M1           )
    CALL MPI_WIN_FREE(WIN_M10          )
    CALL MPI_WIN_FREE(WIN_M100         )
+   IF (SURFACE_MODEL_CFFDRS .AND. USE_BUI_RASTER) THEN
+      CALL MPI_WIN_FREE(WIN_BUI)
+   ENDIF
+   IF (SURFACE_MODEL_CFFDRS .AND. USE_GCF_RASTER) THEN
+      CALL MPI_WIN_FREE(WIN_GCF)
+   ENDIF
    IF (USE_ERC) THEN
       CALL MPI_WIN_FREE(WIN_ERC       )
       CALL MPI_WIN_FREE(WIN_IGNFAC    )
@@ -1795,7 +1838,7 @@ select case (FUEL)
       PC = mod(FUEL, 100)/100.0
       out = PC * SFC(2_2,FFMC,BUI) + (1 - PC) * SFC(11_2,FFMC,BUI)
    case(31,32,33)
-      out = 0.35
+      out = MAX(FUEL_MODEL_TABLE_FBP(FUEL)%GFL, 0.0)
    case (21)
       out = max(0.0,4*(1-exp(-0.034*BUI)))+4.0*(1-exp(-0.025*BUI))
    case (22)
@@ -1811,7 +1854,7 @@ END FUNCTION SFC
 ! *****************************************************************************
 
 ! *****************************************************************************
-REAL FUNCTION BUI(day_of_weather, month_of_weather)
+REAL FUNCTION CALC_DAILY_BUI(day_of_weather, month_of_weather)
 ! *****************************************************************************
 ! Returns the Canadian FWI Buildup Index for the given day/month by advancing
 ! the Drought Code and Duff Moisture Code from temperature, humidity, and
@@ -1856,9 +1899,9 @@ DC_prev = DC
 
 ! -------------- BUILD-UP INDEX ---------------------
 
-BUI = 0.8*DMC*DC/(DMC+0.4*DC)
+CALC_DAILY_BUI = 0.8*DMC*DC/(DMC+0.4*DC)
 ! *****************************************************************************
-END FUNCTION BUI
+END FUNCTION CALC_DAILY_BUI
 ! *****************************************************************************
 
 ! *****************************************************************************
